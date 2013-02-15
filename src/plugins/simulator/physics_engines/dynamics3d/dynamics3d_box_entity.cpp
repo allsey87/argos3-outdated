@@ -151,6 +151,16 @@ namespace argos {
    /****************************************/
    /****************************************/
    
+   /** TODO Check if this is the correct place / way of doing this **/
+   void CDynamics3DBoxEntity::AddToWorld(btDiscreteDynamicsWorld* pc_world) {
+      pc_world->addRigidBody(m_pcRigidBody);
+   }
+   
+   /** TODO Check if this is the correct place / way of doing this **/
+   void CDynamics3DBoxEntity::RemoveFromWorld(btDiscreteDynamicsWorld* pc_world) {
+      pc_world->removeRigidBody(m_pcRigidBody);
+   }
+   
    REGISTER_STANDARD_DYNAMICS3D_OPERATIONS_ON_ENTITY(CBoxEntity, CDynamics3DBoxEntity);
 
    /****************************************/

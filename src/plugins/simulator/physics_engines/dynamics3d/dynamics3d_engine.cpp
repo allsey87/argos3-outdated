@@ -141,7 +141,7 @@ namespace argos {
       for(CDynamics3DEntity::TMap::iterator it = m_tPhysicsEntities.begin();
           it != m_tPhysicsEntities.end(); ++it) {
          it->second->UpdateEntityStatus();
-      } 
+      }
    }
    
    /****************************************/
@@ -190,6 +190,9 @@ namespace argos {
    void CDynamics3DEngine::AddPhysicsEntity(const std::string& str_id,
                                              CDynamics3DEntity& c_entity) {
       m_tPhysicsEntities[str_id] = &c_entity;
+      
+      /** TODO Check if this is the correct place / way of doing this **/
+      c_entity.AddToWorld(m_pcWorld);
    }
 
    /****************************************/
@@ -197,6 +200,10 @@ namespace argos {
    void CDynamics3DEngine::RemovePhysicsEntity(const std::string& str_id) {
       CDynamics3DEntity::TMap::iterator it = m_tPhysicsEntities.find(str_id);
       if(it != m_tPhysicsEntities.end()) {
+         
+         /** TODO Check if this is the correct place / way of doing this **/
+         it->second->RemoveFromWorld(m_pcWorld);
+         
          delete it->second;
          m_tPhysicsEntities.erase(it);
       }

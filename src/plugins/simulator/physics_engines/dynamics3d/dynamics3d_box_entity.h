@@ -37,6 +37,10 @@ namespace argos {
 
       virtual void UpdateEntityStatus();
       virtual void UpdateFromEntityStatus() {}
+      
+      /** TODO Check if this is the correct place / way of doing this **/
+      virtual void AddToWorld(btDiscreteDynamicsWorld* pc_world);
+      virtual void RemoveFromWorld(btDiscreteDynamicsWorld* pc_world);
 
    private:
 
