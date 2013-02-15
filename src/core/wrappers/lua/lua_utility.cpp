@@ -12,25 +12,27 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CLuaUtility::LoadScript(lua_State* pt_state,
+   bool CLuaUtility::LoadScript(lua_State* pt_state,
                                 const std::string& str_filename) {
       if(luaL_loadfile(pt_state, str_filename.c_str())) {
-         THROW_ARGOSEXCEPTION("Could not load Lua script file \"" << lua_tostring(pt_state, -1) << "\"");
+         return false;
       }
       if(lua_pcall(pt_state, 0, 0, 0)) {
-         THROW_ARGOSEXCEPTION("Error starting Lua script \"" << str_filename << "\": " << lua_tostring(pt_state, -1));
+         return false;
       }
+      return true;
    }
 
    /****************************************/
    /****************************************/
 
-   void CLuaUtility::CallFunction(lua_State* pt_state,
+   bool CLuaUtility::CallFunction(lua_State* pt_state,
                                   const std::string& str_function) {
       lua_getglobal(pt_state, str_function.c_str());
       if(lua_pcall(pt_state, 0, 0, 0)) {
-         THROW_ARGOSEXCEPTION("Could not execute Lua script file: " << lua_tostring(pt_state, -1));
+         return false;
       }
+      return true;
    }
 
    /****************************************/
@@ -97,11 +99,56 @@ namespace argos {
       size_t unTop = lua_gettop(pt_state);
       c_log << "Elements in stack: " << unTop << std::endl;
       for(size_t i = unTop; i > 0; --i) {
-         c_log << "[" << lua_typename(pt_state, lua_type(pt_state, i)) << "] ";
+         c_log << "#" << i << " [" << lua_typename(pt_state, lua_type(pt_state, i)) << "] ";
          PrintStackEntry(c_log, pt_state, i);
          c_log << std::endl;
       }
       c_log << "*** LUA STACK END ***" << std::endl;
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CLuaUtility::RegisterLoggerWrapper(lua_State* pt_state) {
+      lua_register(pt_state, "log", LOGWrapper);
+      lua_register(pt_state, "logerr", LOGERRWrapper);
+   }
+   
+   /****************************************/
+   /****************************************/
+
+   int CLuaUtility::LOGWrapper(lua_State* pt_state) {
+      return LoggerWrapper(LOG, pt_state);
+   }
+      
+   /****************************************/
+   /****************************************/
+
+   int CLuaUtility::LOGERRWrapper(lua_State* pt_state) {
+      return LoggerWrapper(LOGERR, pt_state);
+   }
+
+   /****************************************/
+   /****************************************/
+
+   int CLuaUtility::LoggerWrapper(CARGoSLog& c_log,
+                                  lua_State* pt_state) {
+      /* Get number of arguments */
+      UInt32 unArgc = lua_gettop(pt_state);
+      /* Send arguments to log one by one */
+      UInt32 unType;
+      for(UInt32 i = 1; i <= unArgc; ++i) {
+         unType = lua_type(pt_state, i);
+         switch(unType) {
+            case LUA_TBOOLEAN: c_log << lua_toboolean(pt_state, i); break;
+            case LUA_TNUMBER:  c_log << lua_tonumber (pt_state, i); break;
+            case LUA_TSTRING:  c_log << lua_tostring (pt_state, i); break;
+            default: c_log << lua_typename (pt_state, unType); break;
+         }
+      }
+      c_log << std::endl;
+      /* No result is calculated */
+      return 0;
    }
 
    /****************************************/

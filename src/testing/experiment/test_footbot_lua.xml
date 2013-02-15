@@ -12,7 +12,12 @@
   <!-- * Controllers * -->
   <!-- *************** -->
   <controllers>
-    <lua_footbot_controller id="x">
+
+    <!-- ***************************************************** -->
+    <!-- * This is the Lua controller to associate to robots * -->
+    <!-- ***************************************************** -->
+    <lua_controller id="lua">
+      <!-- Normal actuator/sensor configuration follows -->
       <actuators>
         <differential_steering implementation="default" />
         <leds implementation="default" />
@@ -21,21 +26,36 @@
         <ring_proximity implementation="default"
                         show_rays="true"
                         radius="0.08"
-                        range="0.5"
-                        num_sensors="8"
+                        range="0.2"
+                        num_sensors="24"
                         center="0,0,0.1"
-                        start_angle="30" />
+                        start_angle="7.5" />
       </sensors>
-      <params script="../../src/testing/experiment/test_script.lua" />
-    </lua_footbot_controller>
+      <!-- No required configuration -->
+      <params />
+      <!-- Optionally, you can pass a script as a controller parameter:
+           <params script="../../src/testing/experiment/test_script.lua" /> -->
+    </lua_controller>
+
   </controllers>
 
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->
   <arena size="2, 2, 1">
-    <box id="b0" position="0.5,0,0.1" orientation="0,0,0" size="0.2, 0.5, 0.2" movable="false" />
-    <foot-bot id="fb0" position="0,0,0" orientation="0,0,0" controller="x" />
+    <box id="bn" position="1,0,0.1"  orientation="0,0,0" size="0.1, 2, 0.2" movable="false" />
+    <box id="bs" position="-1,0,0.1" orientation="0,0,0" size="0.1, 2, 0.2" movable="false" />
+    <box id="be" position="0,-1,0.1" orientation="0,0,0" size="2, 0.1, 0.2" movable="false" />
+    <box id="bw" position="0,1,0.1"  orientation="0,0,0" size="2, 0.1, 0.2" movable="false" />
+
+    <distribute>
+      <position method="uniform" min="-1,-1,0" max="1,1,0" />
+      <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
+      <entity quantity="10" max_trials="100">
+        <foot-bot id="fb"
+                  controller="lua" />
+      </entity>
+    </distribute>
   </arena>
 
   <!-- ******************* -->
@@ -51,7 +71,7 @@
   <arena_physics>
     <engine id="dyn2d">
       <entity id="fb[[:digit:]]*" />
-      <entity id="b[[:digit:]]*" />
+      <entity id="b[[:alpha:]]" />
     </engine>
   </arena_physics>
 
@@ -59,7 +79,12 @@
   <!-- * Visualization * -->
   <!-- ****************** -->
   <visualization>
-    <qt-opengl />
+
+    <!-- ************************************************************************ -->
+    <!-- * To activate the Lua editor, just use the 'lua_editor' flag attribute * -->
+    <!-- ************************************************************************ -->
+    <qt-opengl lua_editor="true" />
+
   </visualization>
 
 </argos-configuration>

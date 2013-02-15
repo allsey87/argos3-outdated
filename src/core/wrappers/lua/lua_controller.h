@@ -32,17 +32,25 @@ namespace argos {
          return m_ptLuaState;
       }
 
-   protected:
+      void SetLuaScript(const std::string& str_script);
 
-      virtual void CreateLuaVariables() = 0;
+      void CreateLuaVariables();
 
-      virtual void SensorReadingsToLuaVariables() = 0;
+      void SensorReadingsToLuaVariables();
 
-      virtual void LuaVariablesToActuatorSettings() = 0;
+      void LuaVariablesToActuatorSettings();
+
+      inline bool IsOK() const {
+         return m_bIsOK;
+      }
+
+      std::string GetErrorMessage();
 
    private:
 
       lua_State* m_ptLuaState;
+      bool m_bScriptActive;
+      bool m_bIsOK;
 
    };
 

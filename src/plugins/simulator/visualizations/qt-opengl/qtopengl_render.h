@@ -1,12 +1,6 @@
 /**
  * @file <argos3/plugins/simulator/visualizations/qt-opengl/qtopengl_render.h>
  *
- * @brief This file contains the definition of the CRender interface.
- *
- * This file contains the definition of the CRender interface. Such interface
- * is the base for all the visualisations (OpenGL, OGRE, gnuplot, blender,
- * etc.) in ARGOS.
- *
  * @author Carlo Pinciroli - <ilpincy@gmail.com>
  */
 
@@ -20,7 +14,8 @@ namespace argos {
 class QApplication;
 
 #include <argos3/core/simulator/visualization/visualization.h>
-#include "qtopengl_main_window.h"
+#include <argos3/plugins/simulator/visualizations/qt-opengl/qtopengl_main_window.h>
+#include <argos3/plugins/simulator/visualizations/qt-opengl/qtopengl_lua_main_window.h>
 
 namespace argos {
 
@@ -30,10 +25,11 @@ namespace argos {
 
       QApplication* m_pcApplication;
       CQTOpenGLMainWindow* m_pcMainWindow;
+      CQTOpenGLLuaMainWindow* m_pcQTOpenGLLuaMainWindow;
       char** m_ppcOptions;
       SInt32 m_nOptionNum;
-      bool m_bShowSplashScreen;
       TConfigurationNode m_tConfTree;
+      bool m_bLuaEditor;
 
    public:
 
@@ -42,7 +38,7 @@ namespace argos {
          m_pcMainWindow(NULL),
          m_ppcOptions(NULL),
          m_nOptionNum(0),
-         m_bShowSplashScreen(true) {}
+         m_bLuaEditor(NULL) {}
 
       virtual ~CQTOpenGLRender() {}
 

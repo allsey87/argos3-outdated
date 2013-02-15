@@ -17,6 +17,13 @@ if(SDL_FOUND)
     ${ARGOS3_MOC_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL}
     qtopengl_joystick.h)
 endif(SDL_FOUND)
+if(ARGOS_WITH_LUA)
+  set(ARGOS3_MOC_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL
+    ${ARGOS3_MOC_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL}
+    qtopengl_lua_editor.h
+    qtopengl_lua_main_window.h
+    qtopengl_lua_syntax_highlighter.h)
+endif(ARGOS_WITH_LUA)
 # all base headers
 set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL
   ${ARGOS3_MOC_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL}
@@ -53,6 +60,13 @@ if(SDL_FOUND)
     ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL}
     qtopengl_joystick.cpp)
 endif(SDL_FOUND)
+if(ARGOS_WITH_LUA)
+  set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL
+    ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL}
+    qtopengl_lua_editor.cpp
+    qtopengl_lua_main_window.cpp
+    qtopengl_lua_syntax_highlighter.cpp)
+endif(ARGOS_WITH_LUA)
 
 #
 # Add the current binary dir to the include path to allow the compiler to find
