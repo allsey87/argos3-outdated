@@ -102,6 +102,9 @@ namespace argos {
                                      const CQuaternion& c_orientation,
                                      bool b_check_only) {
       
+      LOG << "Move to location " << c_position << " requested" << std::endl;
+      LOG << "Check only mode: " << (b_check_only?"enabled":"disabled") << std::endl;
+      
       /* Create a transform to the new location and orientation */   
       btTransform cEntityTransform(ARGoSToBullet(c_orientation), ARGoSToBullet(c_position));
       
@@ -109,11 +112,15 @@ namespace argos {
       bool bLocationOccupied = 
          m_cEngine.IsRegionOccupied(cEntityTransform, *m_pcCollisionShape);
          
+      LOG << "CDynamics3DEngine::IsRegionOccupied returned: " << (bLocationOccupied?"true":"false") << std::endl;
+         
       if(b_check_only == false && bLocationOccupied == false) {
          m_vecRigidBodies[0]->setWorldTransform(cEntityTransform);
          GetEmbodiedEntity().SetPosition(c_position);
          GetEmbodiedEntity().SetOrientation(c_orientation);
       }
+      
+      LOG << "Final location " << GetEmbodiedEntity().GetPosition() << std::endl;
       return !bLocationOccupied;
    }
    
