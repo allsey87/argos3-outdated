@@ -69,6 +69,94 @@ namespace argos {
    
    /****************************************/
    /****************************************/
+ 
+ /*
+   template <typename ACTION>
+   class CDynamics3DOperation : public CEntityOperation<ACTION, CDynamics3DEngine, void> {
+   public:
+      virtual ~CDynamics3DOperation() {}
+   };
+
+   class CDynamics3DOperationAddEntity : public CDynamics3DOperation<CDynamics3DOperationAddEntity> {
+   public:
+      virtual ~CDynamics3DOperationAddEntity() {}
+      
+      void ApplyTo(CDynamics3DEngine& c_engine, CEntity& c_entity) {
+         CDynamics3DEntity* pcPhysEntity = new CDynamics3DEntity(c_engine, c_entity);
+         c_engine.AddPhysicsEntity(c_entity.GetId(), *pcPhysEntity);
+         c_entity.GetEmbodiedEntity().AddPhysicsEngine(c_engine);
+         c_entity.GetEmbodiedEntity().AddPhysicsEngineEntity(c_engine.GetId(), *pcPhysEntity);
+         
+         for(CEntity::TMultiMap::iterator it = c_entity.GetComponents().begin();
+             it != c_entity.GetComponents().end();
+             ++it) {
+            
+            CComposableEntity* pcComposableEntity = dynamic_cast<CComposableEntity*>(&c_entity);
+            if(pcComposableEntity != NULL && pcComposableEntity->HasComponent("embodied_entity")) {
+               CallEntityOperation<CDynamics3DOperationAddEntity, CDynamics3DEngine, void>(c_engine, *(it->second));
+            }
+         }
+      }
+   };
+   
+   */
+   
+   /****************************************/
+   /****************************************/
+   
+   /*
+   // TODO this information about constraints between different entities must flow from the experiment XML and should be added after all entities have been added to the simulation
+   class CDynamics3DOperationAddConstraints : public CDynamics3DOperation<CDynamics3DOperationAddConstraints> {
+   public:
+      virtual ~CDynamics3DOperationAddConstraints() {}
+   };
+   
+   */
+   
+   /****************************************/
+   /****************************************/
+  
+  /*
+   class CDynamics3DOperationRemoveEntity : public CDynamics3DOperation<CDynamics3DOperationRemoveEntity> {
+   public:
+      virtual ~CDynamics3DOperationRemoveEntity() {}
+       
+      void ApplyTo(CDynamics3DEngine& c_engine, CEntity& c_entity) {
+         for(CEntity::TMultiMap::iterator it = c_entity.GetComponents().begin();
+             it != c_entity.GetComponents().end();
+             ++it) {
+            
+            CComposableEntity* pcComposableEntity = dynamic_cast<CComposableEntity*>(&c_entity);
+            if(pcComposableEntity != NULL && pcComposableEntity->HasComponent("embodied_entity")) {
+               CallEntityOperation<CDynamics3DOperationRemoveEntity, CDynamics3DEngine, void>(c_engine, *(it->second));
+            }
+         }
+         
+         c_engine.RemovePhysicsEntity(c_entity.GetId());
+         c_entity.GetEmbodiedEntity().RemovePhysicsEngine(c_engine);
+         c_entity.GetEmbodiedEntity().RemovePhysicsEngineEntity(c_engine.GetId());
+      }
+   };
+   
+   */
+   
+   /****************************************/
+   /****************************************/
+   
+   /*
+   // TODO this information about constraints between different entities must flow from the experiment XML and should be added after all entities have been added to the simulation
+   class CDynamics3DOperationRemoveConstraints : public CDynamics3DOperation<CDynamics3DOperationRemoveConstraints> {
+   public:
+      virtual ~CDynamics3DOperationRemoveConstraints() {}
+   };
+   
+   */
+   
+   /****************************************/
+   /****************************************/
+   
+      /****************************************/
+   /****************************************/
 
    template <typename ACTION>
    class CDynamics3DOperation : public CEntityOperation<ACTION, CDynamics3DEngine, void> {
@@ -106,6 +194,16 @@ namespace argos {
       c_entity.                                                         \
          GetComponent<CEmbodiedEntity>("body").                         \
          AddPhysicsEngineEntity(c_engine.GetId(), *pcPhysEntity);       \
+                                                                        \
+      for(CEntity::TMultiMap::iterator it = c_entity.GetComponents().begin(); \
+          it != c_entity.GetComponents().end();                         \
+          ++it) {                                                       \
+                                                                        \
+         CComposableEntity* pcComposableEntity = dynamic_cast<CComposableEntity*>(it->second); \
+         if(pcComposableEntity != NULL && pcComposableEntity->HasComponent("embodied_entity")) { \
+            CallEntityOperation<CDynamics3DOperationAddEntity, CDynamics3DEngine, void>(c_engine, *(it->second)); \
+         }                                                              \
+      }                                                                 \
    }                                                                    \
    };                                                                   \
    REGISTER_DYNAMICS3D_OPERATION(CDynamics3DOperationAddEntity,         \
@@ -119,6 +217,16 @@ namespace argos {
    virtual ~CDynamics3DOperationRemove ## SPACE_ENTITY() {}             \
    void ApplyTo(CDynamics3DEngine& c_engine,                            \
                 SPACE_ENTITY& c_entity) {                               \
+                                                                        \
+      for(CEntity::TMultiMap::iterator it = c_entity.GetComponents().begin(); \
+          it != c_entity.GetComponents().end();                         \
+          ++it) {                                                       \
+                                                                        \
+         CComposableEntity* pcComposableEntity = dynamic_cast<CComposableEntity*>(it->second); \
+         if(pcComposableEntity != NULL && pcComposableEntity->HasComponent("embodied_entity")) { \
+            CallEntityOperation<CDynamics3DOperationRemoveEntity, CDynamics3DEngine, void>(c_engine, *(it->second)); \
+         }                                                              \
+      }                                                                 \
       c_engine.RemovePhysicsEntity(c_entity.GetId());                   \
       c_entity.                                                         \
          GetComponent<CEmbodiedEntity>("body").                         \
@@ -135,9 +243,6 @@ namespace argos {
 #define REGISTER_STANDARD_DYNAMICS3D_OPERATIONS_ON_ENTITY(SPACE_ENTITY, DYN3D_ENTITY) \
    REGISTER_STANDARD_DYNAMICS3D_OPERATION_ADD_ENTITY(SPACE_ENTITY, DYN3D_ENTITY) \
    REGISTER_STANDARD_DYNAMICS3D_OPERATION_REMOVE_ENTITY(SPACE_ENTITY)
-
-   /****************************************/
-   /****************************************/
 
 }
 

@@ -38,18 +38,18 @@ namespace argos {
       virtual void UpdateEntityStatus();
       virtual void UpdateFromEntityStatus() {}
       
-      /** TODO Check if this is the correct place / way of doing this **/
-      virtual void AddToWorld(btDiscreteDynamicsWorld* pc_world);
-      virtual void RemoveFromWorld(btDiscreteDynamicsWorld* pc_world);
+      virtual std::vector<btRigidBody*>& GetRigidBodies() {
+         return m_vecRigidBodies;
+      }
+      
 
    private:
 
       CBoxEntity&                m_cBoxEntity;
       
-      btBoxShape*                m_pcCollisionShape;
-      btDefaultMotionState*      m_pcMotionState;
-      btRigidBody*               m_pcRigidBody;
+      std::vector<btRigidBody*>  m_vecRigidBodies;
       
+      btBoxShape*                m_pcCollisionShape; 
    };
 
 }

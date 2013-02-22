@@ -103,7 +103,7 @@ namespace argos {
          //(*iter)->AddEntityToWorld();
       }
    }
-
+   
    /****************************************/
    /****************************************/
 
@@ -183,7 +183,6 @@ namespace argos {
       CallEntityOperation<CDynamics3DOperationRemoveEntity, CDynamics3DEngine, void>(*this, c_entity);
    }
 
-
    /****************************************/
    /****************************************/
 
@@ -191,8 +190,15 @@ namespace argos {
                                              CDynamics3DEntity& c_entity) {
       m_tPhysicsEntities[str_id] = &c_entity;
       
-      /** TODO Check if this is the correct place / way of doing this **/
-      c_entity.AddToWorld(m_pcWorld);
+      // TODO define it
+      
+      for(std::vector<btRigidBody*>::iterator itBody = c_entity.GetRigidBodies().begin(); 
+          itBody !=  c_entity.GetRigidBodies().end();
+          itBody++)
+         
+         m_pcWorld->addRigidBody(*itBody);
+         
+      // TODO duplicate this for loop and add/remove all internal constraints
    }
 
    /****************************************/
@@ -200,10 +206,11 @@ namespace argos {
    void CDynamics3DEngine::RemovePhysicsEntity(const std::string& str_id) {
       CDynamics3DEntity::TMap::iterator it = m_tPhysicsEntities.find(str_id);
       if(it != m_tPhysicsEntities.end()) {
-         
-         /** TODO Check if this is the correct place / way of doing this **/
-         it->second->RemoveFromWorld(m_pcWorld);
-         
+         for(std::vector<btRigidBody*>::iterator itBody = it->second->GetRigidBodies().begin(); 
+             itBody !=  it->second->GetRigidBodies().end();
+             itBody++) {
+            m_pcWorld->removeRigidBody(*itBody);
+         }
          delete it->second;
          m_tPhysicsEntities.erase(it);
       }
@@ -214,7 +221,6 @@ namespace argos {
 
    /****************************************/
    /****************************************/
-
   
    REGISTER_PHYSICS_ENGINE(CDynamics3DEngine,
                            "dynamics3d",

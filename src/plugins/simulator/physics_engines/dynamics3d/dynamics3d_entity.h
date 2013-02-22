@@ -16,6 +16,8 @@ namespace argos {
 #include <argos3/core/utility/math/quaternion.h>
 #include <btBulletDynamicsCommon.h>
 
+#include <tr1/unordered_map>
+
 namespace argos {
 
    /****************************************/
@@ -31,7 +33,7 @@ namespace argos {
    
    inline CQuaternion BulletToARGoS(const btQuaternion& c_bt_quaternion) {
       return CQuaternion(c_bt_quaternion.getW(), c_bt_quaternion.getX(),
-                            -c_bt_quaternion.getZ(), c_bt_quaternion.getY());
+                         -c_bt_quaternion.getZ(), c_bt_quaternion.getY());
    }
    
    inline btQuaternion ARGoSToBullet(const CQuaternion& c_a_quaternion) {
@@ -45,8 +47,10 @@ namespace argos {
    class CDynamics3DEntity : public CPhysicsEngineEntity {
 
    public:
-   
+      
+      typedef std::vector<CDynamics3DEntity*> TVector;
       typedef std::map<std::string, CDynamics3DEntity*> TMap;
+      typedef std::tr1::unordered_multimap<std::string, CDynamics3DEntity*> TMultiMap;
 
    public:
 
@@ -70,16 +74,20 @@ namespace argos {
       virtual void UpdateEntityStatus() = 0;
       virtual void UpdateFromEntityStatus() = 0;
       
-      /** TODO Check if this is the correct place / way of doing this **/
-      virtual void AddToWorld(btDiscreteDynamicsWorld* pc_world) = 0;
-      virtual void RemoveFromWorld(btDiscreteDynamicsWorld* pc_world) = 0;
+      virtual std::vector<btRigidBody*>& GetRigidBodies() = 0;
+      
+
+      
+   private:
+
+      CDynamics3DEntity::TMultiMap m_mapConnectedBodies;
 
    protected:
       
+      
+      
       CDynamics3DEngine&      m_cEngine;
       
-      btCollisionShape*       m_pcCollisionShape;
-      btRigidBody*            m_pcRigidBody;
       btDefaultMotionState*   m_pcMotionState;
 
    };

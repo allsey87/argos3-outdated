@@ -34,12 +34,12 @@ namespace argos {
       if(c_box.GetEmbodiedEntity().IsMovable()) {
          btVector3 cInteria;
          m_pcCollisionShape->calculateLocalInertia(c_box.GetMass(), cInteria);
-         m_pcRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
-            c_box.GetMass(), m_pcMotionState, m_pcCollisionShape, cInteria));
+         m_vecRigidBodies.push_back(new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
+            c_box.GetMass(), m_pcMotionState, m_pcCollisionShape, cInteria)));
       }
       else {
-         m_pcRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
-            0.0f, m_pcMotionState, m_pcCollisionShape, btVector3(0.0f,0.0f,0.0f)));
+         m_vecRigidBodies.push_back(new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
+            0.0f, m_pcMotionState, m_pcCollisionShape, btVector3(0.0f,0.0f,0.0f))));
       }
    }
    
@@ -47,7 +47,11 @@ namespace argos {
    /****************************************/
    
    CDynamics3DBoxEntity::~CDynamics3DBoxEntity() {
-      delete m_pcRigidBody;
+      for(std::vector<btRigidBody*>::iterator it = m_vecRigidBodies.begin();
+          it != m_vecRigidBodies.end();
+          it++) {
+         delete *it;
+      }
       delete m_pcMotionState;
       delete m_pcCollisionShape;
    }
@@ -106,7 +110,7 @@ namespace argos {
          m_cEngine.IsRegionOccupied(cEntityTransform, *m_pcCollisionShape);
          
       if(b_check_only == false && bLocationOccupied == false) {
-         m_pcRigidBody->setWorldTransform(cEntityTransform);
+         m_vecRigidBodies[0]->setWorldTransform(cEntityTransform);
          GetEmbodiedEntity().SetPosition(c_position);
          GetEmbodiedEntity().SetOrientation(c_orientation);
       }
@@ -125,9 +129,9 @@ namespace argos {
             ARGoSToBullet(GetEmbodiedEntity().GetInitPosition())
          ));
          
-         m_pcRigidBody->setAngularVelocity(btVector3(0.0f, 0.0f, 0.0f));
-         m_pcRigidBody->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
-         m_pcRigidBody->clearForces();
+         m_vecRigidBodies[0]->setAngularVelocity(btVector3(0.0f, 0.0f, 0.0f));
+         m_vecRigidBodies[0]->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
+         m_vecRigidBodies[0]->clearForces();
       }
    }
 
@@ -148,19 +152,7 @@ namespace argos {
       }
    }
 
-   /****************************************/
-   /****************************************/
-   
-   /** TODO Check if this is the correct place / way of doing this **/
-   void CDynamics3DBoxEntity::AddToWorld(btDiscreteDynamicsWorld* pc_world) {
-      pc_world->addRigidBody(m_pcRigidBody);
-   }
-   
-   /** TODO Check if this is the correct place / way of doing this **/
-   void CDynamics3DBoxEntity::RemoveFromWorld(btDiscreteDynamicsWorld* pc_world) {
-      pc_world->removeRigidBody(m_pcRigidBody);
-   }
-   
+
    REGISTER_STANDARD_DYNAMICS3D_OPERATIONS_ON_ENTITY(CBoxEntity, CDynamics3DBoxEntity);
 
    /****************************************/
