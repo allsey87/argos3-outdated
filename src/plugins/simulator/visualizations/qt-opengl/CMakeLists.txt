@@ -21,8 +21,11 @@ if(ARGOS_WITH_LUA)
   set(ARGOS3_MOC_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL
     ${ARGOS3_MOC_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL}
     qtopengl_lua_editor.h
+    qtopengl_lua_find_dialog.h
     qtopengl_lua_main_window.h
-    qtopengl_lua_syntax_highlighter.h)
+    qtopengl_lua_syntax_highlighter.h
+    qtopengl_lua_statetree_item.h
+    qtopengl_lua_statetree_model.h)
 endif(ARGOS_WITH_LUA)
 # all base headers
 set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL
@@ -30,6 +33,11 @@ set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL
   qtopengl_render.h
   qtopengl_log_stream.h
   qtopengl_user_functions.h)
+if(ARGOS_WITH_LUA)
+  set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL
+    ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL}
+    qtopengl_lua_statetree_item.h)
+endif(ARGOS_WITH_LUA)
 
 #
 # Run the moc utility
@@ -53,7 +61,7 @@ set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL
   qtopengl_main_window.cpp
   qtopengl_widget.cpp
   qtopengl_render.cpp
-)
+  )
 # Compile joystick support if SDL was found
 if(SDL_FOUND)
   set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL
@@ -64,8 +72,11 @@ if(ARGOS_WITH_LUA)
   set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL
     ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL}
     qtopengl_lua_editor.cpp
+    qtopengl_lua_find_dialog.cpp
     qtopengl_lua_main_window.cpp
-    qtopengl_lua_syntax_highlighter.cpp)
+    qtopengl_lua_syntax_highlighter.cpp
+    qtopengl_lua_statetree_item.cpp
+    qtopengl_lua_statetree_model.cpp)
 endif(ARGOS_WITH_LUA)
 
 #
@@ -86,6 +97,7 @@ if(SDL_FOUND)
  target_link_libraries(argos3plugin_${ARGOS_BUILD_FOR}_qtopengl ${SDL_LIBRARY})
 endif(SDL_FOUND)
 
+install(DIRECTORY icons textures DESTINATION include/argos3/plugins/simulator/visualizations/qt-opengl)
 install(FILES ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL_MODELS} DESTINATION include/argos3/plugins/simulator/visualizations/qt-opengl/models)
 install(FILES ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL}        DESTINATION include/argos3/plugins/simulator/visualizations/qt-opengl)
 install(TARGETS argos3plugin_${ARGOS_BUILD_FOR}_qtopengl

@@ -181,19 +181,23 @@ namespace argos {
       move(cSettings.value("position", QPoint(0,0)).toPoint());
       if(cSettings.contains("icon_dir")) {
          m_strIconDir = cSettings.value("icon_dir").toString();
+         if(m_strIconDir.at(m_strIconDir.length()-1) != '/') {
+            m_strIconDir.append("/");
+         }
       }
       else {
-         std::string strIconDir = CSimulator::GetInstance().GetInstallationDirectory();
-         strIconDir += "/share/argos3/plugins/visualizations/qt-opengl/icons/";
-         m_strIconDir = strIconDir.c_str();
+         m_strIconDir = QString::fromStdString(CSimulator::GetInstance().GetInstallationDirectory());
+         m_strIconDir += "/include/argos3/plugins/simulator/visualizations/qt-opengl/icons/";
       }
       if(cSettings.contains("texture_dir")) {
          m_strTextureDir = cSettings.value("texture_dir").toString();
+         if(m_strTextureDir.at(m_strIconDir.length()-1) != '/') {
+            m_strTextureDir.append("/");
+         }
       }
       else {
-         std::string strTextureDir = CSimulator::GetInstance().GetInstallationDirectory();
-         strTextureDir += "/share/argos3/plugins/visualizations/qt-opengl/textures/";
-         m_strTextureDir = strTextureDir.c_str();
+         m_strTextureDir = QString::fromStdString(CSimulator::GetInstance().GetInstallationDirectory());
+         m_strTextureDir += "/include/argos3/plugins/simulator/visualizations/qt-opengl/textures/";
       }
       cSettings.endGroup();
    }
@@ -515,7 +519,7 @@ namespace argos {
       connect(m_pcResetAction, SIGNAL(triggered()),
               m_pcOpenGLWidget, SLOT(ResetSimulation()));
       connect(m_pcResetAction, SIGNAL(triggered()),
-              this, SLOT(SimulationReset()));
+              this, SLOT(ResetSimulation()));
       /* Capture button toggled */
       connect(m_pcCaptureAction, SIGNAL(triggered(bool)),
               m_pcOpenGLWidget, SLOT(SetGrabFrame(bool)));
@@ -607,7 +611,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CQTOpenGLMainWindow::SimulationReset() {
+   void CQTOpenGLMainWindow::ResetSimulation() {
       m_pcPlayAction->setChecked(false);
       m_pcPlayAction->setEnabled(true);
       m_pcStepAction->setEnabled(true);
@@ -615,6 +619,7 @@ namespace argos {
       m_pcFastForwardAction->setEnabled(true);
       m_pcCaptureAction->setEnabled(true);
       m_pcCurrentStepLCD->display(0);
+      emit SimulationReset();
    }
 
    /****************************************/

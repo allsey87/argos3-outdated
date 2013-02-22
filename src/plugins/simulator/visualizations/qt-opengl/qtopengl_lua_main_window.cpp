@@ -1,6 +1,13 @@
+/**
+ * @file <argos3/plugins/simulator/visualizations/qt-opengl/qtopengl_lua_main_window.cpp>
+ *
+ * @author Carlo Pinciroli <ilpincy@gmail.com>
+ */
 #include "qtopengl_lua_main_window.h"
 #include "qtopengl_lua_editor.h"
+#include "qtopengl_lua_find_dialog.h"
 #include "qtopengl_lua_syntax_highlighter.h"
+#include "qtopengl_lua_statetree_model.h"
 #include "qtopengl_main_window.h"
 #include "qtopengl_widget.h"
 
@@ -9,9 +16,12 @@
 #include <argos3/core/simulator/space/space.h>
 #include <argos3/core/simulator/entity/composable_entity.h>
 #include <argos3/core/simulator/entity/controllable_entity.h>
+#include <argos3/core/wrappers/lua/lua_utility.h>
 
 #include <QApplication>
+#include <QDockWidget>
 #include <QFileDialog>
+#include <QHeaderView>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
@@ -19,6 +29,8 @@
 #include <QStatusBar>
 #include <QTextStream>
 #include <QToolBar>
+#include <QTableWidget>
+#include <QTreeView>
 
 namespace argos {
 
@@ -27,12 +39,20 @@ namespace argos {
 
    CQTOpenGLLuaMainWindow::CQTOpenGLLuaMainWindow(CQTOpenGLMainWindow* pc_parent) :
       QMainWindow(pc_parent),
-      m_pcMainWindow(pc_parent) {
+      m_pcMainWindow(pc_parent),
+      m_pcStatusbar(NULL),
+      m_pcCodeEditor(NULL),
+      m_pcFindDialog(NULL),
+      m_pcLuaMessageTable(NULL) {
       /* Add a status bar */
       m_pcStatusbar = new QStatusBar(this);
       setStatusBar(m_pcStatusbar);
+      /* Create the Lua message table */
+      CreateLuaMessageTable();
       /* Populate list of Lua controllers */
       PopulateLuaControllers();
+      /* Create the Lua state docks */
+      CreateLuaStateDocks();
       /* Create editor */
       CreateCodeEditor();
       /* Create actions */
@@ -41,11 +61,7 @@ namespace argos {
       CreateCodeActions();
       /* Set empty file */
       SetCurrentFile("");
-      /* Connect text modification signal to modification slot */
-      connect(m_pcCodeEditor->document(), SIGNAL(contentsChanged()),
-              this, SLOT(CodeModified()));
-      connect(&(m_pcMainWindow->GetOpenGLWidget()), SIGNAL(StepDone(int)),
-              this, SLOT(CheckLuaStatus(int)));
+      /* Read settings */
       ReadSettings();
    }
 
@@ -81,7 +97,17 @@ namespace argos {
          }
       }
    }
-         
+
+   /****************************************/
+   /****************************************/
+
+   void CQTOpenGLLuaMainWindow::OpenRecentFile() {
+      QAction* pcAction = qobject_cast<QAction*>(sender());
+      if (pcAction) {
+         OpenFile(pcAction->data().toString());
+      }
+   }
+
    /****************************************/
    /****************************************/
 
@@ -116,9 +142,27 @@ namespace argos {
          for(size_t i = 0; i < m_vecControllers.size(); ++i) {
             m_vecControllers[i]->SetLuaScript(m_strFileName.toStdString());
          }
+         if(m_pcLuaVariableDock->isVisible()) {
+            static_cast<CQTOpenGLLuaStateTreeModel*>(m_pcLuaVariableTree->model())->SetLuaState(
+               m_vecControllers[m_unSelectedRobot]->GetLuaState());
+         }
+         if(m_pcLuaFunctionDock->isVisible()) {
+            static_cast<CQTOpenGLLuaStateTreeModel*>(m_pcLuaFunctionTree->model())->SetLuaState(
+               m_vecControllers[m_unSelectedRobot]->GetLuaState());
+         }
          QApplication::restoreOverrideCursor();
          statusBar()->showMessage(tr("Execution started"), 2000);
       }
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CQTOpenGLLuaMainWindow::Find() {
+      if(! m_pcFindDialog) {
+         m_pcFindDialog = new CQTOpenGLLuaFindDialog(this);
+      }
+      m_pcFindDialog->show();
    }
 
    /****************************************/
@@ -159,6 +203,7 @@ namespace argos {
          CLuaController* pcLuaController = dynamic_cast<CLuaController*>(&(pcControllable->GetController()));
          if(pcLuaController) {
             m_vecControllers.push_back(pcLuaController);
+            m_vecRobots.push_back(&pcControllable->GetParent());
          }
          else {
             LOGERR << "[WARNING] Entity \""
@@ -196,13 +241,69 @@ namespace argos {
 
    void CQTOpenGLLuaMainWindow::CreateCodeEditor() {
       QFont cFont;
-      cFont.setFamily("Courier");
+      cFont.setFamily("Luxi Mono");
       cFont.setFixedPitch(true);
-      cFont.setPointSize(10);
       m_pcCodeEditor = new CQTOpenGLLuaEditor(this);
       m_pcCodeEditor->setFont(cFont);
       new CQTOpenGLLuaSyntaxHighlighter(m_pcCodeEditor->document());
       setCentralWidget(m_pcCodeEditor);
+      connect(m_pcCodeEditor->document(), SIGNAL(contentsChanged()),
+              this, SLOT(CodeModified()));
+      connect(&(m_pcMainWindow->GetOpenGLWidget()), SIGNAL(StepDone(int)),
+              this, SLOT(CheckLuaStatus(int)));
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CQTOpenGLLuaMainWindow::CreateLuaMessageTable() {
+      QDockWidget* pcLuaMsgDock = new QDockWidget(tr("Messages"), this);
+      pcLuaMsgDock->setObjectName("LuaMessageDock");
+      pcLuaMsgDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+      pcLuaMsgDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea | Qt::BottomDockWidgetArea);
+      m_pcLuaMessageTable = new QTableWidget();
+      m_pcLuaMessageTable->setColumnCount(3);
+      QStringList listHeaders;
+      listHeaders << tr("Robot")
+                  << tr("Line")
+                  << tr("Message");
+      m_pcLuaMessageTable->setHorizontalHeaderLabels(listHeaders);
+      m_pcLuaMessageTable->horizontalHeader()->setStretchLastSection(true);
+      m_pcLuaMessageTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+      m_pcLuaMessageTable->setSelectionMode(QAbstractItemView::SingleSelection);
+      pcLuaMsgDock->setWidget(m_pcLuaMessageTable);
+      addDockWidget(Qt::BottomDockWidgetArea, pcLuaMsgDock);
+      connect(m_pcLuaMessageTable, SIGNAL(itemSelectionChanged()),
+              this, SLOT(HandleMsgTableSelection()));
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CQTOpenGLLuaMainWindow::CreateLuaStateDocks() {
+      /* Variable tree dock */
+      m_pcLuaVariableDock = new QDockWidget(tr("Variables"), this);
+      m_pcLuaVariableDock->setObjectName("LuaVariableDock");
+      m_pcLuaVariableDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+      m_pcLuaVariableDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea | Qt::BottomDockWidgetArea);
+      m_pcLuaVariableTree = new QTreeView();
+      m_pcLuaVariableDock->setWidget(m_pcLuaVariableTree);
+      addDockWidget(Qt::LeftDockWidgetArea, m_pcLuaVariableDock);
+      m_pcLuaVariableDock->hide();
+      /* Function tree dock */
+      m_pcLuaFunctionDock = new QDockWidget(tr("Functions"), this);
+      m_pcLuaFunctionDock->setObjectName("LuaFunctionDock");
+      m_pcLuaFunctionDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+      m_pcLuaFunctionDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea | Qt::BottomDockWidgetArea);
+      m_pcLuaFunctionTree = new QTreeView();
+      m_pcLuaFunctionDock->setWidget(m_pcLuaFunctionTree);
+      addDockWidget(Qt::LeftDockWidgetArea, m_pcLuaFunctionDock);
+      m_pcLuaFunctionDock->hide();
+      /* Connect stuff */
+      connect(&(m_pcMainWindow->GetOpenGLWidget()), SIGNAL(EntitySelected(size_t)),
+              this, SLOT(HandleEntitySelection(size_t)));
+      connect(&(m_pcMainWindow->GetOpenGLWidget()), SIGNAL(EntityDeselected(size_t)),
+              this, SLOT(HandleEntityDeselection(size_t)));
    }
 
    /****************************************/
@@ -225,6 +326,12 @@ namespace argos {
       m_pcFileOpenAction->setShortcut(QKeySequence::Open);
       connect(m_pcFileOpenAction, SIGNAL(triggered()),
               this, SLOT(Open()));
+      for (int i = 0; i < MAX_RECENT_FILES; ++i) {
+         m_pcFileOpenRecentAction[i] = new QAction(this);
+         m_pcFileOpenRecentAction[i]->setVisible(false);
+         connect(m_pcFileOpenRecentAction[i], SIGNAL(triggered()),
+                 this, SLOT(OpenRecentFile()));
+      }
       QIcon cFileSaveIcon;
       cFileSaveIcon.addPixmap(QPixmap(m_pcMainWindow->GetIconDir() + "/save.png"));
       m_pcFileSaveAction = new QAction(cFileSaveIcon, tr("&Save"), this);
@@ -248,10 +355,16 @@ namespace argos {
       pcMenu->addSeparator();
       pcMenu->addAction(m_pcFileSaveAction);
       pcMenu->addAction(m_pcFileSaveAsAction);
+      m_pcFileSeparateRecentAction = pcMenu->addSeparator();
+      for (int i = 0; i < MAX_RECENT_FILES; ++i) {
+         pcMenu->addAction(m_pcFileOpenRecentAction[i]);
+      }
       QToolBar* pcToolBar = addToolBar(tr("File"));
+      pcToolBar->setObjectName("FileToolBar");
       pcToolBar->addAction(m_pcFileNewAction);
       pcToolBar->addAction(m_pcFileOpenAction);
       pcToolBar->addAction(m_pcFileSaveAction);
+      UpdateRecentFiles();
    }
 
    /****************************************/
@@ -298,6 +411,14 @@ namespace argos {
       m_pcEditPasteAction->setShortcut(QKeySequence::Paste);
       connect(m_pcEditPasteAction, SIGNAL(triggered()),
               m_pcCodeEditor, SLOT(paste()));
+      QIcon cEditFindIcon;
+      cEditFindIcon.addPixmap(QPixmap(m_pcMainWindow->GetIconDir() + "/find.png"));
+      m_pcEditFindAction = new QAction(cEditFindIcon, tr("&Find/Replace"), this);
+      m_pcEditFindAction->setToolTip(tr("Find/replace text"));
+      m_pcEditFindAction->setStatusTip(tr("Find/replace text"));
+      m_pcEditFindAction->setShortcut(QKeySequence::Find);
+      connect(m_pcEditFindAction, SIGNAL(triggered()),
+              this, SLOT(Find()));
       QMenu* pcMenu = menuBar()->addMenu(tr("&Edit"));
       pcMenu->addAction(m_pcEditUndoAction);
       pcMenu->addAction(m_pcEditRedoAction);
@@ -305,13 +426,17 @@ namespace argos {
       pcMenu->addAction(m_pcEditCopyAction);
       pcMenu->addAction(m_pcEditCutAction);
       pcMenu->addAction(m_pcEditPasteAction);
+      pcMenu->addSeparator();
+      pcMenu->addAction(m_pcEditFindAction);
       QToolBar* pcToolBar = addToolBar(tr("Edit"));
+      pcToolBar->setObjectName("EditToolBar");
       pcToolBar->addAction(m_pcEditUndoAction);
       pcToolBar->addAction(m_pcEditRedoAction);
       pcToolBar->addSeparator();
       pcToolBar->addAction(m_pcEditCopyAction);
       pcToolBar->addAction(m_pcEditCutAction);
       pcToolBar->addAction(m_pcEditPasteAction);
+      pcToolBar->addAction(m_pcEditFindAction);
    }
 
    /****************************************/
@@ -329,6 +454,7 @@ namespace argos {
       QMenu* pcMenu = menuBar()->addMenu(tr("&Code"));
       pcMenu->addAction(m_pcCodeExecuteAction);
       QToolBar* pcToolBar = addToolBar(tr("Code"));
+      pcToolBar->setObjectName("CodeToolBar");
       pcToolBar->addAction(m_pcCodeExecuteAction);
    }
 
@@ -377,32 +503,215 @@ namespace argos {
 
    void CQTOpenGLLuaMainWindow::SetCurrentFile(const QString& str_path) {
       m_strFileName = str_path;
-      m_pcCodeEditor->document()->setModified(false);
-      setWindowModified(false);
       QString strShownName;
-      if (m_strFileName.isEmpty()) {
+      if(m_strFileName.isEmpty()) {
          strShownName = "untitled";
       }
       else {
-         strShownName = QFileInfo(m_strFileName).fileName();
+         strShownName = StrippedFileName(m_strFileName);
       }
       setWindowTitle(tr("%1[*] - ARGoS v3.0 - Lua Editor").arg(strShownName));
+      if(!m_strFileName.isEmpty()) {
+         m_pcCodeEditor->document()->setModified(false);
+         setWindowModified(false);
+         QSettings cSettings;
+         cSettings.beginGroup("LuaEditor");
+         QStringList listFiles = cSettings.value("recent_files").toStringList();
+         listFiles.removeAll(m_strFileName);
+         listFiles.prepend(m_strFileName);
+         while(listFiles.size() > MAX_RECENT_FILES) {
+            listFiles.removeLast();
+         }
+         cSettings.setValue("recent_files", listFiles);
+         cSettings.endGroup();
+         UpdateRecentFiles();
+      }
+      else {
+         m_pcCodeEditor->document()->setModified(true);
+         setWindowModified(true);
+      }
    }
-   
+
    /****************************************/
    /****************************************/
 
    void CQTOpenGLLuaMainWindow::CheckLuaStatus(int n_step) {
+      static std::vector<std::string> vecFields;
+      int nRow = 0;
+      m_pcLuaMessageTable->clearContents();
+      m_pcLuaMessageTable->setRowCount(m_vecControllers.size());
       for(size_t i = 0; i < m_vecControllers.size(); ++i) {
          if(! m_vecControllers[i]->IsOK()) {
-            printf("[t=%d] [%s] %s\n",
-                   n_step,
-                   m_vecControllers[i]->GetId().c_str(),
-                   m_vecControllers[i]->GetErrorMessage().c_str());
+            vecFields.clear();
+            Tokenize(m_vecControllers[i]->GetErrorMessage(), vecFields, ":");
+            m_pcLuaMessageTable->setItem(
+               nRow, 0,
+               new QTableWidgetItem(
+                  QString::fromStdString(m_vecControllers[i]->GetId())));
+            if(vecFields.size() == 3) {
+               m_pcLuaMessageTable->setItem(
+                  nRow, 1,
+                  new QTableWidgetItem(
+                     QString::fromStdString(vecFields[1])));
+               m_pcLuaMessageTable->setItem(
+                  nRow, 2,
+                  new QTableWidgetItem(
+                     QString::fromStdString(vecFields[2])));
+            }
+            else {
+               m_pcLuaMessageTable->setItem(
+                  nRow, 2,
+                  new QTableWidgetItem(
+                     QString::fromStdString(m_vecControllers[i]->GetErrorMessage())));
+            }
+            ++nRow;
          }
       }
    }
-   
+
+   /****************************************/
+   /****************************************/
+
+   void CQTOpenGLLuaMainWindow::HandleMsgTableSelection() {
+      QList<QTableWidgetItem*> listSel = m_pcLuaMessageTable->selectedItems();
+      if(! listSel.empty()) {
+         int nLine = listSel[1]->data(Qt::DisplayRole).toInt();
+         QTextCursor cCursor = m_pcCodeEditor->textCursor();
+         int nCurLine = cCursor.blockNumber();
+         if(nCurLine < nLine) {
+            cCursor.movePosition(QTextCursor::NextBlock,
+                                 QTextCursor::MoveAnchor,
+                                 nLine - nCurLine - 1);
+         }
+         else if(nCurLine > nLine) {
+            cCursor.movePosition(QTextCursor::PreviousBlock,
+                                 QTextCursor::MoveAnchor,
+                                 nCurLine - nLine + 1);
+         }
+         cCursor.movePosition(QTextCursor::StartOfBlock);
+         m_pcCodeEditor->setTextCursor(cCursor);
+         m_pcCodeEditor->setFocus();
+      }
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CQTOpenGLLuaMainWindow::HandleEntitySelection(size_t un_index) {
+      CComposableEntity* pcSelectedEntity = dynamic_cast<CComposableEntity*>(CSimulator::GetInstance().GetSpace().GetRootEntityVector()[un_index]);
+      if(pcSelectedEntity != NULL) {
+         bool bFound = false;
+         m_unSelectedRobot = 0;
+         while(!bFound && m_unSelectedRobot < m_vecRobots.size()) {
+            if(m_vecRobots[m_unSelectedRobot] == pcSelectedEntity) {
+               bFound = true;
+            }
+            else {
+               ++m_unSelectedRobot;
+            }
+         }
+         if(bFound &&
+            m_vecControllers[m_unSelectedRobot]->GetLuaState() != NULL) {
+            CQTOpenGLLuaStateTreeVariableModel* pcVarModel = new CQTOpenGLLuaStateTreeVariableModel(m_vecControllers[m_unSelectedRobot]->GetLuaState(), m_pcLuaVariableTree);
+            pcVarModel->Refresh(0);
+            connect(&(m_pcMainWindow->GetOpenGLWidget()), SIGNAL(StepDone(int)),
+                    pcVarModel, SLOT(Refresh(int)));
+            connect(m_pcMainWindow, SIGNAL(SimulationReset()),
+                    pcVarModel, SLOT(Refresh(int)));
+            connect(pcVarModel, SIGNAL(modelReset()),
+                    this, SLOT(VariableTreeChanged()),
+                    Qt::QueuedConnection);
+            m_pcLuaVariableTree->setModel(pcVarModel);
+            m_pcLuaVariableTree->setRootIndex(pcVarModel->index(0, 0));
+            m_pcLuaVariableTree->expandAll();
+            m_pcLuaVariableDock->show();
+            CQTOpenGLLuaStateTreeFunctionModel* pcFunModel = new CQTOpenGLLuaStateTreeFunctionModel(m_vecControllers[m_unSelectedRobot]->GetLuaState(), m_pcLuaFunctionTree);
+            pcFunModel->Refresh(0);
+            connect(&(m_pcMainWindow->GetOpenGLWidget()), SIGNAL(StepDone(int)),
+                    pcFunModel, SLOT(Refresh(int)));
+            connect(m_pcMainWindow, SIGNAL(SimulationReset()),
+                    pcFunModel, SLOT(Refresh(int)));
+            connect(pcFunModel, SIGNAL(modelReset()),
+                    this, SLOT(FunctionTreeChanged()),
+                    Qt::QueuedConnection);
+            m_pcLuaFunctionTree->setModel(pcFunModel);
+            m_pcLuaFunctionTree->setRootIndex(pcFunModel->index(0, 0));
+            m_pcLuaFunctionTree->expandAll();
+            m_pcLuaFunctionDock->show();
+         }
+      }
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CQTOpenGLLuaMainWindow::HandleEntityDeselection(size_t) {
+      disconnect(&(m_pcMainWindow->GetOpenGLWidget()), SIGNAL(StepDone(int)),
+                 m_pcLuaVariableTree->model(), SLOT(Refresh(int)));
+      disconnect(m_pcMainWindow, SIGNAL(SimulationReset()),
+                 m_pcLuaVariableTree->model(), SLOT(Refresh(int)));
+      disconnect(m_pcLuaVariableTree->model(), SIGNAL(modelReset()),
+                 this, SLOT(StateTreeChanged()));
+      m_pcLuaVariableDock->hide();
+      disconnect(&(m_pcMainWindow->GetOpenGLWidget()), SIGNAL(StepDone(int)),
+                 m_pcLuaFunctionTree->model(), SLOT(Refresh(int)));
+      disconnect(m_pcMainWindow, SIGNAL(SimulationReset()),
+                 m_pcLuaFunctionTree->model(), SLOT(Refresh(int)));
+      disconnect(m_pcLuaFunctionTree->model(), SIGNAL(modelReset()),
+                 this, SLOT(FunctionTreeChanged()));
+      m_pcLuaFunctionDock->hide();
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CQTOpenGLLuaMainWindow::VariableTreeChanged() {
+      m_pcLuaVariableTree->setRootIndex(m_pcLuaVariableTree->model()->index(0, 0));
+      m_pcLuaVariableTree->expandAll();
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CQTOpenGLLuaMainWindow::FunctionTreeChanged() {
+      m_pcLuaFunctionTree->setRootIndex(m_pcLuaFunctionTree->model()->index(0, 0));
+      m_pcLuaFunctionTree->expandAll();
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CQTOpenGLLuaMainWindow::UpdateRecentFiles() {
+      QSettings cSettings;
+      cSettings.beginGroup("LuaEditor");
+      QStringList listFiles = cSettings.value("recent_files").toStringList();
+      int nRecentFiles = qMin(listFiles.size(), (int)MAX_RECENT_FILES);
+      for(int i = 0; i < nRecentFiles; ++i) {
+         m_pcFileOpenRecentAction[i]->setText(tr("&%1 %2").arg(i+1).arg(StrippedFileName(listFiles[i])));
+         m_pcFileOpenRecentAction[i]->setData(listFiles[i]);
+         m_pcFileOpenRecentAction[i]->setVisible(true);
+      }
+      for(int i = nRecentFiles; i < MAX_RECENT_FILES; ++i) {
+         m_pcFileOpenRecentAction[i]->setVisible(false);
+      }
+      m_pcFileSeparateRecentAction->setVisible(nRecentFiles > 0);
+      cSettings.endGroup();
+   }
+
+   /****************************************/
+   /****************************************/
+
+   QString CQTOpenGLLuaMainWindow::StrippedFileName(const QString& str_path) {
+      return QFileInfo(str_path).fileName();
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CQTOpenGLLuaMainWindow::closeEvent(QCloseEvent* pc_event) {
+      pc_event->ignore();
+   }
+
    /****************************************/
    /****************************************/
 

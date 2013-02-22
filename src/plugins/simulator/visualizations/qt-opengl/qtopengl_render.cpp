@@ -33,7 +33,7 @@ namespace argos {
          m_nOptionNum += 2;
       }
       m_ppcOptions = new char*[m_nOptionNum];
-      m_ppcOptions[0] = new char[6];
+      m_ppcOptions[0] = new char[7];
       ::strcpy(m_ppcOptions[0], "argos3");
       if(bIntelFix) {
          m_ppcOptions[1] = new char[16];
@@ -85,6 +85,26 @@ namespace argos {
       delete m_pcMainWindow;
       /* Destroy the QT application */
       delete m_pcApplication;
+   }
+
+   /****************************************/
+   /****************************************/
+
+   CQTOpenGLMainWindow& CQTOpenGLRender::GetMainWindow() {
+      if(m_pcMainWindow == NULL) {
+         THROW_ARGOSEXCEPTION("CQTOpenGLRender::GetMainWindow(): no main window created");
+      }
+      return *m_pcMainWindow;
+   }
+
+   /****************************************/
+   /****************************************/
+
+   CQTOpenGLLuaMainWindow& CQTOpenGLRender::GetLuaMainWindow() {
+      if(m_pcQTOpenGLLuaMainWindow == NULL) {
+         THROW_ARGOSEXCEPTION("CQTOpenGLRender::GetLuaMainWindow(): no Lua main window created");
+      }
+      return *m_pcQTOpenGLLuaMainWindow;
    }
 
    /****************************************/

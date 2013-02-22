@@ -40,6 +40,17 @@ namespace argos {
                THROW_ARGOSEXCEPTION("Error loading Lua script \"" << strScriptFileName << "\": " << lua_tostring(m_ptLuaState, -1));
             }
          }
+         else {
+            /* Create a new Lua stack */
+            m_ptLuaState = luaL_newstate();
+            /* Load the Lua libraries */
+            luaL_openlibs(m_ptLuaState);
+            /* Register functions */
+            CLuaUtility::RegisterLoggerWrapper(m_ptLuaState);
+            /* Create and set variables */
+            CreateLuaVariables();
+            SensorReadingsToLuaVariables();
+         }
       }
       catch(CARGoSException& ex) {
          THROW_ARGOSEXCEPTION_NESTED("Error initializing Lua controller", ex);
@@ -61,7 +72,6 @@ namespace argos {
          else {
             m_bIsOK = false;
          }
-         //CLuaUtility::PrintGlobals(LOGERR, m_ptLuaState);
       }
    }
 
@@ -69,9 +79,13 @@ namespace argos {
    /****************************************/
 
    void CLuaController::Reset() {
-      if(m_bScriptActive && m_bIsOK) {
-         /* Execute script reset function */
-         m_bIsOK = CLuaUtility::CallFunction(m_ptLuaState, "reset");
+      if(m_bScriptActive) {
+         if(m_bIsOK) {
+            m_bIsOK = CLuaUtility::CallFunction(m_ptLuaState, "reset");
+         }
+         else {
+            SetLuaScript(m_strScriptFileName);
+         }
       }
    }
 
@@ -100,6 +114,7 @@ namespace argos {
       if(m_bScriptActive) {
          lua_close(m_ptLuaState);
          m_bScriptActive = false;
+         m_strScriptFileName = "";
       }
       /* Create a new Lua stack */
       m_ptLuaState = luaL_newstate();
@@ -110,6 +125,7 @@ namespace argos {
          m_bIsOK = false;
          return;
       }
+      m_strScriptFileName = str_script;
       /* Register functions */
       CLuaUtility::RegisterLoggerWrapper(m_ptLuaState);
       /* Create and set variables */
@@ -130,6 +146,10 @@ namespace argos {
    void CLuaController::CreateLuaVariables() {
       /* Create a table that will contain the state of the robot */
       lua_newtable(m_ptLuaState);
+      /* Set the id of the robot */
+      lua_pushstring(m_ptLuaState, "id");
+      lua_pushstring(m_ptLuaState, GetId().c_str());
+      lua_settable(m_ptLuaState, -3);
       /* Go through devices and add the necessary items to the table */
       for(CCI_Actuator::TMap::iterator it = m_mapActuators.begin();
           it != m_mapActuators.end();
