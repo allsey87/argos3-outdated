@@ -66,11 +66,25 @@ namespace argos {
    /****************************************/
    /****************************************/
 
+   void CComposableEntity::SetEnabled(bool b_enabled) {
+      CEntity::SetEnabled(b_enabled);
+      for(CEntity::TMap::iterator it = m_mapComponents.begin();
+          it != m_mapComponents.end();
+          ++it) {
+         it->second->SetEnabled(b_enabled);
+      }
+   }
+
+   /****************************************/
+   /****************************************/
+
    void CComposableEntity::UpdateComponents() {
       for(CEntity::TMap::iterator it = m_mapComponents.begin();
           it != m_mapComponents.end();
           ++it) {
-         it->second->Update();
+         if(it->second->IsEnabled()) {
+            it->second->Update();
+         }
       }
    }
 
@@ -193,13 +207,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   REGISTER_SPACE_OPERATION(CSpaceOperationAddEntity,
-                            CSpaceOperationAddComposableEntity,
-                            CComposableEntity);
-
-   REGISTER_SPACE_OPERATION(CSpaceOperationRemoveEntity,
-                            CSpaceOperationRemoveComposableEntity,
-                            CComposableEntity);
+   REGISTER_STANDARD_SPACE_OPERATIONS_ON_COMPOSABLE(CComposableEntity);
 
    /****************************************/
    /****************************************/

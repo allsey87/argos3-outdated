@@ -44,6 +44,14 @@ namespace argos {
          return "composite";
       }
 
+      /**
+       * Enables or disables an entity
+       * @param b_enabled <tt>true</tt> if the entity is enabled, <tt>false</tt> otherwise
+       * @see CEntity::m_bEnabled
+       * @see CEntity::m_bCanBeEnabledIfDisabled
+       */
+      virtual void SetEnabled(bool b_enabled);
+
       virtual void UpdateComponents();
 
       void AddComponent(CEntity& c_component);
@@ -77,28 +85,30 @@ namespace argos {
 
    };
 
-   class CSpaceOperationAddComposableEntity : public CSpaceOperationAddEntity {
-   public:
-      void ApplyTo(CSpace& c_space, CComposableEntity& c_entity) {
-         c_space.AddEntity(c_entity);
-         for(CEntity::TMultiMap::iterator it = c_entity.GetComponents().begin();
-             it != c_entity.GetComponents().end();
-             ++it) {
-            CallEntityOperation<CSpaceOperationAddEntity, CSpace, void>(c_space, *(it->second));
-         }
-      }
+#define SPACE_OPERATION_ADD_COMPOSABLE_ENTITY(ENTITY)                   \
+   class CSpaceOperationAdd ## ENTITY : public CSpaceOperationAddEntity { \
+   public:                                                              \
+   void ApplyTo(CSpace& c_space, ENTITY& c_entity) {                    \
+      c_space.AddEntity(c_entity);                                      \
+      for(CEntity::TMultiMap::iterator it = c_entity.GetComponents().begin(); \
+          it != c_entity.GetComponents().end();                         \
+          ++it) {                                                       \
+         CallEntityOperation<CSpaceOperationAddEntity, CSpace, void>(c_space, *(it->second)); \
+      }                                                                 \
+   }                                                                    \
    };
    
-   class CSpaceOperationRemoveComposableEntity : public CSpaceOperationRemoveEntity {
-   public:
-      void ApplyTo(CSpace& c_space, CComposableEntity& c_entity) {
-         for(CEntity::TMultiMap::iterator it = c_entity.GetComponents().begin();
-             it != c_entity.GetComponents().end();
-             ++it) {
-            CallEntityOperation<CSpaceOperationRemoveEntity, CSpace, void>(c_space, *(it->second));
-         }
-         c_space.RemoveEntity(c_entity);
-      }
+#define SPACE_OPERATION_REMOVE_COMPOSABLE_ENTITY(ENTITY)                \
+   class CSpaceOperationRemove ## ENTITY : public CSpaceOperationRemoveEntity { \
+   public:                                                              \
+   void ApplyTo(CSpace& c_space, ENTITY& c_entity) {                    \
+      for(CEntity::TMultiMap::iterator it = c_entity.GetComponents().begin(); \
+          it != c_entity.GetComponents().end();                         \
+          ++it) {                                                       \
+         CallEntityOperation<CSpaceOperationRemoveEntity, CSpace, void>(c_space, *(it->second)); \
+      }                                                                 \
+      c_space.RemoveEntity(c_entity);                                   \
+   }                                                                    \
    };
 
 }

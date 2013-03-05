@@ -3,16 +3,18 @@
 #
 # argos3/plugins/simulator/sensors
 set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_SENSORS
-  proximity_default_sensor.h
-  ring_proximity_default_sensor.h)
+  ground_rotzonly_sensor.h
+  light_default_sensor.h
+  proximity_default_sensor.h)
 
 #
 # Source files
 #
 set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_SENSORS
   ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_SENSORS}
-  proximity_default_sensor.cpp
-  ring_proximity_default_sensor.cpp)
+  ground_rotzonly_sensor.cpp
+  light_default_sensor.cpp
+  proximity_default_sensor.cpp)
 
 #
 # Create entity plugin library

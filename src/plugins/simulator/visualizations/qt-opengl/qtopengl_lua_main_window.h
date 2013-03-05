@@ -67,6 +67,9 @@ namespace argos {
       bool SaveFile(const QString& str_path = QString());
       void SetCurrentFile(const QString& str_path);
       void UpdateRecentFiles();
+      void SetMessage(int n_row,
+                      const QString& str_robot_id,
+                      const QString& str_message);
 
       QString StrippedFileName(const QString& str_path);
 

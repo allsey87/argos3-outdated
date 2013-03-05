@@ -25,8 +25,10 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QProcess>
 #include <QSettings>
 #include <QStatusBar>
+#include <QTemporaryFile>
 #include <QTextStream>
 #include <QToolBar>
 #include <QTableWidget>
@@ -139,9 +141,40 @@ namespace argos {
    void CQTOpenGLLuaMainWindow::Execute() {
       if(MaybeSave()) {
          QApplication::setOverrideCursor(Qt::WaitCursor);
-         for(size_t i = 0; i < m_vecControllers.size(); ++i) {
-            m_vecControllers[i]->SetLuaScript(m_strFileName.toStdString());
+         /* Clear the message table */
+         m_pcLuaMessageTable->clearContents();
+         m_pcLuaMessageTable->setRowCount(1);
+         /* Create temporary file to contain the bytecode */
+         QTemporaryFile cByteCode;
+         if(! cByteCode.open()) {
+            SetMessage(0, "ALL", "Can't create bytecode file.");
+            QApplication::restoreOverrideCursor();
+            return;
          }
+         /* Compile script */
+         QProcess cLuaCompiler;
+         cLuaCompiler.start("luac", QStringList() << "-o" << cByteCode.fileName() << m_strFileName);
+         if(! cLuaCompiler.waitForStarted()) {
+            SetMessage(0, "ALL", QString(cLuaCompiler.readAllStandardError()));
+            QApplication::restoreOverrideCursor();
+            return;
+         }
+         if(! cLuaCompiler.waitForFinished()) {
+            SetMessage(0, "ALL", QString(cLuaCompiler.readAllStandardError()));
+            QApplication::restoreOverrideCursor();
+            return;
+         }
+         if(cLuaCompiler.exitCode() != 0) {
+            SetMessage(0, "ALL", QString(cLuaCompiler.readAllStandardError()));
+            QApplication::restoreOverrideCursor();
+            return;
+         }
+         SetMessage(0, "ALL", "Compilation successful.");
+         /* Set the script for all the robots */
+         for(size_t i = 0; i < m_vecControllers.size(); ++i) {
+            m_vecControllers[i]->SetLuaScript(cByteCode.fileName().toStdString());
+         }
+         /* Update Lua state if visible */
          if(m_pcLuaVariableDock->isVisible()) {
             static_cast<CQTOpenGLLuaStateTreeModel*>(m_pcLuaVariableTree->model())->SetLuaState(
                m_vecControllers[m_unSelectedRobot]->GetLuaState());
@@ -194,14 +227,18 @@ namespace argos {
    /****************************************/
 
    void CQTOpenGLLuaMainWindow::PopulateLuaControllers() {
+      /* Get list of controllable entities */
       CSpace& cSpace = CSimulator::GetInstance().GetSpace();
       CSpace::TMapPerType& tControllables = cSpace.GetEntitiesByType("controller");
+      /* Go through them and keep a pointer to each Lua controller */
       for(CSpace::TMapPerType::iterator it = tControllables.begin();
           it != tControllables.end();
           ++it) {
+         /* Try to convert the controller into a Lua controller */
          CControllableEntity* pcControllable = any_cast<CControllableEntity*>(it->second);
          CLuaController* pcLuaController = dynamic_cast<CLuaController*>(&(pcControllable->GetController()));
          if(pcLuaController) {
+            /* Conversion succeeded, add to indices */
             m_vecControllers.push_back(pcLuaController);
             m_vecRobots.push_back(&pcControllable->GetParent());
          }
@@ -240,13 +277,16 @@ namespace argos {
    /****************************************/
 
    void CQTOpenGLLuaMainWindow::CreateCodeEditor() {
+      /* Set font */
       QFont cFont;
       cFont.setFamily("Luxi Mono");
       cFont.setFixedPitch(true);
+      /* Create code editor */
       m_pcCodeEditor = new CQTOpenGLLuaEditor(this);
       m_pcCodeEditor->setFont(cFont);
       new CQTOpenGLLuaSyntaxHighlighter(m_pcCodeEditor->document());
       setCentralWidget(m_pcCodeEditor);
+      /* Connect stuff */
       connect(m_pcCodeEditor->document(), SIGNAL(contentsChanged()),
               this, SLOT(CodeModified()));
       connect(&(m_pcMainWindow->GetOpenGLWidget()), SIGNAL(StepDone(int)),
@@ -536,37 +576,18 @@ namespace argos {
    /****************************************/
 
    void CQTOpenGLLuaMainWindow::CheckLuaStatus(int n_step) {
-      static std::vector<std::string> vecFields;
       int nRow = 0;
       m_pcLuaMessageTable->clearContents();
       m_pcLuaMessageTable->setRowCount(m_vecControllers.size());
       for(size_t i = 0; i < m_vecControllers.size(); ++i) {
          if(! m_vecControllers[i]->IsOK()) {
-            vecFields.clear();
-            Tokenize(m_vecControllers[i]->GetErrorMessage(), vecFields, ":");
-            m_pcLuaMessageTable->setItem(
-               nRow, 0,
-               new QTableWidgetItem(
-                  QString::fromStdString(m_vecControllers[i]->GetId())));
-            if(vecFields.size() == 3) {
-               m_pcLuaMessageTable->setItem(
-                  nRow, 1,
-                  new QTableWidgetItem(
-                     QString::fromStdString(vecFields[1])));
-               m_pcLuaMessageTable->setItem(
-                  nRow, 2,
-                  new QTableWidgetItem(
-                     QString::fromStdString(vecFields[2])));
-            }
-            else {
-               m_pcLuaMessageTable->setItem(
-                  nRow, 2,
-                  new QTableWidgetItem(
-                     QString::fromStdString(m_vecControllers[i]->GetErrorMessage())));
-            }
+            SetMessage(i,
+                       QString::fromStdString(m_vecControllers[i]->GetId()),
+                       QString::fromStdString(m_vecControllers[i]->GetErrorMessage()));
             ++nRow;
          }
       }
+      m_pcLuaMessageTable->setRowCount(nRow);
    }
 
    /****************************************/
@@ -613,11 +634,11 @@ namespace argos {
          if(bFound &&
             m_vecControllers[m_unSelectedRobot]->GetLuaState() != NULL) {
             CQTOpenGLLuaStateTreeVariableModel* pcVarModel = new CQTOpenGLLuaStateTreeVariableModel(m_vecControllers[m_unSelectedRobot]->GetLuaState(), m_pcLuaVariableTree);
-            pcVarModel->Refresh(0);
+            pcVarModel->Refresh();
             connect(&(m_pcMainWindow->GetOpenGLWidget()), SIGNAL(StepDone(int)),
                     pcVarModel, SLOT(Refresh(int)));
             connect(m_pcMainWindow, SIGNAL(SimulationReset()),
-                    pcVarModel, SLOT(Refresh(int)));
+                    pcVarModel, SLOT(Refresh()));
             connect(pcVarModel, SIGNAL(modelReset()),
                     this, SLOT(VariableTreeChanged()),
                     Qt::QueuedConnection);
@@ -626,11 +647,11 @@ namespace argos {
             m_pcLuaVariableTree->expandAll();
             m_pcLuaVariableDock->show();
             CQTOpenGLLuaStateTreeFunctionModel* pcFunModel = new CQTOpenGLLuaStateTreeFunctionModel(m_vecControllers[m_unSelectedRobot]->GetLuaState(), m_pcLuaFunctionTree);
-            pcFunModel->Refresh(0);
+            pcFunModel->Refresh();
             connect(&(m_pcMainWindow->GetOpenGLWidget()), SIGNAL(StepDone(int)),
                     pcFunModel, SLOT(Refresh(int)));
             connect(m_pcMainWindow, SIGNAL(SimulationReset()),
-                    pcFunModel, SLOT(Refresh(int)));
+                    pcFunModel, SLOT(Refresh()));
             connect(pcFunModel, SIGNAL(modelReset()),
                     this, SLOT(FunctionTreeChanged()),
                     Qt::QueuedConnection);
@@ -649,14 +670,14 @@ namespace argos {
       disconnect(&(m_pcMainWindow->GetOpenGLWidget()), SIGNAL(StepDone(int)),
                  m_pcLuaVariableTree->model(), SLOT(Refresh(int)));
       disconnect(m_pcMainWindow, SIGNAL(SimulationReset()),
-                 m_pcLuaVariableTree->model(), SLOT(Refresh(int)));
+                 m_pcLuaVariableTree->model(), SLOT(Refresh()));
       disconnect(m_pcLuaVariableTree->model(), SIGNAL(modelReset()),
-                 this, SLOT(StateTreeChanged()));
+                 this, SLOT(VariableTreeChanged()));
       m_pcLuaVariableDock->hide();
       disconnect(&(m_pcMainWindow->GetOpenGLWidget()), SIGNAL(StepDone(int)),
                  m_pcLuaFunctionTree->model(), SLOT(Refresh(int)));
       disconnect(m_pcMainWindow, SIGNAL(SimulationReset()),
-                 m_pcLuaFunctionTree->model(), SLOT(Refresh(int)));
+                 m_pcLuaFunctionTree->model(), SLOT(Refresh()));
       disconnect(m_pcLuaFunctionTree->model(), SIGNAL(modelReset()),
                  this, SLOT(FunctionTreeChanged()));
       m_pcLuaFunctionDock->hide();
@@ -696,6 +717,33 @@ namespace argos {
       }
       m_pcFileSeparateRecentAction->setVisible(nRecentFiles > 0);
       cSettings.endGroup();
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CQTOpenGLLuaMainWindow::SetMessage(int n_row,
+                                           const QString& str_robot_id,
+                                           const QString& str_message) {
+      QStringList listFields = str_message.split(":",
+                                                 QString::KeepEmptyParts,
+                                                 Qt::CaseInsensitive);
+      m_pcLuaMessageTable->setItem(
+         n_row, 0,
+         new QTableWidgetItem(str_robot_id));
+      if(listFields.size() == 4) {
+         m_pcLuaMessageTable->setItem(
+            n_row, 1,
+            new QTableWidgetItem(listFields[2]));
+         m_pcLuaMessageTable->setItem(
+            n_row, 2,
+            new QTableWidgetItem(listFields[3]));
+      }
+      else {
+         m_pcLuaMessageTable->setItem(
+            n_row, 2,
+            new QTableWidgetItem(str_message));
+      }
    }
 
    /****************************************/

@@ -1,5 +1,5 @@
 /**
- * @file <argos3/plugins/simulator/sensors/proximity_default_sensor.cpp>
+ * @file <argos3/plugins/simulator/sensors/light_default_sensor.cpp>
  *
  * @author Carlo Pinciroli - <ilpincy@gmail.com>
  */
@@ -7,9 +7,10 @@
 #include <argos3/core/simulator/simulator.h>
 #include <argos3/core/simulator/entity/embodied_entity.h>
 #include <argos3/core/simulator/entity/composable_entity.h>
-#include <argos3/plugins/simulator/entities/proximity_sensor_equipped_entity.h>
+#include <argos3/plugins/simulator/entities/light_entity.h>
+#include <argos3/plugins/simulator/entities/light_sensor_equipped_entity.h>
 
-#include "proximity_default_sensor.h"
+#include "light_default_sensor.h"
 
 namespace argos {
 
@@ -21,7 +22,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   CProximityDefaultSensor::CProximityDefaultSensor() :
+   CLightDefaultSensor::CLightDefaultSensor() :
       m_pcEmbodiedEntity(NULL),
       m_bShowRays(false),
       m_pcRNG(NULL),
@@ -32,80 +33,92 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CProximityDefaultSensor::SetRobot(CComposableEntity& c_entity) {
+   void CLightDefaultSensor::SetRobot(CComposableEntity& c_entity) {
       m_pcEmbodiedEntity = &(c_entity.GetComponent<CEmbodiedEntity>("body"));
       m_pcControllableEntity = &(c_entity.GetComponent<CControllableEntity>("controller"));
-      m_pcProximityEntity = &(c_entity.GetComponent<CProximitySensorEquippedEntity>("proximity_sensors"));
-      m_pcProximityEntity->SetCanBeEnabledIfDisabled(true);
-      m_pcProximityEntity->SetEnabled(true);
-      /* Ignore the sensing robot when checking for occlusions */
-      m_tIgnoreMe.insert(m_pcEmbodiedEntity);
+      m_pcLightEntity = &(c_entity.GetComponent<CLightSensorEquippedEntity>("light_sensors"));
+      m_pcLightEntity->SetCanBeEnabledIfDisabled(true);
+      m_pcLightEntity->SetEnabled(true);
    }
 
    /****************************************/
    /****************************************/
 
-   void CProximityDefaultSensor::Init(TConfigurationNode& t_tree) {
+   void CLightDefaultSensor::Init(TConfigurationNode& t_tree) {
       try {
-         CCI_ProximitySensor::Init(t_tree);
+         CCI_LightSensor::Init(t_tree);
          /* Show rays? */
          GetNodeAttributeOrDefault(t_tree, "show_rays", m_bShowRays, m_bShowRays);
          /* Parse noise level */
          Real fNoiseLevel = 0.0f;
          GetNodeAttributeOrDefault(t_tree, "noise_level", fNoiseLevel, fNoiseLevel);
          if(fNoiseLevel < 0.0f) {
-            THROW_ARGOSEXCEPTION("Can't specify a negative value for the noise level of the proximity sensor");
+            THROW_ARGOSEXCEPTION("Can't specify a negative value for the noise level of the light sensor");
          }
          else if(fNoiseLevel > 0.0f) {
             m_bAddNoise = true;
             m_cNoiseRange.Set(-fNoiseLevel, fNoiseLevel);
             m_pcRNG = CRandom::CreateRNG("argos");
          }
-         m_tReadings.resize(m_pcProximityEntity->GetNumSensors());
+         m_tReadings.resize(m_pcLightEntity->GetNumSensors());
       }
       catch(CARGoSException& ex) {
-         THROW_ARGOSEXCEPTION_NESTED("Initialization error in default proximity sensor", ex);
+         THROW_ARGOSEXCEPTION_NESTED("Initialization error in default light sensor", ex);
       }
    }
 
    /****************************************/
    /****************************************/
    
-   void CProximityDefaultSensor::Update() {
+   void CLightDefaultSensor::Update() {
+      /* Erase readings */
+      for(size_t i = 0; i < m_tReadings.size(); ++i) {
+         m_tReadings[i] = 0.0f;
+      }
       /* Ray used for scanning the environment for obstacles */
       CRay3 cScanningRay;
-      CVector3 cRayStart, cRayEnd;
+      CVector3 cRayStart;
+      CVector3 cSensorToLight;
       /* Buffers to contain data about the intersection */
       CSpace::SEntityIntersectionItem<CEmbodiedEntity> sIntersection;
+      /* List of light entities */
+      CSpace::TMapPerType& mapLights = m_cSpace.GetEntitiesByType("light");
       /* Go through the sensors */
       for(UInt32 i = 0; i < m_tReadings.size(); ++i) {
-         /* Compute ray for sensor i */
-         cRayStart = m_pcProximityEntity->GetSensor(i).Position;
+         /* Set ray start */
+         cRayStart = m_pcLightEntity->GetSensor(i).Position;
          cRayStart.Rotate(m_pcEmbodiedEntity->GetOrientation());
          cRayStart += m_pcEmbodiedEntity->GetPosition();
-         cRayEnd = m_pcProximityEntity->GetSensor(i).Position;
-         cRayEnd += m_pcProximityEntity->GetSensor(i).Direction;
-         cRayEnd.Rotate(m_pcEmbodiedEntity->GetOrientation());
-         cRayEnd += m_pcEmbodiedEntity->GetPosition();
-         cScanningRay.Set(cRayStart,cRayEnd);
-         /* Compute reading */
-         /* Get the closest intersection */
-         if(m_cSpace.GetClosestEmbodiedEntityIntersectedByRay(sIntersection,
-                                                              cScanningRay,
-                                                              m_tIgnoreMe)) {
-            /* There is an intersection */
-            if(m_bShowRays) {
-               m_pcControllableEntity->AddIntersectionPoint(cScanningRay,
-                                                            sIntersection.TOnRay);
-               m_pcControllableEntity->AddCheckedRay(true, cScanningRay);
-            }
-            m_tReadings[i] = CalculateReading(cScanningRay.GetDistance(sIntersection.TOnRay));
-         }
-         else {
-            /* No intersection */
-            m_tReadings[i] = 0.0f;
-            if(m_bShowRays) {
-               m_pcControllableEntity->AddCheckedRay(false, cScanningRay);
+         /* Go through all the light entities */
+         for(CSpace::TMapPerType::iterator it = mapLights.begin();
+             it != mapLights.end();
+             ++it) {
+            /* Get a reference to the light */
+            CLightEntity& cLight = *any_cast<CLightEntity*>(it->second);
+            /* Consider the light only if it has non zero intensity */
+            if(cLight.GetIntensity() > 0.0f) {
+               /* Set ray end to light position */
+               cScanningRay.Set(cRayStart, cLight.GetPosition());
+               /* Check occlusions */
+               if(! m_cSpace.GetClosestEmbodiedEntityIntersectedByRay(sIntersection,
+                                                                      cScanningRay)) {
+                  /* No occlusion, the light is visibile */
+                  if(m_bShowRays) {
+                     m_pcControllableEntity->AddCheckedRay(false, cScanningRay);
+                  }
+                  /* Calculate reading */
+                  cScanningRay.ToVector(cSensorToLight);
+                  m_tReadings[i] += CalculateReading(cSensorToLight.Length(),
+                                                     cLight.GetIntensity());
+               }
+               else {
+                  /* There is an occlusion, the light is not visible */
+                  if(m_bShowRays) {
+                     m_pcControllableEntity->AddIntersectionPoint(cScanningRay,
+                                                                  sIntersection.TOnRay);
+                     m_pcControllableEntity->AddCheckedRay(true, cScanningRay);
+                  }
+               }
             }
          }
          /* Apply noise to the sensor */
@@ -120,7 +133,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CProximityDefaultSensor::Reset() {
+   void CLightDefaultSensor::Reset() {
       for(UInt32 i = 0; i < GetReadings().size(); ++i) {
          m_tReadings[i] = 0.0f;
       }
@@ -129,23 +142,30 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   Real CProximityDefaultSensor::CalculateReading(Real f_distance) {
-      return Exp(-f_distance);
+   Real CLightDefaultSensor::CalculateReading(Real f_distance, Real f_intensity) {
+      return (f_intensity * f_intensity) / (f_distance * f_distance);
    }
 
    /****************************************/
    /****************************************/
 
-   REGISTER_SENSOR(CProximityDefaultSensor,
-                   "proximity", "default",
+   REGISTER_SENSOR(CLightDefaultSensor,
+                   "light", "default",
                    "Carlo Pinciroli [ilpincy@gmail.com]",
                    "1.0",
-                   "A generic proximity sensor",
-                   "This sensor accesses a set of proximity sensors. The sensors all return a value\n"
-                   "between 0 and 1, where 0 means nothing within range and 1 means an external\n"
-                   "object is touching the sensor. Values between 0 and 1 depend on the distance of\n"
-                   "the occluding object, and are calculated as value=exp(-distance). In\n"
-                   "controllers, you must include the ci_proximity_sensor.h header.\n\n"
+                   "A generic light sensor",
+                   "This sensor accesses a set of light sensors. The sensors all return a value\n"
+                   "between 0 and 1, where 0 means nothing within range and 1 means the perceived\n"
+                   "light saturates the sensor. Values between 0 and 1 depend on the distance of\n"
+                   "the perceived light. Each reading R is calculated with R=(I/x)^2, where x is the\n"
+                   "distance between a sensor and the light, and I is the reference intensity of the\n"
+                   "perceived light. The reference intensity corresponds to the minimum distance at\n"
+                   "which the light saturates a sensor. The reference intensity depends on the\n"
+                   "individual light, and it is set with the \"intensity\" attribute of the light\n"
+                   "entity. In case multiple lights are present in the environment, each sensor\n"
+                   "reading is calculated as the sum of the individual readings due to each light.\n"
+                   "In other words, light wave interference is not taken into account. In\n"
+                   "controllers, you must include the ci_light_sensor.h header.\n\n"
                    "REQUIRED XML CONFIGURATION\n\n"
                    "  <controllers>\n"
                    "    ...\n"
@@ -153,7 +173,7 @@ namespace argos {
                    "      ...\n"
                    "      <sensors>\n"
                    "        ...\n"
-                   "        <proximity implementation=\"default\" />\n"
+                   "        <light implementation=\"default\" />\n"
                    "        ...\n"
                    "      </sensors>\n"
                    "      ...\n"
@@ -161,7 +181,7 @@ namespace argos {
                    "    ...\n"
                    "  </controllers>\n\n"
                    "OPTIONAL XML CONFIGURATION\n\n"
-                   "It is possible to draw the rays shot by the proximity sensor in the OpenGL\n"
+                   "It is possible to draw the rays shot by the light sensor in the OpenGL\n"
                    "visualization. This can be useful for sensor debugging but also to understand\n"
                    "what's wrong in your controller. In OpenGL, the rays are drawn in cyan when\n"
                    "they are not obstructed and in purple when they are. In case a ray is\n"
@@ -174,7 +194,7 @@ namespace argos {
                    "      ...\n"
                    "      <sensors>\n"
                    "        ...\n"
-                   "        <proximity implementation=\"default\"\n"
+                   "        <light implementation=\"default\"\n"
                    "                   show_rays=\"true\" />\n"
                    "        ...\n"
                    "      </sensors>\n"
@@ -192,7 +212,7 @@ namespace argos {
                    "      ...\n"
                    "      <sensors>\n"
                    "        ...\n"
-                   "        <proximity implementation=\"default\"\n"
+                   "        <light implementation=\"default\"\n"
                    "                   noise_level=\"0.1\" />\n"
                    "        ...\n"
                    "      </sensors>\n"
