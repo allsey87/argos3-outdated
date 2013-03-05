@@ -17,6 +17,7 @@
   <!-- * Arena configuration * -->
   <!-- *********************** -->
   <arena size="2, 2, 1">
+    <floor id="f0"/>
     <box id="b0" position="1,0,1" orientation="0,0,0" size="0.2, 0.5, 0.2" movable="false" />
     <box id="b1" position="0,1,1" orientation="0,0,0" size="0.2, 0.5, 0.2" movable="true" mass="1" />
   </arena>
