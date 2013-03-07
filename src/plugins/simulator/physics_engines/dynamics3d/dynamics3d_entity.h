@@ -14,7 +14,8 @@ namespace argos {
 #include <argos3/core/simulator/physics_engine/physics_engine_entity.h>
 #include <argos3/core/utility/math/vector3.h>
 #include <argos3/core/utility/math/quaternion.h>
-#include <btBulletDynamicsCommon.h>
+
+#include "bullet/btBulletDynamicsCommon.h"
 
 #include <tr1/unordered_map>
 
@@ -74,21 +75,23 @@ namespace argos {
       virtual void UpdateEntityStatus() = 0;
       virtual void UpdateFromEntityStatus() = 0;
       
-      virtual std::vector<btRigidBody*>& GetRigidBodies() = 0;
+      inline const std::vector<btRigidBody*>& GetRigidBodies() const {
+         return m_vecLocalRigidBodies;
+      }
       
+      inline const std::vector<btTypedConstraint*>& GetConstraints() const {
+         return m_vecLocalConstraints;
+      }
 
-      
    private:
 
-      CDynamics3DEntity::TMultiMap m_mapConnectedBodies;
+      //CDynamics3DEntity::TMultiMap m_mapConnectedBodies;
 
    protected:
+      CDynamics3DEngine&      m_cEngine;      
       
-      
-      
-      CDynamics3DEngine&      m_cEngine;
-      
-      btDefaultMotionState*   m_pcMotionState;
+      std::vector<btRigidBody*> m_vecLocalRigidBodies;
+      std::vector<btTypedConstraint*> m_vecLocalConstraints;
 
    };
 

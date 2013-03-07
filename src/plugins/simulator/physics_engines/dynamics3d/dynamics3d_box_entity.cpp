@@ -22,38 +22,36 @@ namespace argos {
       const CVector3 cBoxHalfSize = c_box.GetSize() * 0.5f;
       
       /* When defining size of objects we must manually swap the Z and Y components */
-      m_pcCollisionShape = new btBoxShape(
+      m_pcBoxCollisionShape = new btBoxShape(
          btVector3(cBoxHalfSize.GetX(), cBoxHalfSize.GetZ(), cBoxHalfSize.GetY())
       );
       
-      m_pcMotionState = new btDefaultMotionState(btTransform(
+      m_pcBoxMotionState = new btDefaultMotionState(btTransform(
          ARGoSToBullet(GetEmbodiedEntity().GetOrientation()),
          ARGoSToBullet(GetEmbodiedEntity().GetPosition())
       ));
           
       if(c_box.GetEmbodiedEntity().IsMovable()) {
          btVector3 cInteria;
-         m_pcCollisionShape->calculateLocalInertia(c_box.GetMass(), cInteria);
-         m_vecRigidBodies.push_back(new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
-            c_box.GetMass(), m_pcMotionState, m_pcCollisionShape, cInteria)));
+         m_pcBoxCollisionShape->calculateLocalInertia(c_box.GetMass(), cInteria);
+         m_pcBoxRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
+            c_box.GetMass(), m_pcBoxMotionState, m_pcBoxCollisionShape, cInteria));
       }
       else {
-         m_vecRigidBodies.push_back(new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
-            0.0f, m_pcMotionState, m_pcCollisionShape, btVector3(0.0f,0.0f,0.0f))));
+         m_pcBoxRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
+            0.0f, m_pcBoxMotionState, m_pcBoxCollisionShape, btVector3(0.0f,0.0f,0.0f)));
       }
+      
+      m_vecLocalRigidBodies.push_back(m_pcBoxRigidBody);
    }
    
    /****************************************/
    /****************************************/
    
    CDynamics3DBoxEntity::~CDynamics3DBoxEntity() {
-      for(std::vector<btRigidBody*>::iterator it = m_vecRigidBodies.begin();
-          it != m_vecRigidBodies.end();
-          it++) {
-         delete *it;
-      }
-      delete m_pcMotionState;
-      delete m_pcCollisionShape;
+      delete m_pcBoxRigidBody;
+      delete m_pcBoxMotionState;
+      delete m_pcBoxCollisionShape;
    }
    
    /****************************************/
@@ -76,18 +74,18 @@ namespace argos {
       btCollisionObject cTempCollisionObject;
       
       btTransform cEntityTransform;
-      m_pcMotionState->getWorldTransform(cEntityTransform);
+      m_pcBoxMotionState->getWorldTransform(cEntityTransform);
             
       btCollisionWorld::rayTestSingle(cRayFromTransform,
                                       cRayToTransform,
                                       &cTempCollisionObject,
-                                      m_pcCollisionShape,
+                                      m_pcBoxCollisionShape,
                                       cEntityTransform,
                                       cResult);
       
 		if (cResult.hasHit()) {
 			btVector3 cHitPoint = cResult.m_hitPointWorld;
-			f_t_on_ray = (cHitPoint - cRayStart).length();
+			f_t_on_ray = (cHitPoint - cRayStart).length() / (cRayEnd - cRayStart).length();
          return true;
       }
       else {
@@ -110,12 +108,12 @@ namespace argos {
       
       /* Test if this region defined by the location and collision shape is occupied */
       bool bLocationOccupied = 
-         m_cEngine.IsRegionOccupied(cEntityTransform, *m_pcCollisionShape);
+         m_cEngine.IsRegionOccupied(cEntityTransform, *m_pcBoxCollisionShape);
          
       LOG << "CDynamics3DEngine::IsRegionOccupied returned: " << (bLocationOccupied?"true":"false") << std::endl;
          
       if(b_check_only == false && bLocationOccupied == false) {
-         m_vecRigidBodies[0]->setWorldTransform(cEntityTransform);
+         m_vecLocalRigidBodies[0]->setWorldTransform(cEntityTransform);
          GetEmbodiedEntity().SetPosition(c_position);
          GetEmbodiedEntity().SetOrientation(c_orientation);
       }
@@ -128,18 +126,27 @@ namespace argos {
    /****************************************/
 
    void CDynamics3DBoxEntity::Reset() {
+   
+      for(std::vector<btRigidBody*>::iterator itBody = m_vecLocalRigidBodies.begin(); 
+          itBody !=  m_vecLocalRigidBodies.end();
+          itBody++) {   
+         (*itBody)->setAngularVelocity(btVector3(0.0f, 0.0f, 0.0f));
+         (*itBody)->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
+         (*itBody)->clearForces();
+         
+         (*itBody)->getMotionState()->setWorldTransform(btTransform::getIdentity());
+      }
+     
       if(m_cBoxEntity.GetEmbodiedEntity().IsMovable()) {      
          
          /* Reset box position and orientation */
-         m_pcMotionState->setWorldTransform(btTransform(
+         m_pcBoxMotionState->setWorldTransform(btTransform(
             ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
             ARGoSToBullet(GetEmbodiedEntity().GetInitPosition())
          ));
-         
-         m_vecRigidBodies[0]->setAngularVelocity(btVector3(0.0f, 0.0f, 0.0f));
-         m_vecRigidBodies[0]->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
-         m_vecRigidBodies[0]->clearForces();
       }
+      
+      UpdateEntityStatus();
    }
 
    /****************************************/
@@ -150,7 +157,7 @@ namespace argos {
          
          /* Update box position and orientation */
          btTransform cEntityTransform;
-         m_pcMotionState->getWorldTransform(cEntityTransform);
+         m_pcBoxMotionState->getWorldTransform(cEntityTransform);
          GetEmbodiedEntity().SetPosition(BulletToARGoS(cEntityTransform.getOrigin()));
          GetEmbodiedEntity().SetOrientation(BulletToARGoS(cEntityTransform.getRotation()));
          

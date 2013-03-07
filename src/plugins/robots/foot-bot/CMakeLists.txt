@@ -27,6 +27,7 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
   set(ARGOS3_HEADERS_PLUGINS_ROBOTS_FOOTBOT_SIMULATOR
     simulator/distance_scanner_equipped_entity.h
     simulator/dynamics2d_footbot_entity.h
+    simulator/dynamics3d_footbot_entity.h
     simulator/footbot_entity.h
     simulator/footbot_light_rotzonly_sensor.h
     simulator/footbot_proximity_default_sensor.h)
@@ -52,6 +53,7 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     ${ARGOS3_HEADERS_PLUGINS_ROBOTS_FOOTBOT_SIMULATOR}
     simulator/distance_scanner_equipped_entity.cpp
     simulator/dynamics2d_footbot_entity.cpp
+    simulator/dynamics3d_footbot_entity.cpp
     simulator/footbot_entity.cpp
     simulator/footbot_light_rotzonly_sensor.cpp
     simulator/footbot_proximity_default_sensor.cpp)
@@ -71,12 +73,25 @@ endif(ARGOS_BUILD_FOR_SIMULATOR)
 #
 # Create foot-bot plugin
 #
+include_directories(
+   ${CMAKE_SOURCE_DIR}/plugins/simulator/physics_engines/dynamics3d/bullet
+   ${CMAKE_SOURCE_DIR}/plugins/simulator/physics_engines/dynamics3d/bullet/BulletCollision/BroadphaseCollision
+   ${CMAKE_SOURCE_DIR}/plugins/simulator/physics_engines/dynamics3d/bullet/BulletCollision/CollisionDispatch
+   ${CMAKE_SOURCE_DIR}/plugins/simulator/physics_engines/dynamics3d/bullet/BulletCollision/CollisionShapes
+   ${CMAKE_SOURCE_DIR}/plugins/simulator/physics_engines/dynamics3d/bullet/BulletCollision/Gimpact
+   ${CMAKE_SOURCE_DIR}/plugins/simulator/physics_engines/dynamics3d/bullet/BulletCollision/NarrowPhaseCollision
+   ${CMAKE_SOURCE_DIR}/plugins/simulator/physics_engines/dynamics3d/bullet/BulletDynamics/ConstraintSolver
+   ${CMAKE_SOURCE_DIR}/plugins/simulator/physics_engines/dynamics3d/bullet/BulletDynamics/Dynamics
+   ${CMAKE_SOURCE_DIR}/plugins/simulator/physics_engines/dynamics3d/bullet/BulletDynamics/Vehicle
+   ${CMAKE_SOURCE_DIR}/plugins/simulator/physics_engines/dynamics3d/bullet/BulletDynamics/Character
+   ${CMAKE_SOURCE_DIR}/plugins/simulator/physics_engines/dynamics3d/bullet/LinearMath)
 add_library(argos3plugin_${ARGOS_BUILD_FOR}_footbot SHARED ${ARGOS3_SOURCES_PLUGINS_ROBOTS_FOOTBOT})
 target_link_libraries(argos3plugin_${ARGOS_BUILD_FOR}_footbot
   argos3plugin_${ARGOS_BUILD_FOR}_genericrobot
   argos3plugin_${ARGOS_BUILD_FOR}_actuators
   argos3plugin_${ARGOS_BUILD_FOR}_sensors
-  argos3plugin_${ARGOS_BUILD_FOR}_dynamics2d)
+  argos3plugin_${ARGOS_BUILD_FOR}_dynamics2d
+  argos3plugin_${ARGOS_BUILD_FOR}_dynamics3d)
 if(ARGOS_COMPILE_QTOPENGL)
   target_link_libraries(argos3plugin_${ARGOS_BUILD_FOR}_footbot argos3plugin_${ARGOS_BUILD_FOR}_qtopengl)
 endif(ARGOS_COMPILE_QTOPENGL)

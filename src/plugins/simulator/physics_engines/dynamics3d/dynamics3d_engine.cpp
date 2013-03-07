@@ -22,8 +22,10 @@ namespace argos {
       m_pcCollisionDispatcher(NULL),
       m_pcSolver(NULL),
       m_pcWorld(NULL),
-      m_pcGhostPairCallback(NULL) {
-   }
+      m_pcGhostPairCallback(NULL),
+      m_pcGroundCollisionShape(NULL),
+      m_pcGroundMotionState(NULL),
+      m_pcGroundRigidBody(NULL) {}
 
    /****************************************/
    /****************************************/
@@ -55,7 +57,17 @@ namespace argos {
                                               m_pcCollisionConfiguration);
        
       /* Set the gravity in the world */
-      m_pcWorld->setGravity(btVector3(0.0f,-9.8f,0.0f));
+      m_pcWorld->setGravity(btVector3(0.0f, -9.8f, 0.0f));
+   
+      /* Add a static plane as the experiment floor on request */
+      if(NodeExists(t_tree, "floor")) {
+         m_pcGroundCollisionShape = new btStaticPlaneShape(btVector3(0.0f, 1.0f, 0.0f), 0);
+         m_pcGroundMotionState = new btDefaultMotionState(btTransform::getIdentity());
+         m_pcGroundRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
+            0.0f, m_pcGroundMotionState, m_pcGroundCollisionShape, btVector3(0.0f, 0.0f, 0.0f)));
+            
+         m_pcWorld->addRigidBody(m_pcGroundRigidBody);
+      }
       
       /* Enable ghost objects (used by CDynamics3DEngine::IsLocationOccupied) */
       m_pcGhostPairCallback = new btGhostPairCallback();
@@ -72,7 +84,9 @@ namespace argos {
    /****************************************/
 
    void CDynamics3DEngine::Reset() {
-
+      
+      
+      
       /* Remove and reset the physics entities
        * by iterating over the vector, we ensure that the entities are removed in the same order
        * as they were added during initisation
@@ -108,14 +122,22 @@ namespace argos {
    /****************************************/
 
    void CDynamics3DEngine::Destroy() {
-      /* Empty the physics entity map */
+      /* empty the physics entity map */
       for(CDynamics3DEntity::TMap::iterator it = m_tPhysicsEntities.begin();
           it != m_tPhysicsEntities.end(); ++it) {
          delete it->second;
       }
       m_tPhysicsEntities.clear();
       
-      /* Cleanup Bullet stuff */
+      /* remove the floor if it was added */
+      if(m_pcGroundRigidBody != NULL) {
+         m_pcWorld->removeRigidBody(m_pcGroundRigidBody);
+         delete m_pcGroundRigidBody;
+         delete m_pcGroundMotionState;
+         delete m_pcGroundCollisionShape;
+      }
+      
+      /* cleanup the dynamics world */
       delete m_pcWorld;
       delete m_pcGhostPairCallback;
       delete m_pcSolver;
@@ -190,15 +212,16 @@ namespace argos {
                                              CDynamics3DEntity& c_entity) {
       m_tPhysicsEntities[str_id] = &c_entity;
       
-      // TODO define it
-      
-      for(std::vector<btRigidBody*>::iterator itBody = c_entity.GetRigidBodies().begin(); 
+      for(std::vector<btRigidBody*>::const_iterator itBody = c_entity.GetRigidBodies().begin(); 
           itBody !=  c_entity.GetRigidBodies().end();
-          itBody++)
-         
+          itBody++) {   
          m_pcWorld->addRigidBody(*itBody);
-         
-      // TODO duplicate this for loop and add/remove all internal constraints
+      }
+      for(std::vector<btTypedConstraint*>::const_iterator itConstraint = c_entity.GetConstraints().begin(); 
+          itConstraint !=  c_entity.GetConstraints().end();
+          itConstraint++) {   
+         m_pcWorld->addConstraint(*itConstraint, true);
+      }
    }
 
    /****************************************/
@@ -206,7 +229,12 @@ namespace argos {
    void CDynamics3DEngine::RemovePhysicsEntity(const std::string& str_id) {
       CDynamics3DEntity::TMap::iterator it = m_tPhysicsEntities.find(str_id);
       if(it != m_tPhysicsEntities.end()) {
-         for(std::vector<btRigidBody*>::iterator itBody = it->second->GetRigidBodies().begin(); 
+         for(std::vector<btTypedConstraint*>::const_iterator itConstraint = it->second->GetConstraints().begin(); 
+             itConstraint !=  it->second->GetConstraints().end();
+             itConstraint++) {   
+            m_pcWorld->removeConstraint(*itConstraint);
+         }
+         for(std::vector<btRigidBody*>::const_iterator itBody = it->second->GetRigidBodies().begin(); 
              itBody !=  it->second->GetRigidBodies().end();
              itBody++) {
             m_pcWorld->removeRigidBody(*itBody);

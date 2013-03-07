@@ -38,20 +38,14 @@ namespace argos {
       virtual void UpdateEntityStatus();
       virtual void UpdateFromEntityStatus() {}
       
-      virtual std::vector<btRigidBody*>& GetRigidBodies() {
-         return m_vecRigidBodies;
-      }
-      
-
    private:
 
       CBoxEntity&                m_cBoxEntity;
-      
-      std::vector<btRigidBody*>  m_vecRigidBodies;
-      
-      btBoxShape*                m_pcCollisionShape; 
-   };
 
+      btBoxShape*                m_pcBoxCollisionShape;
+      btDefaultMotionState*      m_pcBoxMotionState;
+      btRigidBody*               m_pcBoxRigidBody;
+   };
 }
 
 #endif

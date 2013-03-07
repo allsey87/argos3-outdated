@@ -5,28 +5,57 @@
   <!-- * General configuration * -->
   <!-- ************************* -->
   <framework>
-    <experiment length="0" ticks_per_second="10" />
+    <experiment length="0" ticks_per_second="120" />
   </framework>
 
   <!-- *************** -->
   <!-- * Controllers * -->
   <!-- *************** -->
-  <controllers />
+  <controllers>
+
+    <!-- ***************************************************** -->
+    <!-- * This is the Lua controller to associate to robots * -->
+    <!-- ***************************************************** -->
+    <lua_controller id="lua">
+      <!-- Normal actuator/sensor configuration follows -->
+      <actuators>
+        <differential_steering implementation="default" />
+        <leds implementation="default" />
+      </actuators>
+      <sensors>
+        <footbot_proximity implementation="default" show_rays="false" />
+        <light implementation="default" show_rays="true" />
+      </sensors>
+      <!-- No required configuration -->
+      <params />
+      <!-- Optionally, you can pass a script as a controller parameter:
+           <params script="../../src/testing/experiment/test_script.lua" /> -->
+    </lua_controller>
+
+  </controllers>
 
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->
   <arena size="2, 2, 1">
-    <floor id="f0"/>
     <box id="b0" position="1,0,1" orientation="0,0,0" size="0.2, 0.5, 0.2" movable="false" />
     <box id="b1" position="0,1,1" orientation="0,0,0" size="0.2, 0.5, 0.2" movable="true" mass="1" />
+    <foot-bot id="fb1" position="1,2,0" orientation="0,0,0" controller="lua"/>
+    
+        <light id="l0"
+           position="1,1,1"
+           orientation="0,0,0"
+           color="yellow"
+           intensity="1" />
   </arena>
 
   <!-- ******************* -->
   <!-- * Physics engines * -->
   <!-- ******************* -->
   <physics_engines>
-    <dynamics3d id="dyn3d" />
+    <dynamics3d id="dyn3d">
+      <floor id="f0"/>
+    </dynamics3d>
   </physics_engines>
 
   <!-- ************************************ -->
@@ -35,6 +64,7 @@
   <arena_physics>
     <engine id="dyn3d">
       <entity id="b[[:digit:]]*" />
+      <entity id="fb[[:digit:]]*" />
     </engine>
   </arena_physics>
 
