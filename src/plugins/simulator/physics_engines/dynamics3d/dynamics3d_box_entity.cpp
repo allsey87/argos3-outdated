@@ -166,10 +166,21 @@ namespace argos {
       }
    }
 
+   /****************************************/
+   /****************************************/
+
+   void CDynamics3DBoxEntity::CalculateBoundingBox() {
+      btVector3 cAABBMin, cAABBMax;
+      btTransform cTransform;
+      m_pcBoxMotionState->getWorldTransform(cTransform);
+      m_pcBoxCollisionShape->getAabb(cTransform, cAABBMin, cAABBMax);
+      GetBoundingBox().MinCorner = BulletToARGoS(cAABBMin);
+      GetBoundingBox().MaxCorner = BulletToARGoS(cAABBMax);
+   }
+
+   /****************************************/
+   /****************************************/
 
    REGISTER_STANDARD_DYNAMICS3D_OPERATIONS_ON_ENTITY(CBoxEntity, CDynamics3DBoxEntity);
-
-   /****************************************/
-   /****************************************/
 
 }

@@ -32,6 +32,8 @@ namespace argos {
       virtual void UpdateEntityStatus();
       virtual void UpdateFromEntityStatus();
 
+      virtual void CalculateBoundingBox();
+
    private:
 
       CFootBotEntity& m_cFootBotEntity;

@@ -234,10 +234,14 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   REGISTER_STANDARD_DYNAMICS3D_OPERATIONS_ON_ENTITY(CFootBotEntity, CDynamics3DFootBotEntity);
+   void CDynamics3DFootBotEntity::CalculateBoundingBox() {
+      /** @todo Calculate foot-bot bounding box */
+   }
 
    /****************************************/
    /****************************************/
+
+   REGISTER_STANDARD_DYNAMICS3D_OPERATIONS_ON_ENTITY(CFootBotEntity, CDynamics3DFootBotEntity);
 
 }
 
