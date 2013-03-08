@@ -83,6 +83,9 @@ namespace argos {
       btStaticPlaneShape*                    m_pcGroundCollisionShape;
       btDefaultMotionState*                  m_pcGroundMotionState;
       btRigidBody*                           m_pcGroundRigidBody; 
+
+      size_t m_unIterations;
+      Real m_fDeltaT;
       
    };
  

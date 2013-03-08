@@ -26,7 +26,8 @@ namespace argos {
       m_pcGhostPairCallback(NULL),
       m_pcGroundCollisionShape(NULL),
       m_pcGroundMotionState(NULL),
-      m_pcGroundRigidBody(NULL) {}
+      m_pcGroundRigidBody(NULL),
+      m_unIterations(10) {}
 
    /****************************************/
    /****************************************/
@@ -36,6 +37,9 @@ namespace argos {
       CPhysicsEngine::Init(t_tree);
       
       /* Parse the XML */
+      GetNodeAttributeOrDefault(t_tree, "iterations", m_unIterations, m_unIterations);
+      m_fDeltaT = m_fSimulationClockTick / (Real)m_unIterations;
+
       std::string strBroadphaseAlgorithm("dynamic_aabb_tree");
       GetNodeAttributeOrDefault(t_tree, "broadphase_algorithm", strBroadphaseAlgorithm, strBroadphaseAlgorithm);
       
@@ -162,7 +166,9 @@ namespace argos {
       }
       
       /* Advance the simulation by m_fSimulationClockTick */
-      m_pcWorld->stepSimulation(m_fSimulationClockTick, 0u);
+      for(size_t i = 0; i < m_unIterations; ++i) {
+         m_pcWorld->stepSimulation(m_fDeltaT, 0u);
+      }
 
       fprintf(stderr, "[DEBUG] simulation stepped!\n");
 
