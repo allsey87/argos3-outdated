@@ -58,7 +58,9 @@
       </entity>
     </distribute-->
     
-    <foot-bot id="fb0" position="0,0,0" orientation="0,0,0" controller="lua" />
+    <foot-bot id="fb0" position="0,0,1" orientation="0,0,0" controller="lua" />
+
+    <robotic-arm id="arm" position="0,0,0.5" orientation="0,0,0" />
 
     <!--distribute>
       <position method="uniform" min="-1,-1,0" max="1,1,0" />
