@@ -40,10 +40,13 @@ namespace argos {
 
       virtual void CalculateBoundingBox();
       
+      virtual bool IsCollidingWithSomething() const { return false; }
+      
    private:
 
       CBoxEntity&                m_cBoxEntity;
-
+      
+      btTransform*               m_pcBoxTransform;
       btBoxShape*                m_pcBoxCollisionShape;
       btDefaultMotionState*      m_pcBoxMotionState;
       btRigidBody*               m_pcBoxRigidBody;

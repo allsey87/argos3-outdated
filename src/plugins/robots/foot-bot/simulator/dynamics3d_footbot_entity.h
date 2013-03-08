@@ -33,42 +33,53 @@ namespace argos {
       virtual void UpdateFromEntityStatus();
 
       virtual void CalculateBoundingBox();
+      
+      virtual bool IsCollidingWithSomething() const { return false; }
 
    private:
 
       CFootBotEntity& m_cFootBotEntity;
       CWheeledEntity& m_cWheeledEntity;
       
-      Real m_fCurrentWheelVelocityFromSensor[2];
+      Real m_pfCurrentWheelVelocityFromSensor[2];
       
-      /******** Collision Shapes - shared! **********/
-      static btBoxShape          m_cBaseCollisionShape;
-      static btCylinderShape     m_cWheelCollisionShape;
-      static btSphereShape       m_cPivotCollisionShape;
-      static btCylinderShape     m_cBodyCollisionShape;
+      /******** Shared Transforms **********/
+      static btTransform                  m_cLowerBodyTransform;
+      static btTransform                  m_cUpperBodyTransform;
+      static btTransform                  m_cBodyTransform;
+      static btTransform                  m_cLeftWheelTransform;
+      static btTransform                  m_cRightWheelTransform; 
+      static btTransform                  m_cFrontPivotTransform;
+      static btTransform                  m_cRearPivotTransform;
+      
+      /******** Shared Collision Shapes **********/
+      static btBoxShape                   m_cLowerBodyCollisionShape;
+      static btCylinderShape              m_cUpperBodyCollisionShape;
+      static btCompoundShape              m_cBodyCollisionShape;
+      static btCylinderShape              m_cWheelCollisionShape;
+      static btSphereShape                m_cPivotCollisionShape;
+      
       
       /**************** Motion States ****************/
-      btDefaultMotionState*      m_pcBaseMotionState;
-      btDefaultMotionState*      m_pcLeftWheelMotionState;
-      btDefaultMotionState*      m_pcRightWheelMotionState;
-      btDefaultMotionState*      m_pcFrontPivotMotionState;
-      btDefaultMotionState*      m_pcRearPivotMotionState;
-      btDefaultMotionState*      m_pcBodyMotionState;
+      btDefaultMotionState*               m_pcLeftWheelMotionState;
+      btDefaultMotionState*               m_pcRightWheelMotionState;
+      btDefaultMotionState*               m_pcFrontPivotMotionState;
+      btDefaultMotionState*               m_pcRearPivotMotionState;
+      btDefaultMotionState*               m_pcBodyMotionState;
       
       /**************** Rigid Bodies ****************/
-      btRigidBody*               m_pcBaseRigidBody;
-      btRigidBody*               m_pcLeftWheelRigidBody;
-      btRigidBody*               m_pcRightWheelRigidBody;
-      btRigidBody*               m_pcFrontPivotRigidBody;
-      btRigidBody*               m_pcRearPivotRigidBody;
-      btRigidBody*               m_pcBodyRigidBody;
+      btRigidBody*                        m_pcLeftWheelRigidBody;
+      btRigidBody*                        m_pcRightWheelRigidBody;
+      btRigidBody*                        m_pcFrontPivotRigidBody;
+      btRigidBody*                        m_pcRearPivotRigidBody;
+      btRigidBody*                        m_pcBodyRigidBody;
       
       /**************** Constraints ****************/
-      btHingeConstraint*         m_pcLeftWheelToBaseConstraint;
-      btHingeConstraint*         m_pcRightWheelToBaseConstraint;
-      btHingeConstraint*         m_pcBaseToBodyConstraint;
-      btPoint2PointConstraint*   m_pcFrontPivotToBaseConstraint;
-      btPoint2PointConstraint*   m_pcRearPivotToBaseConstraint;
+      btHingeConstraint*                  m_pcLeftWheelToBodyConstraint;
+      btHingeConstraint*                  m_pcRightWheelToBodyConstraint;
+      btHingeConstraint*                  m_pcBodyToBodyConstraint;
+      btPoint2PointConstraint*            m_pcFrontPivotToBodyConstraint;
+      btPoint2PointConstraint*            m_pcRearPivotToBodyConstraint;
    };
 }
 
