@@ -40,6 +40,8 @@ namespace argos {
 
       virtual void CalculateBoundingBox();
       
+      virtual bool IsCollidingWithSomething() const { return false; }
+      
    private:
 
       CBoxEntity&                m_cBoxEntity;

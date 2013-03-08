@@ -33,6 +33,8 @@ namespace argos {
       virtual void UpdateFromEntityStatus();
 
       virtual void CalculateBoundingBox();
+      
+      virtual bool IsCollidingWithSomething() const { return false; }
 
    private:
 
