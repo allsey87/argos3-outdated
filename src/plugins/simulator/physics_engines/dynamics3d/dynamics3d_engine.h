@@ -14,7 +14,6 @@ namespace argos {
 
 #include <argos3/core/simulator/entity/controllable_entity.h>
 #include <argos3/core/simulator/physics_engine/physics_engine.h>
-#include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_entity.h>
 
 //#include <argos3/core/utility/math/rng.h>
 
@@ -48,12 +47,26 @@ namespace argos {
       
       void AddPhysicsEntity(const std::string& str_id,
                             CDynamics3DEntity& c_entity);
-      void RemovePhysicsEntity(const std::string& str_id);      
+      void RemovePhysicsEntity(const std::string& str_id);
+
+      virtual bool IsPointContained(const CVector3& c_point) {
+         /** @todo Implement physics boundaries */
+         return true;
+      }
+
+      virtual bool IsEntityTransferNeeded() const {
+         /** @todo Implement physics boundaries */
+         return false;
+      }
+
+      virtual void TransferEntities() {
+         /** @todo Implement physics boundaries */
+      }
    
    private:
 
       CControllableEntity::TMap m_tControllableEntities;
-      CDynamics3DEntity::TMap m_tPhysicsEntities;
+      std::map<std::string, CDynamics3DEntity*> m_tPhysicsEntities;
       
       /* ARGoS RNG */
       //CARGoSRandom::CRNG* m_pcRNG;
@@ -108,9 +121,6 @@ namespace argos {
                                 *pcPhysEntity);                         \
       c_entity.                                                         \
          GetComponent<CEmbodiedEntity>("body").                         \
-         AddPhysicsEngine(c_engine);                                    \
-      c_entity.                                                         \
-         GetComponent<CEmbodiedEntity>("body").                         \
          AddPhysicsEngineEntity(c_engine.GetId(), *pcPhysEntity);       \
    }                                                                    \
    };                                                                   \
@@ -127,9 +137,6 @@ namespace argos {
                 SPACE_ENTITY& c_entity) {                               \
                                                                         \
       c_engine.RemovePhysicsEntity(c_entity.GetId());                   \
-      c_entity.                                                         \
-         GetComponent<CEmbodiedEntity>("body").                         \
-         RemovePhysicsEngine(c_engine);                                 \
       c_entity.                                                         \
          GetComponent<CEmbodiedEntity>("body").                         \
          RemovePhysicsEngineEntity(c_engine.GetId());                   \

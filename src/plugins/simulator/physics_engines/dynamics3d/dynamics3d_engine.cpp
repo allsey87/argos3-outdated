@@ -5,6 +5,7 @@
  */
 
 #include "dynamics3d_engine.h"
+#include "dynamics3d_entity.h"
 #include <argos3/core/simulator/simulator.h>
 #include <argos3/core/simulator/entity/embodied_entity.h>
 

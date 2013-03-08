@@ -37,11 +37,14 @@ namespace argos {
 
       virtual void UpdateEntityStatus();
       virtual void UpdateFromEntityStatus() {}
+
+      virtual void CalculateBoundingBox();
       
    private:
 
       CBoxEntity&                m_cBoxEntity;
-
+      
+      btTransform*               m_pcBoxTransform;
       btBoxShape*                m_pcBoxCollisionShape;
       btDefaultMotionState*      m_pcBoxMotionState;
       btRigidBody*               m_pcBoxRigidBody;

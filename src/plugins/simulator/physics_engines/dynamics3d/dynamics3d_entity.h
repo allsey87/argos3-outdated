@@ -14,6 +14,7 @@ namespace argos {
 #include <argos3/core/simulator/physics_engine/physics_engine_entity.h>
 #include <argos3/core/utility/math/vector3.h>
 #include <argos3/core/utility/math/quaternion.h>
+#include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_engine.h>
 
 #include "bullet/btBulletDynamicsCommon.h"
 
@@ -57,7 +58,8 @@ namespace argos {
 
       CDynamics3DEntity(CDynamics3DEngine& c_engine,
                         CEmbodiedEntity& c_entity) :
-         CPhysicsEngineEntity(c_entity),
+         CPhysicsEngineEntity(c_engine,
+                              c_entity),
          m_cEngine(c_engine) {}
       virtual ~CDynamics3DEntity() {}
       

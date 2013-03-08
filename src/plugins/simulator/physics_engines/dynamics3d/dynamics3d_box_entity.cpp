@@ -26,10 +26,14 @@ namespace argos {
          btVector3(cBoxHalfSize.GetX(), cBoxHalfSize.GetZ(), cBoxHalfSize.GetY())
       );
       
-      m_pcBoxMotionState = new btDefaultMotionState(btTransform(
-         ARGoSToBullet(GetEmbodiedEntity().GetOrientation()),
-         ARGoSToBullet(GetEmbodiedEntity().GetPosition())
-      ));
+      m_pcBoxTransform = new btTransform(
+         btQuaternion(0.0, 0.0f, 0.0f, 1.0f),
+         btVector3(0.0f, cBoxHalfSize.GetZ(), 0.0f));
+      
+      btTransform cEntityTransform(ARGoSToBullet(GetEmbodiedEntity().GetOrientation()),
+                                   ARGoSToBullet(GetEmbodiedEntity().GetPosition()));
+      
+      m_pcBoxMotionState = new btDefaultMotionState(cEntityTransform * (*m_pcBoxTransform));
           
       if(c_box.GetEmbodiedEntity().IsMovable()) {
          btVector3 cInteria;
@@ -52,6 +56,7 @@ namespace argos {
       delete m_pcBoxRigidBody;
       delete m_pcBoxMotionState;
       delete m_pcBoxCollisionShape;
+      delete m_pcBoxTransform;
    }
    
    /****************************************/
@@ -126,27 +131,25 @@ namespace argos {
    /****************************************/
 
    void CDynamics3DBoxEntity::Reset() {
-   
+
+      if(m_cBoxEntity.GetEmbodiedEntity().IsMovable()) {      
+         
+         btTransform cResetTransform(
+            ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
+            ARGoSToBullet(GetEmbodiedEntity().GetInitPosition())
+         );
+         
+         m_pcBoxRigidBody->getMotionState()->setWorldTransform(cResetTransform * (*m_pcBoxTransform));
+      }
+      
+      
       for(std::vector<btRigidBody*>::iterator itBody = m_vecLocalRigidBodies.begin(); 
           itBody !=  m_vecLocalRigidBodies.end();
           itBody++) {   
          (*itBody)->setAngularVelocity(btVector3(0.0f, 0.0f, 0.0f));
          (*itBody)->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
          (*itBody)->clearForces();
-         
-         (*itBody)->getMotionState()->setWorldTransform(btTransform::getIdentity());
       }
-     
-      if(m_cBoxEntity.GetEmbodiedEntity().IsMovable()) {      
-         
-         /* Reset box position and orientation */
-         m_pcBoxMotionState->setWorldTransform(btTransform(
-            ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
-            ARGoSToBullet(GetEmbodiedEntity().GetInitPosition())
-         ));
-      }
-      
-      UpdateEntityStatus();
    }
 
    /****************************************/
@@ -155,21 +158,35 @@ namespace argos {
    void CDynamics3DBoxEntity::UpdateEntityStatus() {
       if(m_cBoxEntity.GetEmbodiedEntity().IsMovable()) {      
          
-         /* Update box position and orientation */
          btTransform cEntityTransform;
-         m_pcBoxMotionState->getWorldTransform(cEntityTransform);
+         
+         m_pcBoxRigidBody->getMotionState()->getWorldTransform(cEntityTransform);
+         
+         cEntityTransform = m_pcBoxTransform->inverse() * cEntityTransform;
+         
          GetEmbodiedEntity().SetPosition(BulletToARGoS(cEntityTransform.getOrigin()));
          GetEmbodiedEntity().SetOrientation(BulletToARGoS(cEntityTransform.getRotation()));
-         
+      
          /* Update components */
          m_cBoxEntity.UpdateComponents();
       }
    }
 
+   /****************************************/
+   /****************************************/
+
+   void CDynamics3DBoxEntity::CalculateBoundingBox() {
+      btVector3 cAABBMin, cAABBMax;
+      btTransform cTransform;
+      m_pcBoxMotionState->getWorldTransform(cTransform);
+      m_pcBoxCollisionShape->getAabb(cTransform, cAABBMin, cAABBMax);
+      GetBoundingBox().MinCorner = BulletToARGoS(cAABBMin);
+      GetBoundingBox().MaxCorner = BulletToARGoS(cAABBMax);
+   }
+
+   /****************************************/
+   /****************************************/
 
    REGISTER_STANDARD_DYNAMICS3D_OPERATIONS_ON_ENTITY(CBoxEntity, CDynamics3DBoxEntity);
-
-   /****************************************/
-   /****************************************/
 
 }
