@@ -86,17 +86,24 @@ namespace argos {
       
       /* Unthread safe init of compound shape to be fixed */
       if(m_cBodyCollisionShape.getNumChildShapes() == 0) {
+         fprintf(stderr, "[DEBUG]  doing init of m_cBodyCollisionShape, getNumChildShapes = %d\n", m_cBodyCollisionShape.getNumChildShapes());
+         
          m_cBodyCollisionShape.addChildShape(m_cLowerBodyTransform, &m_cLowerBodyCollisionShape);
          m_cBodyCollisionShape.addChildShape(m_cUpperBodyTransform, &m_cUpperBodyCollisionShape);
+         
+         fprintf(stderr, "[DEBUG]  init of m_cBodyCollisionShape complete, getNumChildShapes = %d\n", m_cBodyCollisionShape.getNumChildShapes());
+      }
+      else {
+         fprintf(stderr, "[DEBUG] skipping init of m_cBodyCollisionShape, getNumChildShapes = %d\n", m_cBodyCollisionShape.getNumChildShapes());
       }
       
-     
       // Vector for calculating interia   
       btVector3 cInteria;
       
       // Transform representing the reference point and rotation of the footbot
       btTransform cEntityTransform(ARGoSToBullet(GetEmbodiedEntity().GetOrientation()),
                                    ARGoSToBullet(GetEmbodiedEntity().GetPosition()));
+      
       
       
       /** Create the body **/
@@ -179,7 +186,6 @@ namespace argos {
       delete m_pcRightWheelMotionState;
       delete m_pcFrontPivotMotionState;
       delete m_pcRearPivotMotionState;
-      delete m_pcBodyMotionState;
       delete m_pcLeftWheelRigidBody;
       delete m_pcRightWheelRigidBody;
       delete m_pcFrontPivotRigidBody;
@@ -237,9 +243,31 @@ namespace argos {
       /* Update footbot position and orientation */
       btTransform cEntityTransform;
       
+      
+      
+      m_pcLeftWheelRigidBody->getMotionState()->getWorldTransform(cEntityTransform);
+      fprintf(stderr, "[DEBUG] Bullet position for lwheel\t = %.3f, %.3f, %.3f\n", cEntityTransform.getOrigin().getX(), cEntityTransform.getOrigin().getY(), cEntityTransform.getOrigin().getZ());
+      
+      m_pcRightWheelRigidBody->getMotionState()->getWorldTransform(cEntityTransform);
+      fprintf(stderr, "[DEBUG] Bullet position for rwheel\t = %.3f, %.3f, %.3f\n", cEntityTransform.getOrigin().getX(), cEntityTransform.getOrigin().getY(), cEntityTransform.getOrigin().getZ());
+      
+      m_pcFrontPivotRigidBody->getMotionState()->getWorldTransform(cEntityTransform);
+      fprintf(stderr, "[DEBUG] Bullet position for fpivot\t = %.3f, %.3f, %.3f\n", cEntityTransform.getOrigin().getX(), cEntityTransform.getOrigin().getY(), cEntityTransform.getOrigin().getZ());
+      
+      m_pcRearPivotRigidBody->getMotionState()->getWorldTransform(cEntityTransform);
+      fprintf(stderr, "[DEBUG] Bullet position for rpivot\t = %.3f, %.3f, %.3f\n", cEntityTransform.getOrigin().getX(), cEntityTransform.getOrigin().getY(), cEntityTransform.getOrigin().getZ());
+      
+      
+      
+      
+      // DON'T TOUCH THIS MICHAEL!
+      
       m_pcBodyRigidBody->getMotionState()->getWorldTransform(cEntityTransform);
+      fprintf(stderr, "[DEBUG] Bullet position for body\t = %.3f, %.3f, %.3f\n", cEntityTransform.getOrigin().getX(), cEntityTransform.getOrigin().getY(), cEntityTransform.getOrigin().getZ());
       
       cEntityTransform = m_cBodyTransform.inverse() * cEntityTransform;
+      
+      fprintf(stderr, "[DEBUG] ARGoS position for main body = %.3f, %.3f, %.3f\n", cEntityTransform.getOrigin().getX(), cEntityTransform.getOrigin().getY(), cEntityTransform.getOrigin().getZ());
       
       GetEmbodiedEntity().SetPosition(BulletToARGoS(cEntityTransform.getOrigin()));
       GetEmbodiedEntity().SetOrientation(BulletToARGoS(cEntityTransform.getRotation()));
@@ -261,27 +289,40 @@ namespace argos {
          (m_pfCurrentWheelVelocityFromSensor[FOOTBOT_RIGHT_WHEEL] != 0.0f)) {
          
          Real fLeftWheelVelocity, fRightWheelVelocity;
-         
+    
          fLeftWheelVelocity  = m_pfCurrentWheelVelocityFromSensor[FOOTBOT_LEFT_WHEEL] / FOOTBOT_WHEEL_RADIUS;
          fRightWheelVelocity = m_pfCurrentWheelVelocityFromSensor[FOOTBOT_RIGHT_WHEEL] / FOOTBOT_WHEEL_RADIUS;
-         
+                  
          // activate the bodies!
          for(std::vector<btRigidBody*>::iterator itBody = m_vecLocalRigidBodies.begin(); 
              itBody !=  m_vecLocalRigidBodies.end();
              itBody++) {   
             (*itBody)->activate();
          }
+                  
+         fprintf(stderr, "[DEBUG] non zero velocity: %.3f,%.3f\n", m_pfCurrentWheelVelocityFromSensor[FOOTBOT_LEFT_WHEEL] , m_pfCurrentWheelVelocityFromSensor[FOOTBOT_RIGHT_WHEEL] );
+         
          
          /* because of the how the wheels are attached to the epuck the velocity on the right wheel speed is negated */
          m_pcLeftWheelToBodyConstraint->enableAngularMotor(true, fLeftWheelVelocity, FOOTBOT_WHEEL_MOTOR_IMPULSE);
-         m_pcLeftWheelToBodyConstraint->enableAngularMotor(true, -fRightWheelVelocity, FOOTBOT_WHEEL_MOTOR_IMPULSE);
+         m_pcRightWheelToBodyConstraint->enableAngularMotor(true, fRightWheelVelocity, FOOTBOT_WHEEL_MOTOR_IMPULSE);
 
       }
       else {
+         fprintf(stderr, "[DEBUG] zero velocity: %.3f,%.3f\n", m_pfCurrentWheelVelocityFromSensor[FOOTBOT_LEFT_WHEEL] , m_pfCurrentWheelVelocityFromSensor[FOOTBOT_RIGHT_WHEEL] );
+         
+         
+         
          /* No, we don't want to move - zero all speeds */
          m_pcLeftWheelToBodyConstraint->enableAngularMotor(false, 0.0f, 0.0f);
-         m_pcLeftWheelToBodyConstraint->enableAngularMotor(false, 0.0f, 0.0f);
+         m_pcRightWheelToBodyConstraint->enableAngularMotor(false, 0.0f, 0.0f);
       }
+      fprintf(stderr, "[DEBUG] lwheel hinge angle: %.3f\n", m_pcLeftWheelToBodyConstraint->getHingeAngle() );
+      fprintf(stderr, "[DEBUG] rwheel hinge angle: %.3f\n", m_pcRightWheelToBodyConstraint->getHingeAngle() );
+      
+      
+      fprintf(stderr, "[DEBUG] number of registered model constraints: %lu\n", m_vecLocalConstraints.size() );
+      fprintf(stderr, "[DEBUG] number of registered model bodies: %lu\n", m_vecLocalRigidBodies.size() );
    }
 
    /****************************************/
