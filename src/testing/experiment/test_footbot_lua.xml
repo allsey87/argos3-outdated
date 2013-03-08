@@ -38,10 +38,10 @@
   <!-- * Arena configuration * -->
   <!-- *********************** -->
   <arena size="2, 2, 1">
-    <box id="bn" position="1,0,0"  orientation="0,0,0" size="0.1, 2, 0.2" movable="false" />
+    <!--box id="bn" position="1,0,0"  orientation="0,0,0" size="0.1, 2, 0.2" movable="false" />
     <box id="bs" position="-1,0,0" orientation="0,0,0" size="0.1, 2, 0.2" movable="false" />
     <box id="be" position="0,-1,0" orientation="0,0,0" size="2, 0.1, 0.2" movable="false" />
-    <box id="bw" position="0,1,0"  orientation="0,0,0" size="2, 0.1, 0.2" movable="false" />
+    <box id="bw" position="0,1,0"  orientation="0,0,0" size="2, 0.1, 0.2" movable="false" /-->
 
     <light id="l0"
            position="1,1,1"
@@ -49,16 +49,18 @@
            color="yellow"
            intensity="1" />
 
-    <distribute>
-      <position method="uniform" min="-1,-1,0" max="1,1,0" />
+    <!--distribute>
+      <position method="uniform" min="-0.5,-0.5,0" max="0.5,0.5,0" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
-      <entity quantity="10" max_trials="100">
+      <entity quantity="1" max_trials="100">
         <foot-bot id="fb"
                   controller="lua" />
       </entity>
-    </distribute>
+    </distribute-->
+    
+    <foot-bot id="fb" position="0,0,0" orientation="0,0,0" controller="lua" />
 
-    <distribute>
+    <!--distribute>
       <position method="uniform" min="-1,-1,0" max="1,1,0" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
       <entity quantity="10" max_trials="100">
@@ -68,7 +70,7 @@
                   movable="true"
                   mass="0.1" />
       </entity>
-    </distribute>
+    </distribute-->
 
   </arena>
 
@@ -76,7 +78,10 @@
   <!-- * Physics engines * -->
   <!-- ******************* -->
   <physics_engines>
-    <dynamics2d id="dyn2d" />
+    <dynamics3d id="dyn2d">
+      <floor/>
+    </dynamics3d>
+      
   </physics_engines>
 
   <!-- ****************** -->

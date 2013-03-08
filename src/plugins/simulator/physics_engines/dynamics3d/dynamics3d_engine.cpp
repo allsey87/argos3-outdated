@@ -151,6 +151,10 @@ namespace argos {
    /****************************************/
 
    void CDynamics3DEngine::Update() {
+      
+      fprintf(stderr, "[DEBUG] simulation constraints = %d\n", m_pcWorld->getNumConstraints());
+      fprintf(stderr, "[DEBUG] simulation bodies = %d\n", m_pcWorld->getNumCollisionObjects());
+      
       /* Update the physics state from the entities */
       for(CDynamics3DEntity::TMap::iterator it = m_tPhysicsEntities.begin();
           it != m_tPhysicsEntities.end(); ++it) {
@@ -159,6 +163,8 @@ namespace argos {
       
       /* Advance the simulation by m_fSimulationClockTick */
       m_pcWorld->stepSimulation(m_fSimulationClockTick, 0u);
+
+      fprintf(stderr, "[DEBUG] simulation stepped!\n");
 
       /* Update the simulated space */
       for(CDynamics3DEntity::TMap::iterator it = m_tPhysicsEntities.begin();
