@@ -12,6 +12,7 @@
 #include <argos3/core/simulator/entity/embodied_entity.h>
 #include <argos3/core/simulator/entity/rab_equipped_entity.h>
 #include <argos3/plugins/simulator/entities/gripper_equipped_entity.h>
+#include <argos3/plugins/simulator/entities/ground_sensor_equipped_entity.h>
 #include <argos3/plugins/simulator/entities/led_equipped_entity.h>
 #include <argos3/plugins/simulator/entities/light_sensor_equipped_entity.h>
 #include <argos3/plugins/simulator/entities/proximity_sensor_equipped_entity.h>
@@ -30,6 +31,7 @@ namespace argos {
 
    static const Real INTERWHEEL_DISTANCE        = 0.14f;
    static const Real HALF_INTERWHEEL_DISTANCE   = INTERWHEEL_DISTANCE * 0.5f;
+   static const Real WHEEL_RADIUS               = 0.029112741f;
 
    static const Real PROXIMITY_SENSOR_RING_ELEVATION       = 0.06f;
    static const Real PROXIMITY_SENSOR_RING_RADIUS          = BODY_RADIUS;
@@ -53,6 +55,7 @@ namespace argos {
       m_pcDistanceScannerEquippedEntity(NULL),
       m_pcEmbodiedEntity(NULL),
       m_pcGripperEquippedEntity(NULL),
+      m_pcGroundSensorEquippedEntity(NULL),
       m_pcLEDEquippedEntity(NULL),
       m_pcLightSensorEquippedEntity(NULL),
       m_pcProximitySensorEquippedEntity(NULL),
@@ -75,15 +78,11 @@ namespace argos {
          /*
           * Create and init components
           */
-         /* Embodied entity */
-         m_pcEmbodiedEntity = new CEmbodiedEntity(this);
-         AddComponent(*m_pcEmbodiedEntity);
-         m_pcEmbodiedEntity->Init(t_tree);
          /* Wheeled entity and wheel positions (left, right) */
          m_pcWheeledEntity = new CWheeledEntity(this, 2);
          AddComponent(*m_pcWheeledEntity);
-         m_pcWheeledEntity->SetWheelPosition(0, CVector3(0.0f,  HALF_INTERWHEEL_DISTANCE, 0.0f));
-         m_pcWheeledEntity->SetWheelPosition(1, CVector3(0.0f, -HALF_INTERWHEEL_DISTANCE, 0.0f));
+         m_pcWheeledEntity->SetWheel(0, CVector3(0.0f,  HALF_INTERWHEEL_DISTANCE, 0.0f), WHEEL_RADIUS);
+         m_pcWheeledEntity->SetWheel(1, CVector3(0.0f, -HALF_INTERWHEEL_DISTANCE, 0.0f), WHEEL_RADIUS);
          m_pcWheeledEntity->Init(t_tree);
          /* LED equipped entity, with LEDs [0-11] and beacon [12] */
          m_pcLEDEquippedEntity = new CLEDEquippedEntity(this,
@@ -116,10 +115,41 @@ namespace argos {
             PROXIMITY_SENSOR_RING_RANGE,
             24);
          /* Gripper equipped entity */
-         m_pcGripperEquippedEntity = new CGripperEquippedEntity(this);
+         m_pcGripperEquippedEntity =
+            new CGripperEquippedEntity(this,
+                                       GetId() + ".gripper",
+                                       CVector3(BODY_RADIUS, 0.0f, GRIPPER_ELEVATION),
+                                       CVector3::X);
          AddComponent(*m_pcGripperEquippedEntity);
-         m_pcGripperEquippedEntity->SetPosition(CVector3(BODY_RADIUS, 0.0f, GRIPPER_ELEVATION));
-         m_pcGripperEquippedEntity->Init(t_tree);
+         /* Ground sensor equipped entity */
+         m_pcGroundSensorEquippedEntity =
+            new CGroundSensorEquippedEntity(this,
+                                            GetId() + ".ground");
+         AddComponent(*m_pcGroundSensorEquippedEntity);
+         m_pcGroundSensorEquippedEntity->AddSensor(CVector2(0.063, 0.0116),
+                                                   CGroundSensorEquippedEntity::TYPE_GRAYSCALE);
+         m_pcGroundSensorEquippedEntity->AddSensor(CVector2(-0.063, 0.0116),
+                                                   CGroundSensorEquippedEntity::TYPE_GRAYSCALE);
+         m_pcGroundSensorEquippedEntity->AddSensor(CVector2(-0.063, -0.0116),
+                                                   CGroundSensorEquippedEntity::TYPE_GRAYSCALE);
+         m_pcGroundSensorEquippedEntity->AddSensor(CVector2(0.063, -0.0116),
+                                                   CGroundSensorEquippedEntity::TYPE_GRAYSCALE);
+         m_pcGroundSensorEquippedEntity->AddSensor(CVector2(0.08, 0.0),
+                                                   CGroundSensorEquippedEntity::TYPE_BLACK_WHITE);
+         m_pcGroundSensorEquippedEntity->AddSensor(CVector2(0.042, 0.065),
+                                                   CGroundSensorEquippedEntity::TYPE_BLACK_WHITE);
+         m_pcGroundSensorEquippedEntity->AddSensor(CVector2(0.0, 0.08),
+                                                   CGroundSensorEquippedEntity::TYPE_BLACK_WHITE);
+         m_pcGroundSensorEquippedEntity->AddSensor(CVector2(-0.042, 0.065),
+                                                   CGroundSensorEquippedEntity::TYPE_BLACK_WHITE);
+         m_pcGroundSensorEquippedEntity->AddSensor(CVector2(-0.08, 0.0),
+                                                   CGroundSensorEquippedEntity::TYPE_BLACK_WHITE);
+         m_pcGroundSensorEquippedEntity->AddSensor(CVector2(-0.042, -0.065),
+                                                   CGroundSensorEquippedEntity::TYPE_BLACK_WHITE);
+         m_pcGroundSensorEquippedEntity->AddSensor(CVector2(0.0, -0.08),
+                                                   CGroundSensorEquippedEntity::TYPE_BLACK_WHITE);
+         m_pcGroundSensorEquippedEntity->AddSensor(CVector2(0.042, -0.065),
+                                                   CGroundSensorEquippedEntity::TYPE_BLACK_WHITE);
          /* Distance scanner */
          m_pcDistanceScannerEquippedEntity = new CDistanceScannerEquippedEntity(this);
          AddComponent(*m_pcDistanceScannerEquippedEntity);
@@ -132,6 +162,10 @@ namespace argos {
          m_pcWiFiEquippedEntity = new CWiFiEquippedEntity(this);
          AddComponent(*m_pcWiFiEquippedEntity);
          m_pcWiFiEquippedEntity->Init(t_tree);
+         /* Embodied entity */
+         m_pcEmbodiedEntity = new CEmbodiedEntity(this);
+         AddComponent(*m_pcEmbodiedEntity);
+         m_pcEmbodiedEntity->Init(t_tree);
          /* Controllable entity
             It must be the last one, for actuators/sensors to link to composing entities correctly */
          m_pcControllableEntity = new CControllableEntity(this);

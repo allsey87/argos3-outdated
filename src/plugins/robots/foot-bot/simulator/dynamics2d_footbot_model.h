@@ -1,28 +1,31 @@
 /**
- * @file <argos3/plugins/robots/foot-bot/simulator/dynamics2d_footbot_entity.h>
+ * @file <argos3/plugins/robots/foot-bot/simulator/dynamics2d_footbot_model.h>
  *
  * @author Carlo Pinciroli - <ilpincy@gmail.com>
  */
 
-#ifndef DYNAMICS2D_FOOTBOT_ENTITY_H
-#define DYNAMICS2D_FOOTBOT_ENTITY_H
+#ifndef DYNAMICS2D_FOOTBOT_MODEL_H
+#define DYNAMICS2D_FOOTBOT_MODEL_H
 
 namespace argos {
-   class SDynamics2DEngineGripperData;
+   class CDynamics2DDifferentialSteeringControl;
+   class CDynamics2DGripper;
+   class CDynamics2DGrippable;
 }
 
-#include <argos3/plugins/simulator/physics_engines/dynamics2d/dynamics2d_entity.h>
+#include <argos3/plugins/simulator/physics_engines/dynamics2d/dynamics2d_model.h>
+#include <argos3/plugins/simulator/physics_engines/dynamics2d/dynamics2d_differentialsteering_control.h>
 #include <argos3/plugins/robots/foot-bot/simulator/footbot_entity.h>
 
 namespace argos {
 
-   class CDynamics2DFootBotEntity : public CDynamics2DEntity {
+   class CDynamics2DFootBotModel : public CDynamics2DModel {
 
    public:
 
-      CDynamics2DFootBotEntity(CDynamics2DEngine& c_engine,
-                               CFootBotEntity& c_entity);
-      virtual ~CDynamics2DFootBotEntity();
+      CDynamics2DFootBotModel(CDynamics2DEngine& c_engine,
+                              CFootBotEntity& c_entity);
+      virtual ~CDynamics2DFootBotModel();
       
       virtual bool CheckIntersectionWithRay(Real& f_t_on_ray,
                                             const CRay3& c_ray) const;
@@ -51,25 +54,24 @@ namespace argos {
       CWheeledEntity& m_cWheeledEntity;
       CGripperEquippedEntity& m_cGripperEntity;
 
+      CDynamics2DDifferentialSteeringControl m_cDiffSteering;
+      CDynamics2DGripper*                    m_pcGripper;
+      CDynamics2DGrippable*                  m_pcGrippable;
+
       cpFloat  m_fMass;
       cpShape* m_ptBaseShape;
       cpShape* m_ptGripperShape;
       cpBody*  m_ptActualBaseBody;
-      cpBody*  m_ptControlBaseBody;
       cpBody*  m_ptActualGripperBody;
       cpBody*  m_ptControlGripperBody;
-      cpConstraint* m_ptBaseControlLinearMotion;
-      cpConstraint* m_ptBaseControlAngularMotion;
       cpConstraint* m_ptGripperControlLinearMotion;
       cpConstraint* m_ptGripperControlAngularMotion;
       cpConstraint* m_ptBaseGripperLinearMotion;
       cpConstraint* m_ptBaseGripperAngularMotion;
 
-      SDynamics2DEngineGripperData* m_psGripperData;
+      const Real* m_fCurrentWheelVelocity;
 
-      Real m_fCurrentWheelVelocityFromSensor[2];
       UInt8 m_unLastTurretMode;
-
       Real m_fPreviousTurretAngleError;
 
    };

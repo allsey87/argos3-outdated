@@ -1,11 +1,11 @@
 /**
- * @file <argos3/plugins/simulator/physics_engines/dynamics2d/dynamics2d_cylinder_entity.h *
+ * @file <argos3/plugins/simulator/physics_engines/dynamics2d/dynamics2d_cylinder_model.cpp>
  *
  * @author Carlo Pinciroli - <cpinciro@ulb.ac.be>
  */
 
-#include <argos3/core/simulator/entity/embodied_entity.h>
-#include "dynamics2d_cylinder_entity.h"
+#include "dynamics2d_cylinder_model.h"
+#include "dynamics2d_gripping.h"
 #include "dynamics2d_engine.h"
 
 namespace argos {
@@ -13,10 +13,11 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   CDynamics2DCylinderEntity::CDynamics2DCylinderEntity(CDynamics2DEngine& c_engine,
-                                                        CCylinderEntity& c_entity) :
-      CDynamics2DEntity(c_engine, c_entity.GetEmbodiedEntity()),
+   CDynamics2DCylinderModel::CDynamics2DCylinderModel(CDynamics2DEngine& c_engine,
+                                                      CCylinderEntity& c_entity) :
+      CDynamics2DModel(c_engine, c_entity.GetEmbodiedEntity()),
       m_cCylinderEntity(c_entity),
+      m_pcGrippable(NULL),
       m_fMass(c_entity.GetMass()),
       m_ptShape(NULL),
       m_ptBody(NULL) {
@@ -37,16 +38,14 @@ namespace argos {
          CRadians cXAngle, cYAngle, cZAngle;
          GetEmbodiedEntity().GetOrientation().ToEulerAngles(cZAngle, cYAngle, cXAngle);
          cpBodySetAngle(m_ptBody, cZAngle.GetValue());
-         /* Create the geometry */
+         /* Create the shape */
          m_ptShape = cpSpaceAddShape(m_cDyn2DEngine.GetPhysicsSpace(),
                                      cpCircleShapeNew(m_ptBody, fRadius, cpvzero));
-         /* This object is grippable */
-         m_ptShape->collision_type = CDynamics2DEngine::SHAPE_GRIPPABLE;
-         m_ptShape->data = reinterpret_cast<void*>(&c_entity);
-         /* No elasticity */
-         m_ptShape->e = 0.0;
-         /* Lots surface contact friction to help pushing */
-         m_ptShape->u = 0.7;
+         m_ptShape->e = 0.0; // no elasticity
+         m_ptShape->u = 0.7; // lots contact friction to help pushing
+         /* The shape is grippable */
+         m_pcGrippable = new CDynamics2DGrippable(GetEmbodiedEntity(),
+                                                  m_ptShape);
          /* Friction with ground */
          m_ptLinearFriction =
             cpSpaceAddConstraint(m_cDyn2DEngine.GetPhysicsSpace(),
@@ -71,25 +70,25 @@ namespace argos {
          m_ptShape = cpSpaceAddStaticShape(m_cDyn2DEngine.GetPhysicsSpace(),
                                            cpCircleShapeNew(m_cDyn2DEngine.GetGroundBody(),
                                                             fRadius,
-                                                            cpv(cPosition.GetX(), cPosition.GetY())));
-         /* This object is normal */
+                                                            cpv(cPosition.GetX(),
+                                                                cPosition.GetY())));
+         m_ptShape->e = 0.0; // No elasticity
+         m_ptShape->u = 0.1; // Little contact friction to help sliding away
+         /* This shape is normal (not grippable, not gripper) */
          m_ptShape->collision_type = CDynamics2DEngine::SHAPE_NORMAL;
-         m_ptShape->data = reinterpret_cast<void*>(&c_entity);
-         /* No elasticity */
-         m_ptShape->e = 0.0;
-         /* Little contact friction to help sliding away */
-         m_ptShape->u = 0.1;
       }
-      /* Precalculate Z-axis range of the bounding box */
+      /* Calculate bounding box */
       GetBoundingBox().MinCorner.SetZ(GetEmbodiedEntity().GetPosition().GetZ());
       GetBoundingBox().MaxCorner.SetZ(GetEmbodiedEntity().GetPosition().GetZ() + m_cCylinderEntity.GetHeight());
+      CalculateBoundingBox();
    }
 
    /****************************************/
    /****************************************/
 
-   CDynamics2DCylinderEntity::~CDynamics2DCylinderEntity() {
+   CDynamics2DCylinderModel::~CDynamics2DCylinderModel() {
       if(m_ptBody != NULL) {
+         delete m_pcGrippable;
          cpSpaceRemoveConstraint(m_cDyn2DEngine.GetPhysicsSpace(), m_ptLinearFriction);
          cpSpaceRemoveConstraint(m_cDyn2DEngine.GetPhysicsSpace(), m_ptAngularFriction);
          cpConstraintFree(m_ptLinearFriction);
@@ -109,7 +108,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   bool CDynamics2DCylinderEntity::CheckIntersectionWithRay(Real& f_t_on_ray,
+   bool CDynamics2DCylinderModel::CheckIntersectionWithRay(Real& f_t_on_ray,
                                                             const CRay3& c_ray) const {
       cpSegmentQueryInfo tInfo;
       if(cpShapeSegmentQuery(m_ptShape,
@@ -135,7 +134,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   bool CDynamics2DCylinderEntity::MoveTo(const CVector3& c_position,
+   bool CDynamics2DCylinderModel::MoveTo(const CVector3& c_position,
                                           const CQuaternion& c_orientation,
                                           bool b_check_only) {
       SInt32 nCollision;
@@ -163,8 +162,12 @@ namespace argos {
             cpBodySetAngle(m_ptBody, fOldA);
          }
          else {
+            /* Object moved, release all gripped entities */
+            m_pcGrippable->ReleaseAll();
             /* Update the active space hash if the movement is actual */
             cpSpaceReindexShape(m_cDyn2DEngine.GetPhysicsSpace(), m_ptShape);
+            /* Update bounding box */
+            CalculateBoundingBox();
          }
       }
       else {
@@ -178,7 +181,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics2DCylinderEntity::Reset() {
+   void CDynamics2DCylinderModel::Reset() {
       if(m_ptBody != NULL) {
          /* Reset body position */
          const CVector3& cPosition = GetEmbodiedEntity().GetInitPosition();
@@ -191,13 +194,18 @@ namespace argos {
          m_ptBody->v = cpvzero;
          m_ptBody->w = 0.0f;
          cpBodyResetForces(m_ptBody);
+         /* Update bounding box */
+         cpShapeCacheBB(m_ptShape);
+         CalculateBoundingBox();
+         /* Release all attached entities */
+         m_pcGrippable->ReleaseAll();
       }
    }
 
    /****************************************/
    /****************************************/
 
-   void CDynamics2DCylinderEntity::CalculateBoundingBox() {
+   void CDynamics2DCylinderModel::CalculateBoundingBox() {
       GetBoundingBox().MinCorner.SetX(m_ptShape->bb.l);
       GetBoundingBox().MinCorner.SetY(m_ptShape->bb.b);
       GetBoundingBox().MaxCorner.SetX(m_ptShape->bb.r);
@@ -207,7 +215,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics2DCylinderEntity::UpdateEntityStatus() {
+   void CDynamics2DCylinderModel::UpdateEntityStatus() {
       if(m_ptBody != NULL) {
          m_cDyn2DEngine.PositionPhysicsToSpace(m_cSpacePosition, GetEmbodiedEntity().GetPosition(), m_ptBody);
          GetEmbodiedEntity().SetPosition(m_cSpacePosition);
@@ -221,13 +229,13 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   bool CDynamics2DCylinderEntity::IsCollidingWithSomething() const {
+   bool CDynamics2DCylinderModel::IsCollidingWithSomething() const {
       return cpSpaceShapeQuery(m_cDyn2DEngine.GetPhysicsSpace(), m_ptShape, NULL, NULL) > 0;
    }
 
    /****************************************/
    /****************************************/
 
-   REGISTER_STANDARD_DYNAMICS2D_OPERATIONS_ON_ENTITY(CCylinderEntity, CDynamics2DCylinderEntity);
+   REGISTER_STANDARD_DYNAMICS2D_OPERATIONS_ON_ENTITY(CCylinderEntity, CDynamics2DCylinderModel);
 
 }

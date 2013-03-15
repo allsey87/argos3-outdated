@@ -47,9 +47,9 @@ namespace argos {
             luaL_openlibs(m_ptLuaState);
             /* Register functions */
             CLuaUtility::RegisterLoggerWrapper(m_ptLuaState);
-            /* Create and set variables */
-            CreateLuaVariables();
-            SensorReadingsToLuaVariables();
+            /* Create and set Lua state */
+            CreateLuaState();
+            SensorReadingsToLuaState();
          }
       }
       catch(CARGoSException& ex) {
@@ -62,14 +62,10 @@ namespace argos {
 
    void CLuaController::ControlStep() {
       if(m_bScriptActive && m_bIsOK) {
-         /* Update Lua variables through sensor readings */
-         SensorReadingsToLuaVariables();
+         /* Update Lua state through sensor readings */
+         SensorReadingsToLuaState();
          /* Execute script step function */
-         if(CLuaUtility::CallFunction(m_ptLuaState, "step")) {
-            /* Set actuator variables */
-            LuaVariablesToActuatorSettings();
-         }
-         else {
+         if(! CLuaUtility::CallLuaFunction(m_ptLuaState, "step")) {
             m_bIsOK = false;
          }
       }
@@ -81,7 +77,7 @@ namespace argos {
    void CLuaController::Reset() {
       if(m_bScriptActive) {
          if(m_bIsOK) {
-            m_bIsOK = CLuaUtility::CallFunction(m_ptLuaState, "reset");
+            m_bIsOK = CLuaUtility::CallLuaFunction(m_ptLuaState, "reset");
          }
          else {
             SetLuaScript(m_strScriptFileName);
@@ -95,15 +91,10 @@ namespace argos {
    void CLuaController::Destroy() {
       if(m_bScriptActive && m_bIsOK) {
          /* Execute script destroy function */
-         if(CLuaUtility::CallFunction(m_ptLuaState, "destroy")) {
-            /* Close Lua */
-            lua_close(m_ptLuaState);
-            m_bScriptActive = false;
-         }
-         else {
-            m_bIsOK = false;
-         }
+         CLuaUtility::CallLuaFunction(m_ptLuaState, "destroy");
       }
+      /* Close Lua */
+      lua_close(m_ptLuaState);
    }
 
    /****************************************/
@@ -129,10 +120,10 @@ namespace argos {
       /* Register functions */
       CLuaUtility::RegisterLoggerWrapper(m_ptLuaState);
       /* Create and set variables */
-      CreateLuaVariables();
-      SensorReadingsToLuaVariables();
+      CreateLuaState();
+      SensorReadingsToLuaState();
       /* Execute script init function */
-      if(!CLuaUtility::CallFunction(m_ptLuaState, "init")) {
+      if(!CLuaUtility::CallLuaFunction(m_ptLuaState, "init")) {
          m_bIsOK = false;
          return;
       }
@@ -143,7 +134,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CLuaController::CreateLuaVariables() {
+   void CLuaController::CreateLuaState() {
       /* Create a table that will contain the state of the robot */
       lua_newtable(m_ptLuaState);
       /* Set the id of the robot */
@@ -154,12 +145,12 @@ namespace argos {
       for(CCI_Actuator::TMap::iterator it = m_mapActuators.begin();
           it != m_mapActuators.end();
           ++it) {
-         it->second->CreateLuaVariables(m_ptLuaState);
+         it->second->CreateLuaState(m_ptLuaState);
       }
       for(CCI_Sensor::TMap::iterator it = m_mapSensors.begin();
           it != m_mapSensors.end();
           ++it) {
-         it->second->CreateLuaVariables(m_ptLuaState);
+         it->second->CreateLuaState(m_ptLuaState);
       }
       /* Set the name of the table */
       lua_setglobal(m_ptLuaState, "robot");
@@ -168,30 +159,14 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CLuaController::SensorReadingsToLuaVariables() {
+   void CLuaController::SensorReadingsToLuaState() {
       /* Put the robot state table on top */
       lua_getglobal(m_ptLuaState, "robot");
       /* Go through the sensors */
       for(CCI_Sensor::TMap::iterator it = m_mapSensors.begin();
           it != m_mapSensors.end();
           ++it) {
-         it->second->ReadingsToLuaVariables(m_ptLuaState);
-      }
-      /* Pop the robot state table */
-      lua_pop(m_ptLuaState, 1);
-   }
-
-   /****************************************/
-   /****************************************/
-
-   void CLuaController::LuaVariablesToActuatorSettings() {
-      /* Put the robot state table on top */
-      lua_getglobal(m_ptLuaState, "robot");
-      /* Go through the sensors */
-      for(CCI_Actuator::TMap::iterator it = m_mapActuators.begin();
-          it != m_mapActuators.end();
-          ++it) {
-         it->second->LuaVariablesToSettings(m_ptLuaState);
+         it->second->ReadingsToLuaState(m_ptLuaState);
       }
       /* Pop the robot state table */
       lua_pop(m_ptLuaState, 1);

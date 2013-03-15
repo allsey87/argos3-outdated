@@ -229,7 +229,7 @@ namespace argos {
       glCallList(m_unGripperMechanicsList);
       /* Place the gripper claws */
       /* Read the gripper aperture from footbot entity */
-      GLfloat fGripperAperture = (1.0f - c_entity.GetGripperEquippedEntity().GetLogicLockState()) * 90.0f;
+      GLfloat fGripperAperture = c_entity.GetGripperEquippedEntity().GetLockState() * 90.0f;
       glTranslatef(GRIPPER_CLAW_OFFSET, 0.0f, GRIPPER_CLAW_ELEVATION);
       glPushMatrix();
       glRotatef(fGripperAperture, 0.0f, 1.0f, 0.0f);
@@ -981,12 +981,7 @@ namespace argos {
    public:
       void ApplyTo(CQTOpenGLWidget& c_visualization,
                    CFootBotEntity& c_entity) {
-         static CQTOpenGLFootBot m_cModel;
-         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-         c_visualization.DrawPositionalEntity(c_entity.GetEmbodiedEntity());
-         glScalef(1.2, 1.2, 1.2);
-         m_cModel.Draw(c_entity);
-         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+         c_visualization.DrawBoundingBox(c_entity.GetEmbodiedEntity());
       }
    };
 

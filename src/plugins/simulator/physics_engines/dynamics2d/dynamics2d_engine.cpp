@@ -5,116 +5,14 @@
  */
 
 #include "dynamics2d_engine.h"
+#include "dynamics2d_model.h"
+#include "dynamics2d_gripping.h"
+
 #include <argos3/core/simulator/simulator.h>
-#include <argos3/core/simulator/entity/embodied_entity.h>
-#include <argos3/plugins/simulator/entities/gripper_equipped_entity.h>
-#include <argos3/plugins/simulator/physics_engines/dynamics2d/dynamics2d_entity.h>
 
 #include <cmath>
 
 namespace argos {
-
-   /****************************************/
-   /****************************************/
-
-   SDynamics2DEngineGripperData::SDynamics2DEngineGripperData(cpSpace* pt_space,
-                                                              CGripperEquippedEntity& c_entity,
-                                                              cpVect t_anchor) :
-      Space(pt_space),
-      GripperEntity(c_entity),
-      GripperAnchor(t_anchor),
-      GripConstraint(NULL) {}
-
-   SDynamics2DEngineGripperData::~SDynamics2DEngineGripperData() {
-      ClearConstraints();
-   }
-
-   void SDynamics2DEngineGripperData::ClearConstraints() {
-      if(GripConstraint != NULL) {
-         cpSpaceRemoveConstraint(Space, GripConstraint);
-         cpConstraintFree(GripConstraint);
-         GripConstraint = NULL;
-         GripperEntity.ClearGrippedEntity();
-      }
-   }
-
-   /****************************************/
-   /****************************************/
-
-   void MagneticGripperGrippableCollisionPostStep(cpSpace* pt_space, void* p_obj, void* p_data) {
-      /* Get the shapes involved */
-      cpShape* ptGripperShape = reinterpret_cast<cpShape*>(p_obj);
-      cpShape* ptGrippableShape = reinterpret_cast<cpShape*>(p_data);
-      /* Get a reference to the gripper data */
-      SDynamics2DEngineGripperData& sGripperData = *reinterpret_cast<SDynamics2DEngineGripperData*>(ptGripperShape->data);
-      /* The gripper is locked or unlocked? */
-      if(sGripperData.GripperEntity.IsUnlocked()) {
-         /* The gripper is locked. If it was gripping an object,
-          * release it. Then, process the collision normally */
-      	 if(sGripperData.GripperEntity.IsGripping()) {
-            sGripperData.ClearConstraints();
-      	 }
-      }
-      else if(! sGripperData.GripperEntity.IsGripping()) {
-         /* The gripper is unlocked and free, create the joints */
-         /* Create a constraint */
-         sGripperData.GripConstraint = cpSpaceAddConstraint(pt_space,
-                                                            cpPivotJointNew(
-                                                               ptGripperShape->body,
-                                                               ptGrippableShape->body,
-                                                               sGripperData.GripperAnchor));
-         sGripperData.GripConstraint->maxBias = 0.95f; // Correct overlap
-         sGripperData.GripConstraint->maxForce = 10000.0f; // Max correction speed
-         sGripperData.GripperEntity.SetGrippedEntity(*reinterpret_cast<CEmbodiedEntity*>(ptGrippableShape->data));
-      }
-   }
-
-   int MagneticGripperGrippableCollisionBegin(cpArbiter* pt_arb, cpSpace* pt_space, void* p_data) {
-      /* Get the shapes involved */
-      CP_ARBITER_GET_SHAPES(pt_arb, ptGripperShape, ptGrippableShape);
-      /* Get a reference to the gripper data */
-      SDynamics2DEngineGripperData& sGripperData = *reinterpret_cast<SDynamics2DEngineGripperData*>(ptGripperShape->data);
-      /* Get a reference to the gripped entity */
-      CEmbodiedEntity& cGrippedEntity = *reinterpret_cast<CEmbodiedEntity*>(ptGrippableShape->data);
-      /* If the entities match, ignore the collision forever */
-      return (sGripperData.GripperEntity.GetId() != cGrippedEntity.GetId());
-   }
-
-   int MagneticGripperGrippableCollisionPreSolve(cpArbiter* pt_arb, cpSpace* pt_space, void* p_data) {
-      /* Get the shapes involved */
-      CP_ARBITER_GET_SHAPES(pt_arb, ptGripperShape, ptGrippableShape);
-      /* Get a reference to the gripper data */
-      SDynamics2DEngineGripperData& sGripperData = *reinterpret_cast<SDynamics2DEngineGripperData*>(ptGripperShape->data);
-      /*
-       * When to process gripping:
-       * 1. when the robot was gripping and it just unlocked the gripper
-       * 2. when the robot was not gripping and it just locked the gripper
-       *    in this case, also precalculate the anchor point
-       * Otherwise ignore it
-       */
-      bool bGrippingJustUnlocked = (sGripperData.GripperEntity.IsGripping() && sGripperData.GripperEntity.IsUnlocked());
-      bool bNotGrippingJustLocked = (!sGripperData.GripperEntity.IsGripping() && sGripperData.GripperEntity.IsLocked());
-      if(bNotGrippingJustLocked) {
-         /* Calculate the anchor point on the grippable body
-            as the centroid of the contact points */
-         sGripperData.GripperAnchor = cpvzero;
-         for(SInt32 i = 0; i < cpArbiterGetCount(pt_arb); ++i) {
-            sGripperData.GripperAnchor = cpvadd(sGripperData.GripperAnchor, cpArbiterGetPoint(pt_arb, i));
-         }
-         sGripperData.GripperAnchor = cpvmult(sGripperData.GripperAnchor, 1.0f / cpArbiterGetCount(pt_arb));
-      }
-      if(bGrippingJustUnlocked || bNotGrippingJustLocked) {
-         /* Instruct the engine to process gripping in a post-step callback */
-         cpSpaceAddPostStepCallback(
-            pt_space,
-            MagneticGripperGrippableCollisionPostStep,
-            ptGripperShape,
-            ptGrippableShape
-            );
-      }
-      /* Always return false, anyway the gripper is a sensor shape */
-      return false;
-   }
 
    /****************************************/
    /****************************************/
@@ -211,10 +109,10 @@ namespace argos {
       /* Gripper-Gripped callback functions */
       cpSpaceAddCollisionHandler(
          m_ptSpace,
-         SHAPE_MAGNETIC_GRIPPER,
+         SHAPE_GRIPPER,
          SHAPE_GRIPPABLE,
-         MagneticGripperGrippableCollisionBegin,
-         MagneticGripperGrippableCollisionPreSolve,
+         BeginCollisionBetweenGripperAndGrippable,
+         ManageCollisionBetweenGripperAndGrippable,
          NULL,
          NULL,
          NULL);
@@ -248,8 +146,8 @@ namespace argos {
    /****************************************/
 
    void CDynamics2DEngine::Reset() {
-      for(CDynamics2DEntity::TMap::iterator it = m_tPhysicsEntities.begin();
-          it != m_tPhysicsEntities.end(); ++it) {
+      for(CDynamics2DModel::TMap::iterator it = m_tPhysicsModels.begin();
+          it != m_tPhysicsModels.end(); ++it) {
          it->second->Reset();
       }
       cpSpaceReindexStatic(m_ptSpace);
@@ -260,15 +158,15 @@ namespace argos {
 
    void CDynamics2DEngine::Update() {
       /* Update the physics state from the entities */
-      for(CDynamics2DEntity::TMap::iterator it = m_tPhysicsEntities.begin();
-          it != m_tPhysicsEntities.end(); ++it) {
+      for(CDynamics2DModel::TMap::iterator it = m_tPhysicsModels.begin();
+          it != m_tPhysicsModels.end(); ++it) {
          it->second->UpdateFromEntityStatus();
       }
       /* Perform the step */
       cpSpaceStep(m_ptSpace, m_fSimulationClockTick);
       /* Update the simulated space */
-      for(CDynamics2DEntity::TMap::iterator it = m_tPhysicsEntities.begin();
-          it != m_tPhysicsEntities.end(); ++it) {
+      for(CDynamics2DModel::TMap::iterator it = m_tPhysicsModels.begin();
+          it != m_tPhysicsModels.end(); ++it) {
          it->second->UpdateEntityStatus();
       }
    }
@@ -277,12 +175,12 @@ namespace argos {
    /****************************************/
 
    void CDynamics2DEngine::Destroy() {
-      /* Empty the physics entity map */
-      for(CDynamics2DEntity::TMap::iterator it = m_tPhysicsEntities.begin();
-          it != m_tPhysicsEntities.end(); ++it) {
+      /* Empty the physics model map */
+      for(CDynamics2DModel::TMap::iterator it = m_tPhysicsModels.begin();
+          it != m_tPhysicsModels.end(); ++it) {
          delete it->second;
       }
-      m_tPhysicsEntities.clear();
+      m_tPhysicsModels.clear();
       /* Get rid of the physics space */
       cpSpaceFree(m_ptSpace);
       cpBodyFree(m_ptGroundBody);
@@ -320,7 +218,7 @@ namespace argos {
    /****************************************/
 
    UInt32 CDynamics2DEngine::GetNumPhysicsEngineEntities() {
-      return m_tPhysicsEntities.size();
+      return m_tPhysicsModels.size();
    }
 
    /****************************************/
@@ -398,22 +296,22 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics2DEngine::AddPhysicsEntity(const std::string& str_id,
-                                            CDynamics2DEntity& c_entity) {
-      m_tPhysicsEntities[str_id] = &c_entity;
+   void CDynamics2DEngine::AddPhysicsModel(const std::string& str_id,
+                                            CDynamics2DModel& c_model) {
+      m_tPhysicsModels[str_id] = &c_model;
    }
 
    /****************************************/
    /****************************************/
 
-   void CDynamics2DEngine::RemovePhysicsEntity(const std::string& str_id) {
-      CDynamics2DEntity::TMap::iterator it = m_tPhysicsEntities.find(str_id);
-      if(it != m_tPhysicsEntities.end()) {
+   void CDynamics2DEngine::RemovePhysicsModel(const std::string& str_id) {
+      CDynamics2DModel::TMap::iterator it = m_tPhysicsModels.find(str_id);
+      if(it != m_tPhysicsModels.end()) {
          delete it->second;
-         m_tPhysicsEntities.erase(it);
+         m_tPhysicsModels.erase(it);
       }
       else {
-         THROW_ARGOSEXCEPTION("Dynamics2D entity id \"" << str_id << "\" not found in dynamics 2D engine \"" << GetId() << "\"");
+         THROW_ARGOSEXCEPTION("Dynamics2D model id \"" << str_id << "\" not found in dynamics 2D engine \"" << GetId() << "\"");
       }
    }
 

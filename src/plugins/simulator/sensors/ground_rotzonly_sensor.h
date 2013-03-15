@@ -1,5 +1,5 @@
 /**
- * @file <argos3/plugins/simulator/sensors/ground_default_sensor.h>
+ * @file <argos3/plugins/simulator/sensors/ground_rotzonly_sensor.h>
  *
  * @author Carlo Pinciroli - <ilpincy@gmail.com>
  */

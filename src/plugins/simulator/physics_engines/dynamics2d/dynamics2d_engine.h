@@ -9,8 +9,9 @@
 
 namespace argos {
    class CDynamics2DEngine;
-   class CDynamics2DEntity;
+   class CDynamics2DModel;
    class CGripperEquippedEntity;
+   class CEmbodiedEntity;
 }
 
 #include <argos3/core/utility/math/ray2.h>
@@ -24,12 +25,12 @@ namespace argos {
    /****************************************/
 
    struct SDynamics2DEngineGripperData {
-      cpSpace* Space;
+      CDynamics2DEngine& Engine;
       CGripperEquippedEntity& GripperEntity;
       cpVect GripperAnchor;
       cpConstraint* GripConstraint;
 
-      SDynamics2DEngineGripperData(cpSpace* pt_space,
+      SDynamics2DEngineGripperData(CDynamics2DEngine& c_engine,
                                    CGripperEquippedEntity& c_entity,
                                    cpVect t_anchor);
       ~SDynamics2DEngineGripperData();
@@ -46,9 +47,7 @@ namespace argos {
       enum EShapeType {
          SHAPE_NORMAL = 0,
          SHAPE_GRIPPABLE,
-         SHAPE_CLAW_GRIPPER,
-
-         SHAPE_MAGNETIC_GRIPPER
+         SHAPE_GRIPPER
       };
 
       enum ELayerType {
@@ -141,9 +140,9 @@ namespace argos {
       void OrientationPhysicsToSpace(CQuaternion& c_new_orient,
                                      cpBody* pt_body);
       
-      void AddPhysicsEntity(const std::string& str_id,
-                            CDynamics2DEntity& c_entity);
-      void RemovePhysicsEntity(const std::string& str_id);
+      void AddPhysicsModel(const std::string& str_id,
+                            CDynamics2DModel& c_model);
+      void RemovePhysicsModel(const std::string& str_id);
 
    private:
 
@@ -162,7 +161,7 @@ namespace argos {
       bool m_bEntityTransferActive;
 
       CControllableEntity::TMap m_tControllableEntities;
-      std::map<std::string, CDynamics2DEntity*> m_tPhysicsEntities;
+      std::map<std::string, CDynamics2DModel*> m_tPhysicsModels;
 
    };
 
@@ -188,20 +187,20 @@ namespace argos {
 #define REGISTER_DYNAMICS2D_OPERATION(ACTION, OPERATION, ENTITY)        \
    REGISTER_ENTITY_OPERATION(ACTION, CDynamics2DEngine, OPERATION, void, ENTITY);
 
-#define REGISTER_STANDARD_DYNAMICS2D_OPERATION_ADD_ENTITY(SPACE_ENTITY, DYN2D_ENTITY) \
+#define REGISTER_STANDARD_DYNAMICS2D_OPERATION_ADD_ENTITY(SPACE_ENTITY, DYN2D_MODEL) \
    class CDynamics2DOperationAdd ## SPACE_ENTITY : public CDynamics2DOperationAddEntity { \
    public:                                                              \
    CDynamics2DOperationAdd ## SPACE_ENTITY() {}                         \
    virtual ~CDynamics2DOperationAdd ## SPACE_ENTITY() {}                \
    void ApplyTo(CDynamics2DEngine& c_engine,                            \
                 SPACE_ENTITY& c_entity) {                               \
-      DYN2D_ENTITY* pcPhysEntity = new DYN2D_ENTITY(c_engine,           \
-                                                    c_entity);          \
-      c_engine.AddPhysicsEntity(c_entity.GetId(),                       \
-                                *pcPhysEntity);                         \
+      DYN2D_MODEL* pcPhysModel = new DYN2D_MODEL(c_engine,              \
+                                                 c_entity);             \
+      c_engine.AddPhysicsModel(c_entity.GetId(),                        \
+                               *pcPhysModel);                           \
       c_entity.                                                         \
          GetComponent<CEmbodiedEntity>("body").                         \
-         AddPhysicsEngineEntity(c_engine.GetId(), *pcPhysEntity);       \
+         AddPhysicsModel(c_engine.GetId(), *pcPhysModel);               \
    }                                                                    \
    };                                                                   \
    REGISTER_DYNAMICS2D_OPERATION(CDynamics2DOperationAddEntity,         \
@@ -215,10 +214,10 @@ namespace argos {
    virtual ~CDynamics2DOperationRemove ## SPACE_ENTITY() {}             \
    void ApplyTo(CDynamics2DEngine& c_engine,                            \
                 SPACE_ENTITY& c_entity) {                               \
-      c_engine.RemovePhysicsEntity(c_entity.GetId());                   \
+      c_engine.RemovePhysicsModel(c_entity.GetId());                    \
       c_entity.                                                         \
          GetComponent<CEmbodiedEntity>("body").                         \
-         RemovePhysicsEngineEntity(c_engine.GetId());                   \
+         RemovePhysicsModel(c_engine.GetId());                          \
    }                                                                    \
    };                                                                   \
    REGISTER_DYNAMICS2D_OPERATION(CDynamics2DOperationRemoveEntity,      \

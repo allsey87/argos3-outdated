@@ -1,13 +1,6 @@
 /**
  * @file <argos3/core/simulator/main.cpp>
  *
- * @brief This file provides the standard main() function to run the ARGoS
- * simulator.
- *
- * In this file the standard main() function is defined. It provides the
- * basic functionalities to run the ARGoS simulator: parses the command line,
- * loads the experiment, runs the simulation and disposes all the data.
- *
  * @author Carlo Pinciroli - <ilpincy@gmail.com>
  */
 
@@ -21,7 +14,7 @@ using namespace argos;
 /**
  * @brief The standard main() function to run the ARGoS simulator.
  *
- * This main() function provides tha basic functionalities to run the ARGoS
+ * This main() function provides the basic logic to run the ARGoS
  * simulator: parses the command line, loads the experiment, runs the
  * simulation and disposes all the data.
  *
@@ -60,8 +53,10 @@ int main(int n_argc, char** ppch_argv) {
    }
    catch(std::exception& ex) {
       /* A fatal error occurred: dispose of data, print error and exit */
-      cSimulator.Destroy();
       LOGERR << ex.what() << std::endl;
+      LOG.Flush();
+      LOGERR.Flush();
+      cSimulator.Destroy();
       LOG.Flush();
       LOGERR.Flush();
       return 1;
