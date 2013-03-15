@@ -1,30 +1,30 @@
 /**
- * @file <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_terrain_entity.h>
+ * @file <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_heightfield_model.h>
  *
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-#ifndef DYNAMICS3D_TERRAIN_ENTITY_H
-#define DYNAMICS3D_TERRAIN_ENTITY_H
+#ifndef DYNAMICS3D_HEIGHTFIELD_MODEL_H
+#define DYNAMICS3D_HEIGHTFIELD_MODEL_H
 
 namespace argos {
    class CDynamics3DEngine;
-   class CDynamics3DTerrainEntity;
+   class CDynamics3DHeightFieldModel;
 }
 
-#include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_entity.h>
+#include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_model.h>
 #include <argos3/plugins/simulator/entities/terrain_entity.h>
 
 
 namespace argos {
 
-   class CDynamics3DTerrainEntity : public CDynamics3DEntity {
+   class CDynamics3DHeightFieldModel : public CDynamics3DModel {
 
    public:
       
-      CDynamics3DTerrainEntity(CDynamics3DEngine& c_engine,
-                     CTerrainEntity& c_Terrain);
-      virtual ~CDynamics3DTerrainEntity();
+      CDynamics3DHeightFieldModel(CDynamics3DEngine& c_engine,
+                                  CHeightFieldEntity& c_Terrain);
+      virtual ~CDynamics3DHeightFieldModel();
       
       virtual bool CheckIntersectionWithRay(Real& f_t_on_ray,
                                             const CRay3& c_ray) const;
@@ -32,7 +32,7 @@ namespace argos {
       virtual bool MoveTo(const CVector3& c_position,
                           const CQuaternion& c_orientation,
                           bool b_check_only = false) {
-         return false; // moving of terrain is not supported!
+         return false; // @todo support moving terrain to produce random maps
       }
 
       virtual void Reset();
@@ -47,11 +47,9 @@ namespace argos {
 
    private:
 
-      CTerrainEntity&                m_cTerrainEntity;
+      CHeightFieldEntity&                m_cHeightFieldEntity;
       
-      std::vector<btRigidBody*>      m_vecRigidBodies;
-      
-      btTerrainShape*                m_pcCollisionShape; 
+      btTerrainShape*                    m_pcCollisionShape; 
    };
 
 }

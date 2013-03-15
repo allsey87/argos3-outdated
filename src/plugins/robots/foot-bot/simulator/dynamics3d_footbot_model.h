@@ -1,24 +1,24 @@
 /**
- * @file <argos3/plugins/robots/foot-bot/simulator/dynamics3d_footbot_entity.h>
+ * @file <argos3/plugins/robots/foot-bot/simulator/dynamics3d_footbot_model.h>
  *
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-#ifndef DYNAMICS3D_FOOTBOT_ENTITY_H
-#define DYNAMICS3D_FOOTBOT_ENTITY_H
+#ifndef DYNAMICS3D_FOOTBOT_MODEL_H
+#define DYNAMICS3D_FOOTBOT_MODEL_H
 
-#include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_entity.h>
+#include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_model.h>
 #include <argos3/plugins/robots/foot-bot/simulator/footbot_entity.h>
 
 namespace argos {
 
-   class CDynamics3DFootBotEntity : public CDynamics3DEntity {
+   class CDynamics3DFootBotModel : public CDynamics3DModel {
 
    public:
 
-      CDynamics3DFootBotEntity(CDynamics3DEngine& c_engine,
+      CDynamics3DFootBotModel(CDynamics3DEngine& c_engine,
                                CFootBotEntity& c_entity);
-      virtual ~CDynamics3DFootBotEntity();
+      virtual ~CDynamics3DFootBotModel();
       
       virtual bool CheckIntersectionWithRay(Real& f_t_on_ray,
                                             const CRay3& c_ray) const;

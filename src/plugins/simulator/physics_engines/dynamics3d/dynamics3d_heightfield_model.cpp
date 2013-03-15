@@ -1,10 +1,10 @@
 /**
- * @file <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_terrain_entity.cpp>
+ * @file <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_heightfield_model.cpp>
  *
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-#include "dynamics3d_terrain_entity.h"
+#include "dynamics3d_heightfield_model.h"
 #include "dynamics3d_engine.h"
 
 #include <btBulletDynamicsCommon.h>
@@ -14,20 +14,20 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   CDynamics3DTerrainEntity::CDynamics3DTerrainEntity(CDynamics3DEngine& c_engine,
-                                  CTerrainEntity& c_terrain) :
+   CDynamics3DHeightFieldModel::CDynamics3DHeightFieldModel(CDynamics3DEngine& c_engine,
+                                  CHeightFieldEntity& c_terrain) :
       CDynamics3DEntity(c_engine, c_terrain.GetEmbodiedEntity()),
       m_cTerrainEntity(c_terrain) {
       
-      const CTerrainEntity::SHeightMap& sTerrainHeightMap = c_terrain.GetHeightMap();
+      const CHeightFieldEntity::SHeightMap& sHeightMap = c_terrain.GetHeightMap();
       
       m_pcCollisionShape = new btHeightfieldTerrainShape(
-         sTerrainHeightMap.GridSizeX, 
-	      sTerrainHeightMap.GridSizeY,
-			sTerrainHeightMap.Data.ToCArray(),
-			sTerrainHeightMap.GridHeightScale, 
-			sTerrainHeightMap.MinimumHeight, 
-			sTerrainHeightMap.MaximumHeight,
+         sHeightMap.GridSizeX, 
+	      sHeightMap.GridSizeY,
+			sHeightMap.Data.ToCArray(),
+			sHeightMap.GridHeightScale, 
+			sHeightMap.MinimumHeight, 
+			sHeightMap.MaximumHeight,
 			1,
 			PHY_FLOAT, 
 			false
@@ -49,7 +49,7 @@ namespace argos {
    /****************************************/
    /****************************************/
    
-   CDynamics3DTerrainEntity::~CDynamics3DTerrainEntity() {
+   CDynamics3DHeightFieldModel::~CDynamics3DHeightFieldModel() {
       for(std::vector<btRigidBody*>::iterator it = m_vecRigidBodies.begin();
           it != m_vecRigidBodies.end();
           it++) {
@@ -62,7 +62,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   bool CDynamics3DTerrainEntity::CheckIntersectionWithRay(Real& f_t_on_ray,
+   bool CDynamics3DHeightFieldModel::CheckIntersectionWithRay(Real& f_t_on_ray,
                                                     const CRay3& c_ray) const {
       
       btVector3 cRayStart = ARGoSToBullet(c_ray.GetStart());
@@ -101,7 +101,7 @@ namespace argos {
    /****************************************/
    /****************************************/
   
-   bool CDynamics3DTerrainEntity::MoveTo(const CVector3& c_position,
+   bool CDynamics3DHeightFieldModel::MoveTo(const CVector3& c_position,
                                      const CQuaternion& c_orientation,
                                      bool b_check_only) {
       
@@ -130,7 +130,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics3DBoxEntity::Reset() {
+   void CDynamics3DHeightFieldModel::Reset() {
       if(m_cBoxEntity.GetEmbodiedEntity().IsMovable()) {      
          
          /* Reset box position and orientation */
@@ -148,7 +148,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   REGISTER_STANDARD_DYNAMICS3D_OPERATIONS_ON_ENTITY(CTerrainEntity, CDynamics3DTerrainEntity);
+   REGISTER_STANDARD_DYNAMICS3D_OPERATIONS_ON_ENTITY(CHeightFieldEntity, CDynamics3DHeightFieldModel);
 
    /****************************************/
    /****************************************/

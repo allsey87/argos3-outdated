@@ -32,20 +32,7 @@ namespace argos {
           * Init parent
           */
          CComposableEntity::Init(t_tree);
-         std::string strAttachee;
-         GetNodeAttributeOrDefault(t_tree, "attached_to", strAttachee, strAttachee);
-         if(! strAttachee.empty()) {
-            /* We assume that an attachee can only be a composable with an embodied entity */
-            CEntity& cPotentialAttachee = CSimulator::GetInstance().GetSpace().GetEntity(strAttachee);
-            CComposableEntity* pcPotentialAttacheeComp = dynamic_cast<CComposableEntity*>(&cPotentialAttachee);
-            if(pcPotentialAttacheeComp == NULL) {
-               THROW_ARGOSEXCEPTION("Can't add robotic arm \"" << GetId() << "\" to entity \"" << strAttachee << "\" because it's not a composable.");
-            }
-            if(!pcPotentialAttacheeComp->HasComponent("body")) {
-               THROW_ARGOSEXCEPTION("Can't add robotic arm \"" << GetId() << "\" to entity \"" << strAttachee << "\" because it does not have a body.");
-            }
-            m_pcAttachee = &(pcPotentialAttacheeComp->GetComponent<CEmbodiedEntity>("body"));
-         }
+         
          /*
           * Create and init components
           */
@@ -53,12 +40,7 @@ namespace argos {
          m_pcEmbodiedEntity = new CEmbodiedEntity(this);
          AddComponent(*m_pcEmbodiedEntity);
          m_pcEmbodiedEntity->Init(t_tree);
-         if(IsAttachedToSomething()) {
-            m_pcEmbodiedEntity->SetInitPosition(m_pcEmbodiedEntity->GetPosition() + m_pcAttachee->GetPosition());
-            m_pcEmbodiedEntity->SetPosition(m_pcEmbodiedEntity->GetInitPosition());
-            m_pcEmbodiedEntity->SetInitOrientation(m_pcEmbodiedEntity->GetOrientation() * m_pcAttachee->GetOrientation());
-            m_pcEmbodiedEntity->SetOrientation(m_pcEmbodiedEntity->GetInitOrientation());
-         }
+         
          /* Controllable entity
             It must be the last one, for actuators/sensors to link to composing entities correctly */
          //m_pcControllableEntity = new CControllableEntity(this);
@@ -96,17 +78,6 @@ namespace argos {
       m_pcEmbodiedEntity->Update();
    }
 
-   /****************************************/
-   /****************************************/
-
-   CEmbodiedEntity& CRoboticArmEntity::GetAttachee() {
-      if(m_pcAttachee != NULL) {
-         return *m_pcAttachee;
-      }
-      else {
-         THROW_ARGOSEXCEPTION("The robotic arm \"" << GetId() << "\" is not attached to anything.");
-      }
-   }
 
    /****************************************/
    /****************************************/

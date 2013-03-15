@@ -1,30 +1,30 @@
 /**
- * @file <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_box_entity.h>
+ * @file <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_box_model.h>
  *
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-#ifndef DYNAMICS3D_BOX_ENTITY_H
-#define DYNAMICS3D_BOX_ENTITY_H
+#ifndef DYNAMICS3D_BOX_MODEL_H
+#define DYNAMICS3D_BOX_MODEL_H
 
 namespace argos {
    class CDynamics3DEngine;
-   class CDynamics3DBoxEntity;
+   class CDynamics3DBoxModel;
 }
 
-#include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_entity.h>
+#include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_model.h>
 #include <argos3/plugins/simulator/entities/box_entity.h>
 
 
 namespace argos {
 
-   class CDynamics3DBoxEntity : public CDynamics3DEntity {
+   class CDynamics3DBoxModel : public CDynamics3DModel {
 
    public:
       
-      CDynamics3DBoxEntity(CDynamics3DEngine& c_engine,
+      CDynamics3DBoxModel(CDynamics3DEngine& c_engine,
                      CBoxEntity& c_box);
-      virtual ~CDynamics3DBoxEntity();
+      virtual ~CDynamics3DBoxModel();
       
       virtual bool CheckIntersectionWithRay(Real& f_t_on_ray,
                                             const CRay3& c_ray) const;

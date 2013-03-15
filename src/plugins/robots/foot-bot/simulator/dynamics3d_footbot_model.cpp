@@ -1,10 +1,10 @@
 /**
- * @file <argos3/plugins/robots/foot-bot/simulator/dynamics3d_footbot_entity.cpp>
+ * @file <argos3/plugins/robots/foot-bot/simulator/dynamics3d_footbot_model.cpp>
  *
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-#include "dynamics3d_footbot_entity.h"
+#include "dynamics3d_footbot_model.h"
 #include <argos3/core/simulator/entity/embodied_entity.h>
 #include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_engine.h>
 
@@ -39,52 +39,52 @@ namespace argos {
 
    // Shared static transforms
 
-   btTransform CDynamics3DFootBotEntity::m_cLeftWheelTransform(
+   btTransform CDynamics3DFootBotModel::m_cLeftWheelTransform(
       btQuaternion(btVector3(1.0f, 0.0f, 0.0f), ARGOS_PI * 0.5f),
       btVector3(0.0f, FOOTBOT_WHEEL_RADIUS, -FOOTBOT_WHEEL_HALF_DISTANCE));
 
-   btTransform CDynamics3DFootBotEntity::m_cRightWheelTransform(
+   btTransform CDynamics3DFootBotModel::m_cRightWheelTransform(
       btQuaternion(btVector3(1.0f, 0.0f, 0.0f), ARGOS_PI * 0.5f),
       btVector3(0.0f, FOOTBOT_WHEEL_RADIUS, FOOTBOT_WHEEL_HALF_DISTANCE));
 
-   btTransform CDynamics3DFootBotEntity::m_cFrontPivotTransform(
+   btTransform CDynamics3DFootBotModel::m_cFrontPivotTransform(
       btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
       btVector3(FOOTBOT_PIVOT_OFFSET, FOOTBOT_PIVOT_RADIUS, 0.0f));
 
-   btTransform CDynamics3DFootBotEntity::m_cRearPivotTransform(
+   btTransform CDynamics3DFootBotModel::m_cRearPivotTransform(
       btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
       btVector3(-FOOTBOT_PIVOT_OFFSET, FOOTBOT_PIVOT_RADIUS, 0.0f));
 
-   btTransform CDynamics3DFootBotEntity::m_cBatterySocketTransform(
+   btTransform CDynamics3DFootBotModel::m_cBatterySocketTransform(
       btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
       btVector3(0.0f, FOOTBOT_BATT_GROUND_OFFSET + FOOTBOT_BATT_H * 0.5f, 0.0f));
 
-   btTransform CDynamics3DFootBotEntity::m_cBaseModuleTransform(
+   btTransform CDynamics3DFootBotModel::m_cBaseModuleTransform(
       btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
       btVector3(0.0f, FOOTBOT_BATT_GROUND_OFFSET + FOOTBOT_BATT_H + FOOTBOT_BASEMODULE_HEIGHT * 0.5f, 0.0f));
 
    // Shared static collision shapes
 
-   btBoxShape CDynamics3DFootBotEntity::m_cBatterySocketCollisionShape(
+   btBoxShape CDynamics3DFootBotModel::m_cBatterySocketCollisionShape(
       btVector3(FOOTBOT_BATT_L, FOOTBOT_BATT_H, FOOTBOT_BATT_W) * 0.5f);
 
-   btCylinderShape CDynamics3DFootBotEntity::m_cBaseModuleCollisionShape(
+   btCylinderShape CDynamics3DFootBotModel::m_cBaseModuleCollisionShape(
       btVector3(FOOTBOT_BASEMODULE_RADIUS, FOOTBOT_BASEMODULE_HEIGHT * 0.5f, FOOTBOT_BASEMODULE_RADIUS));
 
-   btCylinderShape CDynamics3DFootBotEntity::m_cWheelCollisionShape(
+   btCylinderShape CDynamics3DFootBotModel::m_cWheelCollisionShape(
       btVector3(FOOTBOT_WHEEL_RADIUS, FOOTBOT_WHEEL_THICKNESS * 0.5f, FOOTBOT_WHEEL_RADIUS));
 
-   btSphereShape CDynamics3DFootBotEntity::m_cPivotCollisionShape(FOOTBOT_PIVOT_RADIUS);
+   btSphereShape CDynamics3DFootBotModel::m_cPivotCollisionShape(FOOTBOT_PIVOT_RADIUS);
 
    // @todo This collision shape requires unthread safe init - see the constructor below!
-   btCompoundShape CDynamics3DFootBotEntity::m_cBodyCollisionShape;
+   btCompoundShape CDynamics3DFootBotModel::m_cBodyCollisionShape;
 
    /****************************************/
    /****************************************/
 
-   CDynamics3DFootBotEntity::CDynamics3DFootBotEntity(CDynamics3DEngine& c_engine,
+   CDynamics3DFootBotModel::CDynamics3DFootBotModel(CDynamics3DEngine& c_engine,
                                                       CFootBotEntity& c_entity) :
-      CDynamics3DEntity(c_engine, c_entity.GetEmbodiedEntity()),
+      CDynamics3DModel(c_engine, c_entity.GetEmbodiedEntity()),
       m_cFootBotEntity(c_entity),
       m_cWheeledEntity(m_cFootBotEntity.GetWheeledEntity()) {
 
@@ -104,13 +104,13 @@ namespace argos {
       btVector3 cInertia;
 
       // Transform representing the reference point and rotation of the footbot
-      btTransform cEntityTransform(ARGoSToBullet(GetEmbodiedEntity().GetOrientation()),
+      btTransform cModelTransform(ARGoSToBullet(GetEmbodiedEntity().GetOrientation()),
                                    ARGoSToBullet(GetEmbodiedEntity().GetPosition()));
 
 
 
       /** Create the body **/
-      m_pcBodyMotionState = new btDefaultMotionState(cEntityTransform);
+      m_pcBodyMotionState = new btDefaultMotionState(cModelTransform);
       m_cBodyCollisionShape.calculateLocalInertia(FOOTBOT_BASEMODULE_MASS, cInertia);
       m_pcBodyRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          FOOTBOT_BASEMODULE_MASS, m_pcBodyMotionState, &m_cBodyCollisionShape, cInertia));
@@ -118,8 +118,8 @@ namespace argos {
       m_vecLocalRigidBodies.push_back(m_pcBodyRigidBody);
 
       /** create the wheels **/
-      m_pcLeftWheelMotionState = new btDefaultMotionState(cEntityTransform * m_cLeftWheelTransform);
-      m_pcRightWheelMotionState = new btDefaultMotionState(cEntityTransform * m_cRightWheelTransform);
+      m_pcLeftWheelMotionState = new btDefaultMotionState(cModelTransform * m_cLeftWheelTransform);
+      m_pcRightWheelMotionState = new btDefaultMotionState(cModelTransform * m_cRightWheelTransform);
       m_cWheelCollisionShape.calculateLocalInertia(FOOTBOT_WHEEL_MASS, cInertia);
       m_pcLeftWheelRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          FOOTBOT_WHEEL_MASS, m_pcLeftWheelMotionState, &m_cWheelCollisionShape, cInertia));
@@ -148,8 +148,8 @@ namespace argos {
       m_vecLocalConstraints.push_back(m_pcRightWheelToBodyConstraint);
 
       /** Create the pivots **/
-      m_pcFrontPivotMotionState = new btDefaultMotionState(cEntityTransform * m_cFrontPivotTransform);
-      m_pcRearPivotMotionState = new btDefaultMotionState(cEntityTransform * m_cRearPivotTransform);
+      m_pcFrontPivotMotionState = new btDefaultMotionState(cModelTransform * m_cFrontPivotTransform);
+      m_pcRearPivotMotionState = new btDefaultMotionState(cModelTransform * m_cRearPivotTransform);
       m_cPivotCollisionShape.calculateLocalInertia(FOOTBOT_PIVOT_MASS, cInertia);
       m_pcFrontPivotRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          FOOTBOT_PIVOT_MASS, m_pcFrontPivotMotionState, &m_cPivotCollisionShape, cInertia));
@@ -176,7 +176,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   CDynamics3DFootBotEntity::~CDynamics3DFootBotEntity() {
+   CDynamics3DFootBotModel::~CDynamics3DFootBotModel() {
       delete m_pcLeftWheelToBodyConstraint;
       delete m_pcRightWheelToBodyConstraint;
       delete m_pcFrontPivotToBodyConstraint;
@@ -195,7 +195,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   bool CDynamics3DFootBotEntity::CheckIntersectionWithRay(Real& f_t_on_ray,
+   bool CDynamics3DFootBotModel::CheckIntersectionWithRay(Real& f_t_on_ray,
                                                            const CRay3& c_ray) const {
       return false;
    }
@@ -203,7 +203,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   bool CDynamics3DFootBotEntity::MoveTo(const CVector3& c_position,
+   bool CDynamics3DFootBotModel::MoveTo(const CVector3& c_position,
                                          const CQuaternion& c_orientation,
                                          bool b_check_only) {
       return false;
@@ -212,7 +212,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics3DFootBotEntity::Reset() {
+   void CDynamics3DFootBotModel::Reset() {
 
       btTransform cResetTransform(
          ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
@@ -238,36 +238,34 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics3DFootBotEntity::UpdateEntityStatus() {
+   void CDynamics3DFootBotModel::UpdateEntityStatus() {
       /* Update footbot position and orientation */
-      btTransform cEntityTransform;
+      btTransform cModelTransform;
 
 
 
-      m_pcLeftWheelRigidBody->getMotionState()->getWorldTransform(cEntityTransform);
-      fprintf(stderr, "[DEBUG] Bullet position for lwheel\t = %.3f, %.3f, %.3f\n", cEntityTransform.getOrigin().getX(), cEntityTransform.getOrigin().getY(), cEntityTransform.getOrigin().getZ());
+      m_pcLeftWheelRigidBody->getMotionState()->getWorldTransform(cModelTransform);
+      fprintf(stderr, "[DEBUG] Bullet position for lwheel\t = %.3f, %.3f, %.3f\n", cModelTransform.getOrigin().getX(), cModelTransform.getOrigin().getY(), cModelTransform.getOrigin().getZ());
       fprintf(stderr, "[DEBUG] Bullet angular speed for lwheel\t = %.3f, %.3f, %.3f\n", m_pcLeftWheelRigidBody->getAngularVelocity().getX(), m_pcLeftWheelRigidBody->getAngularVelocity().getY(), m_pcLeftWheelRigidBody->getAngularVelocity().getZ());
 
-      m_pcRightWheelRigidBody->getMotionState()->getWorldTransform(cEntityTransform);
-      fprintf(stderr, "[DEBUG] Bullet position for rwheel\t = %.3f, %.3f, %.3f\n", cEntityTransform.getOrigin().getX(), cEntityTransform.getOrigin().getY(), cEntityTransform.getOrigin().getZ());
+      m_pcRightWheelRigidBody->getMotionState()->getWorldTransform(cModelTransform);
+      fprintf(stderr, "[DEBUG] Bullet position for rwheel\t = %.3f, %.3f, %.3f\n", cModelTransform.getOrigin().getX(), cModelTransform.getOrigin().getY(), cModelTransform.getOrigin().getZ());
       fprintf(stderr, "[DEBUG] Bullet angular speed for rwheel\t = %.3f, %.3f, %.3f\n", m_pcRightWheelRigidBody->getAngularVelocity().getX(), m_pcRightWheelRigidBody->getAngularVelocity().getY(), m_pcRightWheelRigidBody->getAngularVelocity().getZ());
 
-      m_pcFrontPivotRigidBody->getMotionState()->getWorldTransform(cEntityTransform);
-      fprintf(stderr, "[DEBUG] Bullet position for fpivot\t = %.3f, %.3f, %.3f\n", cEntityTransform.getOrigin().getX(), cEntityTransform.getOrigin().getY(), cEntityTransform.getOrigin().getZ());
+      m_pcFrontPivotRigidBody->getMotionState()->getWorldTransform(cModelTransform);
+      fprintf(stderr, "[DEBUG] Bullet position for fpivot\t = %.3f, %.3f, %.3f\n", cModelTransform.getOrigin().getX(), cModelTransform.getOrigin().getY(), cModelTransform.getOrigin().getZ());
 
-      m_pcRearPivotRigidBody->getMotionState()->getWorldTransform(cEntityTransform);
-      fprintf(stderr, "[DEBUG] Bullet position for rpivot\t = %.3f, %.3f, %.3f\n", cEntityTransform.getOrigin().getX(), cEntityTransform.getOrigin().getY(), cEntityTransform.getOrigin().getZ());
-
-
+      m_pcRearPivotRigidBody->getMotionState()->getWorldTransform(cModelTransform);
+      fprintf(stderr, "[DEBUG] Bullet position for rpivot\t = %.3f, %.3f, %.3f\n", cModelTransform.getOrigin().getX(), cModelTransform.getOrigin().getY(), cModelTransform.getOrigin().getZ());
 
 
       // DON'T TOUCH THIS MICHAEL!
 
-      m_pcBodyRigidBody->getMotionState()->getWorldTransform(cEntityTransform);
-      fprintf(stderr, "[DEBUG] Bullet position for body\t = %.3f, %.3f, %.3f\n", cEntityTransform.getOrigin().getX(), cEntityTransform.getOrigin().getY(), cEntityTransform.getOrigin().getZ());
+      m_pcBodyRigidBody->getMotionState()->getWorldTransform(cModelTransform);
+      fprintf(stderr, "[DEBUG] Bullet position for body\t = %.3f, %.3f, %.3f\n", cModelTransform.getOrigin().getX(), cModelTransform.getOrigin().getY(), cModelTransform.getOrigin().getZ());
 
-      GetEmbodiedEntity().SetPosition(BulletToARGoS(cEntityTransform.getOrigin()));
-      GetEmbodiedEntity().SetOrientation(BulletToARGoS(cEntityTransform.getRotation()));
+      GetEmbodiedEntity().SetPosition(BulletToARGoS(cModelTransform.getOrigin()));
+      GetEmbodiedEntity().SetOrientation(BulletToARGoS(cModelTransform.getRotation()));
 
       /* Update components */
       m_cFootBotEntity.UpdateComponents();
@@ -276,10 +274,10 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics3DFootBotEntity::UpdateFromEntityStatus() {
+   void CDynamics3DFootBotModel::UpdateFromEntityStatus() {
 
       /* Get wheel speeds from entity */
-      m_cWheeledEntity.GetSpeed(m_pfCurrentWheelVelocityFromSensor);
+      const Real* m_pfCurrentWheelVelocityFromSensor = m_cWheeledEntity.GetWheelVelocities();
 
       /* Do we want to move? */
       if((m_pfCurrentWheelVelocityFromSensor[FOOTBOT_LEFT_WHEEL] != 0.0f) ||
@@ -325,13 +323,13 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics3DFootBotEntity::CalculateBoundingBox() {
+   void CDynamics3DFootBotModel::CalculateBoundingBox() {
       /** @todo Calculate foot-bot bounding box */
    }
 
    /****************************************/
    /****************************************/
 
-   REGISTER_STANDARD_DYNAMICS3D_OPERATIONS_ON_ENTITY(CFootBotEntity, CDynamics3DFootBotEntity);
+   REGISTER_STANDARD_DYNAMICS3D_OPERATIONS_ON_ENTITY(CFootBotEntity, CDynamics3DFootBotModel);
 
 }

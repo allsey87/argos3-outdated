@@ -9,7 +9,7 @@
 
 namespace argos {
    class CDynamics3DEngine;
-   class CDynamics3DEntity;
+   class CDynamics3DModel;
 }
 
 #include <argos3/core/simulator/entity/controllable_entity.h>
@@ -45,9 +45,9 @@ namespace argos {
       bool IsRegionOccupied(btTransform& c_transform, 
                             btCollisionShape& c_collsion_shape);
       
-      void AddPhysicsEntity(const std::string& str_id,
-                            CDynamics3DEntity& c_entity);
-      void RemovePhysicsEntity(const std::string& str_id);
+      void AddPhysicsModel(const std::string& str_id,
+                            CDynamics3DModel& c_model);
+      void RemovePhysicsModel(const std::string& str_id);
 
       virtual bool IsPointContained(const CVector3& c_point) {
          /** @todo Implement physics boundaries */
@@ -66,7 +66,7 @@ namespace argos {
    private:
 
       CControllableEntity::TMap m_tControllableEntities;
-      std::map<std::string, CDynamics3DEntity*> m_tPhysicsEntities;
+      std::map<std::string, CDynamics3DModel*> m_tPhysicsModels;
       
       /* ARGoS RNG */
       //CARGoSRandom::CRNG* m_pcRNG;
@@ -111,20 +111,20 @@ namespace argos {
 #define REGISTER_DYNAMICS3D_OPERATION(ACTION, OPERATION, ENTITY)        \
    REGISTER_ENTITY_OPERATION(ACTION, CDynamics3DEngine, OPERATION, void, ENTITY);
 
-#define REGISTER_STANDARD_DYNAMICS3D_OPERATION_ADD_ENTITY(SPACE_ENTITY, DYN3D_ENTITY) \
+#define REGISTER_STANDARD_DYNAMICS3D_OPERATION_ADD_ENTITY(SPACE_ENTITY, DYN3D_MODEL) \
    class CDynamics3DOperationAdd ## SPACE_ENTITY : public CDynamics3DOperationAddEntity { \
    public:                                                              \
    CDynamics3DOperationAdd ## SPACE_ENTITY() {}                         \
    virtual ~CDynamics3DOperationAdd ## SPACE_ENTITY() {}                \
    void ApplyTo(CDynamics3DEngine& c_engine,                            \
                 SPACE_ENTITY& c_entity) {                               \
-      DYN3D_ENTITY* pcPhysEntity = new DYN3D_ENTITY(c_engine,           \
-                                                    c_entity);          \
-      c_engine.AddPhysicsEntity(c_entity.GetId(),                       \
-                                *pcPhysEntity);                         \
+      DYN3D_MODEL* pcPhysModel = new DYN3D_MODEL(c_engine,              \
+                                                  c_entity);            \
+      c_engine.AddPhysicsModel(c_entity.GetId(),                        \
+                                *pcPhysModel);                          \
       c_entity.                                                         \
          GetComponent<CEmbodiedEntity>("body").                         \
-         AddPhysicsEngineEntity(c_engine.GetId(), *pcPhysEntity);       \
+         AddPhysicsModel(c_engine.GetId(), *pcPhysModel);               \
    }                                                                    \
    };                                                                   \
    REGISTER_DYNAMICS3D_OPERATION(CDynamics3DOperationAddEntity,         \
@@ -139,18 +139,18 @@ namespace argos {
    void ApplyTo(CDynamics3DEngine& c_engine,                            \
                 SPACE_ENTITY& c_entity) {                               \
                                                                         \
-      c_engine.RemovePhysicsEntity(c_entity.GetId());                   \
+      c_engine.RemovePhysicsModel(c_entity.GetId());                    \
       c_entity.                                                         \
          GetComponent<CEmbodiedEntity>("body").                         \
-         RemovePhysicsEngineEntity(c_engine.GetId());                   \
+         RemovePhysicsModel(c_engine.GetId());                          \
    }                                                                    \
    };                                                                   \
    REGISTER_DYNAMICS3D_OPERATION(CDynamics3DOperationRemoveEntity,      \
                                  CDynamics3DOperationRemove ## SPACE_ENTITY, \
                                  SPACE_ENTITY);
    
-#define REGISTER_STANDARD_DYNAMICS3D_OPERATIONS_ON_ENTITY(SPACE_ENTITY, DYN3D_ENTITY) \
-   REGISTER_STANDARD_DYNAMICS3D_OPERATION_ADD_ENTITY(SPACE_ENTITY, DYN3D_ENTITY) \
+#define REGISTER_STANDARD_DYNAMICS3D_OPERATIONS_ON_ENTITY(SPACE_ENTITY, DYN3D_MODEL) \
+   REGISTER_STANDARD_DYNAMICS3D_OPERATION_ADD_ENTITY(SPACE_ENTITY, DYN3D_MODEL) \
    REGISTER_STANDARD_DYNAMICS3D_OPERATION_REMOVE_ENTITY(SPACE_ENTITY)
 
 }

@@ -1,17 +1,17 @@
 /**
- * @file <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_entity.h>
+ * @file <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_model.h>
  *
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-#ifndef DYNAMICS3D_ENTITY_H
-#define DYNAMICS3D_ENTITY_H
+#ifndef DYNAMICS3D_MODEL_H
+#define DYNAMICS3D_MODEL_H
 
 namespace argos {
    class  CDynamics3DEngine;
 }
 
-#include <argos3/core/simulator/physics_engine/physics_engine_entity.h>
+#include <argos3/core/simulator/physics_engine/physics_model.h>
 #include <argos3/core/utility/math/vector3.h>
 #include <argos3/core/utility/math/quaternion.h>
 #include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_engine.h>
@@ -46,22 +46,22 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   class CDynamics3DEntity : public CPhysicsEngineEntity {
+   class CDynamics3DModel : public CPhysicsModel {
 
    public:
       
-      typedef std::vector<CDynamics3DEntity*> TVector;
-      typedef std::map<std::string, CDynamics3DEntity*> TMap;
-      typedef std::tr1::unordered_multimap<std::string, CDynamics3DEntity*> TMultiMap;
+      typedef std::vector<CDynamics3DModel*> TVector;
+      typedef std::map<std::string, CDynamics3DModel*> TMap;
+      typedef std::tr1::unordered_multimap<std::string, CDynamics3DModel*> TMultiMap;
 
    public:
 
-      CDynamics3DEntity(CDynamics3DEngine& c_engine,
-                        CEmbodiedEntity& c_entity) :
-         CPhysicsEngineEntity(c_engine,
-                              c_entity),
+      CDynamics3DModel(CDynamics3DEngine& c_engine,
+                       CEmbodiedEntity& c_entity) :
+         CPhysicsModel(c_engine,
+                             c_entity),
          m_cEngine(c_engine) {}
-      virtual ~CDynamics3DEntity() {}
+      virtual ~CDynamics3DModel() {}
       
       virtual bool CheckIntersectionWithRay(Real& f_t_on_ray,
                                             const CRay3& c_ray) const = 0;
@@ -87,7 +87,7 @@ namespace argos {
 
    private:
 
-      //CDynamics3DEntity::TMultiMap m_mapConnectedBodies;
+      //CDynamics3DModel::TMultiMap m_mapConnectedBodies;
 
    protected:
       CDynamics3DEngine&      m_cEngine;      

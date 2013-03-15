@@ -1,10 +1,10 @@
 /**
- * @file <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_box_entity.cpp>
+ * @file <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_box_model.cpp>
  *
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-#include "dynamics3d_box_entity.h"
+#include "dynamics3d_box_model.h"
 #include "dynamics3d_engine.h"
 
 #include <btBulletDynamicsCommon.h>
@@ -14,9 +14,9 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   CDynamics3DBoxEntity::CDynamics3DBoxEntity(CDynamics3DEngine& c_engine,
+   CDynamics3DBoxModel::CDynamics3DBoxModel(CDynamics3DEngine& c_engine,
                                   CBoxEntity& c_box) :
-      CDynamics3DEntity(c_engine, c_box.GetEmbodiedEntity()),
+      CDynamics3DModel(c_engine, c_box.GetEmbodiedEntity()),
       m_cBoxEntity(c_box) {
       
       const CVector3 cBoxHalfSize = c_box.GetSize() * 0.5f;
@@ -30,10 +30,10 @@ namespace argos {
          btQuaternion(0.0, 0.0f, 0.0f, 1.0f),
          btVector3(0.0f, cBoxHalfSize.GetZ(), 0.0f));
       
-      btTransform cEntityTransform(ARGoSToBullet(GetEmbodiedEntity().GetOrientation()),
+      btTransform cModelTransform(ARGoSToBullet(GetEmbodiedEntity().GetOrientation()),
                                    ARGoSToBullet(GetEmbodiedEntity().GetPosition()));
       
-      m_pcBoxMotionState = new btDefaultMotionState(cEntityTransform * (*m_pcBoxTransform));
+      m_pcBoxMotionState = new btDefaultMotionState(cModelTransform * (*m_pcBoxTransform));
           
       if(c_box.GetEmbodiedEntity().IsMovable()) {
          btVector3 cInteria;
@@ -52,7 +52,7 @@ namespace argos {
    /****************************************/
    /****************************************/
    
-   CDynamics3DBoxEntity::~CDynamics3DBoxEntity() {
+   CDynamics3DBoxModel::~CDynamics3DBoxModel() {
       delete m_pcBoxRigidBody;
       delete m_pcBoxMotionState;
       delete m_pcBoxCollisionShape;
@@ -62,7 +62,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   bool CDynamics3DBoxEntity::CheckIntersectionWithRay(Real& f_t_on_ray,
+   bool CDynamics3DBoxModel::CheckIntersectionWithRay(Real& f_t_on_ray,
                                                     const CRay3& c_ray) const {
       
       btVector3 cRayStart = ARGoSToBullet(c_ray.GetStart());
@@ -78,14 +78,14 @@ namespace argos {
       
       btCollisionObject cTempCollisionObject;
       
-      btTransform cEntityTransform;
-      m_pcBoxMotionState->getWorldTransform(cEntityTransform);
+      btTransform cModelTransform;
+      m_pcBoxMotionState->getWorldTransform(cModelTransform);
             
       btCollisionWorld::rayTestSingle(cRayFromTransform,
                                       cRayToTransform,
                                       &cTempCollisionObject,
                                       m_pcBoxCollisionShape,
-                                      cEntityTransform,
+                                      cModelTransform,
                                       cResult);
       
 		if (cResult.hasHit()) {
@@ -101,7 +101,7 @@ namespace argos {
    /****************************************/
    /****************************************/
   
-   bool CDynamics3DBoxEntity::MoveTo(const CVector3& c_position,
+   bool CDynamics3DBoxModel::MoveTo(const CVector3& c_position,
                                      const CQuaternion& c_orientation,
                                      bool b_check_only) {
       
@@ -109,16 +109,16 @@ namespace argos {
       LOG << "Check only mode: " << (b_check_only?"enabled":"disabled") << std::endl;
       
       /* Create a transform to the new location and orientation */   
-      btTransform cEntityTransform(ARGoSToBullet(c_orientation), ARGoSToBullet(c_position));
+      btTransform cModelTransform(ARGoSToBullet(c_orientation), ARGoSToBullet(c_position));
       
       /* Test if this region defined by the location and collision shape is occupied */
       bool bLocationOccupied = 
-         m_cEngine.IsRegionOccupied(cEntityTransform, *m_pcBoxCollisionShape);
+         m_cEngine.IsRegionOccupied(cModelTransform, *m_pcBoxCollisionShape);
          
       LOG << "CDynamics3DEngine::IsRegionOccupied returned: " << (bLocationOccupied?"true":"false") << std::endl;
          
       if(b_check_only == false && bLocationOccupied == false) {
-         m_vecLocalRigidBodies[0]->setWorldTransform(cEntityTransform);
+         m_vecLocalRigidBodies[0]->setWorldTransform(cModelTransform);
          GetEmbodiedEntity().SetPosition(c_position);
          GetEmbodiedEntity().SetOrientation(c_orientation);
       }
@@ -130,7 +130,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics3DBoxEntity::Reset() {
+   void CDynamics3DBoxModel::Reset() {
 
       if(m_cBoxEntity.GetEmbodiedEntity().IsMovable()) {      
          
@@ -155,17 +155,17 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics3DBoxEntity::UpdateEntityStatus() {
+   void CDynamics3DBoxModel::UpdateEntityStatus() {
       if(m_cBoxEntity.GetEmbodiedEntity().IsMovable()) {      
          
-         btTransform cEntityTransform;
+         btTransform cModelTransform;
          
-         m_pcBoxRigidBody->getMotionState()->getWorldTransform(cEntityTransform);
+         m_pcBoxRigidBody->getMotionState()->getWorldTransform(cModelTransform);
          
-         cEntityTransform = m_pcBoxTransform->inverse() * cEntityTransform;
+         cModelTransform = m_pcBoxTransform->inverse() * cModelTransform;
          
-         GetEmbodiedEntity().SetPosition(BulletToARGoS(cEntityTransform.getOrigin()));
-         GetEmbodiedEntity().SetOrientation(BulletToARGoS(cEntityTransform.getRotation()));
+         GetEmbodiedEntity().SetPosition(BulletToARGoS(cModelTransform.getOrigin()));
+         GetEmbodiedEntity().SetOrientation(BulletToARGoS(cModelTransform.getRotation()));
       
          /* Update components */
          m_cBoxEntity.UpdateComponents();
@@ -175,7 +175,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics3DBoxEntity::CalculateBoundingBox() {
+   void CDynamics3DBoxModel::CalculateBoundingBox() {
       btVector3 cAABBMin, cAABBMax;
       btTransform cTransform;
       m_pcBoxMotionState->getWorldTransform(cTransform);
@@ -187,6 +187,6 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   REGISTER_STANDARD_DYNAMICS3D_OPERATIONS_ON_ENTITY(CBoxEntity, CDynamics3DBoxEntity);
+   REGISTER_STANDARD_DYNAMICS3D_OPERATIONS_ON_ENTITY(CBoxEntity, CDynamics3DBoxModel);
 
 }

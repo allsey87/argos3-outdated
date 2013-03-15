@@ -9,8 +9,8 @@ set(ARGOS3_HEADERS_PLUGINS_ROBOTS_ROBOTICARM_CONTROLINTERFACE
 # argos3/plugins/robots/-bot/simulator
 if(ARGOS_BUILD_FOR_SIMULATOR)
   set(ARGOS3_HEADERS_PLUGINS_ROBOTS_ROBOTICARM_SIMULATOR
-    simulator/dynamics2d_roboticarm_entity.h
-    simulator/dynamics3d_roboticarm_entity.h
+    simulator/dynamics2d_roboticarm_model.h
+    simulator/dynamics3d_roboticarm_model.h
 #   simulator/roboticarm_rotational_joint_sensor.h
 #   simulator/roboticarm_rotational_joint_actuator.h
     simulator/roboticarm_entity.h)
@@ -28,8 +28,8 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
   set(ARGOS3_SOURCES_PLUGINS_ROBOTS_ROBOTICARM
     ${ARGOS3_SOURCES_PLUGINS_ROBOTS_ROBOTICARM}
     ${ARGOS3_HEADERS_PLUGINS_ROBOTS_ROBOTICARM_SIMULATOR}
-    simulator/dynamics2d_roboticarm_entity.cpp
-    simulator/dynamics3d_roboticarm_entity.cpp
+    simulator/dynamics2d_roboticarm_model.cpp
+    simulator/dynamics3d_roboticarm_model.cpp
 #   simulator/roboticarm_rotational_joint_sensor.cpp
 #   simulator/roboticarm_rotational_joint_actuator.cpp
     simulator/roboticarm_entity.cpp)

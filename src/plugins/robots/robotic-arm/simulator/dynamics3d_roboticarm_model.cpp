@@ -1,10 +1,10 @@
 /**
- * @file <argos3/plugins/robots/robotic-arm/simulator/dynamics3d_roboticarm_entity.cpp>
+ * @file <argos3/plugins/robots/robotic-arm/simulator/dynamics3d_roboticarm_model.cpp>
  *
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-#include "dynamics3d_roboticarm_entity.h"
+#include "dynamics3d_roboticarm_model.h"
 #include <argos3/core/simulator/entity/embodied_entity.h>
 #include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_engine.h>
 
@@ -17,41 +17,33 @@ namespace argos {
 
    const static Real MOUNTING_POINT_MASS = 0.5f;
 
-   CDynamics3DRoboticArmEntity::CDynamics3DRoboticArmEntity(CDynamics3DEngine& c_engine,
+   CDynamics3DRoboticArmModel::CDynamics3DRoboticArmModel(CDynamics3DEngine& c_engine,
                                                             CRoboticArmEntity& c_entity) :
-      CDynamics3DEntity(c_engine, c_entity.GetEmbodiedEntity()),
+      CDynamics3DModel(c_engine, c_entity.GetEmbodiedEntity()),
       m_cRoboticArmEntity(c_entity) {
       
       btVector3 cInertia;
       
-      btTransform cEntityTransform(ARGoSToBullet(GetEmbodiedEntity().GetOrientation()),
+      btTransform cModelTransform(ARGoSToBullet(GetEmbodiedEntity().GetOrientation()),
                                    ARGoSToBullet(GetEmbodiedEntity().GetPosition()));
       
       m_pcMountingPointCollisionShape = new btSphereShape(0.050f);
       
       m_pcMountingPointCollisionShape->calculateLocalInertia(MOUNTING_POINT_MASS, cInertia);
       
-      m_pcMountingPointMotionState = new btDefaultMotionState(cEntityTransform * shift);
+      m_pcMountingPointMotionState = new btDefaultMotionState(cModelTransform * shift);
       
       m_pcMountingPointRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          MOUNTING_POINT_MASS, m_pcMountingPointMotionState, m_pcMountingPointCollisionShape, cInertia));
          
       m_vecLocalRigidBodies.push_back(m_pcMountingPointRigidBody);
-
-      if(c_entity.IsAttachedToSomething()) {
-         /* @todo Missing check that attachee belongs to the same physics engine as the robotic arm */
-         CEmbodiedEntity& cAttachee = c_entity.GetAttachee();
-         /* Get reference to body in this engine */
-         /* Create point constraint */
-         /* Profit */
-      }
       
    }
 
    /****************************************/
    /****************************************/
 
-   CDynamics3DRoboticArmEntity::~CDynamics3DRoboticArmEntity() {
+   CDynamics3DRoboticArmModel::~CDynamics3DRoboticArmModel() {
       delete m_pcMountingPointCollisionShape;
       delete m_pcMountingPointMotionState;
       delete m_pcMountingPointRigidBody;
@@ -60,7 +52,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   bool CDynamics3DRoboticArmEntity::CheckIntersectionWithRay(Real& f_t_on_ray,
+   bool CDynamics3DRoboticArmModel::CheckIntersectionWithRay(Real& f_t_on_ray,
                                                            const CRay3& c_ray) const {
       return false;
    }
@@ -68,7 +60,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   bool CDynamics3DRoboticArmEntity::MoveTo(const CVector3& c_position,
+   bool CDynamics3DRoboticArmModel::MoveTo(const CVector3& c_position,
                                          const CQuaternion& c_orientation,
                                          bool b_check_only) {
       return false;
@@ -77,7 +69,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics3DRoboticArmEntity::Reset() {
+   void CDynamics3DRoboticArmModel::Reset() {
       btTransform cResetPosition(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
                                  ARGoSToBullet(GetEmbodiedEntity().GetInitPosition()));
       m_pcMountingPointRigidBody->setWorldTransform(cResetPosition * shift);
@@ -94,20 +86,20 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics3DRoboticArmEntity::CalculateBoundingBox() {
+   void CDynamics3DRoboticArmModel::CalculateBoundingBox() {
       /* @todo Implement CDynamics3DBoxEntity::CalculateBoundingBox() */
    }
 
    /****************************************/
    /****************************************/
 
-   void CDynamics3DRoboticArmEntity::UpdateEntityStatus() {
+   void CDynamics3DRoboticArmModel::UpdateEntityStatus() {
       /* Update roboticarm position and orientation */
-      btTransform cEntityTransform;
-      m_pcMountingPointMotionState->getWorldTransform(cEntityTransform);
-      cEntityTransform = shift.inverse() * cEntityTransform;
-      GetEmbodiedEntity().SetPosition(BulletToARGoS(cEntityTransform.getOrigin()));
-      GetEmbodiedEntity().SetOrientation(BulletToARGoS(cEntityTransform.getRotation()));
+      btTransform cModelTransform;
+      m_pcMountingPointMotionState->getWorldTransform(cModelTransform);
+      cModelTransform = shift.inverse() * cModelTransform;
+      GetEmbodiedEntity().SetPosition(BulletToARGoS(cModelTransform.getOrigin()));
+      GetEmbodiedEntity().SetOrientation(BulletToARGoS(cModelTransform.getRotation()));
       
       /* Update components */
       m_cRoboticArmEntity.UpdateComponents();
@@ -116,12 +108,12 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics3DRoboticArmEntity::UpdateFromEntityStatus() {}
+   void CDynamics3DRoboticArmModel::UpdateFromEntityStatus() {}
 
    /****************************************/
    /****************************************/
 
-   bool CDynamics3DRoboticArmEntity::IsCollidingWithSomething() const {
+   bool CDynamics3DRoboticArmModel::IsCollidingWithSomething() const {
       /* @todo Implement CDynamics3DBoxEntity::IsCollidingWithSomething() */
       return false;
    }
@@ -129,7 +121,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   REGISTER_STANDARD_DYNAMICS3D_OPERATIONS_ON_ENTITY(CRoboticArmEntity, CDynamics3DRoboticArmEntity);
+   REGISTER_STANDARD_DYNAMICS3D_OPERATIONS_ON_ENTITY(CRoboticArmEntity, CDynamics3DRoboticArmModel);
 
    /****************************************/
    /****************************************/
