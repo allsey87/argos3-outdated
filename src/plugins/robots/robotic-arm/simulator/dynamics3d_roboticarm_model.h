@@ -39,10 +39,12 @@ namespace argos {
    private:
 
       CRoboticArmEntity&      m_cRoboticArmEntity;
+      CLinkEquippedEntity&    m_cLinkEquippedEntity;
       
-      btSphereShape*          m_pcMountingPointCollisionShape;
-      btDefaultMotionState*   m_pcMountingPointMotionState;
-      btRigidBody*            m_pcMountingPointRigidBody;
+      std::vector<btBoxShape*> m_vecLinkCollisionShapes;
+      std::vector<btDefaultMotionState*> m_vecLinkMotionStates;
+      std::vector<btRigidBody*> m_vecLinkRigidBodies;
+      std::vector<btHingeConstraint*> m_vecLinkConstraints;
    };
 }
 

@@ -1,0 +1,79 @@
+<?xml version="1.0" ?>
+<argos-configuration>
+
+  <!-- ************************* -->
+  <!-- * General configuration * -->
+  <!-- ************************* -->
+  <framework>
+    <experiment threads="4" length="0" ticks_per_second="10" />
+  </framework>
+
+  <!-- *************** -->
+  <!-- * Controllers * -->
+  <!-- *************** -->
+  <controllers>
+
+    <!-- ***************************************************** -->
+    <!-- * This is the Lua controller to associate to robots * -->
+    <!-- ***************************************************** -->
+    <lua_controller id="lua">
+      <!-- Normal actuator/sensor configuration follows -->
+      <actuators>
+      </actuators>
+      <sensors>
+      </sensors>
+      <!-- No required configuration -->
+      <params />
+      <!-- Optionally, you can pass a script as a controller parameter: -->
+      <!-- params script="../../src/testing/experiment/test_gripper.lua" / -->
+    </lua_controller>
+  </controllers>
+
+  <!-- *********************** -->
+  <!-- * Arena configuration * -->
+  <!-- *********************** -->
+  <arena size="10, 10, 1">
+    <!-- floor id="f" source="loop_functions" pixels_per_meter="100" / -->
+
+    <box id="bn" position="5,0,0"  orientation="0,0,0" size="0.1, 10, 0.2" movable="false" />
+    <box id="bs" position="-5,0,0" orientation="0,0,0" size="0.1, 10, 0.2" movable="false" />
+    <box id="be" position="0,-5,0" orientation="0,0,0" size="10, 0.1, 0.2" movable="false" />
+    <box id="bw" position="0,5,0"  orientation="0,0,0" size="10, 0.1, 0.2" movable="false" />
+
+    <robotic-arm id="arm01" position="0,0,0" orientation="0,0,0" controller="lua">
+      <links>
+         <link id="link[0]" position="0,0,0" orientation="0,0,0" />
+         <link id="link[1]" position="0,0,0.2" orientation="0,0,0" />
+         <link id="link[2]" position="0,0,0.4" orientation="0,0,0" />
+      </links>
+    </robotic-arm>
+    
+  </arena>
+
+  <!-- ******************* -->
+  <!-- * Physics engines * -->
+  <!-- ******************* -->
+  <physics_engines>
+    <dynamics3d id="dyn3d">
+      <floor/>
+    </dynamics3d>
+  </physics_engines>
+
+  <!-- ****************** -->
+  <!-- * Visualization * -->
+  <!-- ****************** -->
+  <visualization>
+
+    <!-- ************************************************************************ -->
+    <!-- * To activate the Lua editor, just use the 'lua_editor' flag attribute * -->
+    <!-- ************************************************************************ -->
+    <qt-opengl>
+      <camera>
+        <placement idx="0" position="-2,0,2" look_at="0,0,0" lens_focal_length="20" />
+        <placement idx="1" position="0.884183,0.359128,0.490269" look_at="0.924486,-0.486744,-0.0415919" lens_focal_length="20" />
+      </camera>
+    </qt-opengl>
+
+  </visualization>
+
+</argos-configuration>

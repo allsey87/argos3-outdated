@@ -28,14 +28,16 @@ namespace argos {
 
       virtual ~CQTOpenGLRoboticArm();
 
-      virtual void Draw(CRoboticArmEntity& c_entity);
+      virtual void DrawLinks(CRoboticArmEntity& c_entity);
 
    private:
 
-      void MakeBody();
+      void MakeLink();
 
    private:
-      GLuint m_unBodyList;
+      GLuint m_unBaseList;
+      GLuint m_unLinkList;
+      GLuint m_unLEDList;
       GLuint m_unVertices;
 
    };

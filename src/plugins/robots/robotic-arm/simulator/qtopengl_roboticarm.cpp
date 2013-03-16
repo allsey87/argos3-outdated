@@ -15,15 +15,31 @@ namespace argos {
    /****************************************/
    /****************************************/
 
+   static const Real LED_RADIUS     = 0.01f;
+   const GLfloat LINK_COLOR[]       = { 0.7f, 0.7f, 0.7f, 1.0f };
+   const GLfloat SPECULAR[]         = { 0.0f, 0.0f, 0.0f, 1.0f };
+   const GLfloat SHININESS[]        = { 0.0f                   };
+   const GLfloat EMISSION[]         = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+   /****************************************/
+   /****************************************/
+
    CQTOpenGLRoboticArm::CQTOpenGLRoboticArm() :
       m_unVertices(20) {
-
+      
       /* Reserve the needed display lists */
-      m_unBodyList = glGenLists(1);
-
-      /* Make body list */
-      glNewList(m_unBodyList, GL_COMPILE);
-      MakeBody();
+      m_unBaseList = glGenLists(2);
+      m_unLinkList = m_unBaseList;
+      m_unLEDList = m_unBaseList + 1;
+      
+      /* Make link list */
+      glNewList(m_unLinkList, GL_COMPILE);
+      MakeLink();
+      glEndList();
+       
+      /* Make LED list */
+      glNewList(m_unLEDList, GL_COMPILE);
+      //MakeLED();
       glEndList();
    }
 
@@ -31,68 +47,102 @@ namespace argos {
    /****************************************/
 
    CQTOpenGLRoboticArm::~CQTOpenGLRoboticArm() {
-      glDeleteLists(m_unBodyList, 1);
+      glDeleteLists(m_unBaseList, 2);
    }
 
    /****************************************/
    /****************************************/
 
-   void CQTOpenGLRoboticArm::Draw(CRoboticArmEntity& c_entity) {
-      /* Draw the body */
-      glPushMatrix();
-      glTranslatef(0.0f, 0.0f, 0.05f);
-      glScalef(0.05f, 0.05f, 0.05f);
-      glCallList(m_unBodyList);
-      glPopMatrix();
-   }
-
-   /****************************************/
-   /****************************************/
-
-   void CQTOpenGLRoboticArm::MakeBody() {
-      glEnable(GL_NORMALIZE);
-
-      /* Set the material */
-      const GLfloat pfColor[]     = { 1.0f, 0.0f, 0.0f, 1.0f };
-      const GLfloat pfSpecular[]  = { 0.0f, 0.0f, 0.0f, 1.0f };
-      const GLfloat pfShininess[] = { 0.0f                   };
-      const GLfloat pfEmission[]  = { 0.0f, 0.0f, 0.0f, 1.0f };
-      glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, pfColor);
-      glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, pfSpecular);
-      glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, pfShininess);
-      glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, pfEmission);
-
-      /* Let's start the actual shape */
-      CVector3 cNormal, cPoint;
-      CRadians cSlice(CRadians::TWO_PI / m_unVertices);
+   void CQTOpenGLRoboticArm::DrawLinks(CRoboticArmEntity& c_entity) {
       
-      glBegin(GL_TRIANGLE_STRIP);
-      for(CRadians cInclination; cInclination <= CRadians::PI; cInclination += cSlice) {
-         for(CRadians cAzimuth; cAzimuth <= CRadians::TWO_PI; cAzimuth += cSlice) {
-
-            cPoint.FromSphericalCoords(1.0f, cInclination, cAzimuth);
-            glNormal3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
-            glVertex3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
-
-            cPoint.FromSphericalCoords(1.0f, cInclination + cSlice, cAzimuth);
-            glNormal3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
-            glVertex3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
-
-            cPoint.FromSphericalCoords(1.0f, cInclination, cAzimuth + cSlice);
-            glNormal3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
-            glVertex3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
-
-            cPoint.FromSphericalCoords(1.0f, cInclination + cSlice, cAzimuth + cSlice);
-            glNormal3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
-            glVertex3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
-
-         }
+      CLinkEquippedEntity& cLinkEquippedEntity = c_entity.GetLinkEquippedEntity();
+      /* Draw the links */
+      glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, LINK_COLOR);
+      
+      for(UInt32 i = 0; i < cLinkEquippedEntity.GetAllLinks().size(); ++i) {
+         
+         CLinkEntity& cLink = cLinkEquippedEntity.GetLink(i);
+         
+         /* Get the position of the link */
+         const CVector3& cPosition = cLink.GetPositionalEntity().GetPosition();
+         /* Get the orientation of the link */
+         const CQuaternion& cOrientation = cLink.GetPositionalEntity().GetOrientation();
+         CRadians cZAngle, cYAngle, cXAngle;
+         cOrientation.ToEulerAngles(cZAngle, cYAngle, cXAngle);
+         glPushMatrix();
+            /* First, translate the link */
+            glTranslatef(cPosition.GetX(), cPosition.GetY(), cPosition.GetZ());
+            /* Second, rotate the link */
+            glRotatef(ToDegrees(cXAngle).GetValue(), 1.0f, 0.0f, 0.0f);
+            glRotatef(ToDegrees(cYAngle).GetValue(), 0.0f, 1.0f, 0.0f);
+            glRotatef(ToDegrees(cZAngle).GetValue(), 0.0f, 0.0f, 1.0f);
+            
+            glScalef(0.025, 0.025, 0.2);
+            glCallList(m_unLinkList);
+         glPopMatrix();
       }
+   }
+
+   /****************************************/
+   /****************************************/
+   
+   /* define a unit cube that can be stetched into prism representing the links */
+   void CQTOpenGLRoboticArm::MakeLink() {
+      glEnable(GL_NORMALIZE);
+      
+      /* Set the material */
+      glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, SPECULAR);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, SHININESS);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, EMISSION);
+      
+      /* Let's start the actual shape */
+      
+      /* This part covers the top and bottom faces (parallel to XY) */
+      glBegin(GL_QUADS);
+      /* Bottom face */
+      glNormal3f(0.0f, 0.0f, -1.0f);
+      glVertex3f( 0.5f,  0.5f, -0.5f);
+      glVertex3f( 0.5f, -0.5f, -0.5f);
+      glVertex3f(-0.5f, -0.5f, -0.5f);
+      glVertex3f(-0.5f,  0.5f, -0.5f);
+      /* Top face */
+      glNormal3f(0.0f, 0.0f, 1.0f);
+      glVertex3f(-0.5f, -0.5f, 0.5f);
+      glVertex3f( 0.5f, -0.5f, 0.5f);
+      glVertex3f( 0.5f,  0.5f, 0.5f);
+      glVertex3f(-0.5f,  0.5f, 0.5f);
       glEnd();
+      /* This part covers the faces (South, East, North, West) */
+      glBegin(GL_QUADS);
+         /* South face */
+         glNormal3f(0.0f, -1.0f, 0.0f);
+         glVertex3f(-0.5f, -0.5f,  0.5f);
+         glVertex3f(-0.5f, -0.5f, -0.5f);
+         glVertex3f( 0.5f, -0.5f, -0.5f);
+         glVertex3f( 0.5f, -0.5f,  0.5f);
+         /* East face */
+         glNormal3f(1.0f, 0.0f, 0.0f);
+         glVertex3f( 0.5f, -0.5f,  0.5f);
+         glVertex3f( 0.5f, -0.5f, -0.5f);
+         glVertex3f( 0.5f,  0.5f, -0.5f);
+         glVertex3f( 0.5f,  0.5f,  0.5f);
+         /* North face */
+         glNormal3f(0.0f, 1.0f, 0.0f);
+         glVertex3f( 0.5f,  0.5f,  0.5f);
+         glVertex3f( 0.5f,  0.5f, -0.5f);
+         glVertex3f(-0.5f,  0.5f, -0.5f);
+         glVertex3f(-0.5f,  0.5f,  0.5f);
+         /* West face */
+         glNormal3f(-1.0f, 0.0f, 0.0f);
+         glVertex3f(-0.5f,  0.5f,  0.5f);
+         glVertex3f(-0.5f,  0.5f, -0.5f);
+         glVertex3f(-0.5f, -0.5f, -0.5f);
+         glVertex3f(-0.5f, -0.5f,  0.5f);
+      glEnd();
+      /* The shape definitions is finished */
       
       /* We don't need it anymore */
       glDisable(GL_NORMALIZE);
-
    }
 
    /****************************************/
@@ -104,8 +154,7 @@ namespace argos {
                    CRoboticArmEntity& c_entity) {
          static CQTOpenGLRoboticArm m_cModel;
          //c_visualization.DrawRays(c_entity.GetControllableEntity());
-         c_visualization.DrawPositionalEntity(c_entity.GetEmbodiedEntity());
-         m_cModel.Draw(c_entity);
+         m_cModel.DrawLinks(c_entity);
       }
    };
 
@@ -115,9 +164,8 @@ namespace argos {
                    CRoboticArmEntity& c_entity) {
          static CQTOpenGLRoboticArm m_cModel;
          glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-         c_visualization.DrawPositionalEntity(c_entity.GetEmbodiedEntity());
          glScalef(1.2, 1.2, 1.2);
-         m_cModel.Draw(c_entity);
+         m_cModel.DrawLinks(c_entity);
          glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
       }
    };

@@ -13,6 +13,8 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     simulator/dynamics3d_roboticarm_model.h
 #   simulator/roboticarm_rotational_joint_sensor.h
 #   simulator/roboticarm_rotational_joint_actuator.h
+    simulator/link_entity.h
+    simulator/link_equipped_entity.h
     simulator/roboticarm_entity.h)
 endif(ARGOS_BUILD_FOR_SIMULATOR)
 
@@ -32,6 +34,8 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     simulator/dynamics3d_roboticarm_model.cpp
 #   simulator/roboticarm_rotational_joint_sensor.cpp
 #   simulator/roboticarm_rotational_joint_actuator.cpp
+    simulator/link_entity.cpp
+    simulator/link_equipped_entity.cpp
     simulator/roboticarm_entity.cpp)
   # Compile the graphical visualization only if the necessary libraries have been found
   include(ARGoSCheckQTOpenGL)

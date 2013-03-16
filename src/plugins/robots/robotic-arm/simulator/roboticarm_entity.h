@@ -10,10 +10,12 @@
 namespace argos {
    class CControllableEntity;
    class CEmbodiedEntity;
+   class CLinkEquippedEntity;
    class CRoboticArmEntity;
 }
 
 #include <argos3/core/simulator/entity/composable_entity.h>
+#include <argos3/plugins/robots/robotic-arm/simulator/link_equipped_entity.h>
 
 namespace argos {
 
@@ -39,6 +41,10 @@ namespace argos {
          return *m_pcEmbodiedEntity;
       }
 
+      inline CLinkEquippedEntity& GetLinkEquippedEntity() {
+         return *m_pcLinkEquippedEntity;
+      }
+
       //inline CControllableEntity& GetControllableEntity() {
       //   return *m_pcControllableEntity;
       //}
@@ -47,17 +53,11 @@ namespace argos {
          return "roboticarm";
       }
 
-      inline bool IsAttachedToSomething() const {
-         return m_pcAttachee != NULL;
-      }
-
-      CEmbodiedEntity& GetAttachee();
-
    private:
 
       //CControllableEntity*            m_pcControllableEntity;
       CEmbodiedEntity* m_pcEmbodiedEntity;
-      CEmbodiedEntity* m_pcAttachee;
+      CLinkEquippedEntity* m_pcLinkEquippedEntity;
    };
 
 }

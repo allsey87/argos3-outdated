@@ -6,7 +6,8 @@
 
 #include "roboticarm_entity.h"
 
-#include <argos3/core/utility/math/matrix/rotationmatrix3.h>
+#include <argos3/plugins/robots/robotic-arm/simulator/link_equipped_entity.h>
+
 #include <argos3/core/simulator/space/space.h>
 //#include <argos3/core/simulator/entity/controllable_entity.h>
 #include <argos3/core/simulator/entity/embodied_entity.h>
@@ -21,7 +22,7 @@ namespace argos {
       CComposableEntity(NULL),
       //m_pcControllableEntity(NULL),
       m_pcEmbodiedEntity(NULL),
-      m_pcAttachee(NULL) {}
+      m_pcLinkEquippedEntity(NULL) {}
 
    /****************************************/
    /****************************************/
@@ -41,6 +42,12 @@ namespace argos {
          AddComponent(*m_pcEmbodiedEntity);
          m_pcEmbodiedEntity->Init(t_tree);
          
+         if(NodeExists(t_tree, "links")) {
+            m_pcLinkEquippedEntity = new CLinkEquippedEntity(this);
+            AddComponent(*m_pcLinkEquippedEntity);
+            m_pcLinkEquippedEntity->Init(GetNode(t_tree, "links"));
+         }
+
          /* Controllable entity
             It must be the last one, for actuators/sensors to link to composing entities correctly */
          //m_pcControllableEntity = new CControllableEntity(this);
