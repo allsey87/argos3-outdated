@@ -37,34 +37,33 @@
   <!-- * Arena configuration * -->
   <!-- *********************** -->
   <arena size="5, 5, 1">
-    <box id="bn" position="2.5,0,0"  orientation="0,0,0" size="0.1, 5, 0.2" movable="false" />
+    <!--box id="bn" position="2.5,0,0"  orientation="0,0,0" size="0.1, 5, 0.2" movable="false" />
     <box id="bs" position="-2.5,0,0" orientation="0,0,0" size="0.1, 5, 0.2" movable="false" />
     <box id="be" position="0,-2.5,0" orientation="0,0,0" size="5, 0.1, 0.2" movable="false" />
-    <box id="bw" position="0,2.5,0"  orientation="0,0,0" size="5, 0.1, 0.2" movable="false" />
+    <box id="bw" position="0,2.5,0"  orientation="0,0,0" size="5, 0.1, 0.2" movable="false" /-->
         
-    <distribute>
-      <position method="uniform" min="-1,-1,0.5" max="-0.5,-0.5,2.5" />
+    <!--distribute>
+      <position method="uniform" min="-0.5,-0.5,0.5" max="0.5,0.5,1.5" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,360,360" />
-      <entity quantity="40" max_trials="100">
-        <box id="b1" size="0.1, 0.1, 0.1" movable="true" mass="0.5" />
+      <entity quantity="1" max_trials="100">
+        <box id="box_d" size="0.1, 0.1, 0.1" movable="true" mass="0.5" />
       </entity>
-    </distribute>
+    </distribute-->
     
-    <foot-bot id="fb1" position="1,2,0" orientation="0,0,0" controller="lua"/>    
-    <foot-bot id="fb2" position="1,1,0" orientation="0,0,0" controller="lua"/>
+    <!--box id="box_p" position="2,2,0.2" orientation="0,0,90" size="0.1, 0.1, 0.1" movable="true" mass="0.5" /-->
     
-    <!--light id="l0"
-           position="1,1,1"
-           orientation="0,0,0"
-           color="yellow"
-           intensity="1" /-->
+    <box id="box_n" position="0,0,0.1" orientation="0,0,0" size="0.5, 0.5, 0.5" movable="true" mass="1.5"/>
+    
+    <foot-bot id="fb1" position="1,2,2" orientation="0,0,0" controller="lua"/>
+    <!--foot-bot id="fb2" position="1,1,0.2" orientation="0,0,0" controller="lua"/-->
+
   </arena>
 
   <!-- ******************* -->
   <!-- * Physics engines * -->
   <!-- ******************* -->
   <physics_engines>
-    <dynamics3d id="dyn3d">
+    <dynamics3d id="dyn3d" iterations="240">
       <floor id="f0"/>
     </dynamics3d>
   </physics_engines>
@@ -73,7 +72,7 @@
   <!-- * Visualization * -->
   <!-- ****************** -->
   <visualization>
-    <qt-opengl>
+    <qt-opengl lua_editor="true">
        <camera>
            <placement idx="0" position=" 0,-4, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" />
            <placement idx="1" position=" 4,-4, 1.5" look_at="2,-2,1" lens_focal_length="30" />

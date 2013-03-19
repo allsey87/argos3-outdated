@@ -82,16 +82,14 @@ namespace argos {
       //m_pcRNG = CARGoSRandom::CreateRNG("argos");
       
       m_pcBroadphaseInterface->resetPool(m_pcCollisionDispatcher);
-		m_pcSolver->setRandSeed(100ul);
+      m_pcSolver->setRandSeed(100ul);
    }
 
    /****************************************/
    /****************************************/
 
    void CDynamics3DEngine::Reset() {
-      
-      
-      
+
       /* Remove and reset the physics entities
        * by iterating over the vector, we ensure that the entities are removed in the same order
        * as they were added during initisation
@@ -103,6 +101,8 @@ namespace argos {
          it->second->Reset();
       }
       
+      m_pcGroundRigidBody->clearForces();
+      
       /* clear all forces in the world */
       m_pcWorld->clearForces();
       
@@ -110,13 +110,13 @@ namespace argos {
        * Reset the random seed - TODO take from ARGoS RNG
        */     
       m_pcBroadphaseInterface->resetPool(m_pcCollisionDispatcher);
-		m_pcSolver->setRandSeed(100ul);
+      m_pcSolver->setRandSeed(100ul);
 
 		/* Add elements back to the engine
 		 * by iterating over the vector, we ensure that the entities are added in the same order
        * as they were added during initisation, this is important for repeatability between resets
        */
-		for(CDynamics3DModel::TMap::iterator iter = m_tPhysicsModels.begin();
+      for(CDynamics3DModel::TMap::iterator iter = m_tPhysicsModels.begin();
           iter != m_tPhysicsModels.end(); ++iter) {
   
          //(*iter)->AddEntityToWorld();
@@ -156,21 +156,26 @@ namespace argos {
 
    void CDynamics3DEngine::Update() {
       
-      fprintf(stderr, "[DEBUG] simulation constraints = %d\n", m_pcWorld->getNumConstraints());
-      fprintf(stderr, "[DEBUG] simulation bodies = %d\n", m_pcWorld->getNumCollisionObjects());
-      
       /* Update the physics state from the entities */
       for(CDynamics3DModel::TMap::iterator it = m_tPhysicsModels.begin();
           it != m_tPhysicsModels.end(); ++it) {
          it->second->UpdateFromEntityStatus();
       }
-      
-      /* Advance the simulation by m_fSimulationClockTick */
-      for(size_t i = 0; i < m_unIterations; ++i) {
-         m_pcWorld->stepSimulation(m_fDeltaT, 0u);
-      }
 
-      fprintf(stderr, "[DEBUG] simulation stepped!\n");
+      //      fprintf(stderr, )
+      //fprintf(stderr, "stepping bullet physics simulation by %d iterations of %.5f seconds\n", m_unIterations, m_fDeltaT);
+      /* Advance the simulation by m_unInterations * m_fDeltaT */
+      // for(size_t i = 0; i < m_unIterations; ++i) {
+      //   fprintf(stderr, "executing step %d of %d\n", i + 1, m_unIterations);
+      //  int ss = m_pcWorld->stepSimulation(m_fDeltaT, 0u);
+      
+      fprintf(stderr, "m_fSimulationClockTick = %.3f\n", m_fSimulationClockTick);
+
+      //int ss = m_pcWorld->stepSimulation(m_fSimulationClockTick, 0u);
+      int ss = m_pcWorld->stepSimulation(m_fSimulationClockTick, m_unIterations, m_fDeltaT);
+
+      fprintf(stderr, "executed %d iterations\n", ss);
+         // }
 
       /* Update the simulated space */
       for(CDynamics3DModel::TMap::iterator it = m_tPhysicsModels.begin();

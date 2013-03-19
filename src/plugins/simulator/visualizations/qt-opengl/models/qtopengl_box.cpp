@@ -94,7 +94,6 @@ namespace argos {
          glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, NONMOVABLE_COLOR);
       }
       glPushMatrix();
-      glTranslatef(0.0f, 0.0f, c_entity.GetSize().GetZ() * 0.5f);
       glScalef(c_entity.GetSize().GetX(), c_entity.GetSize().GetY(), c_entity.GetSize().GetZ());
       glCallList(m_unBodyList);
       glPopMatrix();
@@ -207,6 +206,7 @@ namespace argos {
       void ApplyTo(CQTOpenGLWidget& c_visualization,
                    CBoxEntity& c_entity) {
          static CQTOpenGLBox m_cModel;
+         glTranslatef(0.0f, 0.0f, c_entity.GetSize().GetZ() * 0.5f);
          c_visualization.DrawPositionalEntity(c_entity.GetEmbodiedEntity());
          m_cModel.Draw(c_entity);
       }

@@ -89,15 +89,8 @@ namespace argos {
       m_cWheeledEntity(m_cFootBotEntity.GetWheeledEntity()) {
 
       if(m_cBodyCollisionShape.getNumChildShapes() == 0) {
-         fprintf(stderr, "[DEBUG]  doing init of m_cBodyCollisionShape, getNumChildShapes = %d\n", m_cBodyCollisionShape.getNumChildShapes());
-
          m_cBodyCollisionShape.addChildShape(m_cBatterySocketTransform, &m_cBatterySocketCollisionShape);
          m_cBodyCollisionShape.addChildShape(m_cBaseModuleTransform, &m_cBaseModuleCollisionShape);
-
-         fprintf(stderr, "[DEBUG]  init of m_cBodyCollisionShape complete, getNumChildShapes = %d\n", m_cBodyCollisionShape.getNumChildShapes());
-      }
-      else {
-         fprintf(stderr, "[DEBUG] skipping init of m_cBodyCollisionShape, getNumChildShapes = %d\n", m_cBodyCollisionShape.getNumChildShapes());
       }
 
       // Vector for calculating interia
@@ -106,7 +99,6 @@ namespace argos {
       // Transform representing the reference point and rotation of the footbot
       btTransform cModelTransform(ARGoSToBullet(GetEmbodiedEntity().GetOrientation()),
                                    ARGoSToBullet(GetEmbodiedEntity().GetPosition()));
-
 
 
       /** Create the body **/
@@ -243,9 +235,9 @@ namespace argos {
       btTransform cModelTransform;
 
 
-
+      /*
       m_pcLeftWheelRigidBody->getMotionState()->getWorldTransform(cModelTransform);
-      fprintf(stderr, "[DEBUG] Bullet position for lwheel\t = %.3f, %.3f, %.3f\n", cModelTransform.getOrigin().getX(), cModelTransform.getOrigin().getY(), cModelTransform.getOrigin().getZ());
+       fprintf(stderr, "[DEBUG] Bullet position for lwheel\t = %.3f, %.3f, %.3f\n", cModelTransform.getOrigin().getX(), cModelTransform.getOrigin().getY(), cModelTransform.getOrigin().getZ());
       fprintf(stderr, "[DEBUG] Bullet angular speed for lwheel\t = %.3f, %.3f, %.3f\n", m_pcLeftWheelRigidBody->getAngularVelocity().getX(), m_pcLeftWheelRigidBody->getAngularVelocity().getY(), m_pcLeftWheelRigidBody->getAngularVelocity().getZ());
 
       m_pcRightWheelRigidBody->getMotionState()->getWorldTransform(cModelTransform);
@@ -257,15 +249,17 @@ namespace argos {
 
       m_pcRearPivotRigidBody->getMotionState()->getWorldTransform(cModelTransform);
       fprintf(stderr, "[DEBUG] Bullet position for rpivot\t = %.3f, %.3f, %.3f\n", cModelTransform.getOrigin().getX(), cModelTransform.getOrigin().getY(), cModelTransform.getOrigin().getZ());
-
+      */
 
       // DON'T TOUCH THIS MICHAEL!
 
       m_pcBodyRigidBody->getMotionState()->getWorldTransform(cModelTransform);
-      fprintf(stderr, "[DEBUG] Bullet position for body\t = %.3f, %.3f, %.3f\n", cModelTransform.getOrigin().getX(), cModelTransform.getOrigin().getY(), cModelTransform.getOrigin().getZ());
+      //fprintf(stderr, "[DEBUG] Bullet position for body\t = %.3f, %.3f, %.3f\n", cModelTransform.getOrigin().getX(), cModelTransform.getOrigin().getY(), cModelTransform.getOrigin().getZ());
 
       GetEmbodiedEntity().SetPosition(BulletToARGoS(cModelTransform.getOrigin()));
       GetEmbodiedEntity().SetOrientation(BulletToARGoS(cModelTransform.getRotation()));
+
+      fprintf(stderr, "position of %s in ARGoS: [%.3f, %.3f, %.3f]\n", m_cFootBotEntity.GetId().c_str(), GetEmbodiedEntity().GetPosition().GetX(), GetEmbodiedEntity().GetPosition().GetY(),GetEmbodiedEntity().GetPosition().GetZ());
 
       /* Update components */
       m_cFootBotEntity.UpdateComponents();
@@ -295,29 +289,18 @@ namespace argos {
             (*itBody)->activate();
          }
 
-         fprintf(stderr, "[DEBUG] non zero velocity: %.3f,%.3f\n",
-                 fLeftWheelVelocity ,
-                 fRightWheelVelocity );
-
-         /* because of the how the wheels are attached to the epuck the velocity on the right wheel speed is negated */
          m_pcLeftWheelToBodyConstraint->enableAngularMotor(true, fLeftWheelVelocity, FOOTBOT_WHEEL_MOTOR_IMPULSE);
          m_pcRightWheelToBodyConstraint->enableAngularMotor(true, fRightWheelVelocity, FOOTBOT_WHEEL_MOTOR_IMPULSE);
       }
       else {
-         fprintf(stderr, "[DEBUG] zero velocity: %.3f,%.3f\n", m_pfCurrentWheelVelocityFromSensor[FOOTBOT_LEFT_WHEEL] , m_pfCurrentWheelVelocityFromSensor[FOOTBOT_RIGHT_WHEEL] );
-
-
 
          /* No, we don't want to move - zero all speeds */
          m_pcLeftWheelToBodyConstraint->enableAngularMotor(false, 0.0f, 0.0f);
          m_pcRightWheelToBodyConstraint->enableAngularMotor(false, 0.0f, 0.0f);
       }
-      fprintf(stderr, "[DEBUG] lwheel hinge angle: %.3f\n", m_pcLeftWheelToBodyConstraint->getHingeAngle() );
-      fprintf(stderr, "[DEBUG] rwheel hinge angle: %.3f\n", m_pcRightWheelToBodyConstraint->getHingeAngle() );
+      //fprintf(stderr, "[DEBUG] lwheel hinge angle: %.3f\n", m_pcLeftWheelToBodyConstraint->getHingeAngle() );
+      //fprintf(stderr, "[DEBUG] rwheel hinge angle: %.3f\n", m_pcRightWheelToBodyConstraint->getHingeAngle() );
 
-
-      fprintf(stderr, "[DEBUG] number of registered model constraints: %lu\n", m_vecLocalConstraints.size() );
-      fprintf(stderr, "[DEBUG] number of registered model bodies: %lu\n", m_vecLocalRigidBodies.size() );
    }
 
    /****************************************/
