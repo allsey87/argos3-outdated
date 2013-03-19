@@ -22,18 +22,20 @@ namespace argos {
       const CVector3 cBoxHalfSize = c_box.GetSize() * 0.5f;
       
       /* When defining size of objects we must manually swap the Z and Y components */
-      m_pcBoxCollisionShape = new btBoxShape(
-         btVector3(cBoxHalfSize.GetX(), cBoxHalfSize.GetZ(), cBoxHalfSize.GetY())
-      );
-      
-      m_pcBoxTransform = new btTransform(
-         btQuaternion(0.0, 0.0f, 0.0f, 1.0f),
-         btVector3(0.0f, cBoxHalfSize.GetZ(), 0.0f));
+      m_pcBoxBaseShape = new btBoxShape(btVector3(cBoxHalfSize.GetX(),
+                                                  cBoxHalfSize.GetZ(), 
+                                                  cBoxHalfSize.GetY()));
+
+      m_pcBoxCollisionShape = new btCompoundShape();
+
+      m_pcBoxCollisionShape->addChildShape(btTransform(btQuaternion(0,0,0,1),
+                                                       btVector3(0.0f, cBoxHalfSize.GetZ(), 0.0f)),
+                                           m_pcBoxBaseShape);
       
       btTransform cModelTransform(ARGoSToBullet(GetEmbodiedEntity().GetOrientation()),
                                    ARGoSToBullet(GetEmbodiedEntity().GetPosition()));
       
-      m_pcBoxMotionState = new btDefaultMotionState(cModelTransform * (*m_pcBoxTransform));
+      m_pcBoxMotionState = new btDefaultMotionState(cModelTransform);
           
       if(c_box.GetEmbodiedEntity().IsMovable()) {
          btVector3 cInteria;
@@ -56,7 +58,6 @@ namespace argos {
       delete m_pcBoxRigidBody;
       delete m_pcBoxMotionState;
       delete m_pcBoxCollisionShape;
-      delete m_pcBoxTransform;
    }
    
    /****************************************/
@@ -89,7 +90,7 @@ namespace argos {
             ARGoSToBullet(GetEmbodiedEntity().GetInitPosition())
          );
          
-         m_pcBoxRigidBody->setWorldTransform(cResetTransform * (*m_pcBoxTransform));
+         m_pcBoxRigidBody->setWorldTransform(cResetTransform);
       }
      
       for(std::vector<btRigidBody*>::iterator itBody = m_vecLocalRigidBodies.begin(); 
@@ -106,15 +107,15 @@ namespace argos {
 
    void CDynamics3DBoxModel::UpdateEntityStatus() {
       if(m_cBoxEntity.GetEmbodiedEntity().IsMovable()) {      
-                  
-         btTransform& cModelTransform = m_pcBoxRigidBody->getWorldTransform();
          
-         cModelTransform = m_pcBoxTransform->inverse() * cModelTransform;
+         //fprintf(stderr, "position of %s in Bullet: [%.3f, %.3f, %.3f]\n", m_cBoxEntity.GetId().c_str(), m_pcBoxRigidBody->getWorldTransform().getOrigin().getX(), m_pcBoxRigidBody->getWorldTransform().getOrigin().getY(),m_pcBoxRigidBody->getWorldTransform().getOrigin().getZ() );
 
-         GetEmbodiedEntity().SetPosition(BulletToARGoS(cModelTransform.getOrigin()));
-         GetEmbodiedEntity().SetOrientation(BulletToARGoS(cModelTransform.getRotation()));
+         const btTransform& cUpdateTransform = m_pcBoxRigidBody->getWorldTransform();
+         
+         GetEmbodiedEntity().SetPosition(BulletToARGoS(cUpdateTransform.getOrigin()));
+         GetEmbodiedEntity().SetOrientation(BulletToARGoS(cUpdateTransform.getRotation()));
 
-         fprintf(stderr, "position of %s in ARGoS: [%.3f, %.3f, %.3f]\n", m_cBoxEntity.GetId().c_str(), GetEmbodiedEntity().GetPosition().GetX(), GetEmbodiedEntity().GetPosition().GetY(),GetEmbodiedEntity().GetPosition().GetZ());
+         //fprintf(stderr, "position of %s in ARGoS: [%.3f, %.3f, %.3f]\n", m_cBoxEntity.GetId().c_str(), GetEmbodiedEntity().GetPosition().GetX(), GetEmbodiedEntity().GetPosition().GetY(),GetEmbodiedEntity().GetPosition().GetZ());
       
          /* Update components */
          m_cBoxEntity.UpdateComponents();

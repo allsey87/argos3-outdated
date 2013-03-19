@@ -169,12 +169,12 @@ namespace argos {
       //   fprintf(stderr, "executing step %d of %d\n", i + 1, m_unIterations);
       //  int ss = m_pcWorld->stepSimulation(m_fDeltaT, 0u);
       
-      fprintf(stderr, "m_fSimulationClockTick = %.3f\n", m_fSimulationClockTick);
+      //fprintf(stderr, "m_fSimulationClockTick = %.3f\n", m_fSimulationClockTick);
 
       //int ss = m_pcWorld->stepSimulation(m_fSimulationClockTick, 0u);
-      int ss = m_pcWorld->stepSimulation(m_fSimulationClockTick, m_unIterations, m_fDeltaT);
+      m_pcWorld->stepSimulation(m_fSimulationClockTick, m_unIterations, m_fDeltaT);
 
-      fprintf(stderr, "executed %d iterations\n", ss);
+      //fprintf(stderr, "executed %d iterations\n", ss);
          // }
 
       /* Update the simulated space */

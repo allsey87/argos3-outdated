@@ -232,34 +232,12 @@ namespace argos {
 
    void CDynamics3DFootBotModel::UpdateEntityStatus() {
       /* Update footbot position and orientation */
-      btTransform cModelTransform;
+      const btTransform& cUpdateTransform =  m_pcBodyRigidBody->getWorldTransform();
 
+      GetEmbodiedEntity().SetPosition(BulletToARGoS(cUpdateTransform.getOrigin()));
+      GetEmbodiedEntity().SetOrientation(BulletToARGoS(cUpdateTransform.getRotation()));
 
-      /*
-      m_pcLeftWheelRigidBody->getMotionState()->getWorldTransform(cModelTransform);
-       fprintf(stderr, "[DEBUG] Bullet position for lwheel\t = %.3f, %.3f, %.3f\n", cModelTransform.getOrigin().getX(), cModelTransform.getOrigin().getY(), cModelTransform.getOrigin().getZ());
-      fprintf(stderr, "[DEBUG] Bullet angular speed for lwheel\t = %.3f, %.3f, %.3f\n", m_pcLeftWheelRigidBody->getAngularVelocity().getX(), m_pcLeftWheelRigidBody->getAngularVelocity().getY(), m_pcLeftWheelRigidBody->getAngularVelocity().getZ());
-
-      m_pcRightWheelRigidBody->getMotionState()->getWorldTransform(cModelTransform);
-      fprintf(stderr, "[DEBUG] Bullet position for rwheel\t = %.3f, %.3f, %.3f\n", cModelTransform.getOrigin().getX(), cModelTransform.getOrigin().getY(), cModelTransform.getOrigin().getZ());
-      fprintf(stderr, "[DEBUG] Bullet angular speed for rwheel\t = %.3f, %.3f, %.3f\n", m_pcRightWheelRigidBody->getAngularVelocity().getX(), m_pcRightWheelRigidBody->getAngularVelocity().getY(), m_pcRightWheelRigidBody->getAngularVelocity().getZ());
-
-      m_pcFrontPivotRigidBody->getMotionState()->getWorldTransform(cModelTransform);
-      fprintf(stderr, "[DEBUG] Bullet position for fpivot\t = %.3f, %.3f, %.3f\n", cModelTransform.getOrigin().getX(), cModelTransform.getOrigin().getY(), cModelTransform.getOrigin().getZ());
-
-      m_pcRearPivotRigidBody->getMotionState()->getWorldTransform(cModelTransform);
-      fprintf(stderr, "[DEBUG] Bullet position for rpivot\t = %.3f, %.3f, %.3f\n", cModelTransform.getOrigin().getX(), cModelTransform.getOrigin().getY(), cModelTransform.getOrigin().getZ());
-      */
-
-      // DON'T TOUCH THIS MICHAEL!
-
-      m_pcBodyRigidBody->getMotionState()->getWorldTransform(cModelTransform);
-      //fprintf(stderr, "[DEBUG] Bullet position for body\t = %.3f, %.3f, %.3f\n", cModelTransform.getOrigin().getX(), cModelTransform.getOrigin().getY(), cModelTransform.getOrigin().getZ());
-
-      GetEmbodiedEntity().SetPosition(BulletToARGoS(cModelTransform.getOrigin()));
-      GetEmbodiedEntity().SetOrientation(BulletToARGoS(cModelTransform.getRotation()));
-
-      fprintf(stderr, "position of %s in ARGoS: [%.3f, %.3f, %.3f]\n", m_cFootBotEntity.GetId().c_str(), GetEmbodiedEntity().GetPosition().GetX(), GetEmbodiedEntity().GetPosition().GetY(),GetEmbodiedEntity().GetPosition().GetZ());
+      //fprintf(stderr, "position of %s in ARGoS: [%.3f, %.3f, %.3f]\n", m_cFootBotEntity.GetId().c_str(), GetEmbodiedEntity().GetPosition().GetX(), GetEmbodiedEntity().GetPosition().GetY(),GetEmbodiedEntity().GetPosition().GetZ());
 
       /* Update components */
       m_cFootBotEntity.UpdateComponents();
