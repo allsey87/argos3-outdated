@@ -118,43 +118,43 @@ namespace argos {
 	      glBegin(GL_QUADS);
 	      /* Bottom face */
 	      glNormal3f(0.0f, 0.0f, -1.0f);
-	      glVertex3f( 0.5f,  0.5f, -0.5f);
-	      glVertex3f( 0.5f, -0.5f, -0.5f);
-	      glVertex3f(-0.5f, -0.5f, -0.5f);
-	      glVertex3f(-0.5f,  0.5f, -0.5f);
+	      glVertex3f( 0.5f,  0.5f, 0.0f);
+	      glVertex3f( 0.5f, -0.5f, 0.0f);
+	      glVertex3f(-0.5f, -0.5f, 0.0f);
+	      glVertex3f(-0.5f,  0.5f, 0.0f);
 	      /* Top face */
 	      glNormal3f(0.0f, 0.0f, 1.0f);
-	      glVertex3f(-0.5f, -0.5f, 0.5f);
-	      glVertex3f( 0.5f, -0.5f, 0.5f);
-	      glVertex3f( 0.5f,  0.5f, 0.5f);
-	      glVertex3f(-0.5f,  0.5f, 0.5f);
+	      glVertex3f(-0.5f, -0.5f, 1.0f);
+	      glVertex3f( 0.5f, -0.5f, 1.0f);
+	      glVertex3f( 0.5f,  0.5f, 1.0f);
+	      glVertex3f(-0.5f,  0.5f, 1.0f);
 	      glEnd();
 	      /* This part covers the faces (South, East, North, West) */
 	      glBegin(GL_QUADS);
 	      /* South face */
 	          glNormal3f(0.0f, -1.0f, 0.0f);
-	          glVertex3f(-0.5f, -0.5f,  0.5f);
-	          glVertex3f(-0.5f, -0.5f, -0.5f);
-	          glVertex3f( 0.5f, -0.5f, -0.5f);
-	          glVertex3f( 0.5f, -0.5f,  0.5f);
+	          glVertex3f(-0.5f, -0.5f, 1.0f);
+	          glVertex3f(-0.5f, -0.5f, 0.0f);
+	          glVertex3f( 0.5f, -0.5f, 0.0f);
+	          glVertex3f( 0.5f, -0.5f, 1.0f);
 	          /* East face */
 	          glNormal3f(1.0f, 0.0f, 0.0f);
-	          glVertex3f( 0.5f, -0.5f,  0.5f);
-	          glVertex3f( 0.5f, -0.5f, -0.5f);
-	          glVertex3f( 0.5f,  0.5f, -0.5f);
-	          glVertex3f( 0.5f,  0.5f,  0.5f);
+	          glVertex3f( 0.5f, -0.5f, 1.0f);
+	          glVertex3f( 0.5f, -0.5f, 0.0f);
+	          glVertex3f( 0.5f,  0.5f, 0.0f);
+	          glVertex3f( 0.5f,  0.5f, 1.0f);
 	          /* North face */
 	          glNormal3f(0.0f, 1.0f, 0.0f);
-	          glVertex3f( 0.5f,  0.5f,  0.5f);
-	          glVertex3f( 0.5f,  0.5f, -0.5f);
-	          glVertex3f(-0.5f,  0.5f, -0.5f);
-	          glVertex3f(-0.5f,  0.5f,  0.5f);
+	          glVertex3f( 0.5f,  0.5f, 1.0f);
+	          glVertex3f( 0.5f,  0.5f, 0.0f);
+	          glVertex3f(-0.5f,  0.5f, 0.0f);
+	          glVertex3f(-0.5f,  0.5f, 1.0f);
 	          /* West face */
 	          glNormal3f(-1.0f, 0.0f, 0.0f);
-	          glVertex3f(-0.5f,  0.5f,  0.5f);
-	          glVertex3f(-0.5f,  0.5f, -0.5f);
-	          glVertex3f(-0.5f, -0.5f, -0.5f);
-	          glVertex3f(-0.5f, -0.5f,  0.5f);
+	          glVertex3f(-0.5f,  0.5f, 1.0f);
+	          glVertex3f(-0.5f,  0.5f, 0.0f);
+	          glVertex3f(-0.5f, -0.5f, 0.0f);
+	          glVertex3f(-0.5f, -0.5f, 1.0f);
 	      glEnd();
 	      /* The shape definitions is finished */
 
@@ -206,7 +206,6 @@ namespace argos {
       void ApplyTo(CQTOpenGLWidget& c_visualization,
                    CBoxEntity& c_entity) {
          static CQTOpenGLBox m_cModel;
-         glTranslatef(0.0f, 0.0f, c_entity.GetSize().GetZ() * 0.5f);
          c_visualization.DrawPositionalEntity(c_entity.GetEmbodiedEntity());
          m_cModel.Draw(c_entity);
       }
