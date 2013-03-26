@@ -27,8 +27,6 @@ namespace argos {
                           const CQuaternion& c_orientation,
                           bool b_check_only = false);
 
-      virtual void Reset();
-
       virtual void CalculateBoundingBox();
 
       virtual void UpdateEntityStatus();

@@ -36,7 +36,7 @@ namespace argos {
       m_pcMountingPointRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          MOUNTING_POINT_MASS, m_pcMountingPointMotionState, m_pcMountingPointCollisionShape, cInertia));
          
-      m_vecLocalRigidBodies.push_back(m_pcMountingPointRigidBody);
+      m_mapLocalRigidBodies["mounting_point"] = m_pcMountingPointRigidBody;
       
    }
 
@@ -64,23 +64,6 @@ namespace argos {
                                          const CQuaternion& c_orientation,
                                          bool b_check_only) {
       return false;
-   }
-
-   /****************************************/
-   /****************************************/
-
-   void CDynamics3DRoboticArmModel::Reset() {
-      btTransform cResetPosition(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
-                                 ARGoSToBullet(GetEmbodiedEntity().GetInitPosition()));
-      m_pcMountingPointRigidBody->setWorldTransform(cResetPosition * shift);
-      
-      for(std::vector<btRigidBody*>::iterator itBody = m_vecLocalRigidBodies.begin(); 
-          itBody !=  m_vecLocalRigidBodies.end();
-          itBody++) {   
-         (*itBody)->setAngularVelocity(btVector3(0.0f, 0.0f, 0.0f));
-         (*itBody)->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
-         (*itBody)->clearForces();
-      }
    }
 
    /****************************************/

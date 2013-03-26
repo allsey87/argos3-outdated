@@ -16,8 +16,6 @@ namespace argos {
 #include <argos3/core/utility/math/quaternion.h>
 #include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_engine.h>
 
-#include "bullet/btBulletDynamicsCommon.h"
-
 #include <tr1/unordered_map>
 
 namespace argos {
@@ -72,17 +70,32 @@ namespace argos {
          return false;                   
       }
 
-      virtual void Reset() = 0;
+      virtual void Reset() {
+         // reset each body and clearing all velocities and forces
+         for(std::map<std::string, btRigidBody*>::iterator itBody = m_mapLocalRigidBodies.begin();
+             itBody !=  m_mapLocalRigidBodies.end();
+             itBody++) {
+         
+            btMotionState* pcMotionState = itBody->second->getMotionState();
+            pcMotionState->reset();
+            itBody->second->setMotionState(pcMotionState);
+            
+            itBody->second->setAngularVelocity(btVector3(0.0f, 0.0f, 0.0f));
+            itBody->second->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
+            itBody->second->clearForces();
+         }
+
+      }
 
       virtual void UpdateEntityStatus() = 0;
       virtual void UpdateFromEntityStatus() = 0;
       
-      inline const std::vector<btRigidBody*>& GetRigidBodies() const {
-         return m_vecLocalRigidBodies;
+      inline const std::map<std::string, btRigidBody*>& GetRigidBodies() const {
+         return m_mapLocalRigidBodies;
       }
       
-      inline const std::vector<btTypedConstraint*>& GetConstraints() const {
-         return m_vecLocalConstraints;
+      inline const std::map<std::string, btTypedConstraint*>& GetConstraints() const {
+         return m_mapLocalConstraints;
       }
 
    private:
@@ -92,8 +105,8 @@ namespace argos {
    protected:
       CDynamics3DEngine&      m_cEngine;      
       
-      std::vector<btRigidBody*> m_vecLocalRigidBodies;
-      std::vector<btTypedConstraint*> m_vecLocalConstraints;
+      std::map<std::string, btRigidBody*> m_mapLocalRigidBodies;
+      std::map<std::string, btTypedConstraint*> m_mapLocalConstraints;
 
    };
 

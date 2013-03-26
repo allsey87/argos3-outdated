@@ -25,7 +25,7 @@ ATTRIBUTE_ALIGNED16(struct)	btDefaultMotionState : public btMotionState
 	///synchronizes world transform from user to physics
 	virtual void	getWorldTransform(btTransform& centerOfMassWorldTrans ) const 
 	{
-			centerOfMassWorldTrans = 	m_centerOfMassOffset.inverse() * m_graphicsWorldTrans ;
+			centerOfMassWorldTrans = m_graphicsWorldTrans * m_centerOfMassOffset.inverse();
 	}
 
 	///synchronizes world transform from physics to user
@@ -33,6 +33,11 @@ ATTRIBUTE_ALIGNED16(struct)	btDefaultMotionState : public btMotionState
 	virtual void	setWorldTransform(const btTransform& centerOfMassWorldTrans)
 	{
 			m_graphicsWorldTrans = centerOfMassWorldTrans * m_centerOfMassOffset ;
+	}
+	
+	virtual void reset()
+	{
+	      m_graphicsWorldTrans = m_startWorldTrans;
 	}
 
 	

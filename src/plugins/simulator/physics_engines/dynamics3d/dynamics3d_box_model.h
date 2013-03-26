@@ -33,8 +33,6 @@ namespace argos {
                           const CQuaternion& c_orientation,
                           bool b_check_only = false);
 
-      virtual void Reset();
-
       virtual void UpdateEntityStatus();
       virtual void UpdateFromEntityStatus() {}
 
@@ -46,8 +44,7 @@ namespace argos {
 
       CBoxEntity&                m_cBoxEntity;
       
-      btBoxShape*                m_pcBoxBaseShape;
-      btCompoundShape*           m_pcBoxCollisionShape;
+      btBoxShape*                m_pcBoxCollisionShape;
       btDefaultMotionState*      m_pcBoxMotionState;
       btRigidBody*               m_pcBoxRigidBody;
    };
