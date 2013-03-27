@@ -26,11 +26,12 @@ namespace argos {
    static const Real FOOTBOT_BASEMODULE_MASS       =  0.100000000f;
 
    static const Real FOOTBOT_PIVOT_RADIUS          =  FOOTBOT_WHEEL_RADIUS;
-   static const Real FOOTBOT_PIVOT_OFFSET          =  0.050000000f;
+   static const Real FOOTBOT_PIVOT_HALF_DISTANCE   =  0.050000000f;
    static const Real FOOTBOT_PIVOT_MASS            =  0.100000000f;
    
    static const Real FOOTBOT_CENTER_OF_MASS_OFFSET =  FOOTBOT_BATT_H + FOOTBOT_BATT_GROUND_OFFSET;
    static const Real FOOTBOT_WHEEL_Y_OFFSET        =  FOOTBOT_WHEEL_RADIUS + FOOTBOT_BATT_GROUND_OFFSET;
+   static const Real FOOTBOT_PIVOT_Y_OFFSET        =  FOOTBOT_PIVOT_RADIUS + FOOTBOT_BATT_GROUND_OFFSET;
 
    enum EFootbotWheels {
       FOOTBOT_LEFT_WHEEL  = 0,
@@ -40,23 +41,28 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   // Shared static transforms
+   // Shared static transforms for bodies
    btTransform CDynamics3DFootBotModel::m_cLeftWheelTransform(
-      btQuaternion(btVector3(1.0f, 0.0f, 0.0f), ARGOS_PI * 0.5f),
-      btVector3(0.0f, FOOTBOT_WHEEL_RADIUS, -FOOTBOT_WHEEL_HALF_DISTANCE));
+      btQuaternion(btVector3(1.0f, 0.0f, 0.0f), -ARGOS_PI * 0.5f),
+      btVector3(0.0f, FOOTBOT_WHEEL_RADIUS, -FOOTBOT_WHEEL_HALF_DISTANCE + FOOTBOT_WHEEL_THICKNESS * 0.5f));
 
    btTransform CDynamics3DFootBotModel::m_cRightWheelTransform(
       btQuaternion(btVector3(1.0f, 0.0f, 0.0f), ARGOS_PI * 0.5f),
-      btVector3(0.0f, FOOTBOT_WHEEL_RADIUS, FOOTBOT_WHEEL_HALF_DISTANCE));
+      btVector3(0.0f, FOOTBOT_WHEEL_RADIUS, FOOTBOT_WHEEL_HALF_DISTANCE - FOOTBOT_WHEEL_THICKNESS * 0.5f));
 
    btTransform CDynamics3DFootBotModel::m_cFrontPivotTransform(
       btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-      btVector3(FOOTBOT_PIVOT_OFFSET, FOOTBOT_PIVOT_RADIUS, 0.0f));
+      btVector3(FOOTBOT_PIVOT_HALF_DISTANCE, 0.0f, 0.0f));
 
    btTransform CDynamics3DFootBotModel::m_cRearPivotTransform(
       btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-      btVector3(-FOOTBOT_PIVOT_OFFSET, FOOTBOT_PIVOT_RADIUS, 0.0f));
+      btVector3(-FOOTBOT_PIVOT_HALF_DISTANCE, 0.0f, 0.0f));
 
+   btTransform CDynamics3DFootBotModel::m_cBodyTransform(
+      btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
+      btVector3(0.0f, FOOTBOT_BATT_GROUND_OFFSET, 0.0f));
+
+   // Shared static transforms for compound body geometry
    btTransform CDynamics3DFootBotModel::m_cBatterySocketTransform(
       btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
       btVector3(0.0f, -FOOTBOT_BATT_H * 0.5f, 0.0f));
@@ -108,9 +114,9 @@ namespace argos {
                                    ARGoSToBullet(GetEmbodiedEntity().GetPosition()));
 
       /** Create the body **/
-      m_pcBodyMotionState = new btDefaultMotionState(cModelTransform, btTransform(
+      m_pcBodyMotionState = new btDefaultMotionState(cModelTransform * m_cBodyTransform, btTransform(
          btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-         btVector3(0.0f, -FOOTBOT_CENTER_OF_MASS_OFFSET, 0.0f)));
+         btVector3(0.0f, -FOOTBOT_BATT_H, 0.0f)));
       m_cBodyCollisionShape.calculateLocalInertia(FOOTBOT_BASEMODULE_MASS, cInertia);
       m_pcBodyRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          FOOTBOT_BASEMODULE_MASS, m_pcBodyMotionState, &m_cBodyCollisionShape, cInertia));
@@ -119,10 +125,10 @@ namespace argos {
       /** create the wheels **/
       m_pcLeftWheelMotionState = new btDefaultMotionState(cModelTransform * m_cLeftWheelTransform, btTransform(
          btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-         btVector3(0.0f, -FOOTBOT_CENTER_OF_MASS_OFFSET, 0.0f)));
+         btVector3(0.0f, -FOOTBOT_WHEEL_THICKNESS * 0.5f, 0.0f)));
       m_pcRightWheelMotionState = new btDefaultMotionState(cModelTransform * m_cRightWheelTransform, btTransform(
          btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-         btVector3(0.0f, -FOOTBOT_CENTER_OF_MASS_OFFSET, 0.0f)));
+         btVector3(0.0f, -FOOTBOT_WHEEL_THICKNESS * 0.5f, 0.0f)));
       m_cWheelCollisionShape.calculateLocalInertia(FOOTBOT_WHEEL_MASS, cInertia);
       m_pcLeftWheelRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          FOOTBOT_WHEEL_MASS, m_pcLeftWheelMotionState, &m_cWheelCollisionShape, cInertia));
@@ -137,7 +143,7 @@ namespace argos {
          *m_pcBodyRigidBody,
          btVector3(0.0f, 0.0f, 0.0f),
          btVector3(0.0f, -FOOTBOT_WHEEL_Y_OFFSET, -FOOTBOT_WHEEL_HALF_DISTANCE),
-         btVector3(0.0f, -1.0f, 0.0f),
+         btVector3(0.0f, 1.0f, 0.0f),
          btVector3(0.0f, 0.0f, -1.0f));
       m_pcRightWheelToBodyConstraint = new btHingeConstraint(
          *m_pcRightWheelRigidBody,
@@ -152,31 +158,31 @@ namespace argos {
       /** Create the pivots **/
       m_pcFrontPivotMotionState = new btDefaultMotionState(cModelTransform * m_cFrontPivotTransform, btTransform(
          btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-         btVector3(0.0f, -FOOTBOT_CENTER_OF_MASS_OFFSET, 0.0f)));
+         btVector3(0.0f, -FOOTBOT_PIVOT_RADIUS, 0.0f)));
       m_pcRearPivotMotionState = new btDefaultMotionState(cModelTransform * m_cRearPivotTransform, btTransform(
          btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-         btVector3(0.0f, -FOOTBOT_CENTER_OF_MASS_OFFSET, 0.0f)));
+         btVector3(0.0f, -FOOTBOT_PIVOT_RADIUS, 0.0f)));
       m_cPivotCollisionShape.calculateLocalInertia(FOOTBOT_PIVOT_MASS, cInertia);
       m_pcFrontPivotRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          FOOTBOT_PIVOT_MASS, m_pcFrontPivotMotionState, &m_cPivotCollisionShape, cInertia));
       m_pcRearPivotRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          FOOTBOT_PIVOT_MASS, m_pcRearPivotMotionState, &m_cPivotCollisionShape, cInertia));
-      //m_vecLocalRigidBodies.push_back(m_pcFrontPivotRigidBody);
-      // m_vecLocalRigidBodies.push_back(m_pcRearPivotRigidBody);
+      m_mapLocalRigidBodies["front-pivot"] = m_pcFrontPivotRigidBody;
+      m_mapLocalRigidBodies["rear-pivot"] = m_pcRearPivotRigidBody;
 
       /** create the pivots to base constraints **/
       m_pcFrontPivotToBodyConstraint = new btPoint2PointConstraint(
          *m_pcFrontPivotRigidBody,
          *m_pcBodyRigidBody,
          btVector3(0.0f, 0.0f, 0.0f),
-         btVector3(FOOTBOT_PIVOT_OFFSET, FOOTBOT_PIVOT_RADIUS, 0.0f));
+         btVector3(FOOTBOT_PIVOT_HALF_DISTANCE, -FOOTBOT_PIVOT_Y_OFFSET, 0.0f));
       m_pcRearPivotToBodyConstraint = new btPoint2PointConstraint(
          *m_pcRearPivotRigidBody,
          *m_pcBodyRigidBody,
          btVector3(0.0f, 0.0f, 0.0f),
-         btVector3(-FOOTBOT_PIVOT_OFFSET, FOOTBOT_PIVOT_RADIUS, 0.0f));
-      //m_vecLocalConstraints.push_back(m_pcFrontPivotToBodyConstraint);
-      //m_vecLocalConstraints.push_back(m_pcRearPivotToBodyConstraint);
+         btVector3(-FOOTBOT_PIVOT_HALF_DISTANCE, -FOOTBOT_PIVOT_Y_OFFSET, 0.0f));
+      m_mapLocalConstraints["front-pivot:body"] = m_pcFrontPivotToBodyConstraint;
+      m_mapLocalConstraints["rear-pivot:body"] = m_pcRearPivotToBodyConstraint;
    }
 
    /****************************************/
@@ -220,7 +226,7 @@ namespace argos {
 
    void CDynamics3DFootBotModel::UpdateEntityStatus() {
       /* Update footbot position and orientation */
-      const btTransform& cUpdateTransform =  m_pcBodyMotionState->m_graphicsWorldTrans;
+      const btTransform& cUpdateTransform = m_pcBodyMotionState->m_graphicsWorldTrans * m_cBodyTransform.inverse();
 
       GetEmbodiedEntity().SetPosition(BulletToARGoS(cUpdateTransform.getOrigin()));
       GetEmbodiedEntity().SetOrientation(BulletToARGoS(cUpdateTransform.getRotation()));

@@ -48,6 +48,7 @@ namespace argos {
       static btTransform                  m_cRightWheelTransform; 
       static btTransform                  m_cFrontPivotTransform;
       static btTransform                  m_cRearPivotTransform;
+      static btTransform                  m_cBodyTransform;
       
       /******** Shared Collision Shapes **********/
       static btBoxShape                   m_cBatterySocketCollisionShape;
