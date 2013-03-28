@@ -56,8 +56,7 @@ namespace argos {
 
       CDynamics3DModel(CDynamics3DEngine& c_engine,
                        CEmbodiedEntity& c_entity) :
-         CPhysicsModel(c_engine,
-                             c_entity),
+         CPhysicsModel(c_engine, c_entity),
          m_cEngine(c_engine) {}
       virtual ~CDynamics3DModel() {}
       
@@ -84,9 +83,10 @@ namespace argos {
             itBody->second->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
             itBody->second->clearForces();
          }
-
       }
 
+      virtual const btTransform& GetModelWorldTransform() const = 0;
+      
       virtual void UpdateEntityStatus() = 0;
       virtual void UpdateFromEntityStatus() = 0;
       
@@ -98,12 +98,41 @@ namespace argos {
          return m_mapLocalConstraints;
       }
 
+      virtual void CalculateBoundingBox() {
+         fprintf(stderr, "CDynamics3DModel::CalculateBoundingBox() called!\n");
+         btVector3 cAabbMin, cAabbMax;
+
+         UpdateModelCompositeShape();
+
+         m_cModelCompositeShape.getAabb(GetModelWorldTransform(), cAabbMin, cAabbMax);
+         GetBoundingBox().MinCorner = BulletToARGoS(cAabbMin);
+         GetBoundingBox().MaxCorner = BulletToARGoS(cAabbMax);
+      }
+
    private:
 
-      //CDynamics3DModel::TMultiMap m_mapConnectedBodies;
+      void UpdateModelCompositeShape() {
+         for(size_t i = 0; i < size_t(m_cModelCompositeShape.getNumChildShapes()); ++i) {
+            m_cModelCompositeShape.removeChildShapeByIndex(i);
+         }
+
+         const btTransform& cInverseModelWorldTransform = GetModelWorldTransform().inverse();
+         
+         for(std::map<std::string, btRigidBody*>::const_iterator it = m_mapLocalRigidBodies.begin();
+             it != m_mapLocalRigidBodies.end();
+             it++) {
+
+            m_cModelCompositeShape.addChildShape(cInverseModelWorldTransform * it->second->getWorldTransform(),
+                                                 it->second->getCollisionShape());
+         }
+
+         fprintf(stderr, "CDynamics3DModel::UpdateCompositeShape() called!\n");
+      }
+
+      btCompoundShape m_cModelCompositeShape;
 
    protected:
-      CDynamics3DEngine&      m_cEngine;      
+      CDynamics3DEngine&      m_cEngine;
       
       std::map<std::string, btRigidBody*> m_mapLocalRigidBodies;
       std::map<std::string, btTypedConstraint*> m_mapLocalConstraints;

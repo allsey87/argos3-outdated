@@ -39,6 +39,10 @@ namespace argos {
       virtual void CalculateBoundingBox();
       
       virtual bool IsCollidingWithSomething() const { return false; }
+
+      virtual const btTransform& GetModelWorldTransform() const {
+         return m_pcBoxRigidBody->getWorldTransform();
+      }
       
    private:
 

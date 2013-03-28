@@ -43,6 +43,10 @@ namespace argos {
          //fprintf(stderr, "[DEBUG] m_startWorldTrans: position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = %.3f\n", m_pcCylinderMotionState->m_startWorldTrans.getOrigin().getX(), m_pcCylinderMotionState->m_startWorldTrans.getOrigin().getY(), m_pcCylinderMotionState->m_startWorldTrans.getOrigin().getZ(), m_pcCylinderMotionState->m_startWorldTrans.getRotation().getAxis().getX(), m_pcCylinderMotionState->m_startWorldTrans.getRotation().getAxis().getY(), m_pcCylinderMotionState->m_startWorldTrans.getRotation().getAxis().getZ(), m_pcCylinderMotionState->m_startWorldTrans.getRotation().getAngle() * 57.2957795131f);
       }
       
+      virtual const btTransform& GetModelWorldTransform() const {
+         return m_pcCylinderRigidBody->getWorldTransform();
+      }
+
       virtual void CalculateBoundingBox();
       
       virtual bool IsCollidingWithSomething() const { return false; }

@@ -183,6 +183,7 @@ namespace argos {
          btVector3(-FOOTBOT_PIVOT_HALF_DISTANCE, -FOOTBOT_PIVOT_Y_OFFSET, 0.0f));
       m_mapLocalConstraints["front-pivot:body"] = m_pcFrontPivotToBodyConstraint;
       m_mapLocalConstraints["rear-pivot:body"] = m_pcRearPivotToBodyConstraint;
+     
    }
 
    /****************************************/
@@ -232,6 +233,9 @@ namespace argos {
       GetEmbodiedEntity().SetOrientation(BulletToARGoS(cUpdateTransform.getRotation()));
 
       //fprintf(stderr, "position of %s in ARGoS: [%.3f, %.3f, %.3f]\n", m_cFootBotEntity.GetId().c_str(), GetEmbodiedEntity().GetPosition().GetX(), GetEmbodiedEntity().GetPosition().GetY(),GetEmbodiedEntity().GetPosition().GetZ());
+
+      /* Update bounding box */
+      CalculateBoundingBox();
 
       /* Update components */
       m_cFootBotEntity.UpdateComponents();
@@ -294,9 +298,9 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics3DFootBotModel::CalculateBoundingBox() {
+   //void CDynamics3DFootBotModel::CalculateBoundingBox() {
       /** @todo Calculate foot-bot bounding box */
-   }
+   //}
 
    /****************************************/
    /****************************************/

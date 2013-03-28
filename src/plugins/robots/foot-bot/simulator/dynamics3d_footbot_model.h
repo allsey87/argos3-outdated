@@ -30,9 +30,15 @@ namespace argos {
       virtual void UpdateEntityStatus();
       virtual void UpdateFromEntityStatus();
 
-      virtual void CalculateBoundingBox();
+      /* @todo override CDynamics3DFootBotModel::calculateBoundingBox with a more
+         efficient implementation */
+      //virtual void CalculateBoundingBox();
       
       virtual bool IsCollidingWithSomething() const { return false; }
+
+      virtual const btTransform& GetModelWorldTransform() const {
+         return m_pcBodyRigidBody->getWorldTransform();
+      }
 
    private:
 

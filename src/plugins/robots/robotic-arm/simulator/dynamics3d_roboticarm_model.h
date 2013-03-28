@@ -34,6 +34,10 @@ namespace argos {
 
       virtual bool IsCollidingWithSomething() const;
 
+      virtual const btTransform& GetModelWorldTransform() const {
+         return m_pcMountingPointRigidBody->getWorldTransform();
+      }
+
    private:
 
       CRoboticArmEntity&      m_cRoboticArmEntity;
