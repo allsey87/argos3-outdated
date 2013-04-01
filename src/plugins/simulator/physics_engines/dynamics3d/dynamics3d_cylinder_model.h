@@ -25,13 +25,6 @@ namespace argos {
       CDynamics3DCylinderModel(CDynamics3DEngine& c_engine,
                      CCylinderEntity& c_cylinder);
       virtual ~CDynamics3DCylinderModel();
-      
-      virtual bool CheckIntersectionWithRay(Real& f_t_on_ray,
-                                            const CRay3& c_ray) const;
-
-      virtual bool MoveTo(const CVector3& c_position,
-                          const CQuaternion& c_orientation,
-                          bool b_check_only = false);
 
       virtual void UpdateEntityStatus();
       virtual void UpdateFromEntityStatus() {
@@ -47,9 +40,7 @@ namespace argos {
          return m_pcCylinderRigidBody->getWorldTransform();
       }
 
-      virtual void CalculateBoundingBox();
-      
-      virtual bool IsCollidingWithSomething() const { return false; }
+      //virtual void CalculateBoundingBox();
       
    private:
 

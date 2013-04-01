@@ -60,25 +60,6 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   bool CDynamics3DCylinderModel::CheckIntersectionWithRay(Real& f_t_on_ray,
-                                                    const CRay3& c_ray) const {
-      return false;
-     
-   }
-   
-   /****************************************/
-   /****************************************/
-  
-   bool CDynamics3DCylinderModel::MoveTo(const CVector3& c_position,
-                                     const CQuaternion& c_orientation,
-                                     bool b_check_only) {
-      
-      return false;
-   }
-   
-   /****************************************/
-   /****************************************/
-
    void CDynamics3DCylinderModel::UpdateEntityStatus() {
       if(m_cCylinderEntity.GetEmbodiedEntity().IsMovable()) {      
          
@@ -102,14 +83,14 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics3DCylinderModel::CalculateBoundingBox() {
+   /*void CDynamics3DCylinderModel::CalculateBoundingBox() {
       btVector3 cAABBMin, cAABBMax;
       btTransform cTransform;
       m_pcCylinderMotionState->getWorldTransform(cTransform);
       m_pcCylinderCollisionShape->getAabb(cTransform, cAABBMin, cAABBMax);
       GetBoundingBox().MinCorner = BulletToARGoS(cAABBMin);
       GetBoundingBox().MaxCorner = BulletToARGoS(cAABBMax);
-   }
+      }*/
 
    /****************************************/
    /****************************************/

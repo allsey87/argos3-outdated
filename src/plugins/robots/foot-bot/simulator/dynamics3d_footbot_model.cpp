@@ -99,11 +99,11 @@ namespace argos {
          m_cBodyCollisionShape.addChildShape(m_cBatterySocketTransform, &m_cBatterySocketCollisionShape);
          m_cBodyCollisionShape.addChildShape(m_cBaseModuleTransform, &m_cBaseModuleCollisionShape);
       
-         // DEBUG
+         /* //DEBUG
          btVector3 minAabb;
          btVector3 maxAabb;
          m_cBodyCollisionShape.getAabb(btTransform::getIdentity(), minAabb, maxAabb);
-         fprintf(stderr, "created footbot body collision shape with extents: [%.6f, %.6f, %.6f]\n", (maxAabb - minAabb).getX(), (maxAabb - minAabb).getY(), (maxAabb - minAabb).getZ());
+         fprintf(stderr, "created footbot body collision shape with extents: [%.6f, %.6f, %.6f]\n", (maxAabb - minAabb).getX(), (maxAabb - minAabb).getY(), (maxAabb - minAabb).getZ()); */
       }
 
       // Vector for calculating interia
@@ -208,23 +208,6 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   bool CDynamics3DFootBotModel::CheckIntersectionWithRay(Real& f_t_on_ray,
-                                                           const CRay3& c_ray) const {
-      return false;
-   }
-
-   /****************************************/
-   /****************************************/
-
-   bool CDynamics3DFootBotModel::MoveTo(const CVector3& c_position,
-                                         const CQuaternion& c_orientation,
-                                         bool b_check_only) {
-      return false;
-   }
-
-   /****************************************/
-   /****************************************/
-
    void CDynamics3DFootBotModel::UpdateEntityStatus() {
       /* Update footbot position and orientation */
       const btTransform& cUpdateTransform = m_pcBodyMotionState->m_graphicsWorldTrans * m_cBodyTransform.inverse();
@@ -233,9 +216,6 @@ namespace argos {
       GetEmbodiedEntity().SetOrientation(BulletToARGoS(cUpdateTransform.getRotation()));
 
       //fprintf(stderr, "position of %s in ARGoS: [%.3f, %.3f, %.3f]\n", m_cFootBotEntity.GetId().c_str(), GetEmbodiedEntity().GetPosition().GetX(), GetEmbodiedEntity().GetPosition().GetY(),GetEmbodiedEntity().GetPosition().GetZ());
-
-      /* Update bounding box */
-      CalculateBoundingBox();
 
       /* Update components */
       m_cFootBotEntity.UpdateComponents();
@@ -247,7 +227,7 @@ namespace argos {
    
 
    void CDynamics3DFootBotModel::UpdateFromEntityStatus() {
-
+      /*
       for(std::map<std::string, btRigidBody*>::iterator it = m_mapLocalRigidBodies.begin();
           it != m_mapLocalRigidBodies.end();
           it++) {
@@ -260,7 +240,7 @@ namespace argos {
 
          fprintf(stderr, "[DEBUG] %s/m_startWorldTrans:    position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = %.3f\n", it->first.c_str(), pcMotionState->m_startWorldTrans.getOrigin().getX(), pcMotionState->m_startWorldTrans.getOrigin().getY(), pcMotionState->m_startWorldTrans.getOrigin().getZ(), pcMotionState->m_startWorldTrans.getRotation().getAxis().getX(), pcMotionState->m_startWorldTrans.getRotation().getAxis().getY(), pcMotionState->m_startWorldTrans.getRotation().getAxis().getZ(), pcMotionState->m_startWorldTrans.getRotation().getAngle() * 57.2957795131f);
       }
-         
+      */ 
 
       /* Get wheel speeds from entity */
       const Real* m_pfCurrentWheelVelocityFromSensor = m_cWheeledEntity.GetWheelVelocities();
@@ -274,7 +254,7 @@ namespace argos {
          fLeftWheelVelocity  = m_pfCurrentWheelVelocityFromSensor[FOOTBOT_LEFT_WHEEL] / FOOTBOT_WHEEL_RADIUS;
          fRightWheelVelocity = m_pfCurrentWheelVelocityFromSensor[FOOTBOT_RIGHT_WHEEL] / FOOTBOT_WHEEL_RADIUS;
 
-         // activate the bodies! note: it might be possible just to activate the wheels... alternatively we should just use the pointers here to avoid iterating over the map during the update loop
+         // activate the bodies! note: it might be possible just to activate the wheels... also, we should just use the pointers here to avoid iterating over the map during the update loop
          for(std::map<std::string, btRigidBody*>::iterator itBody = m_mapLocalRigidBodies.begin();
              itBody !=  m_mapLocalRigidBodies.end();
              itBody++) {

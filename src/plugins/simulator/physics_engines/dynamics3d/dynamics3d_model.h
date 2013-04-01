@@ -18,6 +18,11 @@ namespace argos {
 
 #include <tr1/unordered_map>
 
+//remove this include - added for debugging
+#include <argos3/core/simulator/entity/embodied_entity.h>
+#include <argos3/core/simulator/entity/composable_entity.h>
+#include <cstdio>
+
 namespace argos {
 
    /****************************************/
@@ -59,9 +64,6 @@ namespace argos {
          CPhysicsModel(c_engine, c_entity),
          m_cEngine(c_engine) {}
       virtual ~CDynamics3DModel() {}
-      
-      virtual bool CheckIntersectionWithRay(Real& f_t_on_ray,
-                                            const CRay3& c_ray) const = 0;
 
       virtual bool MoveTo(const CVector3& c_position,
                           const CQuaternion& c_orientation,
@@ -99,19 +101,58 @@ namespace argos {
       }
 
       virtual void CalculateBoundingBox() {
-         fprintf(stderr, "CDynamics3DModel::CalculateBoundingBox() called!\n");
+         //fprintf(stderr, "CDynamics3DModel::CalculateBoundingBox() called!\n");
          btVector3 cAabbMin, cAabbMax;
-
-         UpdateModelCompositeShape();
 
          m_cModelCompositeShape.getAabb(GetModelWorldTransform(), cAabbMin, cAabbMax);
          GetBoundingBox().MinCorner = BulletToARGoS(cAabbMin);
          GetBoundingBox().MaxCorner = BulletToARGoS(cAabbMax);
+
+         /*fprintf(stderr, "CalculateBoundingBox called on entity %s: MinCorner = [%.3f,%.3f, %.3f], MaxCorner = [%.3f,%.3f, %.3f]\n", m_cEmbodiedEntity.GetParent().GetId().c_str(),  GetBoundingBox().MinCorner.GetX(), GetBoundingBox().MinCorner.GetY(), GetBoundingBox().MinCorner.GetZ(), GetBoundingBox().MaxCorner.GetX(), GetBoundingBox().MaxCorner.GetY(),GetBoundingBox().MaxCorner.GetZ()); */
       }
 
-   private:
+      virtual bool IsCollidingWithSomething() const {
+         return false;
+      }
 
-      void UpdateModelCompositeShape() {
+      virtual bool CheckIntersectionWithRay(Real& f_t_on_ray, const CRay3& c_ray) const {
+         
+fprintf(stderr, "CheckIntersectionWithRay called on entity %s\n", m_cEmbodiedEntity.GetParent().GetId().c_str());
+
+         btVector3 cRayStart = ARGoSToBullet(c_ray.GetStart());
+         btVector3 cRayEnd = ARGoSToBullet(c_ray.GetEnd());
+      
+         btTransform cRayFromTransform(btTransform::getIdentity());
+	 btTransform cRayToTransform(btTransform::getIdentity());
+         
+         cRayFromTransform.setOrigin(cRayStart);
+         cRayToTransform.setOrigin(cRayEnd);
+         
+         btCollisionWorld::ClosestRayResultCallback cResult(cRayStart, cRayEnd);
+         
+         btCollisionObject cTempCollisionObject;
+         
+         btCollisionWorld::rayTestSingle(cRayFromTransform,
+                                         cRayToTransform,
+                                         &cTempCollisionObject,
+                                         &m_cModelCompositeShape,
+                                         GetModelWorldTransform(),
+                                         cResult);
+         
+         if (cResult.hasHit()) {
+            const btVector3& cHitPoint = cResult.m_hitPointWorld;
+            f_t_on_ray = (cHitPoint - cRayStart).length() / c_ray.GetLength();
+            fprintf(stderr, "Intersection detected! Hit point occured at %.2f\n", f_t_on_ray);
+            
+            return true;
+         }
+         else {
+            return false;
+         }
+      }
+
+      virtual void UpdateModelCompositeShape() {
+         // remove the old shapes in the model
          for(size_t i = 0; i < size_t(m_cModelCompositeShape.getNumChildShapes()); ++i) {
             m_cModelCompositeShape.removeChildShapeByIndex(i);
          }
@@ -126,9 +167,12 @@ namespace argos {
                                                  it->second->getCollisionShape());
          }
 
-         fprintf(stderr, "CDynamics3DModel::UpdateCompositeShape() called!\n");
+         //fprintf(stderr, "CDynamics3DModel::UpdateCompositeShape() called!\n");
       }
 
+      
+   private:
+      
       btCompoundShape m_cModelCompositeShape;
 
    protected:

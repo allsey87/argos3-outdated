@@ -58,27 +58,8 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   bool CDynamics3DBoxModel::CheckIntersectionWithRay(Real& f_t_on_ray,
-                                                    const CRay3& c_ray) const {
-      return false;
-     
-   }
-   
-   /****************************************/
-   /****************************************/
-  
-   bool CDynamics3DBoxModel::MoveTo(const CVector3& c_position,
-                                     const CQuaternion& c_orientation,
-                                     bool b_check_only) {
-      
-      return false;
-   }
-   
-   /****************************************/
-   /****************************************/
-
    void CDynamics3DBoxModel::UpdateEntityStatus() {
-      if(m_cBoxEntity.GetEmbodiedEntity().IsMovable()) {      
+      //if(m_cBoxEntity.GetEmbodiedEntity().IsMovable()) {      
          
          //fprintf(stderr, "position of %s in Bullet: [%.3f, %.3f, %.3f]\n", m_cBoxEntity.GetId().c_str(), m_pcBoxRigidBody->getWorldTransform().getOrigin().getX(), m_pcBoxRigidBody->getWorldTransform().getOrigin().getY(),m_pcBoxRigidBody->getWorldTransform().getOrigin().getZ() );
 
@@ -91,20 +72,20 @@ namespace argos {
       
          /* Update components */
          m_cBoxEntity.UpdateComponents();
-      }
+     //}
    }
 
    /****************************************/
    /****************************************/
 
-   void CDynamics3DBoxModel::CalculateBoundingBox() {
+   /*void CDynamics3DBoxModel::CalculateBoundingBox() {
       btVector3 cAABBMin, cAABBMax;
       btTransform cTransform;
       m_pcBoxMotionState->getWorldTransform(cTransform);
       m_pcBoxCollisionShape->getAabb(cTransform, cAABBMin, cAABBMax);
       GetBoundingBox().MinCorner = BulletToARGoS(cAABBMin);
       GetBoundingBox().MaxCorner = BulletToARGoS(cAABBMax);
-   }
+    }*/
 
    /****************************************/
    /****************************************/

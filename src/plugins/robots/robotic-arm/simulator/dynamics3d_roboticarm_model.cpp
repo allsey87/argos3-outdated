@@ -52,30 +52,6 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   bool CDynamics3DRoboticArmModel::CheckIntersectionWithRay(Real& f_t_on_ray,
-                                                           const CRay3& c_ray) const {
-      return false;
-   }
-
-   /****************************************/
-   /****************************************/
-
-   bool CDynamics3DRoboticArmModel::MoveTo(const CVector3& c_position,
-                                         const CQuaternion& c_orientation,
-                                         bool b_check_only) {
-      return false;
-   }
-
-   /****************************************/
-   /****************************************/
-
-   void CDynamics3DRoboticArmModel::CalculateBoundingBox() {
-      /* @todo Implement CDynamics3DBoxEntity::CalculateBoundingBox() */
-   }
-
-   /****************************************/
-   /****************************************/
-
    void CDynamics3DRoboticArmModel::UpdateEntityStatus() {
       /* Update roboticarm position and orientation */
       btTransform cModelTransform;
@@ -92,14 +68,6 @@ namespace argos {
    /****************************************/
 
    void CDynamics3DRoboticArmModel::UpdateFromEntityStatus() {}
-
-   /****************************************/
-   /****************************************/
-
-   bool CDynamics3DRoboticArmModel::IsCollidingWithSomething() const {
-      /* @todo Implement CDynamics3DBoxEntity::IsCollidingWithSomething() */
-      return false;
-   }
 
    /****************************************/
    /****************************************/

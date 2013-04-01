@@ -25,21 +25,12 @@ namespace argos {
       CDynamics3DBoxModel(CDynamics3DEngine& c_engine,
                      CBoxEntity& c_box);
       virtual ~CDynamics3DBoxModel();
-      
-      virtual bool CheckIntersectionWithRay(Real& f_t_on_ray,
-                                            const CRay3& c_ray) const;
-
-      virtual bool MoveTo(const CVector3& c_position,
-                          const CQuaternion& c_orientation,
-                          bool b_check_only = false);
 
       virtual void UpdateEntityStatus();
       virtual void UpdateFromEntityStatus() {}
 
-      virtual void CalculateBoundingBox();
-      
-      virtual bool IsCollidingWithSomething() const { return false; }
-
+      //virtual void CalculateBoundingBox();
+ 
       virtual const btTransform& GetModelWorldTransform() const {
          return m_pcBoxRigidBody->getWorldTransform();
       }

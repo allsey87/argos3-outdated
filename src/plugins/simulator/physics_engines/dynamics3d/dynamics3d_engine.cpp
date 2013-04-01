@@ -180,7 +180,10 @@ namespace argos {
       /* Update the simulated space */
       for(CDynamics3DModel::TMap::iterator it = m_tPhysicsModels.begin();
           it != m_tPhysicsModels.end(); ++it) {
+         it->second->UpdateModelCompositeShape();
+         it->second->CalculateBoundingBox();
          it->second->UpdateEntityStatus();
+         
       }
    }
    

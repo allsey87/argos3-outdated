@@ -19,20 +19,9 @@ namespace argos {
       CDynamics3DRoboticArmModel(CDynamics3DEngine& c_engine,
                                  CRoboticArmEntity& c_entity);
       virtual ~CDynamics3DRoboticArmModel();
-      
-      virtual bool CheckIntersectionWithRay(Real& f_t_on_ray,
-                                            const CRay3& c_ray) const;
-
-      virtual bool MoveTo(const CVector3& c_position,
-                          const CQuaternion& c_orientation,
-                          bool b_check_only = false);
-
-      virtual void CalculateBoundingBox();
 
       virtual void UpdateEntityStatus();
       virtual void UpdateFromEntityStatus();
-
-      virtual bool IsCollidingWithSomething() const;
 
       virtual const btTransform& GetModelWorldTransform() const {
          return m_pcMountingPointRigidBody->getWorldTransform();
