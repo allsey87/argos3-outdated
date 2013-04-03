@@ -1,3 +1,9 @@
+
+/**
+ * @file <argos3/plugins/simulator/visualizations/qt-opengl/qtopengl_lua_statetree_model.cpp>
+ *
+ * @author Carlo Pinciroli <ilpincy@gmail.com>
+ */
 #include "qtopengl_lua_statetree_model.h"
 #include "qtopengl_lua_statetree_item.h"
 
@@ -306,6 +312,7 @@ namespace argos {
                std::string(lua_tostring(pt_state, -2)) != "load" &&
                std::string(lua_tostring(pt_state, -2)) != "loadfile" &&
                std::string(lua_tostring(pt_state, -2)) != "loadstring" &&
+               std::string(lua_tostring(pt_state, -2)) != "module"    &&
                std::string(lua_tostring(pt_state, -2)) != "newproxy" &&
                std::string(lua_tostring(pt_state, -2)) != "next" &&
                std::string(lua_tostring(pt_state, -2)) != "pairs" &&
@@ -330,7 +337,6 @@ namespace argos {
                std::string(lua_tostring(pt_state, -2)) != "coroutine" &&
                std::string(lua_tostring(pt_state, -2)) != "debug"     &&
                std::string(lua_tostring(pt_state, -2)) != "io"        &&
-               std::string(lua_tostring(pt_state, -2)) != "module"    &&
                std::string(lua_tostring(pt_state, -2)) != "os"        &&
                std::string(lua_tostring(pt_state, -2)) != "package";
          }

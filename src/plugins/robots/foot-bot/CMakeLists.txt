@@ -35,7 +35,10 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     simulator/footbot_gripper_default_actuator.h
     simulator/footbot_light_rotzonly_sensor.h
     simulator/footbot_motor_ground_rotzonly_sensor.h
-    simulator/footbot_proximity_default_sensor.h)
+    simulator/footbot_proximity_default_sensor.h
+    simulator/footbot_turret_default_actuator.h
+    simulator/footbot_turret_encoder_default_sensor.h
+    simulator/footbot_turret_entity.h)
 endif(ARGOS_BUILD_FOR_SIMULATOR)
 
 #
@@ -70,7 +73,10 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     simulator/footbot_gripper_default_actuator.cpp
     simulator/footbot_light_rotzonly_sensor.cpp
     simulator/footbot_motor_ground_rotzonly_sensor.cpp
-    simulator/footbot_proximity_default_sensor.cpp)
+    simulator/footbot_proximity_default_sensor.cpp
+    simulator/footbot_turret_default_actuator.cpp
+    simulator/footbot_turret_encoder_default_sensor.cpp
+    simulator/footbot_turret_entity.cpp)
   # Compile the graphical visualization only if the necessary libraries have been found
   include(ARGoSCheckQTOpenGL)
   if(ARGOS_COMPILE_QTOPENGL)

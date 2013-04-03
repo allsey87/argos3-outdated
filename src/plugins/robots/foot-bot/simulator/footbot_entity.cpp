@@ -18,6 +18,7 @@
 #include <argos3/plugins/simulator/entities/proximity_sensor_equipped_entity.h>
 #include <argos3/plugins/simulator/entities/wifi_equipped_entity.h>
 #include "footbot_distance_scanner_equipped_entity.h"
+#include "footbot_turret_entity.h"
 
 namespace argos {
 
@@ -53,6 +54,7 @@ namespace argos {
       CComposableEntity(NULL),
       m_pcControllableEntity(NULL),
       m_pcDistanceScannerEquippedEntity(NULL),
+      m_pcTurretEntity(NULL),
       m_pcEmbodiedEntity(NULL),
       m_pcGripperEquippedEntity(NULL),
       m_pcGroundSensorEquippedEntity(NULL),
@@ -61,9 +63,7 @@ namespace argos {
       m_pcProximitySensorEquippedEntity(NULL),
       m_pcRABEquippedEntity(NULL),
       m_pcWheeledEntity(NULL),
-      m_pcWiFiEquippedEntity(NULL),
-      m_fTurretRotationSpeed(0.0f),
-      m_unTurretMode(0) {
+      m_pcWiFiEquippedEntity(NULL) {
    }
 
    /****************************************/
@@ -154,18 +154,25 @@ namespace argos {
          m_pcDistanceScannerEquippedEntity = new CFootBotDistanceScannerEquippedEntity(this,
                                                                                        GetId() + ".distance_scanner");
          AddComponent(*m_pcDistanceScannerEquippedEntity);
-         /* RAB equipped entity */
-         m_pcRABEquippedEntity = new CRABEquippedEntity(this, 10);
-         AddComponent(*m_pcRABEquippedEntity);
-         m_pcRABEquippedEntity->Init(t_tree);
-         /* WiFi equipped entity */
-         m_pcWiFiEquippedEntity = new CWiFiEquippedEntity(this);
-         AddComponent(*m_pcWiFiEquippedEntity);
-         m_pcWiFiEquippedEntity->Init(t_tree);
          /* Embodied entity */
          m_pcEmbodiedEntity = new CEmbodiedEntity(this);
          AddComponent(*m_pcEmbodiedEntity);
          m_pcEmbodiedEntity->Init(t_tree);
+         /* RAB equipped entity */
+         Real fRange = 3.0f;
+         GetNodeAttributeOrDefault(t_tree, "rab_range", fRange, fRange);
+         m_pcRABEquippedEntity = new CRABEquippedEntity(this,
+                                                        GetId() + ".rab",
+                                                        10,
+                                                        fRange,
+                                                        *m_pcEmbodiedEntity);
+         AddComponent(*m_pcRABEquippedEntity);
+         /* Turret equipped entity */
+         m_pcTurretEntity = new CFootBotTurretEntity(this, GetId() + ".turret");
+         AddComponent(*m_pcTurretEntity);
+         /* WiFi equipped entity */
+         m_pcWiFiEquippedEntity = new CWiFiEquippedEntity(this, GetId() + ".wifi");
+         AddComponent(*m_pcWiFiEquippedEntity);
          /* Controllable entity
             It must be the last one, for actuators/sensors to link to composing entities correctly */
          m_pcControllableEntity = new CControllableEntity(this);
@@ -185,9 +192,6 @@ namespace argos {
    void CFootBotEntity::Reset() {
       /* Reset all components */
       CComposableEntity::Reset();
-      m_cTurretRotation = CRadians::ZERO;
-      m_fTurretRotationSpeed = 0.0f;
-      m_unTurretMode = 0;
       /* Update components */
       UpdateComponents();
    }
@@ -197,19 +201,19 @@ namespace argos {
 
    void CFootBotEntity::Destroy() {
       CComposableEntity::Destroy();
-      m_cTurretRotation = CRadians::ZERO;
-      m_fTurretRotationSpeed = 0.0f;
-      m_unTurretMode = 0;
    }
 
    /****************************************/
    /****************************************/
 
+#define UPDATE(COMPONENT) if(COMPONENT->IsEnabled()) COMPONENT->Update();
+
    void CFootBotEntity::UpdateComponents() {
-      m_pcEmbodiedEntity->Update();
-      m_pcDistanceScannerEquippedEntity->Update();
-      m_pcRABEquippedEntity->SetPosition(m_pcEmbodiedEntity->GetPosition());
-      SetLEDPosition();
+      UPDATE(m_pcDistanceScannerEquippedEntity);
+      UPDATE(m_pcTurretEntity);
+      UPDATE(m_pcGripperEquippedEntity);
+      UPDATE(m_pcRABEquippedEntity);
+      if(m_pcLEDEquippedEntity->IsEnabled()) SetLEDPosition();
    }
 
    /****************************************/
@@ -228,7 +232,7 @@ namespace argos {
       /* Set LED positions */
       const CVector3& cEntityPosition = GetEmbodiedEntity().GetPosition();
       CVector3 cLEDPosition;
-      CRadians cLEDAnglePhase = HALF_LED_ANGLE_SLICE + m_cTurretRotation;
+      CRadians cLEDAnglePhase = HALF_LED_ANGLE_SLICE + m_pcTurretEntity->GetRotation();
       CRadians cLEDAngle;
       SET_RING_LED_POSITION(0);
       SET_RING_LED_POSITION(1);
