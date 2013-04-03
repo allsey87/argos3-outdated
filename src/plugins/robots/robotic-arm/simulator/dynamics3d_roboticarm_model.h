@@ -19,21 +19,32 @@ namespace argos {
       CDynamics3DRoboticArmModel(CDynamics3DEngine& c_engine,
                                  CRoboticArmEntity& c_entity);
       virtual ~CDynamics3DRoboticArmModel();
+      
+      virtual bool CheckIntersectionWithRay(Real& f_t_on_ray,
+                                            const CRay3& c_ray) const;
+
+      virtual bool MoveTo(const CVector3& c_position,
+                          const CQuaternion& c_orientation,
+                          bool b_check_only = false);
+
+      virtual void Reset();
+
+      virtual void CalculateBoundingBox();
 
       virtual void UpdateEntityStatus();
       virtual void UpdateFromEntityStatus();
 
-      virtual const btTransform& GetModelWorldTransform() const {
-         return m_pcMountingPointRigidBody->getWorldTransform();
-      }
+      virtual bool IsCollidingWithSomething() const;
 
    private:
 
       CRoboticArmEntity&      m_cRoboticArmEntity;
+      CLinkEquippedEntity&    m_cLinkEquippedEntity;
       
-      btSphereShape*          m_pcMountingPointCollisionShape;
-      btDefaultMotionState*   m_pcMountingPointMotionState;
-      btRigidBody*            m_pcMountingPointRigidBody;
+      std::vector<btBoxShape*> m_vecLinkCollisionShapes;
+      std::vector<btDefaultMotionState*> m_vecLinkMotionStates;
+      std::vector<btRigidBody*> m_vecLinkRigidBodies;
+      std::vector<btHingeConstraint*> m_vecLinkConstraints;
    };
 }
 
