@@ -82,16 +82,14 @@ namespace argos {
       //m_pcRNG = CARGoSRandom::CreateRNG("argos");
       
       m_pcBroadphaseInterface->resetPool(m_pcCollisionDispatcher);
-		m_pcSolver->setRandSeed(100ul);
+      m_pcSolver->setRandSeed(100ul);
    }
 
    /****************************************/
    /****************************************/
 
    void CDynamics3DEngine::Reset() {
-      
-      
-      
+
       /* Remove and reset the physics entities
        * by iterating over the vector, we ensure that the entities are removed in the same order
        * as they were added during initisation
@@ -103,6 +101,8 @@ namespace argos {
          it->second->Reset();
       }
       
+      m_pcGroundRigidBody->clearForces();
+      
       /* clear all forces in the world */
       m_pcWorld->clearForces();
       
@@ -110,13 +110,13 @@ namespace argos {
        * Reset the random seed - TODO take from ARGoS RNG
        */     
       m_pcBroadphaseInterface->resetPool(m_pcCollisionDispatcher);
-		m_pcSolver->setRandSeed(100ul);
+      m_pcSolver->setRandSeed(100ul);
 
 		/* Add elements back to the engine
 		 * by iterating over the vector, we ensure that the entities are added in the same order
        * as they were added during initisation, this is important for repeatability between resets
        */
-		for(CDynamics3DModel::TMap::iterator iter = m_tPhysicsModels.begin();
+      for(CDynamics3DModel::TMap::iterator iter = m_tPhysicsModels.begin();
           iter != m_tPhysicsModels.end(); ++iter) {
   
          //(*iter)->AddEntityToWorld();
@@ -156,26 +156,34 @@ namespace argos {
 
    void CDynamics3DEngine::Update() {
       
-      fprintf(stderr, "[DEBUG] simulation constraints = %d\n", m_pcWorld->getNumConstraints());
-      fprintf(stderr, "[DEBUG] simulation bodies = %d\n", m_pcWorld->getNumCollisionObjects());
-      
       /* Update the physics state from the entities */
       for(CDynamics3DModel::TMap::iterator it = m_tPhysicsModels.begin();
           it != m_tPhysicsModels.end(); ++it) {
          it->second->UpdateFromEntityStatus();
       }
-      
-      /* Advance the simulation by m_fSimulationClockTick */
-      for(size_t i = 0; i < m_unIterations; ++i) {
-         m_pcWorld->stepSimulation(m_fDeltaT, 0u);
-      }
 
-      fprintf(stderr, "[DEBUG] simulation stepped!\n");
+      //      fprintf(stderr, )
+      //fprintf(stderr, "stepping bullet physics simulation by %d iterations of %.5f seconds\n", m_unIterations, m_fDeltaT);
+      /* Advance the simulation by m_unInterations * m_fDeltaT */
+      // for(size_t i = 0; i < m_unIterations; ++i) {
+      //   fprintf(stderr, "executing step %d of %d\n", i + 1, m_unIterations);
+      //  int ss = m_pcWorld->stepSimulation(m_fDeltaT, 0u);
+      
+      //fprintf(stderr, "m_fSimulationClockTick = %.3f\n", m_fSimulationClockTick);
+
+      //int ss = m_pcWorld->stepSimulation(m_fSimulationClockTick, 0u);
+      m_pcWorld->stepSimulation(m_fSimulationClockTick, m_unIterations, m_fDeltaT);
+
+      //fprintf(stderr, "executed %d iterations\n", ss);
+         // }
 
       /* Update the simulated space */
       for(CDynamics3DModel::TMap::iterator it = m_tPhysicsModels.begin();
           it != m_tPhysicsModels.end(); ++it) {
+         it->second->UpdateModelCompositeShape();
+         it->second->CalculateBoundingBox();
          it->second->UpdateEntityStatus();
+         
       }
    }
    
@@ -225,15 +233,15 @@ namespace argos {
                                            CDynamics3DModel& c_model) {
       m_tPhysicsModels[str_id] = &c_model;
       
-      for(std::vector<btRigidBody*>::const_iterator itBody = c_model.GetRigidBodies().begin(); 
+      for(std::map<std::string, btRigidBody*>::const_iterator itBody = c_model.GetRigidBodies().begin(); 
           itBody !=  c_model.GetRigidBodies().end();
           itBody++) {   
-         m_pcWorld->addRigidBody(*itBody);
+         m_pcWorld->addRigidBody(itBody->second);
       }
-      for(std::vector<btTypedConstraint*>::const_iterator itConstraint = c_model.GetConstraints().begin(); 
+      for(std::map<std::string, btTypedConstraint*>::const_iterator itConstraint = c_model.GetConstraints().begin(); 
           itConstraint !=  c_model.GetConstraints().end();
           itConstraint++) {   
-         m_pcWorld->addConstraint(*itConstraint, true);
+         m_pcWorld->addConstraint(itConstraint->second, true);
       }
    }
 
@@ -242,15 +250,15 @@ namespace argos {
    void CDynamics3DEngine::RemovePhysicsModel(const std::string& str_id) {
       CDynamics3DModel::TMap::iterator it = m_tPhysicsModels.find(str_id);
       if(it != m_tPhysicsModels.end()) {
-         for(std::vector<btTypedConstraint*>::const_iterator itConstraint = it->second->GetConstraints().begin(); 
+         for(std::map<std::string, btTypedConstraint*>::const_iterator itConstraint = it->second->GetConstraints().begin(); 
              itConstraint !=  it->second->GetConstraints().end();
              itConstraint++) {   
-            m_pcWorld->removeConstraint(*itConstraint);
+            m_pcWorld->removeConstraint(itConstraint->second);
          }
-         for(std::vector<btRigidBody*>::const_iterator itBody = it->second->GetRigidBodies().begin(); 
+         for(std::map<std::string, btRigidBody*>::const_iterator itBody = it->second->GetRigidBodies().begin(); 
              itBody !=  it->second->GetRigidBodies().end();
              itBody++) {
-            m_pcWorld->removeRigidBody(*itBody);
+            m_pcWorld->removeRigidBody(itBody->second);
          }
          delete it->second;
          m_tPhysicsModels.erase(it);

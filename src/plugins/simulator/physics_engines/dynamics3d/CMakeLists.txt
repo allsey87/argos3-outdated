@@ -362,6 +362,7 @@ set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET
 # Headers of the 3d dynamics physics engine
 set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D
   dynamics3d_box_model.h
+  dynamics3d_cylinder_model.h
   dynamics3d_model.h
   dynamics3d_engine.h)
 
@@ -371,6 +372,7 @@ set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D
 # Dynamics 3D source files
 set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D
   dynamics3d_box_model.cpp
+  dynamics3d_cylinder_model.cpp
   dynamics3d_engine.cpp)
 
 #

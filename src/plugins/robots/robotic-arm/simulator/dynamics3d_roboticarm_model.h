@@ -1,0 +1,40 @@
+/**
+ * @file <argos3/plugins/robots/robotic-arm/simulator/dynamics3d_roboticarm_model.h>
+ *
+ * @author Michael Allwright - <allsey87@gmail.com>
+ */
+
+#ifndef DYNAMICS3D_ROBOTICARM_MODEL_H
+#define DYNAMICS3D_ROBOTICARM_MODEL_H
+
+#include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_model.h>
+#include <argos3/plugins/robots/robotic-arm/simulator/roboticarm_entity.h>
+
+namespace argos {
+
+   class CDynamics3DRoboticArmModel : public CDynamics3DModel {
+
+   public:
+
+      CDynamics3DRoboticArmModel(CDynamics3DEngine& c_engine,
+                                 CRoboticArmEntity& c_entity);
+      virtual ~CDynamics3DRoboticArmModel();
+
+      virtual void UpdateEntityStatus();
+      virtual void UpdateFromEntityStatus();
+
+      virtual const btTransform& GetModelWorldTransform() const {
+         return m_pcMountingPointRigidBody->getWorldTransform();
+      }
+
+   private:
+
+      CRoboticArmEntity&      m_cRoboticArmEntity;
+      
+      btSphereShape*          m_pcMountingPointCollisionShape;
+      btDefaultMotionState*   m_pcMountingPointMotionState;
+      btRigidBody*            m_pcMountingPointRigidBody;
+   };
+}
+
+#endif

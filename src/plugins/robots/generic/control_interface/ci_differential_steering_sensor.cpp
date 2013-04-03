@@ -1,11 +1,14 @@
 /**
- * @file <argos3/plugins/robots/generic/control_interface/ci_differential_steering_sensor.h>
+ * @file <argos3/plugins/robots/generic/control_interface/ci_differential_steering_sensor.cpp>
  *
  * @author Carlo Pinciroli - <ilpincy@gmail.com>
  */
 
 #include "ci_differential_steering_sensor.h"
+
+#ifdef ARGOS_WITH_LUA
 #include <argos3/core/wrappers/lua/lua_utility.h>
+#endif
 
 namespace argos {
    

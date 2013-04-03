@@ -9,6 +9,7 @@ set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL_MODELS
 # argos3/plugins/simulator/visualizations/qt-opengl
 # moc-headers processed by Qt's MOC utility
 set(ARGOS3_MOC_HEADERS_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL
+  qtopengl_application.h
   qtopengl_camera.h
   qtopengl_main_window.h
   qtopengl_widget.h)
@@ -55,12 +56,12 @@ set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL
   models/qtopengl_box.cpp
   models/qtopengl_cylinder.cpp
   models/qtopengl_light.cpp
-  qtopengl_user_functions.cpp
+  qtopengl_application.cpp
   qtopengl_camera.cpp
   qtopengl_main_window.cpp
-  qtopengl_widget.cpp
   qtopengl_render.cpp
-  )
+  qtopengl_user_functions.cpp
+  qtopengl_widget.cpp)
 # Compile joystick support if SDL was found
 if(SDL_FOUND)
   set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL
@@ -90,7 +91,6 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_library(argos3plugin_${ARGOS_BUILD_FOR}_qtopengl SHARED
   ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_VISUALIZATIONS_QTOPENGL})
 target_link_libraries(argos3plugin_${ARGOS_BUILD_FOR}_qtopengl argos3plugin_${ARGOS_BUILD_FOR}_entities argos3plugin_${ARGOS_BUILD_FOR}_qtopengl ${QT_LIBRARIES} ${GLUT_LIBRARY} ${OPENGL_LIBRARY})
-link_googleperftools_to(argos3plugin_${ARGOS_BUILD_FOR}_qtopengl)
 # Link SDL if necessary
 if(SDL_FOUND)
  target_link_libraries(argos3plugin_${ARGOS_BUILD_FOR}_qtopengl ${SDL_LIBRARY})

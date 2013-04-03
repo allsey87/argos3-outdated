@@ -22,12 +22,16 @@ namespace argos {
    static const Real FOOTBOT_BATT_GROUND_OFFSET    =  0.006000000f;
    static const Real FOOTBOT_BASEMODULE_RADIUS     =  0.085036758f;
    static const Real FOOTBOT_BASEMODULE_HEIGHT     =  0.072000000f;
-   static const Real FOOTBOT_BASEMODULE_Y_OFFSET   =  (FOOTBOT_BATT_H + FOOTBOT_BASEMODULE_HEIGHT) / 2.0f;
+   //static const Real FOOTBOT_BASEMODULE_Y_OFFSET   =  (FOOTBOT_BATT_H + FOOTBOT_BASEMODULE_HEIGHT) / 2.0f;
    static const Real FOOTBOT_BASEMODULE_MASS       =  0.100000000f;
 
    static const Real FOOTBOT_PIVOT_RADIUS          =  FOOTBOT_WHEEL_RADIUS;
-   static const Real FOOTBOT_PIVOT_OFFSET          =  0.050000000f;
+   static const Real FOOTBOT_PIVOT_HALF_DISTANCE   =  0.050000000f;
    static const Real FOOTBOT_PIVOT_MASS            =  0.100000000f;
+   
+   static const Real FOOTBOT_CENTER_OF_MASS_OFFSET =  FOOTBOT_BATT_H + FOOTBOT_BATT_GROUND_OFFSET;
+   static const Real FOOTBOT_WHEEL_Y_OFFSET        =  FOOTBOT_WHEEL_RADIUS + FOOTBOT_BATT_GROUND_OFFSET;
+   static const Real FOOTBOT_PIVOT_Y_OFFSET        =  FOOTBOT_PIVOT_RADIUS + FOOTBOT_BATT_GROUND_OFFSET;
 
    enum EFootbotWheels {
       FOOTBOT_LEFT_WHEEL  = 0,
@@ -37,34 +41,37 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   // Shared static transforms
-
+   // Shared static transforms for bodies
    btTransform CDynamics3DFootBotModel::m_cLeftWheelTransform(
-      btQuaternion(btVector3(1.0f, 0.0f, 0.0f), ARGOS_PI * 0.5f),
-      btVector3(0.0f, FOOTBOT_WHEEL_RADIUS, -FOOTBOT_WHEEL_HALF_DISTANCE));
+      btQuaternion(btVector3(1.0f, 0.0f, 0.0f), -ARGOS_PI * 0.5f),
+      btVector3(0.0f, FOOTBOT_WHEEL_RADIUS, -FOOTBOT_WHEEL_HALF_DISTANCE + FOOTBOT_WHEEL_THICKNESS * 0.5f));
 
    btTransform CDynamics3DFootBotModel::m_cRightWheelTransform(
       btQuaternion(btVector3(1.0f, 0.0f, 0.0f), ARGOS_PI * 0.5f),
-      btVector3(0.0f, FOOTBOT_WHEEL_RADIUS, FOOTBOT_WHEEL_HALF_DISTANCE));
+      btVector3(0.0f, FOOTBOT_WHEEL_RADIUS, FOOTBOT_WHEEL_HALF_DISTANCE - FOOTBOT_WHEEL_THICKNESS * 0.5f));
 
    btTransform CDynamics3DFootBotModel::m_cFrontPivotTransform(
       btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-      btVector3(FOOTBOT_PIVOT_OFFSET, FOOTBOT_PIVOT_RADIUS, 0.0f));
+      btVector3(FOOTBOT_PIVOT_HALF_DISTANCE, 0.0f, 0.0f));
 
    btTransform CDynamics3DFootBotModel::m_cRearPivotTransform(
       btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-      btVector3(-FOOTBOT_PIVOT_OFFSET, FOOTBOT_PIVOT_RADIUS, 0.0f));
+      btVector3(-FOOTBOT_PIVOT_HALF_DISTANCE, 0.0f, 0.0f));
 
+   btTransform CDynamics3DFootBotModel::m_cBodyTransform(
+      btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
+      btVector3(0.0f, FOOTBOT_BATT_GROUND_OFFSET, 0.0f));
+
+   // Shared static transforms for compound body geometry
    btTransform CDynamics3DFootBotModel::m_cBatterySocketTransform(
       btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-      btVector3(0.0f, FOOTBOT_BATT_GROUND_OFFSET + FOOTBOT_BATT_H * 0.5f, 0.0f));
+      btVector3(0.0f, -FOOTBOT_BATT_H * 0.5f, 0.0f));
 
    btTransform CDynamics3DFootBotModel::m_cBaseModuleTransform(
       btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-      btVector3(0.0f, FOOTBOT_BATT_GROUND_OFFSET + FOOTBOT_BATT_H + FOOTBOT_BASEMODULE_HEIGHT * 0.5f, 0.0f));
+      btVector3(0.0f, FOOTBOT_BASEMODULE_HEIGHT * 0.5f, 0.0f));
 
    // Shared static collision shapes
-
    btBoxShape CDynamics3DFootBotModel::m_cBatterySocketCollisionShape(
       btVector3(FOOTBOT_BATT_L, FOOTBOT_BATT_H, FOOTBOT_BATT_W) * 0.5f);
 
@@ -89,15 +96,14 @@ namespace argos {
       m_cWheeledEntity(m_cFootBotEntity.GetWheeledEntity()) {
 
       if(m_cBodyCollisionShape.getNumChildShapes() == 0) {
-         fprintf(stderr, "[DEBUG]  doing init of m_cBodyCollisionShape, getNumChildShapes = %d\n", m_cBodyCollisionShape.getNumChildShapes());
-
          m_cBodyCollisionShape.addChildShape(m_cBatterySocketTransform, &m_cBatterySocketCollisionShape);
          m_cBodyCollisionShape.addChildShape(m_cBaseModuleTransform, &m_cBaseModuleCollisionShape);
-
-         fprintf(stderr, "[DEBUG]  init of m_cBodyCollisionShape complete, getNumChildShapes = %d\n", m_cBodyCollisionShape.getNumChildShapes());
-      }
-      else {
-         fprintf(stderr, "[DEBUG] skipping init of m_cBodyCollisionShape, getNumChildShapes = %d\n", m_cBodyCollisionShape.getNumChildShapes());
+      
+         /* //DEBUG
+         btVector3 minAabb;
+         btVector3 maxAabb;
+         m_cBodyCollisionShape.getAabb(btTransform::getIdentity(), minAabb, maxAabb);
+         fprintf(stderr, "created footbot body collision shape with extents: [%.6f, %.6f, %.6f]\n", (maxAabb - minAabb).getX(), (maxAabb - minAabb).getY(), (maxAabb - minAabb).getZ()); */
       }
 
       // Vector for calculating interia
@@ -107,70 +113,77 @@ namespace argos {
       btTransform cModelTransform(ARGoSToBullet(GetEmbodiedEntity().GetOrientation()),
                                    ARGoSToBullet(GetEmbodiedEntity().GetPosition()));
 
-
-
       /** Create the body **/
-      m_pcBodyMotionState = new btDefaultMotionState(cModelTransform);
+      m_pcBodyMotionState = new btDefaultMotionState(cModelTransform * m_cBodyTransform, btTransform(
+         btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
+         btVector3(0.0f, -FOOTBOT_BATT_H, 0.0f)));
       m_cBodyCollisionShape.calculateLocalInertia(FOOTBOT_BASEMODULE_MASS, cInertia);
       m_pcBodyRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          FOOTBOT_BASEMODULE_MASS, m_pcBodyMotionState, &m_cBodyCollisionShape, cInertia));
-
-      m_vecLocalRigidBodies.push_back(m_pcBodyRigidBody);
+      m_mapLocalRigidBodies["body"] = m_pcBodyRigidBody;
 
       /** create the wheels **/
-      m_pcLeftWheelMotionState = new btDefaultMotionState(cModelTransform * m_cLeftWheelTransform);
-      m_pcRightWheelMotionState = new btDefaultMotionState(cModelTransform * m_cRightWheelTransform);
+      m_pcLeftWheelMotionState = new btDefaultMotionState(cModelTransform * m_cLeftWheelTransform, btTransform(
+         btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
+         btVector3(0.0f, -FOOTBOT_WHEEL_THICKNESS * 0.5f, 0.0f)));
+      m_pcRightWheelMotionState = new btDefaultMotionState(cModelTransform * m_cRightWheelTransform, btTransform(
+         btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
+         btVector3(0.0f, -FOOTBOT_WHEEL_THICKNESS * 0.5f, 0.0f)));
       m_cWheelCollisionShape.calculateLocalInertia(FOOTBOT_WHEEL_MASS, cInertia);
       m_pcLeftWheelRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          FOOTBOT_WHEEL_MASS, m_pcLeftWheelMotionState, &m_cWheelCollisionShape, cInertia));
       m_pcRightWheelRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          FOOTBOT_WHEEL_MASS, m_pcRightWheelMotionState, &m_cWheelCollisionShape, cInertia));
+      m_mapLocalRigidBodies["left-wheel"] = m_pcLeftWheelRigidBody;
+      m_mapLocalRigidBodies["right-wheel"] = m_pcRightWheelRigidBody;
 
-      m_vecLocalRigidBodies.push_back(m_pcLeftWheelRigidBody);
-      m_vecLocalRigidBodies.push_back(m_pcRightWheelRigidBody);
-
-      /** create the wheels to base constraints **/
+      /** create the wheels to body constraints **/
       m_pcLeftWheelToBodyConstraint = new btHingeConstraint(
          *m_pcLeftWheelRigidBody,
          *m_pcBodyRigidBody,
          btVector3(0.0f, 0.0f, 0.0f),
-         btVector3(0.0f, FOOTBOT_WHEEL_RADIUS, -FOOTBOT_WHEEL_HALF_DISTANCE),
-         btVector3(0.0f, -1.0f, 0.0f),
+         btVector3(0.0f, -FOOTBOT_WHEEL_Y_OFFSET, -FOOTBOT_WHEEL_HALF_DISTANCE),
+         btVector3(0.0f, 1.0f, 0.0f),
          btVector3(0.0f, 0.0f, -1.0f));
       m_pcRightWheelToBodyConstraint = new btHingeConstraint(
          *m_pcRightWheelRigidBody,
          *m_pcBodyRigidBody,
          btVector3(0.0f, 0.0f, 0.0f),
-         btVector3(0.0f, FOOTBOT_WHEEL_RADIUS, FOOTBOT_WHEEL_HALF_DISTANCE),
+         btVector3(0.0f, -FOOTBOT_WHEEL_Y_OFFSET, FOOTBOT_WHEEL_HALF_DISTANCE),
          btVector3(0.0f, -1.0f, 0.0f),
          btVector3(0.0f, 0.0f, -1.0f));
-      m_vecLocalConstraints.push_back(m_pcLeftWheelToBodyConstraint);
-      m_vecLocalConstraints.push_back(m_pcRightWheelToBodyConstraint);
+      m_mapLocalConstraints["left-wheel:body"] = m_pcLeftWheelToBodyConstraint;
+      m_mapLocalConstraints["right-wheel:body"] = m_pcRightWheelToBodyConstraint;
 
       /** Create the pivots **/
-      m_pcFrontPivotMotionState = new btDefaultMotionState(cModelTransform * m_cFrontPivotTransform);
-      m_pcRearPivotMotionState = new btDefaultMotionState(cModelTransform * m_cRearPivotTransform);
+      m_pcFrontPivotMotionState = new btDefaultMotionState(cModelTransform * m_cFrontPivotTransform, btTransform(
+         btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
+         btVector3(0.0f, -FOOTBOT_PIVOT_RADIUS, 0.0f)));
+      m_pcRearPivotMotionState = new btDefaultMotionState(cModelTransform * m_cRearPivotTransform, btTransform(
+         btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
+         btVector3(0.0f, -FOOTBOT_PIVOT_RADIUS, 0.0f)));
       m_cPivotCollisionShape.calculateLocalInertia(FOOTBOT_PIVOT_MASS, cInertia);
       m_pcFrontPivotRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          FOOTBOT_PIVOT_MASS, m_pcFrontPivotMotionState, &m_cPivotCollisionShape, cInertia));
       m_pcRearPivotRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          FOOTBOT_PIVOT_MASS, m_pcRearPivotMotionState, &m_cPivotCollisionShape, cInertia));
-      m_vecLocalRigidBodies.push_back(m_pcFrontPivotRigidBody);
-      m_vecLocalRigidBodies.push_back(m_pcRearPivotRigidBody);
+      m_mapLocalRigidBodies["front-pivot"] = m_pcFrontPivotRigidBody;
+      m_mapLocalRigidBodies["rear-pivot"] = m_pcRearPivotRigidBody;
 
       /** create the pivots to base constraints **/
       m_pcFrontPivotToBodyConstraint = new btPoint2PointConstraint(
          *m_pcFrontPivotRigidBody,
          *m_pcBodyRigidBody,
          btVector3(0.0f, 0.0f, 0.0f),
-         btVector3(FOOTBOT_PIVOT_OFFSET, FOOTBOT_PIVOT_RADIUS, 0.0f));
+         btVector3(FOOTBOT_PIVOT_HALF_DISTANCE, -FOOTBOT_PIVOT_Y_OFFSET, 0.0f));
       m_pcRearPivotToBodyConstraint = new btPoint2PointConstraint(
          *m_pcRearPivotRigidBody,
          *m_pcBodyRigidBody,
          btVector3(0.0f, 0.0f, 0.0f),
-         btVector3(-FOOTBOT_PIVOT_OFFSET, FOOTBOT_PIVOT_RADIUS, 0.0f));
-      m_vecLocalConstraints.push_back(m_pcFrontPivotToBodyConstraint);
-      m_vecLocalConstraints.push_back(m_pcRearPivotToBodyConstraint);
+         btVector3(-FOOTBOT_PIVOT_HALF_DISTANCE, -FOOTBOT_PIVOT_Y_OFFSET, 0.0f));
+      m_mapLocalConstraints["front-pivot:body"] = m_pcFrontPivotToBodyConstraint;
+      m_mapLocalConstraints["rear-pivot:body"] = m_pcRearPivotToBodyConstraint;
+     
    }
 
    /****************************************/
@@ -195,77 +208,14 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   bool CDynamics3DFootBotModel::CheckIntersectionWithRay(Real& f_t_on_ray,
-                                                           const CRay3& c_ray) const {
-      return false;
-   }
-
-   /****************************************/
-   /****************************************/
-
-   bool CDynamics3DFootBotModel::MoveTo(const CVector3& c_position,
-                                         const CQuaternion& c_orientation,
-                                         bool b_check_only) {
-      return false;
-   }
-
-   /****************************************/
-   /****************************************/
-
-   void CDynamics3DFootBotModel::Reset() {
-
-      btTransform cResetTransform(
-         ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
-         ARGoSToBullet(GetEmbodiedEntity().GetInitPosition())
-      );
-
-      m_pcLeftWheelRigidBody->getMotionState()->setWorldTransform(cResetTransform * m_cLeftWheelTransform);
-      m_pcRightWheelRigidBody->getMotionState()->setWorldTransform(cResetTransform * m_cRightWheelTransform);
-      m_pcFrontPivotRigidBody->getMotionState()->setWorldTransform(cResetTransform * m_cFrontPivotTransform);
-      m_pcRearPivotRigidBody->getMotionState()->setWorldTransform(cResetTransform * m_cRearPivotTransform);
-      m_pcBodyRigidBody->getMotionState()->setWorldTransform(cResetTransform);
-
-      // clear velocities and forces on bodies
-      for(std::vector<btRigidBody*>::iterator itBody = m_vecLocalRigidBodies.begin();
-          itBody !=  m_vecLocalRigidBodies.end();
-          itBody++) {
-         (*itBody)->setAngularVelocity(btVector3(0.0f, 0.0f, 0.0f));
-         (*itBody)->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
-         (*itBody)->clearForces();
-      }
-   }
-
-   /****************************************/
-   /****************************************/
-
    void CDynamics3DFootBotModel::UpdateEntityStatus() {
       /* Update footbot position and orientation */
-      btTransform cModelTransform;
+      const btTransform& cUpdateTransform = m_pcBodyMotionState->m_graphicsWorldTrans * m_cBodyTransform.inverse();
 
+      GetEmbodiedEntity().SetPosition(BulletToARGoS(cUpdateTransform.getOrigin()));
+      GetEmbodiedEntity().SetOrientation(BulletToARGoS(cUpdateTransform.getRotation()));
 
-
-      m_pcLeftWheelRigidBody->getMotionState()->getWorldTransform(cModelTransform);
-      fprintf(stderr, "[DEBUG] Bullet position for lwheel\t = %.3f, %.3f, %.3f\n", cModelTransform.getOrigin().getX(), cModelTransform.getOrigin().getY(), cModelTransform.getOrigin().getZ());
-      fprintf(stderr, "[DEBUG] Bullet angular speed for lwheel\t = %.3f, %.3f, %.3f\n", m_pcLeftWheelRigidBody->getAngularVelocity().getX(), m_pcLeftWheelRigidBody->getAngularVelocity().getY(), m_pcLeftWheelRigidBody->getAngularVelocity().getZ());
-
-      m_pcRightWheelRigidBody->getMotionState()->getWorldTransform(cModelTransform);
-      fprintf(stderr, "[DEBUG] Bullet position for rwheel\t = %.3f, %.3f, %.3f\n", cModelTransform.getOrigin().getX(), cModelTransform.getOrigin().getY(), cModelTransform.getOrigin().getZ());
-      fprintf(stderr, "[DEBUG] Bullet angular speed for rwheel\t = %.3f, %.3f, %.3f\n", m_pcRightWheelRigidBody->getAngularVelocity().getX(), m_pcRightWheelRigidBody->getAngularVelocity().getY(), m_pcRightWheelRigidBody->getAngularVelocity().getZ());
-
-      m_pcFrontPivotRigidBody->getMotionState()->getWorldTransform(cModelTransform);
-      fprintf(stderr, "[DEBUG] Bullet position for fpivot\t = %.3f, %.3f, %.3f\n", cModelTransform.getOrigin().getX(), cModelTransform.getOrigin().getY(), cModelTransform.getOrigin().getZ());
-
-      m_pcRearPivotRigidBody->getMotionState()->getWorldTransform(cModelTransform);
-      fprintf(stderr, "[DEBUG] Bullet position for rpivot\t = %.3f, %.3f, %.3f\n", cModelTransform.getOrigin().getX(), cModelTransform.getOrigin().getY(), cModelTransform.getOrigin().getZ());
-
-
-      // DON'T TOUCH THIS MICHAEL!
-
-      m_pcBodyRigidBody->getMotionState()->getWorldTransform(cModelTransform);
-      fprintf(stderr, "[DEBUG] Bullet position for body\t = %.3f, %.3f, %.3f\n", cModelTransform.getOrigin().getX(), cModelTransform.getOrigin().getY(), cModelTransform.getOrigin().getZ());
-
-      GetEmbodiedEntity().SetPosition(BulletToARGoS(cModelTransform.getOrigin()));
-      GetEmbodiedEntity().SetOrientation(BulletToARGoS(cModelTransform.getRotation()));
+      //fprintf(stderr, "position of %s in ARGoS: [%.3f, %.3f, %.3f]\n", m_cFootBotEntity.GetId().c_str(), GetEmbodiedEntity().GetPosition().GetX(), GetEmbodiedEntity().GetPosition().GetY(),GetEmbodiedEntity().GetPosition().GetZ());
 
       /* Update components */
       m_cFootBotEntity.UpdateComponents();
@@ -274,7 +224,23 @@ namespace argos {
    /****************************************/
    /****************************************/
 
+   
+
    void CDynamics3DFootBotModel::UpdateFromEntityStatus() {
+      /*
+      for(std::map<std::string, btRigidBody*>::iterator it = m_mapLocalRigidBodies.begin();
+          it != m_mapLocalRigidBodies.end();
+          it++) {
+         
+         btDefaultMotionState* pcMotionState = dynamic_cast<btDefaultMotionState*>(it->second->getMotionState());
+
+         fprintf(stderr, "[DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = %.3f\n", it->first.c_str(), pcMotionState->m_graphicsWorldTrans.getOrigin().getX(), pcMotionState->m_graphicsWorldTrans.getOrigin().getY(), pcMotionState->m_graphicsWorldTrans.getOrigin().getZ(), pcMotionState->m_graphicsWorldTrans.getRotation().getAxis().getX(), pcMotionState->m_graphicsWorldTrans.getRotation().getAxis().getY(), pcMotionState->m_graphicsWorldTrans.getRotation().getAxis().getZ(), pcMotionState->m_graphicsWorldTrans.getRotation().getAngle() * 57.2957795131f);
+
+         fprintf(stderr, "[DEBUG] %s/m_centerOfMassOffset: position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = %.3f\n", it->first.c_str(), pcMotionState->m_centerOfMassOffset.getOrigin().getX(), pcMotionState->m_centerOfMassOffset.getOrigin().getY(), pcMotionState->m_centerOfMassOffset.getOrigin().getZ(), pcMotionState->m_centerOfMassOffset.getRotation().getAxis().getX(), pcMotionState->m_centerOfMassOffset.getRotation().getAxis().getY(), pcMotionState->m_centerOfMassOffset.getRotation().getAxis().getZ(), pcMotionState->m_centerOfMassOffset.getRotation().getAngle() * 57.2957795131f);
+
+         fprintf(stderr, "[DEBUG] %s/m_startWorldTrans:    position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = %.3f\n", it->first.c_str(), pcMotionState->m_startWorldTrans.getOrigin().getX(), pcMotionState->m_startWorldTrans.getOrigin().getY(), pcMotionState->m_startWorldTrans.getOrigin().getZ(), pcMotionState->m_startWorldTrans.getRotation().getAxis().getX(), pcMotionState->m_startWorldTrans.getRotation().getAxis().getY(), pcMotionState->m_startWorldTrans.getRotation().getAxis().getZ(), pcMotionState->m_startWorldTrans.getRotation().getAngle() * 57.2957795131f);
+      }
+      */ 
 
       /* Get wheel speeds from entity */
       const Real* m_pfCurrentWheelVelocityFromSensor = m_cWheeledEntity.GetWheelVelocities();
@@ -288,44 +254,33 @@ namespace argos {
          fLeftWheelVelocity  = m_pfCurrentWheelVelocityFromSensor[FOOTBOT_LEFT_WHEEL] / FOOTBOT_WHEEL_RADIUS;
          fRightWheelVelocity = m_pfCurrentWheelVelocityFromSensor[FOOTBOT_RIGHT_WHEEL] / FOOTBOT_WHEEL_RADIUS;
 
-         // activate the bodies!
-         for(std::vector<btRigidBody*>::iterator itBody = m_vecLocalRigidBodies.begin();
-             itBody !=  m_vecLocalRigidBodies.end();
+         // activate the bodies! note: it might be possible just to activate the wheels... also, we should just use the pointers here to avoid iterating over the map during the update loop
+         for(std::map<std::string, btRigidBody*>::iterator itBody = m_mapLocalRigidBodies.begin();
+             itBody !=  m_mapLocalRigidBodies.end();
              itBody++) {
-            (*itBody)->activate();
+            itBody->second->activate();
          }
 
-         fprintf(stderr, "[DEBUG] non zero velocity: %.3f,%.3f\n",
-                 fLeftWheelVelocity ,
-                 fRightWheelVelocity );
-
-         /* because of the how the wheels are attached to the epuck the velocity on the right wheel speed is negated */
          m_pcLeftWheelToBodyConstraint->enableAngularMotor(true, fLeftWheelVelocity, FOOTBOT_WHEEL_MOTOR_IMPULSE);
          m_pcRightWheelToBodyConstraint->enableAngularMotor(true, fRightWheelVelocity, FOOTBOT_WHEEL_MOTOR_IMPULSE);
       }
       else {
-         fprintf(stderr, "[DEBUG] zero velocity: %.3f,%.3f\n", m_pfCurrentWheelVelocityFromSensor[FOOTBOT_LEFT_WHEEL] , m_pfCurrentWheelVelocityFromSensor[FOOTBOT_RIGHT_WHEEL] );
-
-
 
          /* No, we don't want to move - zero all speeds */
          m_pcLeftWheelToBodyConstraint->enableAngularMotor(false, 0.0f, 0.0f);
          m_pcRightWheelToBodyConstraint->enableAngularMotor(false, 0.0f, 0.0f);
       }
-      fprintf(stderr, "[DEBUG] lwheel hinge angle: %.3f\n", m_pcLeftWheelToBodyConstraint->getHingeAngle() );
-      fprintf(stderr, "[DEBUG] rwheel hinge angle: %.3f\n", m_pcRightWheelToBodyConstraint->getHingeAngle() );
+      //fprintf(stderr, "[DEBUG] lwheel hinge angle: %.3f\n", m_pcLeftWheelToBodyConstraint->getHingeAngle() );
+      //fprintf(stderr, "[DEBUG] rwheel hinge angle: %.3f\n", m_pcRightWheelToBodyConstraint->getHingeAngle() );
 
-
-      fprintf(stderr, "[DEBUG] number of registered model constraints: %lu\n", m_vecLocalConstraints.size() );
-      fprintf(stderr, "[DEBUG] number of registered model bodies: %lu\n", m_vecLocalRigidBodies.size() );
    }
 
    /****************************************/
    /****************************************/
 
-   void CDynamics3DFootBotModel::CalculateBoundingBox() {
+   //void CDynamics3DFootBotModel::CalculateBoundingBox() {
       /** @todo Calculate foot-bot bounding box */
-   }
+   //}
 
    /****************************************/
    /****************************************/

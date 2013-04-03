@@ -9,9 +9,10 @@
 
 namespace argos {
    class CControllableEntity;
-   class CDistanceScannerEquippedEntity;
+   class CFootBotDistanceScannerEquippedEntity;
    class CEmbodiedEntity;
    class CFootBotEntity;
+   class CFootBotTurretEntity;
    class CGripperEquippedEntity;
    class CGroundSensorEquippedEntity;
    class CLEDEquippedEntity;
@@ -46,8 +47,12 @@ namespace argos {
          return *m_pcControllableEntity;
       }
 
-      inline CDistanceScannerEquippedEntity& GetDistanceScannerEquippedEntity() {
+      inline CFootBotDistanceScannerEquippedEntity& GetDistanceScannerEquippedEntity() {
          return *m_pcDistanceScannerEquippedEntity;
+      }
+
+      inline CFootBotTurretEntity& GetTurretEntity() {
+         return *m_pcTurretEntity;
       }
 
       inline CEmbodiedEntity& GetEmbodiedEntity() {
@@ -86,30 +91,6 @@ namespace argos {
          return *m_pcWiFiEquippedEntity;
       }
 
-      inline const CRadians& GetTurretRotation() const {
-         return m_cTurretRotation;
-      }
-
-      inline void SetTurretRotation(const CRadians& c_rotation) {
-         m_cTurretRotation = c_rotation;
-      }
-
-      inline Real GetTurretRotationSpeed() const {
-         return m_fTurretRotationSpeed;
-      }
-
-      inline void SetTurretRotationSpeed(Real f_speed) {
-         m_fTurretRotationSpeed = f_speed;
-      }
-
-      inline UInt8 GetTurretMode() const {
-         return m_unTurretMode;
-      }
-
-      inline void SetTurretMode(UInt8 un_mode) {
-         m_unTurretMode = un_mode;
-      }
-
       virtual std::string GetTypeDescription() const {
          return "footbot";
       }
@@ -120,22 +101,18 @@ namespace argos {
 
    private:
 
-      CControllableEntity*            m_pcControllableEntity;
-      CDistanceScannerEquippedEntity* m_pcDistanceScannerEquippedEntity;
-      CEmbodiedEntity*                m_pcEmbodiedEntity;
-      CGripperEquippedEntity*         m_pcGripperEquippedEntity;
-      CGroundSensorEquippedEntity*    m_pcGroundSensorEquippedEntity;
-      CLEDEquippedEntity*             m_pcLEDEquippedEntity;
-      CLightSensorEquippedEntity*     m_pcLightSensorEquippedEntity;
-      CProximitySensorEquippedEntity* m_pcProximitySensorEquippedEntity;
-      CRABEquippedEntity*             m_pcRABEquippedEntity;
-      CWheeledEntity*                 m_pcWheeledEntity;
-      CWiFiEquippedEntity*            m_pcWiFiEquippedEntity;
-
-      CRadians                        m_cTurretRotation;
-      Real                            m_fTurretRotationSpeed;
-      UInt8                           m_unTurretMode;
-
+      CControllableEntity*                   m_pcControllableEntity;
+      CFootBotDistanceScannerEquippedEntity* m_pcDistanceScannerEquippedEntity;
+      CFootBotTurretEntity*                  m_pcTurretEntity;
+      CEmbodiedEntity*                       m_pcEmbodiedEntity;
+      CGripperEquippedEntity*                m_pcGripperEquippedEntity;
+      CGroundSensorEquippedEntity*           m_pcGroundSensorEquippedEntity;
+      CLEDEquippedEntity*                    m_pcLEDEquippedEntity;
+      CLightSensorEquippedEntity*            m_pcLightSensorEquippedEntity;
+      CProximitySensorEquippedEntity*        m_pcProximitySensorEquippedEntity;
+      CRABEquippedEntity*                    m_pcRABEquippedEntity;
+      CWheeledEntity*                        m_pcWheeledEntity;
+      CWiFiEquippedEntity*                   m_pcWiFiEquippedEntity;
    };
 
 }

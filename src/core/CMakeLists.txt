@@ -22,7 +22,8 @@ set(ARGOS3_HEADERS_UTILITY_DATATYPES
   utility/datatypes/any.h
   utility/datatypes/byte_array.h
   utility/datatypes/color.h
-  utility/datatypes/datatypes.h)
+  utility/datatypes/datatypes.h
+  utility/datatypes/set.h)
 # argos3/core/utility/logging
 set(ARGOS3_HEADERS_UTILITY_LOGGING
   utility/logging/argos_colored_text.h
@@ -182,7 +183,6 @@ endif(LUA51_FOUND)
 # Create core ARGoS3 library
 #
 add_library(argos3core_${ARGOS_BUILD_FOR} SHARED ${ARGOS3_SOURCES_CORE})
-link_googleperftools_to(argos3core_${ARGOS_BUILD_FOR})
 # Link DLFCN library if necessary
 if(ARGOS_DYNAMIC_LIBRARY_LOADING)
   target_link_libraries(argos3core_${ARGOS_BUILD_FOR} ${DLFCN_LIBRARY})
@@ -241,7 +241,6 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     simulator/query_plugins.cpp
     simulator/main.cpp)
   target_link_libraries(argos3 argos3core_${ARGOS_BUILD_FOR})
-  link_googleperftools_to(argos3)
   #
   # Core ARGoS3 installation
   #

@@ -16,9 +16,12 @@ namespace argos {
 #include <argos3/core/utility/math/quaternion.h>
 #include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_engine.h>
 
-#include "bullet/btBulletDynamicsCommon.h"
-
 #include <tr1/unordered_map>
+
+//remove this include - added for debugging
+#include <argos3/core/simulator/entity/embodied_entity.h>
+#include <argos3/core/simulator/entity/composable_entity.h>
+#include <cstdio>
 
 namespace argos {
 
@@ -58,13 +61,9 @@ namespace argos {
 
       CDynamics3DModel(CDynamics3DEngine& c_engine,
                        CEmbodiedEntity& c_entity) :
-         CPhysicsModel(c_engine,
-                             c_entity),
+         CPhysicsModel(c_engine, c_entity),
          m_cEngine(c_engine) {}
       virtual ~CDynamics3DModel() {}
-      
-      virtual bool CheckIntersectionWithRay(Real& f_t_on_ray,
-                                            const CRay3& c_ray) const = 0;
 
       virtual bool MoveTo(const CVector3& c_position,
                           const CQuaternion& c_orientation,
@@ -72,28 +71,115 @@ namespace argos {
          return false;                   
       }
 
-      virtual void Reset() = 0;
+      virtual void Reset() {
+         // reset each body and clearing all velocities and forces
+         for(std::map<std::string, btRigidBody*>::iterator itBody = m_mapLocalRigidBodies.begin();
+             itBody !=  m_mapLocalRigidBodies.end();
+             itBody++) {
+         
+            btMotionState* pcMotionState = itBody->second->getMotionState();
+            pcMotionState->reset();
+            itBody->second->setMotionState(pcMotionState);
+            
+            itBody->second->setAngularVelocity(btVector3(0.0f, 0.0f, 0.0f));
+            itBody->second->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
+            itBody->second->clearForces();
+         }
+      }
 
+      virtual const btTransform& GetModelWorldTransform() const = 0;
+      
       virtual void UpdateEntityStatus() = 0;
       virtual void UpdateFromEntityStatus() = 0;
       
-      inline const std::vector<btRigidBody*>& GetRigidBodies() const {
-         return m_vecLocalRigidBodies;
+      inline const std::map<std::string, btRigidBody*>& GetRigidBodies() const {
+         return m_mapLocalRigidBodies;
       }
       
-      inline const std::vector<btTypedConstraint*>& GetConstraints() const {
-         return m_vecLocalConstraints;
+      inline const std::map<std::string, btTypedConstraint*>& GetConstraints() const {
+         return m_mapLocalConstraints;
       }
 
-   private:
+      virtual void CalculateBoundingBox() {
+         //fprintf(stderr, "CDynamics3DModel::CalculateBoundingBox() called!\n");
+         btVector3 cAabbMin, cAabbMax;
 
-      //CDynamics3DModel::TMultiMap m_mapConnectedBodies;
+         m_cModelCompositeShape.getAabb(GetModelWorldTransform(), cAabbMin, cAabbMax);
+         GetBoundingBox().MinCorner = BulletToARGoS(cAabbMin);
+         GetBoundingBox().MaxCorner = BulletToARGoS(cAabbMax);
+
+         /*fprintf(stderr, "CalculateBoundingBox called on entity %s: MinCorner = [%.3f,%.3f, %.3f], MaxCorner = [%.3f,%.3f, %.3f]\n", m_cEmbodiedEntity.GetParent().GetId().c_str(),  GetBoundingBox().MinCorner.GetX(), GetBoundingBox().MinCorner.GetY(), GetBoundingBox().MinCorner.GetZ(), GetBoundingBox().MaxCorner.GetX(), GetBoundingBox().MaxCorner.GetY(),GetBoundingBox().MaxCorner.GetZ()); */
+      }
+
+      virtual bool IsCollidingWithSomething() const {
+         return false;
+      }
+
+      virtual bool CheckIntersectionWithRay(Real& f_t_on_ray, const CRay3& c_ray) const {
+         
+fprintf(stderr, "CheckIntersectionWithRay called on entity %s\n", m_cEmbodiedEntity.GetParent().GetId().c_str());
+
+         btVector3 cRayStart = ARGoSToBullet(c_ray.GetStart());
+         btVector3 cRayEnd = ARGoSToBullet(c_ray.GetEnd());
+      
+         btTransform cRayFromTransform(btTransform::getIdentity());
+	 btTransform cRayToTransform(btTransform::getIdentity());
+         
+         cRayFromTransform.setOrigin(cRayStart);
+         cRayToTransform.setOrigin(cRayEnd);
+         
+         btCollisionWorld::ClosestRayResultCallback cResult(cRayStart, cRayEnd);
+         
+         btCollisionObject cTempCollisionObject;
+         
+         btCollisionWorld::rayTestSingle(cRayFromTransform,
+                                         cRayToTransform,
+                                         &cTempCollisionObject,
+                                         &m_cModelCompositeShape,
+                                         GetModelWorldTransform(),
+                                         cResult);
+         
+         if (cResult.hasHit()) {
+            const btVector3& cHitPoint = cResult.m_hitPointWorld;
+            f_t_on_ray = (cHitPoint - cRayStart).length() / c_ray.GetLength();
+            fprintf(stderr, "Intersection detected! Hit point occured at %.2f\n", f_t_on_ray);
+            
+            return true;
+         }
+         else {
+            return false;
+         }
+      }
+
+      virtual void UpdateModelCompositeShape() {
+         // remove the old shapes in the model
+         for(size_t i = 0; i < size_t(m_cModelCompositeShape.getNumChildShapes()); ++i) {
+            m_cModelCompositeShape.removeChildShapeByIndex(i);
+         }
+
+         const btTransform& cInverseModelWorldTransform = GetModelWorldTransform().inverse();
+         
+         for(std::map<std::string, btRigidBody*>::const_iterator it = m_mapLocalRigidBodies.begin();
+             it != m_mapLocalRigidBodies.end();
+             it++) {
+
+            m_cModelCompositeShape.addChildShape(cInverseModelWorldTransform * it->second->getWorldTransform(),
+                                                 it->second->getCollisionShape());
+         }
+
+         //fprintf(stderr, "CDynamics3DModel::UpdateCompositeShape() called!\n");
+      }
+
+      
+   private:
+      
+      btCompoundShape m_cModelCompositeShape;
 
    protected:
-      CDynamics3DEngine&      m_cEngine;      
+      CDynamics3DEngine&      m_cEngine;
       
-      std::vector<btRigidBody*> m_vecLocalRigidBodies;
-      std::vector<btTypedConstraint*> m_vecLocalConstraints;
+      std::map<std::string, btRigidBody*> m_mapLocalRigidBodies;
+      std::map<std::string, btTypedConstraint*> m_mapLocalConstraints;
 
    };
 

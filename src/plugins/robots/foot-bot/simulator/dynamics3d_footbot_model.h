@@ -19,22 +19,13 @@ namespace argos {
       CDynamics3DFootBotModel(CDynamics3DEngine& c_engine,
                                CFootBotEntity& c_entity);
       virtual ~CDynamics3DFootBotModel();
-      
-      virtual bool CheckIntersectionWithRay(Real& f_t_on_ray,
-                                            const CRay3& c_ray) const;
-
-      virtual bool MoveTo(const CVector3& c_position,
-                          const CQuaternion& c_orientation,
-                          bool b_check_only = false);
-
-      virtual void Reset();
 
       virtual void UpdateEntityStatus();
       virtual void UpdateFromEntityStatus();
 
-      virtual void CalculateBoundingBox();
-      
-      virtual bool IsCollidingWithSomething() const { return false; }
+      virtual const btTransform& GetModelWorldTransform() const {
+         return m_pcBodyRigidBody->getWorldTransform();
+      }
 
    private:
 
@@ -50,6 +41,7 @@ namespace argos {
       static btTransform                  m_cRightWheelTransform; 
       static btTransform                  m_cFrontPivotTransform;
       static btTransform                  m_cRearPivotTransform;
+      static btTransform                  m_cBodyTransform;
       
       /******** Shared Collision Shapes **********/
       static btBoxShape                   m_cBatterySocketCollisionShape;

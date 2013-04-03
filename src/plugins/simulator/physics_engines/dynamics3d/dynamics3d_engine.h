@@ -17,8 +17,8 @@ namespace argos {
 
 //#include <argos3/core/utility/math/rng.h>
 
-#include "bullet/btBulletDynamicsCommon.h"
-#include "bullet/BulletCollision/CollisionDispatch/btGhostObject.h"
+#include <argos3/plugins/simulator/physics_engines/dynamics3d/bullet/btBulletDynamicsCommon.h>
+#include <argos3/plugins/simulator/physics_engines/dynamics3d/bullet/BulletCollision/CollisionDispatch/btGhostObject.h>
 
 namespace argos {
 
