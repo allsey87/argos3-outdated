@@ -1,24 +1,24 @@
 /**
- * @file <argos3/plugins/robots/robotic-arm/simulator/dynamics2d_roboticarm_model.h>
+ * @file <argos3/plugins/robots/robot/simulator/dynamics2d_robot_model.h>
  *
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-#ifndef DYNAMICS2D_ROBOTICARM_MODEL_H
-#define DYNAMICS2D_ROBOTICARM_MODEL_H
+#ifndef DYNAMICS2D_ROBOT_MODEL_H
+#define DYNAMICS2D_ROBOT_MODEL_H
 
 #include <argos3/plugins/simulator/physics_engines/dynamics2d/dynamics2d_model.h>
-#include <argos3/plugins/robots/robotic-arm/simulator/roboticarm_entity.h>
+#include <argos3/plugins/robots/robot/simulator/robot_entity.h>
 
 namespace argos {
 
-   class CDynamics2DRoboticArmModel : public CDynamics2DModel {
+   class CDynamics2DRobotModel : public CDynamics2DModel {
 
    public:
 
-      CDynamics2DRoboticArmModel(CDynamics2DEngine& c_engine,
-                                 CRoboticArmEntity& c_entity);
-      virtual ~CDynamics2DRoboticArmModel();
+      CDynamics2DRobotModel(CDynamics2DEngine& c_engine,
+                                 CRobotEntity& c_entity);
+      virtual ~CDynamics2DRobotModel();
       
       virtual bool CheckIntersectionWithRay(Real& f_t_on_ray,
                                             const CRay3& c_ray) const;
@@ -38,7 +38,7 @@ namespace argos {
 
    private:
 
-      CRoboticArmEntity& m_cRoboticArmEntity;
+      CRobotEntity& m_cRobotEntity;
    };
 
 }

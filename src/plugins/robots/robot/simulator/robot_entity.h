@@ -1,27 +1,26 @@
 /**
- * @file <argos3/plugins/robots/robotic-arm/simulator/roboticarm_entity.h>
+ * @file <argos3/plugins/robots/robot/simulator/robot_entity.h>
  *
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-#ifndef ROBOTICARM_ENTITY_H
-#define ROBOTICARM_ENTITY_H
+#ifndef ROBOT_ENTITY_H
+#define ROBOT_ENTITY_H
 
 namespace argos {
    class CControllableEntity;
    class CEmbodiedEntity;
-   class CLinkEquippedEntity;
-   class CRoboticArmEntity;
+   class CJointEquippedEntity;
+   class CRobotEntity;
 }
 
 #include <argos3/core/simulator/entity/composable_entity.h>
-#include <argos3/plugins/robots/robotic-arm/simulator/link_equipped_entity.h>
+#include <argos3/plugins/robots/robot/simulator/body_equipped_entity.h>
+#include <argos3/plugins/robots/robot/simulator/joint_equipped_entity.h>
 
 namespace argos {
 
-   const Real MOUNTING_POINT_RADIUS = 0.010;
-
-   class CRoboticArmEntity : public CComposableEntity {
+   class CRobotEntity : public CComposableEntity {
 
    public:
 
@@ -29,7 +28,7 @@ namespace argos {
 
    public:
 
-      CRoboticArmEntity();
+      CRobotEntity();
 
       virtual void Init(TConfigurationNode& t_tree);
       virtual void Reset();
@@ -41,8 +40,12 @@ namespace argos {
          return *m_pcEmbodiedEntity;
       }
 
-      inline CLinkEquippedEntity& GetLinkEquippedEntity() {
-         return *m_pcLinkEquippedEntity;
+      inline CBodyEquippedEntity& GetBodyEquippedEntity() {
+         return *m_pcBodyEquippedEntity;
+      }
+
+      inline CJointEquippedEntity& GetJointEquippedEntity() {
+         return *m_pcJointEquippedEntity;
       }
 
       //inline CControllableEntity& GetControllableEntity() {
@@ -50,14 +53,15 @@ namespace argos {
       //}
 
       virtual std::string GetTypeDescription() const {
-         return "roboticarm";
+         return "robot";
       }
 
    private:
 
       //CControllableEntity*            m_pcControllableEntity;
       CEmbodiedEntity* m_pcEmbodiedEntity;
-      CLinkEquippedEntity* m_pcLinkEquippedEntity;
+      CBodyEquippedEntity* m_pcBodyEquippedEntity;
+      CJointEquippedEntity* m_pcJointEquippedEntity;
    };
 
 }

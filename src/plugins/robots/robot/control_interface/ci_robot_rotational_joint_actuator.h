@@ -1,16 +1,16 @@
 /**
- * @file <argos3/plugins/robots/robotic-arm/control_interface/ci_roboticarm_rotational_joint_actuator.h>
+ * @file <argos3/plugins/robots/robot/control_interface/ci_robot_rotational_joint_actuator.h>
  *
  * @brief This file provides the common interface definition of the rotational joint actuator.
  *
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-#ifndef CCI_ROBOTICARM_ROTATIONAL_JOINT_ACTUATOR_H
-#define CCI_ROBOTICARM_ROTATIONAL_JOINT_ACTUATOR_H
+#ifndef CCI_ROBOT_ROTATIONAL_JOINT_ACTUATOR_H
+#define CCI_ROBOT_ROTATIONAL_JOINT_ACTUATOR_H
 
 namespace argos {
-   class CCI_RoboticArmRotationalJointActuator;
+   class CCI_RobotRotationalJointActuator;
 }
 
 #include <argos3/core/control_interface/ci_actuator.h>
@@ -18,7 +18,7 @@ namespace argos {
 
 namespace argos {
 
-   class CCI_RoboticArmRotationalJointActuator : virtual public CCI_Actuator {
+   class CCI_RobotRotationalJointActuator : virtual public CCI_Actuator {
 
    public:
 
@@ -40,7 +40,7 @@ namespace argos {
       /**
        * Destructor.
        */
-      virtual ~CCI_RoboticArmRotationalJointActuator() {}
+      virtual ~CCI_RobotRotationalJointActuator() {}
 
       virtual void SetRotation(const CRadians& c_angle) = 0;
 
