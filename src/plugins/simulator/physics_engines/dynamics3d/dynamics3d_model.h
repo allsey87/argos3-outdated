@@ -138,7 +138,8 @@ namespace argos {
       }
 
       virtual bool CheckIntersectionWithRay(Real& f_t_on_ray, const CRay3& c_ray) const {
-      
+         fprintf(stderr, "CheckIntersectionWithRay called on %s", GetEmbodiedEntity().GetParent().GetId().c_str());
+
          btTransform cRayStartTransform(btQuaternion::getIdentity(), ARGoSToBullet(c_ray.GetStart()));
          btTransform cRayEndTransform(btQuaternion::getIdentity(), ARGoSToBullet(c_ray.GetEnd()));
 	 
