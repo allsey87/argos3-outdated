@@ -37,10 +37,10 @@
   <!-- * Arena configuration * -->
   <!-- *********************** -->
   <arena size="5, 5, 1">
-    <box id="bn" position="2.5,0,0"  orientation="0,0,0" size="0.1, 5, 0.2" movable="false" mass="1" />
-    <box id="bs" position="-2.5,0,0" orientation="0,0,0" size="0.1, 5, 0.2" movable="false" mass="1" />
-    <box id="be" position="0,-2.5,0" orientation="0,0,0" size="5, 0.1, 0.2" movable="false" mass="1" />
-    <box id="bw" position="0,2.5,0"  orientation="0,0,0" size="5, 0.1, 0.2" movable="false" mass="1" />
+    <box id="bn" position="2.5,0,0"  orientation="0,0,0" size="0.1, 4.9, 0.2" movable="true" mass="1" />
+    <!--box id="bs" position="-2.5,0,0" orientation="0,0,0" size="0.1, 5, 0.2" movable="true" mass="1" /-->
+    <box id="be" position="0,-2.5,0" orientation="0,0,0" size="5, 0.1, 0.2" movable="true" mass="1" />
+    <!--box id="bw" position="0,2.5,0"  orientation="0,0,0" size="5, 0.1, 0.2" movable="true" mass="1" /-->
         
     <!--distribute>
       <position method="uniform" min="-0.25,-0.25,0.5" max="0.25,0.25,20.0" />
@@ -61,10 +61,12 @@
     <!--box id="box_p" position="0,0.5,0" orientation="0,0,0" size="0.1, 0.1, 0.1" movable="true" mass="1" />
     <box id="box_n" position="0,0,0.1" orientation="0,0,180" size="0.1, 0.1, 0.1" movable="true" mass="1"/-->
     
-    <cylinder id="cylinder" position="1,2,0.05" orientation="0,0,45" height="0.3" radius="0.05" movable="true" mass="0.05" />
+    <!--cylinder id="cylinder" position="1,2,0.05" orientation="0,0,45" height="0.3" radius="0.05" movable="true" mass="0.05" /-->
     <!--cylinder id="dylinder" position="0,0,0.15" orientation="0,0,90" height="0.1" radius="0.05" movable="true" mass="0.05" /-->
     
-    <foot-bot id="fb1" position="2,-1.5,0" orientation="-90,0,0" controller="fb_lua"/>
+    <foot-bot id="fb1" position="2.325,-2.325,0" orientation="270,0,0" controller="fb_lua"/>
+    
+    
     <!--foot-bot id="fb2" position="2,-1.0,0" orientation="-90,0,0" controller="lua"/-->
     <!--foot-bot id="fb3" position="1,1,0.2" orientation="0,0,0" controller="lua"/-->
 
@@ -74,9 +76,9 @@
   <!-- * Physics engines * -->
   <!-- ******************* -->
   <physics_engines>
-    <dynamics3d id="dyn3d" iterations="15">
+    <dynamics2d id="dyn3d" iterations="15">
       <floor id="f0"/>
-    </dynamics3d>
+    </dynamics2d>
   </physics_engines>
 
   <!-- ****************** -->
