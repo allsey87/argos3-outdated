@@ -101,14 +101,34 @@ namespace argos {
       }
 
       virtual void CalculateBoundingBox() {
-         //fprintf(stderr, "CDynamics3DModel::CalculateBoundingBox() called!\n");
-         btVector3 cAabbMin, cAabbMax;
+         btVector3 cAabbMin, cAabbMax, cBodyAabbMin, cBodyAabbMax;
+         bool bAabbVectorInitRequired = true;
 
-         m_cModelCompositeShape.getAabb(GetModelWorldTransform(), cAabbMin, cAabbMax);
+         //@todo integrate the new SBodyConfiguration structure
+         for(std::map<std::string, btRigidBody*>::const_iterator itBody = m_mapLocalRigidBodies.begin();
+             itBody != m_mapLocalRigidBodies.end();
+             itBody++) {
+            
+            itBody->second->getCollisionShape()->getAabb(itBody->second->getWorldTransform(), cBodyAabbMin, cBodyAabbMax);
+            
+            if(bAabbVectorInitRequired == true) {
+               cAabbMin = cBodyAabbMin;
+               cAabbMax = cBodyAabbMax;
+               bAabbVectorInitRequired = false;
+            }
+            else {
+               // compute the maximum and minimum corners
+               cAabbMin.setX(cAabbMin.getX() < cBodyAabbMin.getX() ? cAabbMin.getX() : cBodyAabbMin.getX());
+               cAabbMin.setY(cAabbMin.getY() < cBodyAabbMin.getY() ? cAabbMin.getY() : cBodyAabbMin.getY());
+               cAabbMin.setZ(cAabbMin.getZ() < cBodyAabbMin.getZ() ? cAabbMin.getZ() : cBodyAabbMin.getZ());
+
+               cAabbMax.setX(cAabbMax.getX() > cBodyAabbMax.getX() ? cAabbMax.getX() : cBodyAabbMax.getX());
+               cAabbMax.setY(cAabbMax.getY() > cBodyAabbMax.getY() ? cAabbMax.getY() : cBodyAabbMax.getY());
+               cAabbMax.setZ(cAabbMax.getZ() > cBodyAabbMax.getZ() ? cAabbMax.getZ() : cBodyAabbMax.getZ());
+            }
+         }
          GetBoundingBox().MinCorner = BulletToARGoS(cAabbMin);
          GetBoundingBox().MaxCorner = BulletToARGoS(cAabbMax);
-
-         /*fprintf(stderr, "CalculateBoundingBox called on entity %s: MinCorner = [%.3f,%.3f, %.3f], MaxCorner = [%.3f,%.3f, %.3f]\n", m_cEmbodiedEntity.GetParent().GetId().c_str(),  GetBoundingBox().MinCorner.GetX(), GetBoundingBox().MinCorner.GetY(), GetBoundingBox().MinCorner.GetZ(), GetBoundingBox().MaxCorner.GetX(), GetBoundingBox().MaxCorner.GetY(),GetBoundingBox().MaxCorner.GetZ()); */
       }
 
       virtual bool IsCollidingWithSomething() const {
