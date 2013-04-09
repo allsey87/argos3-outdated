@@ -109,9 +109,11 @@ namespace argos {
              itBody != m_mapLocalRigidBodies.end();
              itBody++) {
             
+            // get the axis aligned bounding box for the current body
             itBody->second->getCollisionShape()->getAabb(itBody->second->getWorldTransform(), cBodyAabbMin, cBodyAabbMax);
             
             if(bAabbVectorInitRequired == true) {
+               // this is the first body in the model, use it's maximum and minimum axis aligned bounding boxes.
                cAabbMin = cBodyAabbMin;
                cAabbMax = cBodyAabbMax;
                bAabbVectorInitRequired = false;
@@ -136,39 +138,44 @@ namespace argos {
       }
 
       virtual bool CheckIntersectionWithRay(Real& f_t_on_ray, const CRay3& c_ray) const {
-         
-fprintf(stderr, "CheckIntersectionWithRay called on entity %s\n", m_cEmbodiedEntity.GetParent().GetId().c_str());
-
-         btVector3 cRayStart = ARGoSToBullet(c_ray.GetStart());
-         btVector3 cRayEnd = ARGoSToBullet(c_ray.GetEnd());
       
-         btTransform cRayFromTransform(btTransform::getIdentity());
-	 btTransform cRayToTransform(btTransform::getIdentity());
-         
-         cRayFromTransform.setOrigin(cRayStart);
-         cRayToTransform.setOrigin(cRayEnd);
-         
-         btCollisionWorld::ClosestRayResultCallback cResult(cRayStart, cRayEnd);
-         
+         btTransform cRayStartTransform(btQuaternion::getIdentity(), ARGoSToBullet(c_ray.GetStart()));
+         btTransform cRayEndTransform(btQuaternion::getIdentity(), ARGoSToBullet(c_ray.GetEnd()));
+	 
+         btCollisionWorld::ClosestRayResultCallback cResult(cRayStartTransform.getOrigin(),
+                                                            cRayEndTransform.getOrigin());
+
+         bool bIntersectionOccured = false;         
+         Real fModelIntersectDist;
+         Real fBodyIntersectDist; 
          btCollisionObject cTempCollisionObject;
-         
-         btCollisionWorld::rayTestSingle(cRayFromTransform,
-                                         cRayToTransform,
-                                         &cTempCollisionObject,
-                                         &m_cModelCompositeShape,
-                                         GetModelWorldTransform(),
-                                         cResult);
-         
-         if (cResult.hasHit()) {
-            const btVector3& cHitPoint = cResult.m_hitPointWorld;
-            f_t_on_ray = (cHitPoint - cRayStart).length() / c_ray.GetLength();
-            fprintf(stderr, "Intersection detected! Hit point occured at %.2f\n", f_t_on_ray);
-            
-            return true;
+
+         //@todo use SbodyComponent backed via a std::vector to increase speed (reduced cache misses)
+         for(std::map<std::string, btRigidBody*>::const_iterator itBody = m_mapLocalRigidBodies.begin();
+             itBody != m_mapLocalRigidBodies.end();
+             itBody++) {
+            // test for a collision against the current body
+            btCollisionWorld::rayTestSingle(cRayStartTransform,
+                                            cRayEndTransform,
+                                            &cTempCollisionObject,
+                                            itBody->second->getCollisionShape(),
+                                            itBody->second->getWorldTransform(),
+                                            cResult);
+
+            if (cResult.hasHit()) {
+               fBodyIntersectDist = (cResult.m_hitPointWorld - cRayStartTransform.getOrigin()).length();
+               if(bIntersectionOccured == false) {
+                  fModelIntersectDist = fBodyIntersectDist;
+                  bIntersectionOccured = true;
+               }
+               else {
+                  fModelIntersectDist = (fModelIntersectDist > fBodyIntersectDist) ? fBodyIntersectDist : fModelIntersectDist;
+               }
+               fprintf(stderr, "Intersection detected! Hit point occured at %.2f on %s\n", fBodyIntersectDist, itBody->first.c_str());
+            }
          }
-         else {
-            return false;
-         }
+         f_t_on_ray = fModelIntersectDist / c_ray.GetLength();
+         return bIntersectionOccured;
       }
 
       virtual void UpdateModelCompositeShape() {
