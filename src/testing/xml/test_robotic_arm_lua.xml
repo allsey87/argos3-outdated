@@ -40,8 +40,8 @@
     <box id="be" position="0,-2.5,0" orientation="0,0,0" size="5, 0.1, 0.2" movable="false" mass="1" />
     <box id="bw" position="0,2.5,0"  orientation="0,0,0" size="5, 0.1, 0.2" movable="false" mass="1" />
 
-    <!--robot id="robotic-arm" position="0,0,0" orientation="0,0,0" controller="lua">
-      <bodies>
+    <robot id="robotic-arm" position="0,0,0" orientation="0,0,0" controller="lua">
+      <bodies reference_body="robotic-arm.bodies.body[0]">
          <body id="body[0]" geometry="box" size="0.4,0.4,0.05" mass="1">
             <offset position="0,0,0" orientation="0,0,0"/>
          </body>
@@ -62,23 +62,23 @@
             <body id="body[2]" rotation_axis="0,1,0" rotation_point="0,0,0.05"/>
          </joint>
       </joints>
-    </robot-->
+    </robot>
     
-    <robot id="table" position="0,0,0" orientation="0,0,0" controller="lua">
-      <bodies>
+    <robot id="table" position="-1,-1,1" orientation="0,85,0" controller="lua">
+      <bodies reference_body="table.bodies.body[4]">
          <body id="body[0]" geometry="box" size="0.05,0.05,0.3" mass="1">
-            <offset position="0.5,0.5,0" orientation="0,0,0"/>
+            <offset position="0.2,0.2,0" orientation="0,0,0"/>
          </body>
          <body id="body[1]" geometry="box" size="0.05,0.05,0.3" mass="1">
-            <offset position="-0.5,0.5,0" orientation="0,0,0"/>
+            <offset position="-0.2,0.2,0" orientation="0,0,0"/>
          </body>
          <body id="body[2]" geometry="box" size="0.05,0.05,0.3" mass="1">
-            <offset position="-0.5,-0.5,0" orientation="0,0,0"/>
+            <offset position="-0.2,-0.2,0" orientation="0,0,0"/>
          </body>
          <body id="body[3]" geometry="box" size="0.05,0.05,0.3" mass="1">
-            <offset position="0.5,-0.5,0" orientation="0,0,0"/>
+            <offset position="0.2,-0.2,0" orientation="0,0,0"/>
          </body>
-         <body id="body[4]" geometry="box" size="1.2,1.2,0.05" mass="1">
+         <body id="body[4]" geometry="box" size="0.6,0.6,0.05" mass="1">
             <offset position="0,0,0.3" orientation="0,0,0"/>
          </body>
       </bodies>
@@ -86,7 +86,7 @@
     </robot>
     
     
-    <box id="test_box" position="0,0,2"  orientation="0,0,0" size="0.1, 0.1, 0.1" movable="true" mass="1" />
+    <box id="test_box" position="0.01,-0.01,1"  orientation="0,0,0" size="0.1, 0.1, 0.1" movable="true" mass="20" />
     
   </arena>
   

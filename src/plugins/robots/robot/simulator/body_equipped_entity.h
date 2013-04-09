@@ -46,6 +46,10 @@ namespace argos {
 
       CBodyEntity& GetBody(std::string str_id);
 
+      CBodyEntity& GetReferenceBody() {
+         return *m_pcReferenceBody;
+      }
+
       inline CBodyEntity::TList& GetAllBodies() {
          return m_tBodies;
       }
@@ -61,6 +65,8 @@ namespace argos {
    protected:
 
       CBodyEntity::TList m_tBodies;
+
+      CBodyEntity * m_pcReferenceBody;
    };
 
 }

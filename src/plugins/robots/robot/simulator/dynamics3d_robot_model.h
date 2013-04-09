@@ -26,8 +26,12 @@ namespace argos {
 
       virtual const btTransform& GetModelWorldTransform() const {
          //@todo this returns the current model reference location for MoveTo etc
-         static btTransform r(btQuaternion(0,0,0,1), btVector3(0,0,0));
-         return r;
+         CBodyEntity cReferenceBody = m_cRobotEntity.GetBodyEquippedEntity().GetReferenceBody();
+         
+         std::map<std::string, SBodyConfiguration*>::const_iterator it = 
+            m_mapRobotBodyConfigurations.find(cReferenceBody.GetId());
+
+         return it->second->m_pcRigidBody->getWorldTransform();
       }
 
    private:

@@ -28,6 +28,7 @@ namespace argos {
       try {
          /* Init parent */
          CComposableEntity::Init(t_tree);
+
          /* Go through the body entries */
          CVector3 cPosition;
          CVector3 cSize;
@@ -47,9 +48,16 @@ namespace argos {
             GetNodeAttribute(tOffset, "position", cPosition);
             GetNodeAttribute(tOffset, "orientation", cOrientation);
             
-
             AddBody(cPosition, cOrientation, cSize, fMass);
          }
+
+         // get a reference to the reference body
+         std::string strReferenceBody;
+         GetNodeAttribute(t_tree, "reference_body", strReferenceBody);
+
+         //@todo fix this mess with the ids already!
+         m_pcReferenceBody = &GetBody(strReferenceBody);
+
       }
       catch(CARGoSException& ex) {
          THROW_ARGOSEXCEPTION_NESTED("Failed to initialize body equipped entity \"" << GetId() << "\".", ex);
