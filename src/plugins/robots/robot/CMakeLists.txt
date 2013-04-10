@@ -1,7 +1,7 @@
 #
-# Robotic-arm headers
+# Robot headers
 #
-# argos3/plugins/robots/robotic-arm/control_interface
+# argos3/plugins/robots/robot/control_interface
 
 set(ARGOS3_HEADERS_PLUGINS_ROBOTS_ROBOT_CONTROLINTERFACE
   control_interface/ci_robot_rotational_joint_sensor.h
@@ -21,7 +21,7 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
 endif(ARGOS_BUILD_FOR_SIMULATOR)
 
 #
-# Robotic arm sources
+# Robot sources
 #
 set(ARGOS3_SOURCES_PLUGINS_ROBOTS_ROBOT
   ${ARGOS3_HEADERS_PLUGINS_ROBOTS_ROBOT_CONTROLINTERFACE}
@@ -80,10 +80,10 @@ if(ARGOS_COMPILE_QTOPENGL)
   target_link_libraries(argos3plugin_${ARGOS_BUILD_FOR}_robot argos3plugin_${ARGOS_BUILD_FOR}_qtopengl)
 endif(ARGOS_COMPILE_QTOPENGL)
 
-install(FILES ${ARGOS3_HEADERS_PLUGINS_ROBOTS_ROBOT_CONTROLINTERFACE} DESTINATION include/argos3/plugins/robots/robotic-arm/control_interface)
+install(FILES ${ARGOS3_HEADERS_PLUGINS_ROBOTS_ROBOT_CONTROLINTERFACE} DESTINATION include/argos3/plugins/robots/robot/control_interface)
 
 if(ARGOS_BUILD_FOR_SIMULATOR)
-  install(FILES ${ARGOS3_HEADERS_PLUGINS_ROBOTS_ROBOT_SIMULATOR}      DESTINATION include/argos3/plugins/robots/robotic-arm/simulator)
+  install(FILES ${ARGOS3_HEADERS_PLUGINS_ROBOTS_ROBOT_SIMULATOR}      DESTINATION include/argos3/plugins/robots/robot/simulator)
 endif(ARGOS_BUILD_FOR_SIMULATOR)
 
 install(TARGETS argos3plugin_${ARGOS_BUILD_FOR}_robot

@@ -64,7 +64,7 @@
     <!--cylinder id="cylinder" position="1,2,0.05" orientation="0,0,45" height="0.3" radius="0.05" movable="true" mass="0.05" /-->
     <!--cylinder id="dylinder" position="0,0,0.15" orientation="0,0,90" height="0.1" radius="0.05" movable="true" mass="0.05" /-->
     
-    <foot-bot id="fb1" position="2.325,-2.325,0" orientation="270,0,0" controller="fb_lua"/>
+    <foot-bot id="fb1" position="2.325,-1.325,0" orientation="270,0,0" controller="fb_lua"/>
     
     
     <!--foot-bot id="fb2" position="2,-1.0,0" orientation="-90,0,0" controller="lua"/-->
@@ -76,9 +76,9 @@
   <!-- * Physics engines * -->
   <!-- ******************* -->
   <physics_engines>
-    <dynamics2d id="dyn3d" iterations="15">
+    <dynamics3d id="dyn3d" iterations="15">
       <floor id="f0"/>
-    </dynamics2d>
+    </dynamics3d>
   </physics_engines>
 
   <!-- ****************** -->

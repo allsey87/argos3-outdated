@@ -113,7 +113,7 @@ namespace argos {
             itBody->second->getCollisionShape()->getAabb(itBody->second->getWorldTransform(), cBodyAabbMin, cBodyAabbMax);
             
             if(bAabbVectorInitRequired == true) {
-               // this is the first body in the model, use it's maximum and minimum axis aligned bounding boxes.
+               // this is the first body in the model, use it's axis aligned bounding box.
                cAabbMin = cBodyAabbMin;
                cAabbMax = cBodyAabbMax;
                bAabbVectorInitRequired = false;
@@ -129,8 +129,13 @@ namespace argos {
                cAabbMax.setZ(cAabbMax.getZ() > cBodyAabbMax.getZ() ? cAabbMax.getZ() : cBodyAabbMax.getZ());
             }
          }
+
+         /* When writing the bounding box back to ARGoS we must manually swap the Y component, to compensate for
+            the different coordinate systems between the two worlds, which effectively rotates the bounding box */
          GetBoundingBox().MinCorner = BulletToARGoS(cAabbMin);
+         GetBoundingBox().MinCorner.SetY(BulletToARGoS(cAabbMax).GetY());
          GetBoundingBox().MaxCorner = BulletToARGoS(cAabbMax);
+         GetBoundingBox().MaxCorner.SetY(BulletToARGoS(cAabbMin).GetY());
       }
 
       virtual bool IsCollidingWithSomething() const {
@@ -138,23 +143,22 @@ namespace argos {
       }
 
       virtual bool CheckIntersectionWithRay(Real& f_t_on_ray, const CRay3& c_ray) const {
-         fprintf(stderr, "CheckIntersectionWithRay called on %s\n", GetEmbodiedEntity().GetParent().GetId().c_str());
-
          btTransform cRayStartTransform(btQuaternion::getIdentity(), ARGoSToBullet(c_ray.GetStart()));
          btTransform cRayEndTransform(btQuaternion::getIdentity(), ARGoSToBullet(c_ray.GetEnd()));
-	 
-         btCollisionWorld::ClosestRayResultCallback cResult(cRayStartTransform.getOrigin(),
-                                                            cRayEndTransform.getOrigin());
-
+         btCollisionObject cTempCollisionObject;         
          bool bIntersectionOccured = false;         
          Real fModelIntersectDist;
          Real fBodyIntersectDist; 
-         btCollisionObject cTempCollisionObject;
-
+         
          //@todo use SbodyComponent backed via a std::vector to increase speed (reduced cache misses)
          for(std::map<std::string, btRigidBody*>::const_iterator itBody = m_mapLocalRigidBodies.begin();
              itBody != m_mapLocalRigidBodies.end();
              itBody++) {
+
+            // This object cannot be used twice or reinitialised, we must construct it on every iteration
+            btCollisionWorld::ClosestRayResultCallback cResult(cRayStartTransform.getOrigin(),
+                                                               cRayEndTransform.getOrigin());
+
             // test for a collision against the current body
             btCollisionWorld::rayTestSingle(cRayStartTransform,
                                             cRayEndTransform,
@@ -163,6 +167,7 @@ namespace argos {
                                             itBody->second->getWorldTransform(),
                                             cResult);
 
+            // if this body intersected the ray, we compute whether or not this has been the closest intersection
             if (cResult.hasHit()) {
                fBodyIntersectDist = (cResult.m_hitPointWorld - cRayStartTransform.getOrigin()).length();
                if(bIntersectionOccured == false) {
@@ -172,7 +177,6 @@ namespace argos {
                else {
                   fModelIntersectDist = (fModelIntersectDist > fBodyIntersectDist) ? fBodyIntersectDist : fModelIntersectDist;
                }
-               fprintf(stderr, "Intersection detected! Hit point occured at %.2f on %s\n", fBodyIntersectDist, itBody->first.c_str());
             }
          }
          f_t_on_ray = fModelIntersectDist / c_ray.GetLength();

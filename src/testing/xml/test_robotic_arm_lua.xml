@@ -29,10 +29,7 @@
       <sensors>
         <footbot_proximity implementation="default" show_rays="true" />
       </sensors>
-      <!-- No required configuration -->
-      <params />
-      <!-- Optionally, you can pass a script as a controller parameter:
-           <params script="../../src/testing/experiment/test_script.lua" /> -->
+      <params script="src/testing/experiment/test_script.lua" />
     </lua_controller>
     
   </controllers>
@@ -48,7 +45,7 @@
     <box id="be" position="0,-2.5,0" orientation="0,0,0" size="5, 0.1, 0.2" movable="false" mass="1" />
     <box id="bw" position="0,2.5,0"  orientation="0,0,0" size="5, 0.1, 0.2" movable="false" mass="1" />
 
-    <!--robot id="robotic-arm" position="0,0,0" orientation="0,0,0" controller="r_lua">
+    <robot id="robotic-arm" position="0,0,0" orientation="0,0,0" controller="r_lua">
       <bodies reference_body="robotic-arm.bodies.body[0]">
          <body id="body[0]" geometry="box" size="0.4,0.4,0.05" mass="1">
             <offset position="0,0,0" orientation="0,0,0"/>
@@ -70,36 +67,36 @@
             <body id="body[2]" rotation_axis="0,1,0" rotation_point="0,0,0.05"/>
          </joint>
       </joints>
-    </robot-->
+    </robot>
     
-    <!--robot id="table" position="-1,-1,0" orientation="0,0,0" controller="r_lua">
+    <robot id="table" position="-1,-1,0" orientation="20,0,0" controller="r_lua">
       <bodies reference_body="table.bodies.body[4]">
-         <body id="body[0]" geometry="box" size="0.05,0.05,0.3" mass="1">
+         <body id="body[0]" geometry="box" size="0.05,0.05,0.6" mass="1">
             <offset position="0.2,0.2,0" orientation="0,0,0"/>
          </body>
-         <body id="body[1]" geometry="box" size="0.05,0.05,0.3" mass="1">
+         <body id="body[1]" geometry="box" size="0.05,0.05,0.6" mass="1">
             <offset position="-0.2,0.2,0" orientation="0,0,0"/>
          </body>
-         <body id="body[2]" geometry="box" size="0.05,0.05,0.3" mass="1">
-            <offset position="-0.2,-0.2,0" orientation="0,0,0"/>
-         </body>
-         <body id="body[3]" geometry="box" size="0.05,0.05,0.3" mass="1">
+         <body id="body[3]" geometry="box" size="0.05,0.05,0.6" mass="1">
             <offset position="0.2,-0.2,0" orientation="0,0,0"/>
          </body>
+         <body id="body[2]" geometry="box" size="0.05,0.05,0.6" mass="1">
+            <offset position="-0.2,-0.2,0" orientation="0,0,0"/>
+         </body>
          <body id="body[4]" geometry="box" size="0.6,0.6,0.05" mass="1">
-            <offset position="0,0,0.3" orientation="0,0,0"/>
+            <offset position="0,0,0.6" orientation="0,0,0"/>
          </body>
       </bodies>
       <joints/>
-    </robot-->
+    </robot>
     
-    <foot-bot id="fb1" position="-1,-1,0" orientation="-45,0,0" controller="fb_lua"/>
-    <foot-bot id="fb2" position="-2,-2,0" orientation="-45,0,0" controller="fb_lua"/>
-    <foot-bot id="fb3" position="-1.8,-2,0" orientation="0,0,0" controller="fb_lua"/>
+    <foot-bot id="fb1" position="-1,-1,0" orientation="0,0,0" controller="fb_lua"/>
+    <!--foot-bot id="fb2" position="-2,-2,0" orientation="-45,0,0" controller="fb_lua"/-->
+    <!--foot-bot id="fb3" position="-1.8,-2,0" orientation="0,0,0" controller="fb_lua"/-->
     
-    <box id="test_box2" position="-2,-2.2,0.2"  orientation="0,45,0" size="0.1, 0.1, 0.1" movable="true" mass="1" />
+    <!--box id="test_box2" position="-2,-2.2,0.2"  orientation="0,45,0" size="0.1, 0.1, 0.1" movable="true" mass="1" /-->
 
-    <box id="test_box" position="0.01,-0.01,1"  orientation="0,0,0" size="0.1, 0.1, 0.1" movable="true" mass="1" />
+    <!--box id="test_box" position="0.01,-0.01,1"  orientation="0,0,0" size="0.1, 0.1, 0.1" movable="true" mass="1" /-->
     
   </arena>
   
