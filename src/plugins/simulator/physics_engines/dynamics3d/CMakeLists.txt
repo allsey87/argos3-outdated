@@ -373,6 +373,7 @@ set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D
 set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D
   dynamics3d_box_model.cpp
   dynamics3d_cylinder_model.cpp
+  dynamics3d_model.cpp
   dynamics3d_engine.cpp)
 
 #

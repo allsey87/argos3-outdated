@@ -22,8 +22,8 @@ namespace argos {
       
       /* When defining size of objects we must manually swap the Z and Y components */
       m_pcBoxCollisionShape = new btBoxShape(btVector3(cBoxHalfSize.GetX(),
-                                                  cBoxHalfSize.GetZ(), 
-                                                  cBoxHalfSize.GetY()));
+                                                       cBoxHalfSize.GetZ(), 
+                                                       cBoxHalfSize.GetY()));
      
       btTransform cModelTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
                                    ARGoSToBullet(GetEmbodiedEntity().GetInitPosition()));
@@ -43,7 +43,9 @@ namespace argos {
             0.0f, m_pcBoxMotionState, m_pcBoxCollisionShape, btVector3(0.0f,0.0f,0.0f)));
       }
       
-      m_mapLocalRigidBodies["body"] = m_pcBoxRigidBody;
+      m_mapLocalBodyConfigurations["box"] = SBodyConfiguration(m_pcBoxCollisionShape,
+                                                                m_pcBoxMotionState,
+                                                                m_pcBoxRigidBody);
    }
    
    /****************************************/

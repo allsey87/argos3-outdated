@@ -180,7 +180,6 @@ namespace argos {
       /* Update the simulated space */
       for(CDynamics3DModel::TMap::iterator it = m_tPhysicsModels.begin();
           it != m_tPhysicsModels.end(); ++it) {
-         it->second->UpdateModelCompositeShape();
          it->second->CalculateBoundingBox();
          it->second->UpdateEntityStatus();
          
@@ -190,11 +189,11 @@ namespace argos {
    /****************************************/
    /****************************************/
    
-   bool CDynamics3DEngine::IsRegionOccupied(btTransform& c_transform, btCollisionShape& c_collsion_shape) {      
+   bool CDynamics3DEngine::IsRegionOccupied(const btTransform& c_transform, btCollisionShape* pc_collsion_shape) {      
       bool bRegionOccupied;
       /* Create a ghost object at the specified location with the specified collsion shape */
       btGhostObject cGhostObject;
-      cGhostObject.setCollisionShape(&c_collsion_shape);
+      cGhostObject.setCollisionShape(pc_collsion_shape);
       cGhostObject.setWorldTransform(c_transform);
       
       m_pcWorld->addCollisionObject(&cGhostObject);
@@ -233,15 +232,15 @@ namespace argos {
                                            CDynamics3DModel& c_model) {
       m_tPhysicsModels[str_id] = &c_model;
       
-      for(std::map<std::string, btRigidBody*>::const_iterator itBody = c_model.GetRigidBodies().begin(); 
-          itBody !=  c_model.GetRigidBodies().end();
-          itBody++) {   
-         m_pcWorld->addRigidBody(itBody->second);
+      for(std::map<std::string, CDynamics3DModel::SBodyConfiguration>::const_iterator itBodyConfiguration = c_model.GetBodies().begin(); 
+          itBodyConfiguration !=  c_model.GetBodies().end();
+          itBodyConfiguration++) {   
+         m_pcWorld->addRigidBody(itBodyConfiguration->second.m_pcRigidBody);
       }
-      for(std::map<std::string, btTypedConstraint*>::const_iterator itConstraint = c_model.GetConstraints().begin(); 
+      for(std::map<std::string, CDynamics3DModel::SConstraint>::const_iterator itConstraint = c_model.GetConstraints().begin(); 
           itConstraint !=  c_model.GetConstraints().end();
           itConstraint++) {   
-         m_pcWorld->addConstraint(itConstraint->second, true);
+         m_pcWorld->addConstraint(itConstraint->second.m_pcConstraint, itConstraint->second.m_bDisableCollisions);
       }
    }
 
@@ -250,15 +249,15 @@ namespace argos {
    void CDynamics3DEngine::RemovePhysicsModel(const std::string& str_id) {
       CDynamics3DModel::TMap::iterator it = m_tPhysicsModels.find(str_id);
       if(it != m_tPhysicsModels.end()) {
-         for(std::map<std::string, btTypedConstraint*>::const_iterator itConstraint = it->second->GetConstraints().begin(); 
+         for(std::map<std::string, CDynamics3DModel::SConstraint>::const_iterator itConstraint = it->second->GetConstraints().begin(); 
              itConstraint !=  it->second->GetConstraints().end();
              itConstraint++) {   
-            m_pcWorld->removeConstraint(itConstraint->second);
+            m_pcWorld->removeConstraint(itConstraint->second.m_pcConstraint);
          }
-         for(std::map<std::string, btRigidBody*>::const_iterator itBody = it->second->GetRigidBodies().begin(); 
-             itBody !=  it->second->GetRigidBodies().end();
+         for(std::map<std::string, CDynamics3DModel::SBodyConfiguration>::const_iterator itBody = it->second->GetBodies().begin(); 
+             itBody !=  it->second->GetBodies().end();
              itBody++) {
-            m_pcWorld->removeRigidBody(itBody->second);
+            m_pcWorld->removeRigidBody(itBody->second.m_pcRigidBody);
          }
          delete it->second;
          m_tPhysicsModels.erase(it);
@@ -277,6 +276,5 @@ namespace argos {
                            "1.0",
                            "A 3D dynamics physics engine",
                            "Dynamics3D is a plugin based on the bullet physics library",
-                           "Under development"
-      );
+                           "Under development");
 }
