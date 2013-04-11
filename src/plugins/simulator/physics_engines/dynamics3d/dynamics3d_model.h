@@ -68,7 +68,20 @@ namespace argos {
       virtual bool MoveTo(const CVector3& c_position,
                           const CQuaternion& c_orientation,
                           bool b_check_only = false) {
-         return false;                   
+                  
+         /* For each body in the model, ask the engine if that region at the new location is free
+
+         for(std::map<std::string, btRigidBody*>::const_iterator itBody = m_mapLocalRigidBodies.begin();
+             itBody != m_mapLocalRigidBodies.end();
+             itBody++) {
+            
+            btTransform cBodyNewTransform = itBody->second->getWorldTransform()
+               m_cEngine.IsRegionOccupied(cBodyNewTransform, itBody->second->getCollisionShape()); // const transform&, btCollisionShapePointer
+
+         }
+         */
+         return false;
+
       }
 
       virtual void Reset() {
@@ -182,31 +195,7 @@ namespace argos {
          f_t_on_ray = fModelIntersectDist / c_ray.GetLength();
          return bIntersectionOccured;
       }
-
-      virtual void UpdateModelCompositeShape() {
-         // remove the old shapes in the model
-         for(size_t i = 0; i < size_t(m_cModelCompositeShape.getNumChildShapes()); ++i) {
-            m_cModelCompositeShape.removeChildShapeByIndex(i);
-         }
-
-         const btTransform& cInverseModelWorldTransform = GetModelWorldTransform().inverse();
-         
-         for(std::map<std::string, btRigidBody*>::const_iterator it = m_mapLocalRigidBodies.begin();
-             it != m_mapLocalRigidBodies.end();
-             it++) {
-
-            m_cModelCompositeShape.addChildShape(cInverseModelWorldTransform * it->second->getWorldTransform(),
-                                                 it->second->getCollisionShape());
-         }
-
-         //fprintf(stderr, "CDynamics3DModel::UpdateCompositeShape() called!\n");
-      }
-
       
-   private:
-      
-      btCompoundShape m_cModelCompositeShape;
-
    protected:
       CDynamics3DEngine&      m_cEngine;
       

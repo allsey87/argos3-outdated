@@ -180,7 +180,6 @@ namespace argos {
       /* Update the simulated space */
       for(CDynamics3DModel::TMap::iterator it = m_tPhysicsModels.begin();
           it != m_tPhysicsModels.end(); ++it) {
-         it->second->UpdateModelCompositeShape();
          it->second->CalculateBoundingBox();
          it->second->UpdateEntityStatus();
          
@@ -190,11 +189,11 @@ namespace argos {
    /****************************************/
    /****************************************/
    
-   bool CDynamics3DEngine::IsRegionOccupied(btTransform& c_transform, btCollisionShape& c_collsion_shape) {      
+   bool CDynamics3DEngine::IsRegionOccupied(const btTransform& c_transform, btCollisionShape* pc_collsion_shape) {      
       bool bRegionOccupied;
       /* Create a ghost object at the specified location with the specified collsion shape */
       btGhostObject cGhostObject;
-      cGhostObject.setCollisionShape(&c_collsion_shape);
+      cGhostObject.setCollisionShape(pc_collsion_shape);
       cGhostObject.setWorldTransform(c_transform);
       
       m_pcWorld->addCollisionObject(&cGhostObject);

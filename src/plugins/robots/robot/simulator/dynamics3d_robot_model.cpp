@@ -11,6 +11,8 @@
 #include <argos3/plugins/robots/robot/simulator/joint_equipped_entity.h>
 #include <argos3/plugins/robots/robot/simulator/body_equipped_entity.h>
 
+#include <argos3/core/utility/math/matrix/rotationmatrix3.h>
+
 namespace argos {
    
    /****************************************/
@@ -128,6 +130,9 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
       /* Update robot position and orientation */
       btTransform cBodyTransform;
       
+
+      // Update the position of the bodies
+
       for(CBodyEntity::TList::iterator itBody = m_cBodyEquippedEntity.GetAllBodies().begin();
           itBody != m_cBodyEquippedEntity.GetAllBodies().end();
           ++itBody) {
@@ -136,7 +141,7 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
          SBodyConfiguration* psBodyConfiguration = m_mapRobotBodyConfigurations[(*itBody)->GetId()];
          
          //@todo move this offset and transform logic inside the motion state
-         btTransform cOffset(ARGoSToBullet((*itBody)->m_cOffsetOrientation), ARGoSToBullet((*itBody)->m_cOffsetPosition));
+         //btTransform cOffset(ARGoSToBullet((*itBody)->m_cOffsetOrientation), ARGoSToBullet((*itBody)->m_cOffsetPosition));
          
          // when updating the components we don't want to undo the offset!!
          const btTransform& cBodyUpdateTransform = psBodyConfiguration->m_pcMotionState->m_graphicsWorldTrans;
@@ -195,9 +200,35 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
          */
 
       }
+            
+      // Update the entity Position using the reference body
+      SBodyConfiguration* psReferenceBodyConfiguration = m_mapRobotBodyConfigurations[m_cBodyEquippedEntity.GetReferenceBody().GetId()];
+
+
+      btTransform cOffset(ARGoSToBullet(m_cBodyEquippedEntity.GetReferenceBody().m_cOffsetOrientation),
+                          ARGoSToBullet(m_cBodyEquippedEntity.GetReferenceBody().m_cOffsetPosition));
+                          
+      btTransform cEntityUpdateTransform = 
+         psReferenceBodyConfiguration->m_pcMotionState->m_graphicsWorldTrans * cOffset.inverse();
+
+      
+      GetEmbodiedEntity().SetPosition(BulletToARGoS(cEntityUpdateTransform.getOrigin()));
+      GetEmbodiedEntity().SetOrientation(BulletToARGoS(cEntityUpdateTransform.getRotation()));
 
       /* Update components */
       m_cRobotEntity.UpdateComponents();
+
+
+      //MORE DEBUGGING
+      CVector3 position;
+      CVector3 axis;
+      CRadians angle;
+
+      GetEmbodiedEntity().GetOrientation().ToAngleAxis(angle, axis);
+      position = GetEmbodiedEntity().GetPosition();
+
+      fprintf(stderr, "%s position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = [%.3f]\n", m_cRobotEntity.GetId().c_str(), position.GetX(), position.GetY(), position.GetZ(), axis.GetX(), axis.GetY(), axis.GetZ(), ToDegrees(angle).GetValue());
+
    }
 
    /****************************************/

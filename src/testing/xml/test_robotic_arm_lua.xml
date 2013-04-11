@@ -69,19 +69,19 @@
       </joints>
     </robot>
     
-    <robot id="table" position="-1,-1,0" orientation="20,0,0" controller="r_lua">
+    <robot id="table" position="-1.5,-1.5,1" orientation="0,180,0" controller="r_lua">
       <bodies reference_body="table.bodies.body[4]">
          <body id="body[0]" geometry="box" size="0.05,0.05,0.6" mass="1">
-            <offset position="0.2,0.2,0" orientation="0,0,0"/>
+            <offset position="1.2,1.2,0" orientation="0,0,0"/>
          </body>
          <body id="body[1]" geometry="box" size="0.05,0.05,0.6" mass="1">
-            <offset position="-0.2,0.2,0" orientation="0,0,0"/>
+            <offset position="-1.2,1.2,0" orientation="0,0,0"/>
          </body>
          <body id="body[3]" geometry="box" size="0.05,0.05,0.6" mass="1">
-            <offset position="0.2,-0.2,0" orientation="0,0,0"/>
+            <offset position="1.2,-1.2,0" orientation="0,0,0"/>
          </body>
          <body id="body[2]" geometry="box" size="0.05,0.05,0.6" mass="1">
-            <offset position="-0.2,-0.2,0" orientation="0,0,0"/>
+            <offset position="-1.2,-1.2,0" orientation="0,0,0"/>
          </body>
          <body id="body[4]" geometry="box" size="0.6,0.6,0.05" mass="1">
             <offset position="0,0,0.6" orientation="0,0,0"/>
