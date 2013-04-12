@@ -45,7 +45,9 @@ namespace argos {
 
       //fprintf(stderr, "[init] position of %s in Bullet: [%.3f, %.3f, %.3f]\n", m_cCylinderEntity.GetId().c_str(), m_pcCylinderRigidBody->getWorldTransform().getOrigin().getX(), m_pcCylinderRigidBody->getWorldTransform().getOrigin().getY(),m_pcCylinderRigidBody->getWorldTransform().getOrigin().getZ() );
       
-      m_mapLocalRigidBodies["body"] = m_pcCylinderRigidBody;
+      m_mapLocalBodyConfigurations["cylinder"] = SBodyConfiguration(m_pcCylinderCollisionShape,
+                                                                    m_pcCylinderMotionState,
+                                                                    m_pcCylinderRigidBody);
    }
    
    /****************************************/

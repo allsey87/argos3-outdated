@@ -38,22 +38,21 @@ namespace argos {
                                    (*itBody)->GetSize().GetZ() * 0.5f,
                                    (*itBody)->GetSize().GetY() * 0.5f);
 
-         SBodyConfiguration* psBodyConfiguration = new SBodyConfiguration;
-
-         psBodyConfiguration->m_pcCollisionShape = new btBoxShape(bodyHalfExtents);
-         psBodyConfiguration->m_pcCollisionShape->calculateLocalInertia((*itBody)->GetMass(), cInertia);
+         btBoxShape* pcCollisionShape = new btBoxShape(bodyHalfExtents);
+         pcCollisionShape->calculateLocalInertia((*itBody)->GetMass(), cInertia);
          
          btTransform cOffset(ARGoSToBullet((*itBody)->m_cOffsetOrientation), ARGoSToBullet((*itBody)->m_cOffsetPosition));
          
-         psBodyConfiguration->m_pcMotionState = new btDefaultMotionState(cModelTransform * cOffset, btTransform(
+         btDefaultMotionState* pcMotionState = new btDefaultMotionState(cModelTransform * cOffset, btTransform(
             btQuaternion(0,0,0,1),
             btVector3(0, -bodyHalfExtents.getY(), 0)));
          
-         psBodyConfiguration->m_pcRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
-            (*itBody)->GetMass(), psBodyConfiguration->m_pcMotionState, 
-            psBodyConfiguration->m_pcCollisionShape, cInertia));
+         btRigidBody* pcRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
+            (*itBody)->GetMass(), pcMotionState, pcCollisionShape, cInertia));
 
-         m_mapRobotBodyConfigurations[(*itBody)->GetId()] = psBodyConfiguration;
+         m_mapLocalBodyConfigurations[(*itBody)->GetId()] = SBodyConfiguration(pcCollisionShape, 
+                                                                               pcMotionState,
+                                                                               pcRigidBody);
       }
 
       for(CJointEntity::TList::iterator itJoint = m_cJointEquippedEntity.GetAllJoints().begin();
@@ -69,15 +68,6 @@ namespace argos {
          //const std::vector<CVector3>& vecRotationPoints = (*itJoint)->m_vecRotationPoints;
       }
 
-      // transfer the rigid body pointers to the collection in the base class
-      std::map<std::string, SBodyConfiguration*>::iterator itBodyConfiguration;
-
-      for(itBodyConfiguration = m_mapRobotBodyConfigurations.begin();
-          itBodyConfiguration != m_mapRobotBodyConfigurations.end();
-          ++itBodyConfiguration) {
-         
-         m_mapLocalRigidBodies[itBodyConfiguration->first] = itBodyConfiguration->second->m_pcRigidBody;
-
          //DEBUG
          //btDefaultMotionState * pcMotionState = itBodyConfiguration->second->m_pcMotionState;
          /*
@@ -91,7 +81,7 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
          //DEBUG
 
 
-      }
+  
 
       // move model into the requested position
       //SetModelCoordinates(GetEmbodiedEntity().GetInitPosition(), GetEmoddiedEntity().GetInitOrientation());
@@ -104,22 +94,21 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
    /****************************************/
 
    CDynamics3DRobotModel::~CDynamics3DRobotModel() {
-      std::map<std::string, SBodyConfiguration*>::iterator itBodyConfiguration;
-      std::map<std::string, btHingeConstraint*>::iterator itConstraint;
+      std::map<std::string, SBodyConfiguration>::iterator itBodyConfiguration;
+      std::map<std::string, SConstraint>::iterator itConstraint;
 
-      for(itConstraint = m_mapRobotConstraints.begin();
-          itConstraint != m_mapRobotConstraints.end();
+      for(itConstraint = m_mapLocalConstraints.begin();
+          itConstraint != m_mapLocalConstraints.end();
           ++itConstraint) {
-         delete itConstraint->second;
+         delete itConstraint->second.m_pcConstraint;
       }
       
-      for(itBodyConfiguration = m_mapRobotBodyConfigurations.begin();
-          itBodyConfiguration != m_mapRobotBodyConfigurations.end();
+      for(itBodyConfiguration = m_mapLocalBodyConfigurations.begin();
+          itBodyConfiguration != m_mapLocalBodyConfigurations.end();
           ++itBodyConfiguration) {
-         delete itBodyConfiguration->second->m_pcRigidBody;
-         delete itBodyConfiguration->second->m_pcMotionState;
-         delete itBodyConfiguration->second->m_pcCollisionShape;
-         delete itBodyConfiguration->second;
+         delete itBodyConfiguration->second.m_pcRigidBody;
+         delete itBodyConfiguration->second.m_pcMotionState;
+         delete itBodyConfiguration->second.m_pcCollisionShape;
       }
    }
 
@@ -138,13 +127,13 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
           ++itBody) {
          
          //@todo optimise by storing a pointer to the CPositionalEntity inside the SBodyConfiguration structure
-         SBodyConfiguration* psBodyConfiguration = m_mapRobotBodyConfigurations[(*itBody)->GetId()];
+         SBodyConfiguration& sBodyConfiguration = m_mapLocalBodyConfigurations[(*itBody)->GetId()];
          
          //@todo move this offset and transform logic inside the motion state
          //btTransform cOffset(ARGoSToBullet((*itBody)->m_cOffsetOrientation), ARGoSToBullet((*itBody)->m_cOffsetPosition));
          
          // when updating the components we don't want to undo the offset!!
-         const btTransform& cBodyUpdateTransform = psBodyConfiguration->m_pcMotionState->m_graphicsWorldTrans;
+         const btTransform& cBodyUpdateTransform = sBodyConfiguration.m_pcMotionState->m_graphicsWorldTrans;
          //const btTransform& cBodyUpdateTransform = psBodyConfiguration->m_pcMotionState->m_graphicsWorldTrans * cOffset.inverse();
          /*
          fprintf(stderr, "[DEBUG] Position of %s in ARGoS *before* update\n", (*itBody)->GetId().c_str());
@@ -202,14 +191,14 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
       }
             
       // Update the entity Position using the reference body
-      SBodyConfiguration* psReferenceBodyConfiguration = m_mapRobotBodyConfigurations[m_cBodyEquippedEntity.GetReferenceBody().GetId()];
+      SBodyConfiguration& sReferenceBodyConfiguration = m_mapLocalBodyConfigurations[m_cBodyEquippedEntity.GetReferenceBody().GetId()];
 
 
       btTransform cOffset(ARGoSToBullet(m_cBodyEquippedEntity.GetReferenceBody().m_cOffsetOrientation),
                           ARGoSToBullet(m_cBodyEquippedEntity.GetReferenceBody().m_cOffsetPosition));
                           
       btTransform cEntityUpdateTransform = 
-         psReferenceBodyConfiguration->m_pcMotionState->m_graphicsWorldTrans * cOffset.inverse();
+         sReferenceBodyConfiguration.m_pcMotionState->m_graphicsWorldTrans * cOffset.inverse();
 
       
       GetEmbodiedEntity().SetPosition(BulletToARGoS(cEntityUpdateTransform.getOrigin()));

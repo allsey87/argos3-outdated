@@ -24,7 +24,7 @@ namespace argos {
       virtual void UpdateFromEntityStatus();
 
       virtual const btTransform& GetModelWorldTransform() const {
-         return m_pcBodyRigidBody->getWorldTransform();
+         return m_pcChassisRigidBody->getWorldTransform();
       }
 
    private:
@@ -41,14 +41,14 @@ namespace argos {
       static btTransform                  m_cRightWheelTransform; 
       static btTransform                  m_cFrontPivotTransform;
       static btTransform                  m_cRearPivotTransform;
-      static btTransform                  m_cBodyTransform;
+      static btTransform                  m_cChassisTransform;
       
       /******** Shared Collision Shapes **********/
       static btBoxShape                   m_cBatterySocketCollisionShape;
       static btCylinderShape              m_cBaseModuleCollisionShape;
-      static btCompoundShape              m_cBodyCollisionShape;
       static btCylinderShape              m_cWheelCollisionShape;
       static btSphereShape                m_cPivotCollisionShape;
+      static btCompoundShape              m_cChassisCollisionShape;
       
       
       /**************** Motion States ****************/
@@ -56,21 +56,20 @@ namespace argos {
       btDefaultMotionState*               m_pcRightWheelMotionState;
       btDefaultMotionState*               m_pcFrontPivotMotionState;
       btDefaultMotionState*               m_pcRearPivotMotionState;
-      btDefaultMotionState*               m_pcBodyMotionState;
+      btDefaultMotionState*               m_pcChassisMotionState;
       
       /**************** Rigid Bodies ****************/
       btRigidBody*                        m_pcLeftWheelRigidBody;
       btRigidBody*                        m_pcRightWheelRigidBody;
       btRigidBody*                        m_pcFrontPivotRigidBody;
       btRigidBody*                        m_pcRearPivotRigidBody;
-      btRigidBody*                        m_pcBodyRigidBody;
+      btRigidBody*                        m_pcChassisRigidBody;
       
       /**************** Constraints ****************/
-      btHingeConstraint*                  m_pcLeftWheelToBodyConstraint;
-      btHingeConstraint*                  m_pcRightWheelToBodyConstraint;
-      btHingeConstraint*                  m_pcBodyToBodyConstraint;
-      btPoint2PointConstraint*            m_pcFrontPivotToBodyConstraint;
-      btPoint2PointConstraint*            m_pcRearPivotToBodyConstraint;
+      btHingeConstraint*                  m_pcLeftWheelToChassisConstraint;
+      btHingeConstraint*                  m_pcRightWheelToChassisConstraint;
+      btPoint2PointConstraint*            m_pcFrontPivotToChassisConstraint;
+      btPoint2PointConstraint*            m_pcRearPivotToChassisConstraint;
    };
 }
 

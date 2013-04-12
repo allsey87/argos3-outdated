@@ -28,10 +28,10 @@ namespace argos {
          //@todo this returns the current model reference location for MoveTo etc
          CBodyEntity cReferenceBody = m_cRobotEntity.GetBodyEquippedEntity().GetReferenceBody();
          
-         std::map<std::string, SBodyConfiguration*>::const_iterator it = 
-            m_mapRobotBodyConfigurations.find(cReferenceBody.GetId());
+         std::map<std::string, SBodyConfiguration>::const_iterator it = 
+            m_mapLocalBodyConfigurations.find(cReferenceBody.GetId());
 
-         return it->second->m_pcRigidBody->getWorldTransform();
+         return it->second.m_pcRigidBody->getWorldTransform();
       }
 
    private:
@@ -45,15 +45,8 @@ namespace argos {
       CRobotEntity&           m_cRobotEntity;
       CBodyEquippedEntity&    m_cBodyEquippedEntity;
       CJointEquippedEntity&   m_cJointEquippedEntity;
-
-      struct SBodyConfiguration {
-         btBoxShape* m_pcCollisionShape;
-         btDefaultMotionState* m_pcMotionState;
-         btRigidBody* m_pcRigidBody;
-      };
-      
-      std::map<std::string, SBodyConfiguration*> m_mapRobotBodyConfigurations;
-      std::map<std::string, btHingeConstraint*> m_mapRobotConstraints;
+     
+      //std::map<std::string, btHingeConstraint> m_mapRobotConstraints;
    };
 }
 
