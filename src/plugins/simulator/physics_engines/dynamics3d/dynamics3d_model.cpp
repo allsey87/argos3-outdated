@@ -32,52 +32,28 @@ namespace argos {
 
 fprintf(stderr, "MoveTo called on %s!\n", strId.c_str());
 
-      bool bRegionOccupied = false;
+ fprintf(stderr, "Requested coordinates are: [%.3f, %.3f, %.3f]", c_position.GetX(), c_position.GetY(), c_position.GetZ());
+
+
       const btTransform& cCurrentCoordinates = GetModelCoordinates();
       const btTransform& cMoveToCoordinates = btTransform(ARGoSToBullet(c_orientation),
                                                           ARGoSToBullet(c_position));           
       
+      SetModelCoordinates(cMoveToCoordinates);
 
-      // Remove our body first so that we don't report false collisions with our old position
-      //m_cEngine.RemovePhysicsModelConstraints(*this);
-      //m_cEngine.RemovePhysicsModelConstraints(strId);
-      //m_cEngine.RemovePhysicsModelBodies(strId);
-
-      // Iterate across each body in the model
-      std::map<std::string, SBodyConfiguration>::const_iterator itBodyConfiguration;
-
-      for(itBodyConfiguration = m_mapLocalBodyConfigurations.begin();
-          (itBodyConfiguration != m_mapLocalBodyConfigurations.end()) && bRegionOccupied == false;
-          ++itBodyConfiguration) {
-            
-         // Calculate the proposed location of the body
-         const btTransform& cProposedBodyTransform = cMoveToCoordinates *
-            (cCurrentCoordinates.inverse() * itBodyConfiguration->second.m_pcMotionState->m_graphicsWorldTrans);
-         
-         bRegionOccupied = m_cEngine.IsRegionOccupied(cProposedBodyTransform, itBodyConfiguration->second.m_pcCollisionShape);
-
-         fprintf(stderr, "checking for collisions for body %s at new location: %s\n", itBodyConfiguration->first.c_str(), (bRegionOccupied?"true":"false"));
-
-         
-      }
-
-      // Add ourselves back into the world
-      //m_cEngine.AddPhysicsModelBodies(strId);      
-      //m_cEngine.AddPhysicsModelConstraints(strId);
+      bool bModelHasCollision = m_cEngine.IsModelCollidingWithSomething(*this);    
       
-
       // Check if we are performing the move operation or not
-      if(bRegionOccupied == false && b_check_only == false) {
-         fprintf(stderr, "location clear - moving entity!\n");
-         SetModelCoordinates(cMoveToCoordinates);
+      if(bModelHasCollision == true || b_check_only == true) {
+         fprintf(stderr, "location occupied or check - restoring entity location!\n");
+         SetModelCoordinates(cCurrentCoordinates);
       }
       else {
-         fprintf(stderr, "was check or region was occupied\n");
+         fprintf(stderr, "alles klar!\n");
       }
 
-      
-      // return the result
-      return bRegionOccupied;
+      // return whether the MoveTo was or would have been sucessful
+      return !bModelHasCollision;
    }
 
 
@@ -95,8 +71,6 @@ fprintf(stderr, "MoveTo called on %s!\n", strId.c_str());
          itBodyConfiguration->second.m_pcRigidBody->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
          itBodyConfiguration->second.m_pcRigidBody->clearForces();
       }
-
-      // activate is called by set model coordinates
    }
    
 
@@ -138,7 +112,7 @@ fprintf(stderr, "MoveTo called on %s!\n", strId.c_str());
    }
 
    bool CDynamics3DModel::IsCollidingWithSomething() const {
-      return false;
+      return m_cEngine.IsModelCollidingWithSomething(*this);
    }
 
    bool CDynamics3DModel::CheckIntersectionWithRay(Real& f_t_on_ray, const CRay3& c_ray) const {
@@ -182,7 +156,7 @@ fprintf(stderr, "MoveTo called on %s!\n", strId.c_str());
       return bIntersectionOccured;
    }
 
-   //@todo this method takes a btTransform, caller does the ARGoS to bullet conversion
+
    void CDynamics3DModel::SetModelCoordinates(const btTransform& c_coordinates) {
 
       // Calculate the position and orientation of the entity using the reference body

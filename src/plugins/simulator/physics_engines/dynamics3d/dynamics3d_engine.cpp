@@ -185,6 +185,71 @@ namespace argos {
          
       }
    }
+
+   bool CDynamics3DEngine::IsModelCollidingWithSomething(const CDynamics3DModel& c_model) {
+      // this doesn't step the simulation, but rather reruns the collision detection
+      m_pcWorld->performDiscreteCollisionDetection();
+
+      // get the map of bodies associated with the given model
+      const std::map<std::string, CDynamics3DModel::SBodyConfiguration>& mapModelBodies =
+         c_model.GetBodies();
+
+      // an iterator over the model
+      std::map<std::string, CDynamics3DModel::SBodyConfiguration>::const_iterator itBodyConfiguration;
+      
+      for(UInt32 i = 0; i < UInt32(m_pcCollisionDispatcher->getNumManifolds()); i++) {
+         
+         btPersistentManifold* pcContactManifold = m_pcCollisionDispatcher->getManifoldByIndexInternal(i);
+         const btCollisionObject* pcBodyA = pcContactManifold->getBody0();
+         const btCollisionObject* pcBodyB = pcContactManifold->getBody1();
+         
+         bool bBelongsToModelBodyA = false;
+         bool bBelongsToModelBodyB = false;
+
+         // ignore collisions with the ground
+         if(m_pcGroundRigidBody == pcBodyA || m_pcGroundRigidBody == pcBodyB) {
+            continue;
+         }
+        
+         // Check if either body in the contact manifold belongs to the model
+         for(itBodyConfiguration = mapModelBodies.begin();
+             itBodyConfiguration != mapModelBodies.end();
+             ++itBodyConfiguration) {
+            
+            if(itBodyConfiguration->second.m_pcRigidBody == pcBodyA) {
+               bBelongsToModelBodyA = true;
+            }
+            if(itBodyConfiguration->second.m_pcRigidBody == pcBodyB) {
+               bBelongsToModelBodyB = true;
+            }
+            //@todo optimisation: once both are true we can exit this loop
+         }
+
+         // if the collision pair exists within the same model, ignore it!
+         if(bBelongsToModelBodyA == true && bBelongsToModelBodyB == true) {
+            continue;
+         }
+         
+         // if niether body in the collision pair belongs to this model, ignore it!
+         if(bBelongsToModelBodyA == false && bBelongsToModelBodyB == false) {
+            continue;
+         }
+
+         /* At this point we know that one of the two bodies involved in the contact manifold
+            belong to this model, we now check for contact points with negative distance to 
+            indicate a collision */
+         for(UInt32 j = 0; j < UInt32(pcContactManifold->getNumContacts()); j++) {
+            
+            btManifoldPoint& cManifoldPoint = pcContactManifold->getContactPoint(j);
+            if (cManifoldPoint.getDistance() < 0.0f) {
+               // This manifold tells us that the model is coliding with something
+               // Here we can return true
+               return true;
+            }
+         }
+      }
+      return false;
+   }
    
    /****************************************/
    /****************************************/

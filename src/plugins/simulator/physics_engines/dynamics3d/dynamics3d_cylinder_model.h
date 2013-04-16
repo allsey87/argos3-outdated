@@ -31,9 +31,7 @@ namespace argos {
       
    protected:
 
-      virtual btTransform GetModelCoordinates() const {
-         return m_pcCylinderMotionState->m_graphicsWorldTrans;
-      }
+      virtual btTransform GetModelCoordinates() const;
       
    private:
 

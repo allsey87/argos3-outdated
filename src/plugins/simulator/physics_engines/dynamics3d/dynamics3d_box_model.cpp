@@ -61,33 +61,23 @@ namespace argos {
    /****************************************/
 
    void CDynamics3DBoxModel::UpdateEntityStatus() {
-      //if(m_cBoxEntity.GetEmbodiedEntity().IsMovable()) {      
-         
-         //fprintf(stderr, "position of %s in Bullet: [%.3f, %.3f, %.3f]\n", m_cBoxEntity.GetId().c_str(), m_pcBoxRigidBody->getWorldTransform().getOrigin().getX(), m_pcBoxRigidBody->getWorldTransform().getOrigin().getY(),m_pcBoxRigidBody->getWorldTransform().getOrigin().getZ() );
-
-         const btTransform& cUpdateTransform = m_pcBoxMotionState->m_graphicsWorldTrans;
+      if(m_cBoxEntity.GetEmbodiedEntity().IsMovable()) {      
+         const btTransform& cUpdateTransform = GetModelCoordinates();
          
          GetEmbodiedEntity().SetPosition(BulletToARGoS(cUpdateTransform.getOrigin()));
          GetEmbodiedEntity().SetOrientation(BulletToARGoS(cUpdateTransform.getRotation()));
 
-         //fprintf(stderr, "position of %s in ARGoS: [%.3f, %.3f, %.3f]\n", m_cBoxEntity.GetId().c_str(), GetEmbodiedEntity().GetPosition().GetX(), GetEmbodiedEntity().GetPosition().GetY(),GetEmbodiedEntity().GetPosition().GetZ());
-      
          /* Update components */
          m_cBoxEntity.UpdateComponents();
-     //}
+     }
    }
 
    /****************************************/
    /****************************************/
 
-   /*void CDynamics3DBoxModel::CalculateBoundingBox() {
-      btVector3 cAABBMin, cAABBMax;
-      btTransform cTransform;
-      m_pcBoxMotionState->getWorldTransform(cTransform);
-      m_pcBoxCollisionShape->getAabb(cTransform, cAABBMin, cAABBMax);
-      GetBoundingBox().MinCorner = BulletToARGoS(cAABBMin);
-      GetBoundingBox().MaxCorner = BulletToARGoS(cAABBMax);
-    }*/
+   btTransform CDynamics3DBoxModel::GetModelCoordinates() const {
+      return m_pcBoxMotionState->m_graphicsWorldTrans;
+   }
 
    /****************************************/
    /****************************************/

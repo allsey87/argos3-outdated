@@ -44,6 +44,8 @@ namespace argos {
       
       bool IsRegionOccupied(const btTransform& c_transform, 
                             btCollisionShape* pc_collsion_shape);
+
+      bool IsModelCollidingWithSomething(const CDynamics3DModel& c_model);
       
       void AddPhysicsModel(const std::string& str_id,
                            CDynamics3DModel& c_model);

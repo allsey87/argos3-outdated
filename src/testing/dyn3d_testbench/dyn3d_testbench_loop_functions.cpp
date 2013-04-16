@@ -36,17 +36,17 @@ void CDyn3DTestbenchLoopFunctions::PreStep() {
 
    case 100:
       // Turn the table upside down!
-      pcTableBody->MoveTo(CVector3(1.5,-1.5,0.25), CQuaternion(CRadians::PI,CVector3::X));
+      pcTableBody->MoveTo(CVector3(-1.5,-1.5,0.25), CQuaternion(CRadians::PI,CVector3::X));
       break;
 
    case 150:
       // Place the robotic arm on top of the side down table
-      pcRoboticArmBody->MoveTo(CVector3(1.5,-1.5,0.5), CQuaternion(CRadians::ZERO,CVector3::Z));
+      pcRoboticArmBody->MoveTo(CVector3(-1.5,-1.5,0.5), CQuaternion(CRadians::ZERO,CVector3::Z));
       break;
       
    case 200:
       // Place the foot-bot on top of the robotic arm
-      pcFbBody->MoveTo(CVector3(0,0,0), CQuaternion(CRadians::ZERO,CVector3::Z));
+      pcFbBody->MoveTo(CVector3(-1.5,-1.5,0), CQuaternion(CRadians::ZERO,CVector3::Z));
       break;
 
    default:
