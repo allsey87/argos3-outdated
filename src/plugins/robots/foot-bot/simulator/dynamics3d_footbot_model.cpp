@@ -98,12 +98,6 @@ namespace argos {
       if(m_cChassisCollisionShape.getNumChildShapes() == 0) {
          m_cChassisCollisionShape.addChildShape(m_cBatterySocketTransform, &m_cBatterySocketCollisionShape);
          m_cChassisCollisionShape.addChildShape(m_cBaseModuleTransform, &m_cBaseModuleCollisionShape);
-      
-         /* //DEBUG
-         btVector3 minAabb;
-         btVector3 maxAabb;
-         m_cBodyCollisionShape.getAabb(btTransform::getIdentity(), minAabb, maxAabb);
-         fprintf(stderr, "created footbot body collision shape with extents: [%.6f, %.6f, %.6f]\n", (maxAabb - minAabb).getX(), (maxAabb - minAabb).getY(), (maxAabb - minAabb).getZ()); */
       }
 
       // Vector for calculating interia
@@ -122,7 +116,8 @@ namespace argos {
          FOOTBOT_BASEMODULE_MASS, m_pcChassisMotionState, &m_cChassisCollisionShape, cInertia));
       m_mapLocalBodyConfigurations["chassis"] = SBodyConfiguration(&m_cChassisCollisionShape,
                                                                    m_pcChassisMotionState,
-                                                                   m_pcChassisRigidBody);
+                                                                   m_pcChassisRigidBody,
+                                                                   m_cChassisTransform);
 
       /** create the wheels **/
       m_pcLeftWheelMotionState = new btDefaultMotionState(cModelTransform * m_cLeftWheelTransform, btTransform(
@@ -138,10 +133,12 @@ namespace argos {
          FOOTBOT_WHEEL_MASS, m_pcRightWheelMotionState, &m_cWheelCollisionShape, cInertia));
       m_mapLocalBodyConfigurations["left-wheel"] = SBodyConfiguration(&m_cWheelCollisionShape,
                                                                       m_pcLeftWheelMotionState,
-                                                                      m_pcLeftWheelRigidBody);
+                                                                      m_pcLeftWheelRigidBody,
+                                                                      m_cLeftWheelTransform);
       m_mapLocalBodyConfigurations["right-wheel"] = SBodyConfiguration(&m_cWheelCollisionShape,
                                                                        m_pcRightWheelMotionState,
-                                                                       m_pcRightWheelRigidBody);
+                                                                       m_pcRightWheelRigidBody,
+                                                                       m_cRightWheelTransform);
 
       /** create the wheels to body constraints **/
       m_pcLeftWheelToChassisConstraint = new btHingeConstraint(
@@ -175,10 +172,12 @@ namespace argos {
          FOOTBOT_PIVOT_MASS, m_pcRearPivotMotionState, &m_cPivotCollisionShape, cInertia));
       m_mapLocalBodyConfigurations["front-pivot"] = SBodyConfiguration(&m_cPivotCollisionShape,
                                                                        m_pcFrontPivotMotionState,
-                                                                       m_pcFrontPivotRigidBody);
+                                                                       m_pcFrontPivotRigidBody,
+                                                                       m_cFrontPivotTransform);
       m_mapLocalBodyConfigurations["rear-pivot"] = SBodyConfiguration(&m_cPivotCollisionShape,
                                                                       m_pcRearPivotMotionState,
-                                                                      m_pcRearPivotRigidBody);
+                                                                      m_pcRearPivotRigidBody,
+                                                                      m_cRearPivotTransform);
 
       /** create the pivots to base constraints **/
       m_pcFrontPivotToChassisConstraint = new btPoint2PointConstraint(
@@ -222,12 +221,10 @@ namespace argos {
 
    void CDynamics3DFootBotModel::UpdateEntityStatus() {
       /* Update footbot position and orientation based on the location of a reference body */
-      const btTransform& cUpdateTransform = m_pcChassisMotionState->m_graphicsWorldTrans * m_cChassisTransform.inverse();
+      const btTransform& cEntityUpdateTransform = GetModelCoordinates();
 
-      GetEmbodiedEntity().SetPosition(BulletToARGoS(cUpdateTransform.getOrigin()));
-      GetEmbodiedEntity().SetOrientation(BulletToARGoS(cUpdateTransform.getRotation()));
-
-      //fprintf(stderr, "position of %s in ARGoS: [%.3f, %.3f, %.3f]\n", m_cFootBotEntity.GetId().c_str(), GetEmbodiedEntity().GetPosition().GetX(), GetEmbodiedEntity().GetPosition().GetY(),GetEmbodiedEntity().GetPosition().GetZ());
+      GetEmbodiedEntity().SetPosition(BulletToARGoS(cEntityUpdateTransform.getOrigin()));
+      GetEmbodiedEntity().SetOrientation(BulletToARGoS(cEntityUpdateTransform.getRotation()));
 
       /* Update components */
       m_cFootBotEntity.UpdateComponents();
@@ -239,20 +236,6 @@ namespace argos {
    
 
    void CDynamics3DFootBotModel::UpdateFromEntityStatus() {
-      /*
-      for(std::map<std::string, btRigidBody*>::iterator it = m_mapLocalRigidBodies.begin();
-          it != m_mapLocalRigidBodies.end();
-          it++) {
-         
-         btDefaultMotionState* pcMotionState = dynamic_cast<btDefaultMotionState*>(it->second->getMotionState());
-
-         fprintf(stderr, "[DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = %.3f\n", it->first.c_str(), pcMotionState->m_graphicsWorldTrans.getOrigin().getX(), pcMotionState->m_graphicsWorldTrans.getOrigin().getY(), pcMotionState->m_graphicsWorldTrans.getOrigin().getZ(), pcMotionState->m_graphicsWorldTrans.getRotation().getAxis().getX(), pcMotionState->m_graphicsWorldTrans.getRotation().getAxis().getY(), pcMotionState->m_graphicsWorldTrans.getRotation().getAxis().getZ(), pcMotionState->m_graphicsWorldTrans.getRotation().getAngle() * 57.2957795131f);
-
-         fprintf(stderr, "[DEBUG] %s/m_centerOfMassOffset: position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = %.3f\n", it->first.c_str(), pcMotionState->m_centerOfMassOffset.getOrigin().getX(), pcMotionState->m_centerOfMassOffset.getOrigin().getY(), pcMotionState->m_centerOfMassOffset.getOrigin().getZ(), pcMotionState->m_centerOfMassOffset.getRotation().getAxis().getX(), pcMotionState->m_centerOfMassOffset.getRotation().getAxis().getY(), pcMotionState->m_centerOfMassOffset.getRotation().getAxis().getZ(), pcMotionState->m_centerOfMassOffset.getRotation().getAngle() * 57.2957795131f);
-
-         fprintf(stderr, "[DEBUG] %s/m_startWorldTrans:    position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = %.3f\n", it->first.c_str(), pcMotionState->m_startWorldTrans.getOrigin().getX(), pcMotionState->m_startWorldTrans.getOrigin().getY(), pcMotionState->m_startWorldTrans.getOrigin().getZ(), pcMotionState->m_startWorldTrans.getRotation().getAxis().getX(), pcMotionState->m_startWorldTrans.getRotation().getAxis().getY(), pcMotionState->m_startWorldTrans.getRotation().getAxis().getZ(), pcMotionState->m_startWorldTrans.getRotation().getAngle() * 57.2957795131f);
-      }
-      */ 
 
       /* Get wheel speeds from entity */
       const Real* m_pfCurrentWheelVelocityFromSensor = m_cWheeledEntity.GetWheelVelocities();
@@ -283,20 +266,23 @@ namespace argos {
          m_pcLeftWheelToChassisConstraint->enableAngularMotor(false, 0.0f, 0.0f);
          m_pcRightWheelToChassisConstraint->enableAngularMotor(false, 0.0f, 0.0f);
       }
-      //fprintf(stderr, "[DEBUG] lwheel hinge angle: %.3f\n", m_pcLeftWheelToBodyConstraint->getHingeAngle() );
-      //fprintf(stderr, "[DEBUG] rwheel hinge angle: %.3f\n", m_pcRightWheelToBodyConstraint->getHingeAngle() );
-
    }
 
-   /****************************************/
-   /****************************************/
+   btTransform CDynamics3DFootBotModel::GetModelCoordinates() const {
+      std::map<std::string, SBodyConfiguration>::const_iterator it = 
+         m_mapLocalBodyConfigurations.find("chassis");
+      
+      return (it->second.m_pcMotionState->m_graphicsWorldTrans *
+              it->second.m_cOffsetTransform.inverse());
+      
+         /* more optimal implementation - without map lookup:
+            return m_pcChassisMotionState->m_graphicsWorldTrans * 
+            m_cChassisTransform.inverse();
+         */
+      
+   }
 
-   //void CDynamics3DFootBotModel::CalculateBoundingBox() {
-      /** @todo Calculate foot-bot bounding box */
-   //}
 
-   /****************************************/
-   /****************************************/
 
    REGISTER_STANDARD_DYNAMICS3D_OPERATIONS_ON_ENTITY(CFootBotEntity, CDynamics3DFootBotModel);
 

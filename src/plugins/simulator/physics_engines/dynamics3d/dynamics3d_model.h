@@ -58,14 +58,18 @@ namespace argos {
 
          SBodyConfiguration(btCollisionShape* pc_collision_shape = NULL,
                             btDefaultMotionState* pc_motion_state = NULL,
-                            btRigidBody* pc_rigid_body = NULL) :
+                            btRigidBody* pc_rigid_body = NULL,
+                            btTransform c_offset_transform = btTransform::getIdentity()) :
             m_pcCollisionShape(pc_collision_shape),
             m_pcMotionState(pc_motion_state),
-            m_pcRigidBody(pc_rigid_body) {}
+            m_pcRigidBody(pc_rigid_body),
+            m_cOffsetTransform(c_offset_transform) {}
 
          btCollisionShape* m_pcCollisionShape;
          btDefaultMotionState* m_pcMotionState;
          btRigidBody* m_pcRigidBody;
+         
+         btTransform m_cOffsetTransform;
       };
 
       struct SConstraint {
@@ -91,10 +95,9 @@ namespace argos {
                           bool b_check_only = false);
 
       virtual void Reset();
-
-      virtual const btTransform& GetModelWorldTransform() const = 0;
       
       virtual void UpdateEntityStatus() = 0;
+
       virtual void UpdateFromEntityStatus() = 0;
       
       inline const std::map<std::string,SBodyConfiguration >& GetBodies() const {
@@ -109,9 +112,17 @@ namespace argos {
 
       virtual bool IsCollidingWithSomething() const;
 
-      virtual bool CheckIntersectionWithRay(Real& f_t_on_ray, const CRay3& c_ray) const;
+      virtual bool CheckIntersectionWithRay(Real& f_t_on_ray,
+                                            const CRay3& c_ray) const;
 
    protected:
+
+      virtual btTransform GetModelCoordinates() const = 0;
+
+      virtual void SetModelCoordinates(const btTransform& c_coordinates);
+
+   protected:
+
       CDynamics3DEngine&      m_cEngine;
       
       //@todo convert these to std::vectors

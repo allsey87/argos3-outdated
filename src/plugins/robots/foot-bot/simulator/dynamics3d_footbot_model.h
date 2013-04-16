@@ -23,9 +23,9 @@ namespace argos {
       virtual void UpdateEntityStatus();
       virtual void UpdateFromEntityStatus();
 
-      virtual const btTransform& GetModelWorldTransform() const {
-         return m_pcChassisRigidBody->getWorldTransform();
-      }
+   protected:
+
+      virtual btTransform GetModelCoordinates() const;
 
    private:
 

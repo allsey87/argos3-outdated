@@ -18,6 +18,11 @@ add_library(test_loop_functions MODULE
 target_link_libraries(test_footbot_controller
   argos3core_${ARGOS_BUILD_FOR})
 
+add_library(dyn3d_testbench_loop_functions MODULE
+  dyn3d_testbench/dyn3d_testbench_loop_functions.h
+  dyn3d_testbench/dyn3d_testbench_loop_functions.cpp)
+target_link_libraries(argos3core_${ARGOS_BUILD_FOR})
+
 if(GOOGLEPERFTOOLS_FOUND)
   add_executable(argos3_prof
     ${CMAKE_SOURCE_DIR}/core/simulator/query_plugins.cpp

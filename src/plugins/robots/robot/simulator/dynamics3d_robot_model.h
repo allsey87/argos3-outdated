@@ -24,21 +24,9 @@ namespace argos {
       virtual void UpdateEntityStatus();
       virtual void UpdateFromEntityStatus();
 
-      virtual const btTransform& GetModelWorldTransform() const {
-         //@todo this returns the current model reference location for MoveTo etc
-         CBodyEntity cReferenceBody = m_cRobotEntity.GetBodyEquippedEntity().GetReferenceBody();
-         
-         std::map<std::string, SBodyConfiguration>::const_iterator it = 
-            m_mapLocalBodyConfigurations.find(cReferenceBody.GetId());
+   protected:
 
-         return it->second.m_pcRigidBody->getWorldTransform();
-      }
-
-   private:
-      //@todo migrate this function to CDynamics3DModel
-      // method for internal use only, i.e. by reset, moveto, constructor etc
-      void SetModelCoordinates(const CVector3& c_position,
-                               const CQuaternion& c_orientation) {}
+      virtual btTransform GetModelCoordinates() const;
 
    private:
 

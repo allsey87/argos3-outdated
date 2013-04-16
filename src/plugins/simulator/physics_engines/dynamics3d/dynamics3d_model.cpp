@@ -26,21 +26,60 @@ namespace argos {
    bool CDynamics3DModel::MoveTo(const CVector3& c_position,
                                  const CQuaternion& c_orientation,
                                  bool b_check_only) {
-                  
-      /* For each body in the model, ask the engine if that region at the new location is free
 
-         for(std::map<std::string, btRigidBody*>::const_iterator itBody = m_mapLocalRigidBodies.begin();
-         itBody != m_mapLocalRigidBodies.end();
-         itBody++) {
+      //
+      const std::string& strId = GetEmbodiedEntity().GetParent().GetId();
+
+fprintf(stderr, "MoveTo called on %s!\n", strId.c_str());
+
+      bool bRegionOccupied = false;
+      const btTransform& cCurrentCoordinates = GetModelCoordinates();
+      const btTransform& cMoveToCoordinates = btTransform(ARGoSToBullet(c_orientation),
+                                                          ARGoSToBullet(c_position));           
+      
+
+      // Remove our body first so that we don't report false collisions with our old position
+      //m_cEngine.RemovePhysicsModelConstraints(*this);
+      //m_cEngine.RemovePhysicsModelConstraints(strId);
+      //m_cEngine.RemovePhysicsModelBodies(strId);
+
+      // Iterate across each body in the model
+      std::map<std::string, SBodyConfiguration>::const_iterator itBodyConfiguration;
+
+      for(itBodyConfiguration = m_mapLocalBodyConfigurations.begin();
+          (itBodyConfiguration != m_mapLocalBodyConfigurations.end()) && bRegionOccupied == false;
+          ++itBodyConfiguration) {
             
-         btTransform cBodyNewTransform = itBody->second->getWorldTransform()
-         m_cEngine.IsRegionOccupied(cBodyNewTransform, itBody->second->getCollisionShape()); // const transform&, btCollisionShapePointer
+         // Calculate the proposed location of the body
+         const btTransform& cProposedBodyTransform = cMoveToCoordinates *
+            (cCurrentCoordinates.inverse() * itBodyConfiguration->second.m_pcMotionState->m_graphicsWorldTrans);
+         
+         bRegionOccupied = m_cEngine.IsRegionOccupied(cProposedBodyTransform, itBodyConfiguration->second.m_pcCollisionShape);
 
-         }
-      */
-      return false;
+         fprintf(stderr, "checking for collisions for body %s at new location: %s\n", itBodyConfiguration->first.c_str(), (bRegionOccupied?"true":"false"));
 
+         
+      }
+
+      // Add ourselves back into the world
+      //m_cEngine.AddPhysicsModelBodies(strId);      
+      //m_cEngine.AddPhysicsModelConstraints(strId);
+      
+
+      // Check if we are performing the move operation or not
+      if(bRegionOccupied == false && b_check_only == false) {
+         fprintf(stderr, "location clear - moving entity!\n");
+         SetModelCoordinates(cMoveToCoordinates);
+      }
+      else {
+         fprintf(stderr, "was check or region was occupied\n");
+      }
+
+      
+      // return the result
+      return bRegionOccupied;
    }
+
 
    void CDynamics3DModel::Reset() {
       // reset each body and clearing all velocities and forces
@@ -56,6 +95,8 @@ namespace argos {
          itBodyConfiguration->second.m_pcRigidBody->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
          itBodyConfiguration->second.m_pcRigidBody->clearForces();
       }
+
+      // activate is called by set model coordinates
    }
    
 
@@ -139,6 +180,37 @@ namespace argos {
       }
       f_t_on_ray = fModelIntersectDist / c_ray.GetLength();
       return bIntersectionOccured;
+   }
+
+   //@todo this method takes a btTransform, caller does the ARGoS to bullet conversion
+   void CDynamics3DModel::SetModelCoordinates(const btTransform& c_coordinates) {
+
+      // Calculate the position and orientation of the entity using the reference body
+      const btTransform& cCurrentCoordinates = GetModelCoordinates();
+
+      // Iterate across each body in the model
+      std::map<std::string, SBodyConfiguration>::const_iterator itBodyConfiguration;
+
+      for(itBodyConfiguration = m_mapLocalBodyConfigurations.begin();
+          itBodyConfiguration != m_mapLocalBodyConfigurations.end();
+          ++itBodyConfiguration) {
+
+         btDefaultMotionState* pcMotionState = itBodyConfiguration->second.m_pcMotionState;
+         btRigidBody* pcRigidBody = itBodyConfiguration->second.m_pcRigidBody;
+
+         // Calculate the transform between the entity and the body
+         btTransform cOffsetTransform = cCurrentCoordinates.inverse() *
+            pcMotionState->m_graphicsWorldTrans;
+         
+         // Apply this transform to the new entity location to find the location of the body
+         pcMotionState->m_graphicsWorldTrans = c_coordinates * cOffsetTransform;
+
+         // Tell Bullet to update body by resetting the motion state
+         pcRigidBody->setMotionState(pcMotionState);
+
+         // activate the body
+         pcRigidBody->activate();
+      }
    }
 
 

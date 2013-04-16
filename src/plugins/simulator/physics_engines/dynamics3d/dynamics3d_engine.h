@@ -46,7 +46,12 @@ namespace argos {
                             btCollisionShape* pc_collsion_shape);
       
       void AddPhysicsModel(const std::string& str_id,
-                            CDynamics3DModel& c_model);
+                           CDynamics3DModel& c_model);
+      void AddPhysicsModelBodies(const std::string& str_id);
+      void AddPhysicsModelConstraints(const std::string& str_id);
+
+      void RemovePhysicsModelConstraints(const std::string& str_id);
+      void RemovePhysicsModelBodies(const std::string& str_id);
       void RemovePhysicsModel(const std::string& str_id);
 
       virtual bool IsPointContained(const CVector3& c_point) {
@@ -122,6 +127,8 @@ namespace argos {
                                                   c_entity);            \
       c_engine.AddPhysicsModel(c_entity.GetId(),                        \
                                 *pcPhysModel);                          \
+      c_engine.AddPhysicsModelBodies(c_entity.GetId());                 \
+      c_engine.AddPhysicsModelConstraints(c_entity.GetId());            \
       c_entity.                                                         \
          GetComponent<CEmbodiedEntity>("body").                         \
          AddPhysicsModel(c_engine.GetId(), *pcPhysModel);               \
@@ -139,6 +146,8 @@ namespace argos {
    void ApplyTo(CDynamics3DEngine& c_engine,                            \
                 SPACE_ENTITY& c_entity) {                               \
                                                                         \
+      c_engine.RemovePhysicsModelConstraints(c_entity.GetId());         \
+      c_engine.RemovePhysicsModelBodies(c_entity.GetId());              \
       c_engine.RemovePhysicsModel(c_entity.GetId());                    \
       c_entity.                                                         \
          GetComponent<CEmbodiedEntity>("body").                         \

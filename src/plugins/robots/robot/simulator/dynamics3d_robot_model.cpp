@@ -52,7 +52,8 @@ namespace argos {
 
          m_mapLocalBodyConfigurations[(*itBody)->GetId()] = SBodyConfiguration(pcCollisionShape, 
                                                                                pcMotionState,
-                                                                               pcRigidBody);
+                                                                               pcRigidBody,
+                                                                               cOffset);
       }
 
       for(CJointEntity::TList::iterator itJoint = m_cJointEquippedEntity.GetAllJoints().begin();
@@ -121,7 +122,7 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
       
 
       // Update the position of the bodies
-
+      // loop over the SBodyConfigurations instead? link to positional entities on init?
       for(CBodyEntity::TList::iterator itBody = m_cBodyEquippedEntity.GetAllBodies().begin();
           itBody != m_cBodyEquippedEntity.GetAllBodies().end();
           ++itBody) {
@@ -189,17 +190,8 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
          */
 
       }
-            
-      // Update the entity Position using the reference body
-      SBodyConfiguration& sReferenceBodyConfiguration = m_mapLocalBodyConfigurations[m_cBodyEquippedEntity.GetReferenceBody().GetId()];
-
-
-      btTransform cOffset(ARGoSToBullet(m_cBodyEquippedEntity.GetReferenceBody().m_cOffsetOrientation),
-                          ARGoSToBullet(m_cBodyEquippedEntity.GetReferenceBody().m_cOffsetPosition));
-                          
-      btTransform cEntityUpdateTransform = 
-         sReferenceBodyConfiguration.m_pcMotionState->m_graphicsWorldTrans * cOffset.inverse();
-
+              
+      const btTransform& cEntityUpdateTransform = GetModelCoordinates();
       
       GetEmbodiedEntity().SetPosition(BulletToARGoS(cEntityUpdateTransform.getOrigin()));
       GetEmbodiedEntity().SetOrientation(BulletToARGoS(cEntityUpdateTransform.getRotation()));
@@ -209,7 +201,7 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
 
 
       //MORE DEBUGGING
-      CVector3 position;
+      /*CVector3 position;
       CVector3 axis;
       CRadians angle;
 
@@ -217,13 +209,27 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
       position = GetEmbodiedEntity().GetPosition();
 
       fprintf(stderr, "%s position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = [%.3f]\n", m_cRobotEntity.GetId().c_str(), position.GetX(), position.GetY(), position.GetZ(), axis.GetX(), axis.GetY(), axis.GetZ(), ToDegrees(angle).GetValue());
-
+      */
    }
 
    /****************************************/
    /****************************************/
 
    void CDynamics3DRobotModel::UpdateFromEntityStatus() {}
+
+   /****************************************/
+   /****************************************/
+
+   btTransform CDynamics3DRobotModel::GetModelCoordinates() const {
+      const std::string& strReferenceBodyId = 
+         m_cRobotEntity.GetBodyEquippedEntity().GetReferenceBody().GetId();
+         
+      std::map<std::string, SBodyConfiguration>::const_iterator it = 
+         m_mapLocalBodyConfigurations.find(strReferenceBodyId);
+      
+      return (it->second.m_pcMotionState->m_graphicsWorldTrans *
+              it->second.m_cOffsetTransform.inverse());
+   }
 
    /****************************************/
    /****************************************/

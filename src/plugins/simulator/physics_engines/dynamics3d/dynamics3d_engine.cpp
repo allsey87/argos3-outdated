@@ -231,14 +231,29 @@ namespace argos {
    void CDynamics3DEngine::AddPhysicsModel(const std::string& str_id,
                                            CDynamics3DModel& c_model) {
       m_tPhysicsModels[str_id] = &c_model;
-      
-      for(std::map<std::string, CDynamics3DModel::SBodyConfiguration>::const_iterator itBodyConfiguration = c_model.GetBodies().begin(); 
-          itBodyConfiguration !=  c_model.GetBodies().end();
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CDynamics3DEngine::AddPhysicsModelBodies(const std::string& str_id) {
+      const std::map<std::string, CDynamics3DModel::SBodyConfiguration>& mapModelBodies = m_tPhysicsModels[str_id]->GetBodies();
+
+      for(std::map<std::string, CDynamics3DModel::SBodyConfiguration>::const_iterator itBodyConfiguration = mapModelBodies.begin(); 
+          itBodyConfiguration !=  mapModelBodies.end();
           itBodyConfiguration++) {   
          m_pcWorld->addRigidBody(itBodyConfiguration->second.m_pcRigidBody);
       }
-      for(std::map<std::string, CDynamics3DModel::SConstraint>::const_iterator itConstraint = c_model.GetConstraints().begin(); 
-          itConstraint !=  c_model.GetConstraints().end();
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CDynamics3DEngine::AddPhysicsModelConstraints(const std::string& str_id) {
+      const std::map<std::string, CDynamics3DModel::SConstraint>& mapModelConstraints = m_tPhysicsModels[str_id]->GetConstraints();
+
+      for(std::map<std::string, CDynamics3DModel::SConstraint>::const_iterator itConstraint = mapModelConstraints.begin(); 
+          itConstraint !=  mapModelConstraints.end();
           itConstraint++) {   
          m_pcWorld->addConstraint(itConstraint->second.m_pcConstraint, itConstraint->second.m_bDisableCollisions);
       }
@@ -246,21 +261,48 @@ namespace argos {
 
    /****************************************/
    /****************************************/
-   void CDynamics3DEngine::RemovePhysicsModel(const std::string& str_id) {
-      CDynamics3DModel::TMap::iterator it = m_tPhysicsModels.find(str_id);
-      if(it != m_tPhysicsModels.end()) {
-         for(std::map<std::string, CDynamics3DModel::SConstraint>::const_iterator itConstraint = it->second->GetConstraints().begin(); 
-             itConstraint !=  it->second->GetConstraints().end();
+
+   void CDynamics3DEngine::RemovePhysicsModelConstraints(const std::string& str_id) {
+      CDynamics3DModel::TMap::iterator itModel = m_tPhysicsModels.find(str_id);
+
+      if(itModel != m_tPhysicsModels.end()) {
+         for(std::map<std::string, CDynamics3DModel::SConstraint>::const_iterator itConstraint = itModel->second->GetConstraints().begin(); 
+             itConstraint !=  itModel->second->GetConstraints().end();
              itConstraint++) {   
             m_pcWorld->removeConstraint(itConstraint->second.m_pcConstraint);
          }
-         for(std::map<std::string, CDynamics3DModel::SBodyConfiguration>::const_iterator itBody = it->second->GetBodies().begin(); 
-             itBody !=  it->second->GetBodies().end();
+      }
+      else {
+         THROW_ARGOSEXCEPTION("Dynamics3D model id \"" << str_id << "\" not found in dynamics 3D engine \"" << GetId() << "\"");
+      }
+   }
+
+   /****************************************/
+   /****************************************/
+   
+   void CDynamics3DEngine::RemovePhysicsModelBodies(const std::string& str_id) {
+      CDynamics3DModel::TMap::iterator itModel = m_tPhysicsModels.find(str_id);
+
+      if(itModel != m_tPhysicsModels.end()) {
+         for(std::map<std::string, CDynamics3DModel::SBodyConfiguration>::const_iterator itBody = itModel->second->GetBodies().begin(); 
+             itBody !=  itModel->second->GetBodies().end();
              itBody++) {
             m_pcWorld->removeRigidBody(itBody->second.m_pcRigidBody);
          }
-         delete it->second;
-         m_tPhysicsModels.erase(it);
+      }
+      else {
+         THROW_ARGOSEXCEPTION("Dynamics3D model id \"" << str_id << "\" not found in dynamics 3D engine \"" << GetId() << "\"");
+      }
+   }
+
+   /****************************************/
+   /****************************************/
+   
+   void CDynamics3DEngine::RemovePhysicsModel(const std::string& str_id) {
+      CDynamics3DModel::TMap::iterator itModel = m_tPhysicsModels.find(str_id);
+      if(itModel != m_tPhysicsModels.end()) {
+         delete itModel->second;
+         m_tPhysicsModels.erase(itModel);
       }
       else {
          THROW_ARGOSEXCEPTION("Dynamics3D model id \"" << str_id << "\" not found in dynamics 3D engine \"" << GetId() << "\"");
