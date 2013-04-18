@@ -56,20 +56,28 @@ namespace argos {
 
       struct SBodyConfiguration {
 
-         SBodyConfiguration(btCollisionShape* pc_collision_shape = NULL,
+         SBodyConfiguration(const std::string& str_id = "",
+                            btCollisionShape* pc_collision_shape = NULL,
                             btDefaultMotionState* pc_motion_state = NULL,
                             btRigidBody* pc_rigid_body = NULL,
-                            btTransform c_offset_transform = btTransform::getIdentity()) :
+                            btTransform c_offset_transform = btTransform::getIdentity(),
+                            btVector3 c_inertia = btVector3(0.0f,0.0f,0.0f),
+                            Real f_mass = 0.0f) :
+            m_strId(str_id),
             m_pcCollisionShape(pc_collision_shape),
             m_pcMotionState(pc_motion_state),
             m_pcRigidBody(pc_rigid_body),
-            m_cOffsetTransform(c_offset_transform) {}
+            m_cOffsetTransform(c_offset_transform),
+            m_cInertia(c_inertia),
+            m_fMass(f_mass) {}
 
+         std::string m_strId;
          btCollisionShape* m_pcCollisionShape;
          btDefaultMotionState* m_pcMotionState;
          btRigidBody* m_pcRigidBody;
-         
          btTransform m_cOffsetTransform;
+         btVector3 m_cInertia;
+         Real m_fMass;
       };
 
       struct SConstraint {

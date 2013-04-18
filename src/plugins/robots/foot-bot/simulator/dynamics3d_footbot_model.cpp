@@ -103,27 +103,26 @@ namespace argos {
       // Vector for calculating interia
       btVector3 cInertia;
 
-      // Transform representing the reference point and rotation of the footbot
-      btTransform cModelTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
-                                  ARGoSToBullet(GetEmbodiedEntity().GetInitPosition()));
-
       /** Create the body **/
-      m_pcChassisMotionState = new btDefaultMotionState(cModelTransform * m_cChassisTransform, btTransform(
+      m_pcChassisMotionState = new btDefaultMotionState(m_cChassisTransform, btTransform(
          btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
          btVector3(0.0f, -FOOTBOT_BATT_H, 0.0f)));
       m_cChassisCollisionShape.calculateLocalInertia(FOOTBOT_BASEMODULE_MASS, cInertia);
       m_pcChassisRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          FOOTBOT_BASEMODULE_MASS, m_pcChassisMotionState, &m_cChassisCollisionShape, cInertia));
-      m_mapLocalBodyConfigurations["chassis"] = SBodyConfiguration(&m_cChassisCollisionShape,
+      m_mapLocalBodyConfigurations["chassis"] = SBodyConfiguration("chassis",
+                                                                   &m_cChassisCollisionShape,
                                                                    m_pcChassisMotionState,
                                                                    m_pcChassisRigidBody,
-                                                                   m_cChassisTransform);
+                                                                   m_cChassisTransform,
+                                                                   cInertia,
+                                                                   FOOTBOT_BASEMODULE_MASS);
 
       /** create the wheels **/
-      m_pcLeftWheelMotionState = new btDefaultMotionState(cModelTransform * m_cLeftWheelTransform, btTransform(
+      m_pcLeftWheelMotionState = new btDefaultMotionState(m_cLeftWheelTransform, btTransform(
          btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
          btVector3(0.0f, -FOOTBOT_WHEEL_THICKNESS * 0.5f, 0.0f)));
-      m_pcRightWheelMotionState = new btDefaultMotionState(cModelTransform * m_cRightWheelTransform, btTransform(
+      m_pcRightWheelMotionState = new btDefaultMotionState(m_cRightWheelTransform, btTransform(
          btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
          btVector3(0.0f, -FOOTBOT_WHEEL_THICKNESS * 0.5f, 0.0f)));
       m_cWheelCollisionShape.calculateLocalInertia(FOOTBOT_WHEEL_MASS, cInertia);
@@ -131,14 +130,20 @@ namespace argos {
          FOOTBOT_WHEEL_MASS, m_pcLeftWheelMotionState, &m_cWheelCollisionShape, cInertia));
       m_pcRightWheelRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          FOOTBOT_WHEEL_MASS, m_pcRightWheelMotionState, &m_cWheelCollisionShape, cInertia));
-      m_mapLocalBodyConfigurations["left-wheel"] = SBodyConfiguration(&m_cWheelCollisionShape,
+      m_mapLocalBodyConfigurations["left-wheel"] = SBodyConfiguration("left-wheel",
+                                                                      &m_cWheelCollisionShape,
                                                                       m_pcLeftWheelMotionState,
                                                                       m_pcLeftWheelRigidBody,
-                                                                      m_cLeftWheelTransform);
-      m_mapLocalBodyConfigurations["right-wheel"] = SBodyConfiguration(&m_cWheelCollisionShape,
+                                                                      m_cLeftWheelTransform,
+                                                                      cInertia,
+                                                                      FOOTBOT_WHEEL_MASS);
+      m_mapLocalBodyConfigurations["right-wheel"] = SBodyConfiguration("right-wheel",
+                                                                       &m_cWheelCollisionShape,
                                                                        m_pcRightWheelMotionState,
                                                                        m_pcRightWheelRigidBody,
-                                                                       m_cRightWheelTransform);
+                                                                       m_cRightWheelTransform,
+                                                                       cInertia,
+                                                                       FOOTBOT_WHEEL_MASS);
 
       /** create the wheels to body constraints **/
       m_pcLeftWheelToChassisConstraint = new btHingeConstraint(
@@ -159,10 +164,10 @@ namespace argos {
       m_mapLocalConstraints["right-wheel:chassis"] = SConstraint(m_pcRightWheelToChassisConstraint, true);
 
       /** Create the pivots **/
-      m_pcFrontPivotMotionState = new btDefaultMotionState(cModelTransform * m_cFrontPivotTransform, btTransform(
+      m_pcFrontPivotMotionState = new btDefaultMotionState(m_cFrontPivotTransform, btTransform(
          btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
          btVector3(0.0f, -FOOTBOT_PIVOT_RADIUS, 0.0f)));
-      m_pcRearPivotMotionState = new btDefaultMotionState(cModelTransform * m_cRearPivotTransform, btTransform(
+      m_pcRearPivotMotionState = new btDefaultMotionState(m_cRearPivotTransform, btTransform(
          btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
          btVector3(0.0f, -FOOTBOT_PIVOT_RADIUS, 0.0f)));
       m_cPivotCollisionShape.calculateLocalInertia(FOOTBOT_PIVOT_MASS, cInertia);
@@ -170,14 +175,20 @@ namespace argos {
          FOOTBOT_PIVOT_MASS, m_pcFrontPivotMotionState, &m_cPivotCollisionShape, cInertia));
       m_pcRearPivotRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          FOOTBOT_PIVOT_MASS, m_pcRearPivotMotionState, &m_cPivotCollisionShape, cInertia));
-      m_mapLocalBodyConfigurations["front-pivot"] = SBodyConfiguration(&m_cPivotCollisionShape,
+      m_mapLocalBodyConfigurations["front-pivot"] = SBodyConfiguration("front-pivot",
+                                                                       &m_cPivotCollisionShape,
                                                                        m_pcFrontPivotMotionState,
                                                                        m_pcFrontPivotRigidBody,
-                                                                       m_cFrontPivotTransform);
-      m_mapLocalBodyConfigurations["rear-pivot"] = SBodyConfiguration(&m_cPivotCollisionShape,
+                                                                       m_cFrontPivotTransform,
+                                                                       cInertia,
+                                                                       FOOTBOT_PIVOT_MASS);
+      m_mapLocalBodyConfigurations["rear-pivot"] = SBodyConfiguration("rear-pivot",
+                                                                      &m_cPivotCollisionShape,
                                                                       m_pcRearPivotMotionState,
                                                                       m_pcRearPivotRigidBody,
-                                                                      m_cRearPivotTransform);
+                                                                      m_cRearPivotTransform,
+                                                                      cInertia,
+                                                                      FOOTBOT_PIVOT_MASS);
 
       /** create the pivots to base constraints **/
       m_pcFrontPivotToChassisConstraint = new btPoint2PointConstraint(
@@ -191,7 +202,11 @@ namespace argos {
          btVector3(0.0f, 0.0f, 0.0f),
          btVector3(-FOOTBOT_PIVOT_HALF_DISTANCE, -FOOTBOT_PIVOT_Y_OFFSET, 0.0f));
       m_mapLocalConstraints["front-pivot:chassis"] = SConstraint(m_pcFrontPivotToChassisConstraint, true);
-      m_mapLocalConstraints["rear-pivot:chassis"] = SConstraint(m_pcRearPivotToChassisConstraint, true); 
+      m_mapLocalConstraints["rear-pivot:chassis"] = SConstraint(m_pcRearPivotToChassisConstraint, true);
+
+      /** move the model to the specified coordinates */
+      SetModelCoordinates(btTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
+                                      ARGoSToBullet(GetEmbodiedEntity().GetInitPosition())));
    }
 
    /****************************************/

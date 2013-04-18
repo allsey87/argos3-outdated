@@ -27,9 +27,6 @@ namespace argos {
       
       btVector3 cInertia;
       
-      btTransform cModelTransform(ARGoSToBullet(GetEmbodiedEntity().GetOrientation()),
-                                  ARGoSToBullet(GetEmbodiedEntity().GetPosition()));
-      
       for(CBodyEntity::TList::iterator itBody = m_cBodyEquippedEntity.GetAllBodies().begin();
           itBody != m_cBodyEquippedEntity.GetAllBodies().end();
           ++itBody) {
@@ -43,17 +40,20 @@ namespace argos {
          
          btTransform cOffset(ARGoSToBullet((*itBody)->m_cOffsetOrientation), ARGoSToBullet((*itBody)->m_cOffsetPosition));
          
-         btDefaultMotionState* pcMotionState = new btDefaultMotionState(cModelTransform * cOffset, btTransform(
+         btDefaultMotionState* pcMotionState = new btDefaultMotionState(cOffset, btTransform(
             btQuaternion(0,0,0,1),
             btVector3(0, -bodyHalfExtents.getY(), 0)));
          
          btRigidBody* pcRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
             (*itBody)->GetMass(), pcMotionState, pcCollisionShape, cInertia));
 
-         m_mapLocalBodyConfigurations[(*itBody)->GetId()] = SBodyConfiguration(pcCollisionShape, 
+         m_mapLocalBodyConfigurations[(*itBody)->GetId()] = SBodyConfiguration((*itBody)->GetId(),
+                                                                               pcCollisionShape, 
                                                                                pcMotionState,
                                                                                pcRigidBody,
-                                                                               cOffset);
+                                                                               cOffset,
+                                                                               cInertia,
+                                                                               (*itBody)->GetMass());
       }
 
       for(CJointEntity::TList::iterator itJoint = m_cJointEquippedEntity.GetAllJoints().begin();
@@ -82,8 +82,9 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
          //DEBUG
 
 
-  
-
+      SetModelCoordinates(btTransform(ARGoSToBullet(GetEmbodiedEntity().GetOrientation()),
+                                      ARGoSToBullet(GetEmbodiedEntity().GetPosition())));
+      
       // move model into the requested position
       //SetModelCoordinates(GetEmbodiedEntity().GetInitPosition(), GetEmoddiedEntity().GetInitOrientation());
 

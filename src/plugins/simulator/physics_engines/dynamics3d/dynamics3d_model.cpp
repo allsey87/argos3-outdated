@@ -30,9 +30,8 @@ namespace argos {
       //
       const std::string& strId = GetEmbodiedEntity().GetParent().GetId();
 
-fprintf(stderr, "MoveTo called on %s!\n", strId.c_str());
-
- fprintf(stderr, "Requested coordinates are: [%.3f, %.3f, %.3f]", c_position.GetX(), c_position.GetY(), c_position.GetZ());
+      fprintf(stderr, "MoveTo called on %s - requested coordinates are: [%.3f, %.3f, %.3f]\n", 
+              strId.c_str(), c_position.GetX(), c_position.GetY(), c_position.GetZ());
 
 
       const btTransform& cCurrentCoordinates = GetModelCoordinates();
@@ -45,34 +44,48 @@ fprintf(stderr, "MoveTo called on %s!\n", strId.c_str());
       
       // Check if we are performing the move operation or not
       if(bModelHasCollision == true || b_check_only == true) {
-         fprintf(stderr, "location occupied or check - restoring entity location!\n");
+         fprintf(stderr, ":: location occupied or check: restoring entity location\n");
          SetModelCoordinates(cCurrentCoordinates);
       }
       else {
-         fprintf(stderr, "alles klar!\n");
+         fprintf(stderr, ":: move operation sucessful!\n");
       }
 
       // return whether the MoveTo was or would have been sucessful
       return !bModelHasCollision;
    }
 
+   /****************************************/
+   /****************************************/
 
    void CDynamics3DModel::Reset() {
-      // reset each body and clearing all velocities and forces
+      // recreate each body in the model
+
       for(std::map<std::string, SBodyConfiguration>::iterator itBodyConfiguration = m_mapLocalBodyConfigurations.begin();
           itBodyConfiguration !=  m_mapLocalBodyConfigurations.end();
           ++itBodyConfiguration) {
          
-         btMotionState* pcMotionState = itBodyConfiguration->second.m_pcMotionState;
-         pcMotionState->reset();
-         itBodyConfiguration->second.m_pcRigidBody->setMotionState(pcMotionState);
-            
-         itBodyConfiguration->second.m_pcRigidBody->setAngularVelocity(btVector3(0.0f, 0.0f, 0.0f));
-         itBodyConfiguration->second.m_pcRigidBody->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
-         itBodyConfiguration->second.m_pcRigidBody->clearForces();
+         delete(itBodyConfiguration->second.m_pcRigidBody);
+
+         // update the motion state here?
+         itBodyConfiguration->second.m_pcMotionState->m_graphicsWorldTrans =
+            itBodyConfiguration->second.m_cOffsetTransform;
+         
+         itBodyConfiguration->second.m_pcRigidBody = 
+            new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(itBodyConfiguration->second.m_fMass,
+                                                                     itBodyConfiguration->second.m_pcMotionState,
+                                                                     itBodyConfiguration->second.m_pcCollisionShape,
+                                                                     itBodyConfiguration->second.m_cInertia));
       }
+
+      btTransform cModelResetTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
+                                       ARGoSToBullet(GetEmbodiedEntity().GetInitPosition()));
+
+      SetModelCoordinates(cModelResetTransform);
    }
-   
+
+   /****************************************/
+   /****************************************/
 
    void CDynamics3DModel::CalculateBoundingBox() {
       btVector3 cAabbMin, cAabbMax, cBodyAabbMin, cBodyAabbMax;
@@ -111,9 +124,15 @@ fprintf(stderr, "MoveTo called on %s!\n", strId.c_str());
       GetBoundingBox().MaxCorner.SetY(BulletToARGoS(cAabbMin).GetY());
    }
 
+   /****************************************/
+   /****************************************/
+
    bool CDynamics3DModel::IsCollidingWithSomething() const {
       return m_cEngine.IsModelCollidingWithSomething(*this);
    }
+
+   /****************************************/
+   /****************************************/
 
    bool CDynamics3DModel::CheckIntersectionWithRay(Real& f_t_on_ray, const CRay3& c_ray) const {
       btTransform cRayStartTransform(btQuaternion::getIdentity(), ARGoSToBullet(c_ray.GetStart()));
@@ -156,6 +175,8 @@ fprintf(stderr, "MoveTo called on %s!\n", strId.c_str());
       return bIntersectionOccured;
    }
 
+   /****************************************/
+   /****************************************/
 
    void CDynamics3DModel::SetModelCoordinates(const btTransform& c_coordinates) {
 

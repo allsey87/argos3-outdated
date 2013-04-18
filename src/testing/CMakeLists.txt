@@ -32,9 +32,11 @@ if(GOOGLEPERFTOOLS_FOUND)
     argos3core_simulator
     argos3plugin_simulator_footbot
     argos3plugin_simulator_genericrobot
+    argos3plugin_simulator_robot
     argos3plugin_simulator_qtopengl
     argos3plugin_simulator_sensors
     argos3plugin_simulator_entities
     argos3plugin_simulator_dynamics2d
+    argos3plugin_simulator_dynamics3d
     argos3plugin_simulator_actuators)
 endif(GOOGLEPERFTOOLS_FOUND)

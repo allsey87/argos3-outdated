@@ -24,28 +24,32 @@ namespace argos {
       m_pcBoxCollisionShape = new btBoxShape(btVector3(cBoxHalfSize.GetX(),
                                                        cBoxHalfSize.GetZ(), 
                                                        cBoxHalfSize.GetY()));
-     
-      btTransform cModelTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
-                                   ARGoSToBullet(GetEmbodiedEntity().GetInitPosition()));
       
-      m_pcBoxMotionState = new btDefaultMotionState(cModelTransform,
+      m_pcBoxMotionState = new btDefaultMotionState(btTransform::getIdentity(),
                                                     btTransform(btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
                                                                 btVector3(0.0f, -cBoxHalfSize.GetZ(), 0.0f)));
-          
+            
+      btVector3 cInteria(0.0f, 0.0f, 0.0f);
+      Real fMass = 0.0f;
+ 
       if(c_box.GetEmbodiedEntity().IsMovable()) {
-         btVector3 cInteria;
-         m_pcBoxCollisionShape->calculateLocalInertia(c_box.GetMass(), cInteria);
-         m_pcBoxRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
-            c_box.GetMass(), m_pcBoxMotionState, m_pcBoxCollisionShape, cInteria));
+         fMass = c_box.GetMass();
+         m_pcBoxCollisionShape->calculateLocalInertia(fMass, cInteria);
       }
-      else {
-         m_pcBoxRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
-            0.0f, m_pcBoxMotionState, m_pcBoxCollisionShape, btVector3(0.0f,0.0f,0.0f)));
-      }
-      
-      m_mapLocalBodyConfigurations["box"] = SBodyConfiguration(m_pcBoxCollisionShape,
-                                                                m_pcBoxMotionState,
-                                                                m_pcBoxRigidBody);
+
+      m_pcBoxRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
+         fMass, m_pcBoxMotionState, m_pcBoxCollisionShape, cInteria));
+
+      m_mapLocalBodyConfigurations["box"] = SBodyConfiguration("box",
+                                                               m_pcBoxCollisionShape,
+                                                               m_pcBoxMotionState,
+                                                               m_pcBoxRigidBody,
+                                                               btTransform::getIdentity(),
+                                                               cInteria,
+                                                               fMass);
+      /* move the model to the specified coordinates */
+      SetModelCoordinates(btTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
+                                      ARGoSToBullet(GetEmbodiedEntity().GetInitPosition())));
    }
    
    /****************************************/
