@@ -42,9 +42,6 @@ namespace argos {
       virtual void AddEntity(CEntity& c_entity);
       virtual void RemoveEntity(CEntity& c_entity);
       
-      bool IsRegionOccupied(const btTransform& c_transform, 
-                            btCollisionShape* pc_collsion_shape);
-
       bool IsModelCollidingWithSomething(const CDynamics3DModel& c_model);
       
       void AddPhysicsModel(const std::string& str_id,
@@ -71,8 +68,6 @@ namespace argos {
       }
    
    private:
-
-      CControllableEntity::TMap m_tControllableEntities;
       std::map<std::string, CDynamics3DModel*> m_tPhysicsModels;
       
       /* ARGoS RNG */

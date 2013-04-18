@@ -191,11 +191,10 @@ namespace argos {
       m_pcWorld->performDiscreteCollisionDetection();
 
       // get the map of bodies associated with the given model
-      const std::map<std::string, CDynamics3DModel::SBodyConfiguration>& mapModelBodies =
-         c_model.GetBodies();
+      const std::vector<CDynamics3DModel::SBodyConfiguration>& vecModelBodies = c_model.GetBodies();
 
       // an iterator over the model
-      std::map<std::string, CDynamics3DModel::SBodyConfiguration>::const_iterator itBodyConfiguration;
+      std::vector<CDynamics3DModel::SBodyConfiguration>::const_iterator itBodyConfiguration;
       
       for(UInt32 i = 0; i < UInt32(m_pcCollisionDispatcher->getNumManifolds()); i++) {
          
@@ -212,14 +211,14 @@ namespace argos {
          }
         
          // Check if either body in the contact manifold belongs to the model
-         for(itBodyConfiguration = mapModelBodies.begin();
-             itBodyConfiguration != mapModelBodies.end();
+         for(itBodyConfiguration = vecModelBodies.begin();
+             itBodyConfiguration != vecModelBodies.end();
              ++itBodyConfiguration) {
             
-            if(itBodyConfiguration->second.m_pcRigidBody == pcBodyA) {
+            if(itBodyConfiguration->m_pcRigidBody == pcBodyA) {
                bBelongsToModelBodyA = true;
             }
-            if(itBodyConfiguration->second.m_pcRigidBody == pcBodyB) {
+            if(itBodyConfiguration->m_pcRigidBody == pcBodyB) {
                bBelongsToModelBodyB = true;
             }
             //@todo optimisation: once both are true we can exit this loop
@@ -243,7 +242,7 @@ namespace argos {
             btManifoldPoint& cManifoldPoint = pcContactManifold->getContactPoint(j);
             if (cManifoldPoint.getDistance() < 0.0f) {
                // This manifold tells us that the model is coliding with something
-               // Here we can return true
+               // We can return true
                return true;
             }
          }
@@ -251,24 +250,6 @@ namespace argos {
       return false;
    }
    
-   /****************************************/
-   /****************************************/
-   
-   bool CDynamics3DEngine::IsRegionOccupied(const btTransform& c_transform, btCollisionShape* pc_collsion_shape) {      
-      bool bRegionOccupied;
-      /* Create a ghost object at the specified location with the specified collsion shape */
-      btGhostObject cGhostObject;
-      cGhostObject.setCollisionShape(pc_collsion_shape);
-      cGhostObject.setWorldTransform(c_transform);
-      
-      m_pcWorld->addCollisionObject(&cGhostObject);
-      
-      bRegionOccupied = (cGhostObject.getNumOverlappingObjects() != 0);
-
-      m_pcWorld->removeCollisionObject(&cGhostObject);
-      return bRegionOccupied;
-   }
-
    /****************************************/
    /****************************************/
    
@@ -302,12 +283,12 @@ namespace argos {
    /****************************************/
 
    void CDynamics3DEngine::AddPhysicsModelBodies(const std::string& str_id) {
-      const std::map<std::string, CDynamics3DModel::SBodyConfiguration>& mapModelBodies = m_tPhysicsModels[str_id]->GetBodies();
+      const std::vector<CDynamics3DModel::SBodyConfiguration>& vecModelBodies = m_tPhysicsModels[str_id]->GetBodies();
 
-      for(std::map<std::string, CDynamics3DModel::SBodyConfiguration>::const_iterator itBodyConfiguration = mapModelBodies.begin(); 
-          itBodyConfiguration !=  mapModelBodies.end();
+      for(std::vector<CDynamics3DModel::SBodyConfiguration>::const_iterator itBodyConfiguration = vecModelBodies.begin(); 
+          itBodyConfiguration !=  vecModelBodies.end();
           itBodyConfiguration++) {   
-         m_pcWorld->addRigidBody(itBodyConfiguration->second.m_pcRigidBody);
+         m_pcWorld->addRigidBody(itBodyConfiguration->m_pcRigidBody);
       }
    }
 
@@ -315,12 +296,12 @@ namespace argos {
    /****************************************/
 
    void CDynamics3DEngine::AddPhysicsModelConstraints(const std::string& str_id) {
-      const std::map<std::string, CDynamics3DModel::SConstraint>& mapModelConstraints = m_tPhysicsModels[str_id]->GetConstraints();
+      const std::vector<CDynamics3DModel::SConstraint>& vecModelConstraints = m_tPhysicsModels[str_id]->GetConstraints();
 
-      for(std::map<std::string, CDynamics3DModel::SConstraint>::const_iterator itConstraint = mapModelConstraints.begin(); 
-          itConstraint !=  mapModelConstraints.end();
-          itConstraint++) {   
-         m_pcWorld->addConstraint(itConstraint->second.m_pcConstraint, itConstraint->second.m_bDisableCollisions);
+      for(std::vector<CDynamics3DModel::SConstraint>::const_iterator itConstraint = vecModelConstraints.begin(); 
+          itConstraint != vecModelConstraints.end(); 
+          itConstraint++) {
+         m_pcWorld->addConstraint(itConstraint->m_pcConstraint, itConstraint->m_bDisableCollisions);
       }
    }
 
@@ -331,10 +312,10 @@ namespace argos {
       CDynamics3DModel::TMap::iterator itModel = m_tPhysicsModels.find(str_id);
 
       if(itModel != m_tPhysicsModels.end()) {
-         for(std::map<std::string, CDynamics3DModel::SConstraint>::const_iterator itConstraint = itModel->second->GetConstraints().begin(); 
+         for(std::vector<CDynamics3DModel::SConstraint>::const_iterator itConstraint = itModel->second->GetConstraints().begin(); 
              itConstraint !=  itModel->second->GetConstraints().end();
-             itConstraint++) {   
-            m_pcWorld->removeConstraint(itConstraint->second.m_pcConstraint);
+             itConstraint++) {
+            m_pcWorld->removeConstraint(itConstraint->m_pcConstraint);
          }
       }
       else {
@@ -349,10 +330,10 @@ namespace argos {
       CDynamics3DModel::TMap::iterator itModel = m_tPhysicsModels.find(str_id);
 
       if(itModel != m_tPhysicsModels.end()) {
-         for(std::map<std::string, CDynamics3DModel::SBodyConfiguration>::const_iterator itBody = itModel->second->GetBodies().begin(); 
+         for(std::vector<CDynamics3DModel::SBodyConfiguration>::const_iterator itBody = itModel->second->GetBodies().begin(); 
              itBody !=  itModel->second->GetBodies().end();
              itBody++) {
-            m_pcWorld->removeRigidBody(itBody->second.m_pcRigidBody);
+            m_pcWorld->removeRigidBody(itBody->m_pcRigidBody);
          }
       }
       else {

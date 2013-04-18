@@ -81,11 +81,14 @@ namespace argos {
       };
 
       struct SConstraint {
-         SConstraint(btTypedConstraint* pc_constraint = NULL,
+         SConstraint(const std::string& str_id = "",
+                     btTypedConstraint* pc_constraint = NULL,
                      bool b_disable_collisions = false) : 
+            m_strId(str_id),
             m_pcConstraint(pc_constraint),
             m_bDisableCollisions(b_disable_collisions) {}
          
+         std::string m_strId;
          btTypedConstraint* m_pcConstraint;
          bool m_bDisableCollisions;
       };
@@ -108,12 +111,12 @@ namespace argos {
 
       virtual void UpdateFromEntityStatus() = 0;
       
-      inline const std::map<std::string,SBodyConfiguration >& GetBodies() const {
-         return m_mapLocalBodyConfigurations;
+      inline const std::vector<SBodyConfiguration>& GetBodies() const {
+         return m_vecLocalBodyConfigurations;
       }
       
-      inline const std::map<std::string, SConstraint>& GetConstraints() const {
-         return m_mapLocalConstraints;
+      inline const std::vector<SConstraint>& GetConstraints() const {
+         return m_vecLocalConstraints;
       }
 
       virtual void CalculateBoundingBox();
@@ -129,13 +132,15 @@ namespace argos {
 
       virtual void SetModelCoordinates(const btTransform& c_coordinates);
 
+      const SBodyConfiguration& FindBody(const std::string& str_id) const;
+
    protected:
 
       CDynamics3DEngine&      m_cEngine;
       
       //@todo convert these to std::vectors
-      std::map<std::string, SBodyConfiguration> m_mapLocalBodyConfigurations;
-      std::map<std::string, SConstraint> m_mapLocalConstraints;
+      std::vector<SBodyConfiguration> m_vecLocalBodyConfigurations;
+      std::vector<SConstraint> m_vecLocalConstraints;
 
    };
 }

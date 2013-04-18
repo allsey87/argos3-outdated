@@ -1,4 +1,4 @@
-/**
+/*sudo*
  * @file <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_box_model.cpp>
  *
  * @author Michael Allwright - <allsey87@gmail.com>
@@ -18,16 +18,14 @@ namespace argos {
       CDynamics3DModel(c_engine, c_box.GetEmbodiedEntity()),
       m_cBoxEntity(c_box) {
       
-      const CVector3 cBoxHalfSize = c_box.GetSize() * 0.5f;
-      
       /* When defining size of objects we must manually swap the Z and Y components */
-      m_pcBoxCollisionShape = new btBoxShape(btVector3(cBoxHalfSize.GetX(),
-                                                       cBoxHalfSize.GetZ(), 
-                                                       cBoxHalfSize.GetY()));
+      m_pcBoxCollisionShape = new btBoxShape(btVector3(c_box.GetSize().GetX() * 0.5f,
+                                                       c_box.GetSize().GetZ() * 0.5f, 
+                                                       c_box.GetSize().GetY() * 0.5f));
       
       m_pcBoxMotionState = new btDefaultMotionState(btTransform::getIdentity(),
-                                                    btTransform(btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-                                                                btVector3(0.0f, -cBoxHalfSize.GetZ(), 0.0f)));
+         btTransform(btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
+                     btVector3(0.0f, -c_box.GetSize().GetZ() * 0.5f, 0.0f)));
             
       btVector3 cInteria(0.0f, 0.0f, 0.0f);
       Real fMass = 0.0f;
@@ -40,13 +38,13 @@ namespace argos {
       m_pcBoxRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          fMass, m_pcBoxMotionState, m_pcBoxCollisionShape, cInteria));
 
-      m_mapLocalBodyConfigurations["box"] = SBodyConfiguration("box",
-                                                               m_pcBoxCollisionShape,
-                                                               m_pcBoxMotionState,
-                                                               m_pcBoxRigidBody,
-                                                               btTransform::getIdentity(),
-                                                               cInteria,
-                                                               fMass);
+      m_vecLocalBodyConfigurations.push_back(SBodyConfiguration("box",
+                                                                m_pcBoxCollisionShape,
+                                                                m_pcBoxMotionState,
+                                                                m_pcBoxRigidBody,
+                                                                btTransform::getIdentity(),
+                                                                cInteria,
+                                                                fMass));
       /* move the model to the specified coordinates */
       SetModelCoordinates(btTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
                                       ARGoSToBullet(GetEmbodiedEntity().GetInitPosition())));

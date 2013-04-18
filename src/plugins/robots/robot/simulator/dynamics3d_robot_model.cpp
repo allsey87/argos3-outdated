@@ -47,13 +47,13 @@ namespace argos {
          btRigidBody* pcRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
             (*itBody)->GetMass(), pcMotionState, pcCollisionShape, cInertia));
 
-         m_mapLocalBodyConfigurations[(*itBody)->GetId()] = SBodyConfiguration((*itBody)->GetId(),
-                                                                               pcCollisionShape, 
-                                                                               pcMotionState,
-                                                                               pcRigidBody,
-                                                                               cOffset,
-                                                                               cInertia,
-                                                                               (*itBody)->GetMass());
+         m_vecLocalBodyConfigurations.push_back(SBodyConfiguration((*itBody)->GetId(),
+                                                                   pcCollisionShape, 
+                                                                   pcMotionState,
+                                                                   pcRigidBody,
+                                                                   cOffset,
+                                                                   cInertia,
+                                                                   (*itBody)->GetMass()));
       }
 
       for(CJointEntity::TList::iterator itJoint = m_cJointEquippedEntity.GetAllJoints().begin();
@@ -96,21 +96,21 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
    /****************************************/
 
    CDynamics3DRobotModel::~CDynamics3DRobotModel() {
-      std::map<std::string, SBodyConfiguration>::iterator itBodyConfiguration;
-      std::map<std::string, SConstraint>::iterator itConstraint;
+      std::vector<SBodyConfiguration>::iterator itBodyConfiguration;
+      std::vector<SConstraint>::iterator itConstraint;
 
-      for(itConstraint = m_mapLocalConstraints.begin();
-          itConstraint != m_mapLocalConstraints.end();
+      for(itConstraint = m_vecLocalConstraints.begin();
+          itConstraint != m_vecLocalConstraints.end();
           ++itConstraint) {
-         delete itConstraint->second.m_pcConstraint;
+         delete itConstraint->m_pcConstraint;
       }
       
-      for(itBodyConfiguration = m_mapLocalBodyConfigurations.begin();
-          itBodyConfiguration != m_mapLocalBodyConfigurations.end();
+      for(itBodyConfiguration = m_vecLocalBodyConfigurations.begin();
+          itBodyConfiguration != m_vecLocalBodyConfigurations.end();
           ++itBodyConfiguration) {
-         delete itBodyConfiguration->second.m_pcRigidBody;
-         delete itBodyConfiguration->second.m_pcMotionState;
-         delete itBodyConfiguration->second.m_pcCollisionShape;
+         delete itBodyConfiguration->m_pcRigidBody;
+         delete itBodyConfiguration->m_pcMotionState;
+         delete itBodyConfiguration->m_pcCollisionShape;
       }
    }
 
@@ -129,7 +129,7 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
           ++itBody) {
          
          //@todo optimise by storing a pointer to the CPositionalEntity inside the SBodyConfiguration structure
-         SBodyConfiguration& sBodyConfiguration = m_mapLocalBodyConfigurations[(*itBody)->GetId()];
+         const SBodyConfiguration& sBodyConfiguration = FindBody((*itBody)->GetId());
          
          //@todo move this offset and transform logic inside the motion state
          //btTransform cOffset(ARGoSToBullet((*itBody)->m_cOffsetOrientation), ARGoSToBullet((*itBody)->m_cOffsetPosition));
@@ -224,12 +224,11 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
    btTransform CDynamics3DRobotModel::GetModelCoordinates() const {
       const std::string& strReferenceBodyId = 
          m_cRobotEntity.GetBodyEquippedEntity().GetReferenceBody().GetId();
-         
-      std::map<std::string, SBodyConfiguration>::const_iterator it = 
-         m_mapLocalBodyConfigurations.find(strReferenceBodyId);
       
-      return (it->second.m_pcMotionState->m_graphicsWorldTrans *
-              it->second.m_cOffsetTransform.inverse());
+      const SBodyConfiguration& sReferenceBodyConfiguration = FindBody(strReferenceBodyId);
+
+      return (sReferenceBodyConfiguration.m_pcMotionState->m_graphicsWorldTrans *
+              sReferenceBodyConfiguration.m_cOffsetTransform.inverse());
    }
 
    /****************************************/

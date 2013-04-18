@@ -26,10 +26,9 @@ namespace argos {
       btTransform cModelTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
                                   ARGoSToBullet(GetEmbodiedEntity().GetInitPosition()));
 
-      //m_pcCylinderMotionState = new btDefaultMotionState(btTransform::getIdentity()
+      //m_pcCylinderMotionState = new btDefaultMotionState(btTransform::getIdentity(),
       m_pcCylinderMotionState = new btDefaultMotionState(cModelTransform,
-                                                         btTransform(btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-                                                                     btVector3(0.0f, -c_cylinder.GetHeight() * 0.5f, 0.0f)));
+         btTransform(btQuaternion(0.0f, 0.0f, 0.0f, 1.0f), btVector3(0.0f, -c_cylinder.GetHeight() * 0.5f, 0.0f)));
           
       btVector3 cInteria(0.0f, 0.0f, 0.0f);
       Real fMass = 0.0f;
@@ -42,13 +41,13 @@ namespace argos {
       m_pcCylinderRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          fMass, m_pcCylinderMotionState, m_pcCylinderCollisionShape, cInteria));
 
-      m_mapLocalBodyConfigurations["cylinder"] = SBodyConfiguration("cylinder",
-                                                               m_pcCylinderCollisionShape,
-                                                               m_pcCylinderMotionState,
-                                                               m_pcCylinderRigidBody,
-                                                               btTransform::getIdentity(),
-                                                               cInteria,
-                                                               fMass);
+      m_vecLocalBodyConfigurations.push_back(SBodyConfiguration("cylinder",
+                                                                m_pcCylinderCollisionShape,
+                                                                m_pcCylinderMotionState,
+                                                                m_pcCylinderRigidBody,
+                                                                btTransform::getIdentity(),
+                                                                cInteria,
+                                                                fMass));
       
       /* move the model to the specified coordinates */
       //SetModelCoordinates(btTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),ARGoSToBullet(GetEmbodiedEntity().GetInitPosition())));

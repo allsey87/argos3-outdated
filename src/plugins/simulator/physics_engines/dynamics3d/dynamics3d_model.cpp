@@ -61,21 +61,21 @@ namespace argos {
    void CDynamics3DModel::Reset() {
       // recreate each body in the model
 
-      for(std::map<std::string, SBodyConfiguration>::iterator itBodyConfiguration = m_mapLocalBodyConfigurations.begin();
-          itBodyConfiguration !=  m_mapLocalBodyConfigurations.end();
+      for(std::vector<SBodyConfiguration>::iterator itBodyConfiguration = m_vecLocalBodyConfigurations.begin();
+          itBodyConfiguration !=  m_vecLocalBodyConfigurations.end();
           ++itBodyConfiguration) {
          
-         delete(itBodyConfiguration->second.m_pcRigidBody);
+         delete(itBodyConfiguration->m_pcRigidBody);
 
          // update the motion state here?
-         itBodyConfiguration->second.m_pcMotionState->m_graphicsWorldTrans =
-            itBodyConfiguration->second.m_cOffsetTransform;
+         itBodyConfiguration->m_pcMotionState->m_graphicsWorldTrans =
+            itBodyConfiguration->m_cOffsetTransform;
          
-         itBodyConfiguration->second.m_pcRigidBody = 
-            new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(itBodyConfiguration->second.m_fMass,
-                                                                     itBodyConfiguration->second.m_pcMotionState,
-                                                                     itBodyConfiguration->second.m_pcCollisionShape,
-                                                                     itBodyConfiguration->second.m_cInertia));
+         itBodyConfiguration->m_pcRigidBody = 
+            new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(itBodyConfiguration->m_fMass,
+                                                                     itBodyConfiguration->m_pcMotionState,
+                                                                     itBodyConfiguration->m_pcCollisionShape,
+                                                                     itBodyConfiguration->m_cInertia));
       }
 
       btTransform cModelResetTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
@@ -91,12 +91,14 @@ namespace argos {
       btVector3 cAabbMin, cAabbMax, cBodyAabbMin, cBodyAabbMax;
       bool bAabbVectorInitRequired = true;
 
-      for(std::map<std::string, SBodyConfiguration>::const_iterator itBodyConfiguration = m_mapLocalBodyConfigurations.begin();
-          itBodyConfiguration != m_mapLocalBodyConfigurations.end();
+      for(std::vector<SBodyConfiguration>::iterator itBodyConfiguration = m_vecLocalBodyConfigurations.begin();
+          itBodyConfiguration != m_vecLocalBodyConfigurations.end();
           itBodyConfiguration++) {
             
          // get the axis aligned bounding box for the current body
-         itBodyConfiguration->second.m_pcCollisionShape->getAabb(itBodyConfiguration->second.m_pcRigidBody->getWorldTransform(), cBodyAabbMin, cBodyAabbMax);
+         itBodyConfiguration->m_pcCollisionShape->getAabb(itBodyConfiguration->m_pcRigidBody->getWorldTransform(),
+                                                          cBodyAabbMin,
+                                                          cBodyAabbMax);
             
          if(bAabbVectorInitRequired == true) {
             // this is the first body in the model, use it's axis aligned bounding box.
@@ -143,8 +145,8 @@ namespace argos {
       Real fBodyIntersectDist; 
          
       //@todo use SbodyComponent backed via a std::vector to increase speed (reduced cache misses)
-      for(std::map<std::string, SBodyConfiguration>::const_iterator itBodyConfiguration = m_mapLocalBodyConfigurations.begin();
-          itBodyConfiguration != m_mapLocalBodyConfigurations.end();
+      for(std::vector<SBodyConfiguration>::const_iterator itBodyConfiguration = m_vecLocalBodyConfigurations.begin();
+          itBodyConfiguration != m_vecLocalBodyConfigurations.end();
           itBodyConfiguration++) {
 
          // This object cannot be used twice or reinitialised, we must construct it on every iteration
@@ -155,8 +157,8 @@ namespace argos {
          btCollisionWorld::rayTestSingle(cRayStartTransform,
                                          cRayEndTransform,
                                          &cTempCollisionObject,
-                                         itBodyConfiguration->second.m_pcCollisionShape,
-                                         itBodyConfiguration->second.m_pcRigidBody->getWorldTransform(),
+                                         itBodyConfiguration->m_pcCollisionShape,
+                                         itBodyConfiguration->m_pcRigidBody->getWorldTransform(),
                                          cResult);
 
          // if this body intersected the ray, we compute whether or not this has been the closest intersection
@@ -184,29 +186,41 @@ namespace argos {
       const btTransform& cCurrentCoordinates = GetModelCoordinates();
 
       // Iterate across each body in the model
-      std::map<std::string, SBodyConfiguration>::const_iterator itBodyConfiguration;
-
-      for(itBodyConfiguration = m_mapLocalBodyConfigurations.begin();
-          itBodyConfiguration != m_mapLocalBodyConfigurations.end();
+      for(std::vector<SBodyConfiguration>::iterator itBodyConfiguration = m_vecLocalBodyConfigurations.begin();
+          itBodyConfiguration != m_vecLocalBodyConfigurations.end();
           ++itBodyConfiguration) {
 
-         btDefaultMotionState* pcMotionState = itBodyConfiguration->second.m_pcMotionState;
-         btRigidBody* pcRigidBody = itBodyConfiguration->second.m_pcRigidBody;
-
          // Calculate the transform between the entity and the body
-         btTransform cOffsetTransform = cCurrentCoordinates.inverse() *
-            pcMotionState->m_graphicsWorldTrans;
+         const btTransform& cOffsetTransform = cCurrentCoordinates.inverse() *
+            itBodyConfiguration->m_pcMotionState->m_graphicsWorldTrans;
          
          // Apply this transform to the new entity location to find the location of the body
-         pcMotionState->m_graphicsWorldTrans = c_coordinates * cOffsetTransform;
+         itBodyConfiguration->m_pcMotionState->m_graphicsWorldTrans = c_coordinates * cOffsetTransform;
 
          // Tell Bullet to update body by resetting the motion state
-         pcRigidBody->setMotionState(pcMotionState);
+         itBodyConfiguration->m_pcRigidBody->setMotionState(itBodyConfiguration->m_pcMotionState);
 
          // activate the body
-         pcRigidBody->activate();
+         itBodyConfiguration->m_pcRigidBody->activate();
       }
    }
 
+   /****************************************/
+   /****************************************/
+
+   const CDynamics3DModel::SBodyConfiguration& CDynamics3DModel::FindBody(const std::string& str_id) const {
+      std::vector<SBodyConfiguration>::const_iterator itBodyConfiguration;
+
+      for(itBodyConfiguration = m_vecLocalBodyConfigurations.begin();
+          itBodyConfiguration != m_vecLocalBodyConfigurations.end();
+          ++itBodyConfiguration) {
+         
+         if(itBodyConfiguration->m_strId == str_id) break;
+      }
+      if(itBodyConfiguration == m_vecLocalBodyConfigurations.end()) {
+         THROW_ARGOSEXCEPTION("Could not find a body with an Id \"" << str_id << "\".");
+      }
+      return *itBodyConfiguration;
+   }
 
 }
