@@ -128,20 +128,46 @@ namespace argos {
 
    protected:
 
+      //virtual void Setup() = 0;
+
       virtual btTransform GetModelCoordinates() const = 0;
 
       virtual void SetModelCoordinates(const btTransform& c_coordinates);
 
-      const SBodyConfiguration& FindBody(const std::string& str_id) const;
-
    protected:
 
       CDynamics3DEngine&      m_cEngine;
-      
-      //@todo convert these to std::vectors
-      std::vector<SBodyConfiguration> m_vecLocalBodyConfigurations;
-      std::vector<SConstraint> m_vecLocalConstraints;
 
+      class : public std::vector<SBodyConfiguration> {
+      public:
+         const SBodyConfiguration& Find(const std::string& str_id) const {
+            std::vector<SBodyConfiguration>::const_iterator it;
+            
+            for(it = this->begin(); it != this->end(); ++it) {
+               if(it->m_strId == str_id) break;
+            }
+            if(it == this->end()) {
+               THROW_ARGOSEXCEPTION("Could not find a body with ID \"" << str_id << "\".");
+            }
+            return *it;
+         }
+      } m_vecLocalBodyConfigurations;
+
+
+      class : public std::vector<SConstraint> {
+      public:
+         const SConstraint& Find(const std::string& str_id) const {
+            std::vector<SConstraint>::const_iterator it;
+            
+            for(it = this->begin(); it != this->end(); ++it) {
+               if(it->m_strId == str_id) break;
+            }
+            if(it == this->end()) {
+               THROW_ARGOSEXCEPTION("Could not find a constraint with ID \"" << str_id << "\".");
+            }
+            return *it;
+         }
+      } m_vecLocalConstraints;
    };
 }
 

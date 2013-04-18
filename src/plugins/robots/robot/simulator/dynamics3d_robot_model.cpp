@@ -129,7 +129,7 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
           ++itBody) {
          
          //@todo optimise by storing a pointer to the CPositionalEntity inside the SBodyConfiguration structure
-         const SBodyConfiguration& sBodyConfiguration = FindBody((*itBody)->GetId());
+         const SBodyConfiguration& sBodyConfiguration = m_vecLocalBodyConfigurations.Find((*itBody)->GetId());
          
          //@todo move this offset and transform logic inside the motion state
          //btTransform cOffset(ARGoSToBullet((*itBody)->m_cOffsetOrientation), ARGoSToBullet((*itBody)->m_cOffsetPosition));
@@ -225,7 +225,9 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
       const std::string& strReferenceBodyId = 
          m_cRobotEntity.GetBodyEquippedEntity().GetReferenceBody().GetId();
       
-      const SBodyConfiguration& sReferenceBodyConfiguration = FindBody(strReferenceBodyId);
+
+      //@todo optimise this storing the result after calling Dynamics3DModel::Setup(...)
+      const SBodyConfiguration& sReferenceBodyConfiguration = m_vecLocalBodyConfigurations.Find(strReferenceBodyId);
 
       return (sReferenceBodyConfiguration.m_pcMotionState->m_graphicsWorldTrans *
               sReferenceBodyConfiguration.m_cOffsetTransform.inverse());
