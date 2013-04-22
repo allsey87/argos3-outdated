@@ -5,8 +5,10 @@
  */
 
 #include "dynamics3d_footbot_model.h"
+
 #include <argos3/core/simulator/entity/embodied_entity.h>
 #include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_engine.h>
+#include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_body.h>
 
 namespace argos {
 
@@ -104,44 +106,53 @@ namespace argos {
       btVector3 cInertia;
 
       /** Create the body **/
-      m_pcChassisMotionState = new btDefaultMotionState(m_cChassisTransform, btTransform(
-         btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-         btVector3(0.0f, -FOOTBOT_BATT_H, 0.0f)));
+      btTransform chassisGeo(btQuaternion(0.0f, 0.0f, 0.0f, 1.0f), btVector3(0.0f, -FOOTBOT_BATT_H, 0.0f));
+
+      m_pcChassisMotionState = new btDefaultMotionState(m_cChassisTransform, chassisGeo);
+
       m_cChassisCollisionShape.calculateLocalInertia(FOOTBOT_BASEMODULE_MASS, cInertia);
+     
       m_pcChassisRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          FOOTBOT_BASEMODULE_MASS, m_pcChassisMotionState, &m_cChassisCollisionShape, cInertia));
-      m_vecLocalBodyConfigurations.push_back(SBodyConfiguration("chassis",
+      
+      m_vecLocalBodyConfigurations.push_back(CDynamics3DBody("chassis",
                                                                 &m_cChassisCollisionShape,
                                                                 m_pcChassisMotionState,
                                                                 m_pcChassisRigidBody,
                                                                 m_cChassisTransform,
+                                                                chassisGeo,
                                                                 cInertia,
                                                                 FOOTBOT_BASEMODULE_MASS));
 
       /** create the wheels **/
-      m_pcLeftWheelMotionState = new btDefaultMotionState(m_cLeftWheelTransform, btTransform(
+      btTransform wheelGeo(
          btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-         btVector3(0.0f, -FOOTBOT_WHEEL_THICKNESS * 0.5f, 0.0f)));
-      m_pcRightWheelMotionState = new btDefaultMotionState(m_cRightWheelTransform, btTransform(
-         btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-         btVector3(0.0f, -FOOTBOT_WHEEL_THICKNESS * 0.5f, 0.0f)));
+         btVector3(0.0f, -FOOTBOT_WHEEL_THICKNESS * 0.5f, 0.0f));
+
+      m_pcLeftWheelMotionState = new btDefaultMotionState(m_cLeftWheelTransform, wheelGeo);
+      m_pcRightWheelMotionState = new btDefaultMotionState(m_cRightWheelTransform, wheelGeo);
+
       m_cWheelCollisionShape.calculateLocalInertia(FOOTBOT_WHEEL_MASS, cInertia);
+
       m_pcLeftWheelRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          FOOTBOT_WHEEL_MASS, m_pcLeftWheelMotionState, &m_cWheelCollisionShape, cInertia));
       m_pcRightWheelRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          FOOTBOT_WHEEL_MASS, m_pcRightWheelMotionState, &m_cWheelCollisionShape, cInertia));
-      m_vecLocalBodyConfigurations.push_back(SBodyConfiguration("left-wheel",
+
+      m_vecLocalBodyConfigurations.push_back(CDynamics3DBody("left-wheel",
                                                                 &m_cWheelCollisionShape,
                                                                 m_pcLeftWheelMotionState,
                                                                 m_pcLeftWheelRigidBody,
                                                                 m_cLeftWheelTransform,
+                                                                wheelGeo,
                                                                 cInertia,
                                                                 FOOTBOT_WHEEL_MASS));
-      m_vecLocalBodyConfigurations.push_back(SBodyConfiguration("right-wheel",
+      m_vecLocalBodyConfigurations.push_back(CDynamics3DBody("right-wheel",
                                                                 &m_cWheelCollisionShape,
                                                                 m_pcRightWheelMotionState,
                                                                 m_pcRightWheelRigidBody,
                                                                 m_cRightWheelTransform,
+                                                                wheelGeo,
                                                                 cInertia,
                                                                 FOOTBOT_WHEEL_MASS));
 
@@ -168,29 +179,34 @@ namespace argos {
                                                   true));
                                                                       
       /** Create the pivots **/
-      m_pcFrontPivotMotionState = new btDefaultMotionState(m_cFrontPivotTransform, btTransform(
+      btTransform pivotGeo(
          btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-         btVector3(0.0f, -FOOTBOT_PIVOT_RADIUS, 0.0f)));
-      m_pcRearPivotMotionState = new btDefaultMotionState(m_cRearPivotTransform, btTransform(
-         btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-         btVector3(0.0f, -FOOTBOT_PIVOT_RADIUS, 0.0f)));
+         btVector3(0.0f, -FOOTBOT_PIVOT_RADIUS, 0.0f));
+
+      m_pcFrontPivotMotionState = new btDefaultMotionState(m_cFrontPivotTransform, pivotGeo);
+
+      m_pcRearPivotMotionState = new btDefaultMotionState(m_cRearPivotTransform, pivotGeo);
+
       m_cPivotCollisionShape.calculateLocalInertia(FOOTBOT_PIVOT_MASS, cInertia);
       m_pcFrontPivotRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          FOOTBOT_PIVOT_MASS, m_pcFrontPivotMotionState, &m_cPivotCollisionShape, cInertia));
       m_pcRearPivotRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          FOOTBOT_PIVOT_MASS, m_pcRearPivotMotionState, &m_cPivotCollisionShape, cInertia));
-      m_vecLocalBodyConfigurations.push_back(SBodyConfiguration("front-pivot",
+
+      m_vecLocalBodyConfigurations.push_back(CDynamics3DBody("front-pivot",
                                                                 &m_cPivotCollisionShape,
                                                                 m_pcFrontPivotMotionState,
                                                                 m_pcFrontPivotRigidBody,
                                                                 m_cFrontPivotTransform,
+                                                                pivotGeo,
                                                                 cInertia,
                                                                 FOOTBOT_PIVOT_MASS));
-      m_vecLocalBodyConfigurations.push_back(SBodyConfiguration("rear-pivot",
+      m_vecLocalBodyConfigurations.push_back(CDynamics3DBody("rear-pivot",
                                                                 &m_cPivotCollisionShape,
                                                                 m_pcRearPivotMotionState,
                                                                 m_pcRearPivotRigidBody,
                                                                 m_cRearPivotTransform,
+                                                                pivotGeo,
                                                                 cInertia,
                                                                 FOOTBOT_PIVOT_MASS));
 

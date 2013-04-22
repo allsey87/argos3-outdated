@@ -46,11 +46,7 @@ namespace argos {
       
       void AddPhysicsModel(const std::string& str_id,
                            CDynamics3DModel& c_model);
-      void AddPhysicsModelBodies(const std::string& str_id);
-      void AddPhysicsModelConstraints(const std::string& str_id);
-
-      void RemovePhysicsModelConstraints(const std::string& str_id);
-      void RemovePhysicsModelBodies(const std::string& str_id);
+      
       void RemovePhysicsModel(const std::string& str_id);
 
       virtual bool IsPointContained(const CVector3& c_point) {
@@ -68,8 +64,27 @@ namespace argos {
       }
    
    private:
-      std::map<std::string, CDynamics3DModel*> m_tPhysicsModels;
-      
+
+      void AddBodiesFromModel(const CDynamics3DModel& c_model);
+      void AddConstraintsFromModel(const CDynamics3DModel& c_model);
+
+      void RemoveConstraintsFromModel(const CDynamics3DModel& c_model);
+      void RemoveBodiesFromModel(const CDynamics3DModel& c_model);
+
+   private:
+
+      //@question Is there any reason not to put the actual models into the vector?
+      class : public std::vector<std::pair<std::string, CDynamics3DModel*> > {
+      public:
+         std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator Find(const std::string& str_id) {
+            std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator it;
+            for(it = this->begin(); it != this->end(); ++it) {
+               if(it->first == str_id) break;
+            }
+            return it;
+         }
+      } m_vecPhysicsModels;
+
       /* ARGoS RNG */
       //CARGoSRandom::CRNG* m_pcRNG;
      
@@ -124,8 +139,6 @@ namespace argos {
                                                   c_entity);            \
       c_engine.AddPhysicsModel(c_entity.GetId(),                        \
                                 *pcPhysModel);                          \
-      c_engine.AddPhysicsModelBodies(c_entity.GetId());                 \
-      c_engine.AddPhysicsModelConstraints(c_entity.GetId());            \
       c_entity.                                                         \
          GetComponent<CEmbodiedEntity>("body").                         \
          AddPhysicsModel(c_engine.GetId(), *pcPhysModel);               \
@@ -143,8 +156,6 @@ namespace argos {
    void ApplyTo(CDynamics3DEngine& c_engine,                            \
                 SPACE_ENTITY& c_entity) {                               \
                                                                         \
-      c_engine.RemovePhysicsModelConstraints(c_entity.GetId());         \
-      c_engine.RemovePhysicsModelBodies(c_entity.GetId());              \
       c_engine.RemovePhysicsModel(c_entity.GetId());                    \
       c_entity.                                                         \
          GetComponent<CEmbodiedEntity>("body").                         \

@@ -5,9 +5,12 @@
  */
 
 #include "dynamics3d_engine.h"
-#include "dynamics3d_model.h"
+
 #include <argos3/core/simulator/simulator.h>
 #include <argos3/core/simulator/entity/embodied_entity.h>
+
+#include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_model.h>
+#include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_body.h>
 
 //#include <cstring>
 //#include <algorithm>
@@ -94,8 +97,8 @@ namespace argos {
        * by iterating over the vector, we ensure that the entities are removed in the same order
        * as they were added during initisation
        */
-      for(CDynamics3DModel::TMap::iterator it = m_tPhysicsModels.begin();
-          it != m_tPhysicsModels.end(); ++it) {
+      for(std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator it = m_vecPhysicsModels.begin();
+          it != m_vecPhysicsModels.end(); ++it) {
          
          //(*iterVec)->RemoveEntityFromWorld();
          it->second->Reset();
@@ -116,8 +119,8 @@ namespace argos {
 		 * by iterating over the vector, we ensure that the entities are added in the same order
        * as they were added during initisation, this is important for repeatability between resets
        */
-      for(CDynamics3DModel::TMap::iterator iter = m_tPhysicsModels.begin();
-          iter != m_tPhysicsModels.end(); ++iter) {
+      for(std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator iter = m_vecPhysicsModels.begin();
+          iter != m_vecPhysicsModels.end(); ++iter) {
   
          //(*iter)->AddEntityToWorld();
       }
@@ -128,11 +131,11 @@ namespace argos {
 
    void CDynamics3DEngine::Destroy() {
       /* empty the physics entity map */
-      for(CDynamics3DModel::TMap::iterator it = m_tPhysicsModels.begin();
-          it != m_tPhysicsModels.end(); ++it) {
+      for(std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator it = m_vecPhysicsModels.begin();
+          it != m_vecPhysicsModels.end(); ++it) {
          delete it->second;
       }
-      m_tPhysicsModels.clear();
+      m_vecPhysicsModels.clear();
       
       /* remove the floor if it was added */
       if(m_pcGroundRigidBody != NULL) {
@@ -157,8 +160,8 @@ namespace argos {
    void CDynamics3DEngine::Update() {
       
       /* Update the physics state from the entities */
-      for(CDynamics3DModel::TMap::iterator it = m_tPhysicsModels.begin();
-          it != m_tPhysicsModels.end(); ++it) {
+      for(std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator it = m_vecPhysicsModels.begin();
+          it != m_vecPhysicsModels.end(); ++it) {
          it->second->UpdateFromEntityStatus();
       }
 
@@ -178,8 +181,8 @@ namespace argos {
          // }
 
       /* Update the simulated space */
-      for(CDynamics3DModel::TMap::iterator it = m_tPhysicsModels.begin();
-          it != m_tPhysicsModels.end(); ++it) {
+      for(std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator it = m_vecPhysicsModels.begin();
+          it != m_vecPhysicsModels.end(); ++it) {
          it->second->CalculateBoundingBox();
          it->second->UpdateEntityStatus();
          
@@ -190,11 +193,11 @@ namespace argos {
       // this doesn't step the simulation, but rather reruns the collision detection
       m_pcWorld->performDiscreteCollisionDetection();
 
-      // get the map of bodies associated with the given model
-      const std::vector<CDynamics3DModel::SBodyConfiguration>& vecModelBodies = c_model.GetBodies();
+      // get the vector of bodies associated with the given model
+      const CDynamics3DBody::TVector& vecModelBodies = c_model.GetBodies();
 
       // an iterator over the model
-      std::vector<CDynamics3DModel::SBodyConfiguration>::const_iterator itBodyConfiguration;
+      CDynamics3DBody::TVector::const_iterator itBodyConfiguration;
       
       for(UInt32 i = 0; i < UInt32(m_pcCollisionDispatcher->getNumManifolds()); i++) {
          
@@ -254,7 +257,7 @@ namespace argos {
    /****************************************/
    
    UInt32 CDynamics3DEngine::GetNumPhysicsEngineEntities() {
-      return m_tPhysicsModels.size();
+      return m_vecPhysicsModels.size();
    }
      
    /****************************************/
@@ -276,16 +279,37 @@ namespace argos {
 
    void CDynamics3DEngine::AddPhysicsModel(const std::string& str_id,
                                            CDynamics3DModel& c_model) {
-      m_tPhysicsModels[str_id] = &c_model;
+      //@todo check for duplicates?
+      m_vecPhysicsModels.push_back(std::pair<std::string, CDynamics3DModel*>(str_id, &c_model));
+      AddBodiesFromModel(c_model);      
+      AddConstraintsFromModel(c_model);
+      
    }
 
    /****************************************/
    /****************************************/
 
-   void CDynamics3DEngine::AddPhysicsModelBodies(const std::string& str_id) {
-      const std::vector<CDynamics3DModel::SBodyConfiguration>& vecModelBodies = m_tPhysicsModels[str_id]->GetBodies();
+   void CDynamics3DEngine::RemovePhysicsModel(const std::string& str_id) {
+      std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator itModel = m_vecPhysicsModels.Find(str_id);
+      if(itModel != m_vecPhysicsModels.end()) {
+         RemoveConstraintsFromModel(*itModel->second);
+         RemoveBodiesFromModel(*itModel->second);
+         delete itModel->second;
+         m_vecPhysicsModels.erase(itModel);
+      }
+      else {
+         THROW_ARGOSEXCEPTION("Dynamics3D model id \"" << str_id << "\" not found in dynamics 3D engine \"" << GetId() << "\"");
+      }
+   }
 
-      for(std::vector<CDynamics3DModel::SBodyConfiguration>::const_iterator itBodyConfiguration = vecModelBodies.begin(); 
+   /****************************************/
+   /****************************************/
+
+
+   void CDynamics3DEngine::AddBodiesFromModel(const CDynamics3DModel& c_model) {
+      const CDynamics3DBody::TVector& vecModelBodies = c_model.GetBodies();
+
+      for(CDynamics3DBody::TVector::const_iterator itBodyConfiguration = vecModelBodies.begin(); 
           itBodyConfiguration !=  vecModelBodies.end();
           itBodyConfiguration++) {   
          m_pcWorld->addRigidBody(itBodyConfiguration->m_pcRigidBody);
@@ -295,8 +319,8 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics3DEngine::AddPhysicsModelConstraints(const std::string& str_id) {
-      const std::vector<CDynamics3DModel::SConstraint>& vecModelConstraints = m_tPhysicsModels[str_id]->GetConstraints();
+   void CDynamics3DEngine::AddConstraintsFromModel(const CDynamics3DModel& c_model) {
+      const std::vector<CDynamics3DModel::SConstraint>& vecModelConstraints = c_model.GetConstraints();
 
       for(std::vector<CDynamics3DModel::SConstraint>::const_iterator itConstraint = vecModelConstraints.begin(); 
           itConstraint != vecModelConstraints.end(); 
@@ -308,55 +332,27 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics3DEngine::RemovePhysicsModelConstraints(const std::string& str_id) {
-      CDynamics3DModel::TMap::iterator itModel = m_tPhysicsModels.find(str_id);
-
-      if(itModel != m_tPhysicsModels.end()) {
-         for(std::vector<CDynamics3DModel::SConstraint>::const_iterator itConstraint = itModel->second->GetConstraints().begin(); 
-             itConstraint !=  itModel->second->GetConstraints().end();
-             itConstraint++) {
-            m_pcWorld->removeConstraint(itConstraint->m_pcConstraint);
-         }
-      }
-      else {
-         THROW_ARGOSEXCEPTION("Dynamics3D model id \"" << str_id << "\" not found in dynamics 3D engine \"" << GetId() << "\"");
+   void CDynamics3DEngine::RemoveConstraintsFromModel(const CDynamics3DModel& c_model) {
+      for(std::vector<CDynamics3DModel::SConstraint>::const_iterator itConstraint = c_model.GetConstraints().begin(); 
+          itConstraint !=  c_model.GetConstraints().end();
+          itConstraint++) {
+         m_pcWorld->removeConstraint(itConstraint->m_pcConstraint);
       }
    }
 
    /****************************************/
    /****************************************/
    
-   void CDynamics3DEngine::RemovePhysicsModelBodies(const std::string& str_id) {
-      CDynamics3DModel::TMap::iterator itModel = m_tPhysicsModels.find(str_id);
-
-      if(itModel != m_tPhysicsModels.end()) {
-         for(std::vector<CDynamics3DModel::SBodyConfiguration>::const_iterator itBody = itModel->second->GetBodies().begin(); 
-             itBody !=  itModel->second->GetBodies().end();
-             itBody++) {
-            m_pcWorld->removeRigidBody(itBody->m_pcRigidBody);
-         }
-      }
-      else {
-         THROW_ARGOSEXCEPTION("Dynamics3D model id \"" << str_id << "\" not found in dynamics 3D engine \"" << GetId() << "\"");
+   void CDynamics3DEngine::RemoveBodiesFromModel(const CDynamics3DModel& c_model) {
+      for(CDynamics3DBody::TVector::const_iterator itBody = c_model.GetBodies().begin(); 
+          itBody !=  c_model.GetBodies().end();
+          itBody++) {
+         m_pcWorld->removeRigidBody(itBody->m_pcRigidBody);
       }
    }
 
    /****************************************/
-   /****************************************/
-   
-   void CDynamics3DEngine::RemovePhysicsModel(const std::string& str_id) {
-      CDynamics3DModel::TMap::iterator itModel = m_tPhysicsModels.find(str_id);
-      if(itModel != m_tPhysicsModels.end()) {
-         delete itModel->second;
-         m_tPhysicsModels.erase(itModel);
-      }
-      else {
-         THROW_ARGOSEXCEPTION("Dynamics3D model id \"" << str_id << "\" not found in dynamics 3D engine \"" << GetId() << "\"");
-      }
-   }
-
-   /****************************************/
-   /****************************************/
+   /****************************************/   
   
    REGISTER_PHYSICS_ENGINE(CDynamics3DEngine,
                            "dynamics3d",

@@ -61,7 +61,7 @@ namespace argos {
    void CDynamics3DModel::Reset() {
       // recreate each body in the model
 
-      for(std::vector<SBodyConfiguration>::iterator itBodyConfiguration = m_vecLocalBodyConfigurations.begin();
+      for(CDynamics3DBody::TVector::iterator itBodyConfiguration = m_vecLocalBodyConfigurations.begin();
           itBodyConfiguration !=  m_vecLocalBodyConfigurations.end();
           ++itBodyConfiguration) {
          
@@ -69,7 +69,7 @@ namespace argos {
 
          // update the motion state here?
          itBodyConfiguration->m_pcMotionState->m_graphicsWorldTrans =
-            itBodyConfiguration->m_cOffsetTransform;
+            itBodyConfiguration->m_cPositionalOffset;
          
          itBodyConfiguration->m_pcRigidBody = 
             new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(itBodyConfiguration->m_fMass,
@@ -91,7 +91,7 @@ namespace argos {
       btVector3 cAabbMin, cAabbMax, cBodyAabbMin, cBodyAabbMax;
       bool bAabbVectorInitRequired = true;
 
-      for(std::vector<SBodyConfiguration>::iterator itBodyConfiguration = m_vecLocalBodyConfigurations.begin();
+      for(CDynamics3DBody::TVector::iterator itBodyConfiguration = m_vecLocalBodyConfigurations.begin();
           itBodyConfiguration != m_vecLocalBodyConfigurations.end();
           itBodyConfiguration++) {
             
@@ -145,7 +145,7 @@ namespace argos {
       Real fBodyIntersectDist; 
          
       //@todo use SbodyComponent backed via a std::vector to increase speed (reduced cache misses)
-      for(std::vector<SBodyConfiguration>::const_iterator itBodyConfiguration = m_vecLocalBodyConfigurations.begin();
+      for(CDynamics3DBody::TVector::const_iterator itBodyConfiguration = m_vecLocalBodyConfigurations.begin();
           itBodyConfiguration != m_vecLocalBodyConfigurations.end();
           itBodyConfiguration++) {
 
@@ -186,7 +186,7 @@ namespace argos {
       const btTransform& cCurrentCoordinates = GetModelCoordinates();
 
       // Iterate across each body in the model
-      for(std::vector<SBodyConfiguration>::iterator itBodyConfiguration = m_vecLocalBodyConfigurations.begin();
+      for(CDynamics3DBody::TVector::iterator itBodyConfiguration = m_vecLocalBodyConfigurations.begin();
           itBodyConfiguration != m_vecLocalBodyConfigurations.end();
           ++itBodyConfiguration) {
 

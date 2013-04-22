@@ -15,6 +15,7 @@ namespace argos {
 #include <argos3/core/utility/math/vector3.h>
 #include <argos3/core/utility/math/quaternion.h>
 #include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_engine.h>
+#include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_body.h>
 
 #include <tr1/unordered_map>
 
@@ -54,7 +55,7 @@ namespace argos {
 
    public:
 
-      struct SBodyConfiguration {
+      /*      struct SBodyConfiguration {
 
          SBodyConfiguration(const std::string& str_id = "",
                             btCollisionShape* pc_collision_shape = NULL,
@@ -78,7 +79,7 @@ namespace argos {
          btTransform m_cOffsetTransform;
          btVector3 m_cInertia;
          Real m_fMass;
-      };
+         }; */
 
       struct SConstraint {
          SConstraint(const std::string& str_id = "",
@@ -111,7 +112,7 @@ namespace argos {
 
       virtual void UpdateFromEntityStatus() = 0;
       
-      inline const std::vector<SBodyConfiguration>& GetBodies() const {
+      inline const CDynamics3DBody::TVector& GetBodies() const {
          return m_vecLocalBodyConfigurations;
       }
       
@@ -138,6 +139,7 @@ namespace argos {
 
       CDynamics3DEngine&      m_cEngine;
 
+      /*
       class : public std::vector<SBodyConfiguration> {
       public:
          const SBodyConfiguration& Find(const std::string& str_id) const {
@@ -151,7 +153,9 @@ namespace argos {
             }
             return *it;
          }
-      } m_vecLocalBodyConfigurations;
+         } m_vecLocalBodyConfigurations; */
+
+      CDynamics3DBody::TVector m_vecLocalBodyConfigurations;
 
 
       class : public std::vector<SConstraint> {

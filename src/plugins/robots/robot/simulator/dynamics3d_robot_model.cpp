@@ -40,6 +40,8 @@ namespace argos {
          
          btTransform cOffset(ARGoSToBullet((*itBody)->m_cOffsetOrientation), ARGoSToBullet((*itBody)->m_cOffsetPosition));
          
+         btTransform geo(btQuaternion(0,0,0,1), btVector3(0, -bodyHalfExtents.getY(), 0));
+
          btDefaultMotionState* pcMotionState = new btDefaultMotionState(cOffset, btTransform(
             btQuaternion(0,0,0,1),
             btVector3(0, -bodyHalfExtents.getY(), 0)));
@@ -47,11 +49,12 @@ namespace argos {
          btRigidBody* pcRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
             (*itBody)->GetMass(), pcMotionState, pcCollisionShape, cInertia));
 
-         m_vecLocalBodyConfigurations.push_back(SBodyConfiguration((*itBody)->GetId(),
+         m_vecLocalBodyConfigurations.push_back(CDynamics3DBody((*itBody)->GetId(),
                                                                    pcCollisionShape, 
                                                                    pcMotionState,
                                                                    pcRigidBody,
                                                                    cOffset,
+                                                                   geo,
                                                                    cInertia,
                                                                    (*itBody)->GetMass()));
       }
@@ -96,7 +99,7 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
    /****************************************/
 
    CDynamics3DRobotModel::~CDynamics3DRobotModel() {
-      std::vector<SBodyConfiguration>::iterator itBodyConfiguration;
+      CDynamics3DBody::TVector::iterator itBodyConfiguration;
       std::vector<SConstraint>::iterator itConstraint;
 
       for(itConstraint = m_vecLocalConstraints.begin();
@@ -129,7 +132,7 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
           ++itBody) {
          
          //@todo optimise by storing a pointer to the CPositionalEntity inside the SBodyConfiguration structure
-         const SBodyConfiguration& sBodyConfiguration = m_vecLocalBodyConfigurations.Find((*itBody)->GetId());
+         const CDynamics3DBody& sBodyConfiguration = m_vecLocalBodyConfigurations.Find((*itBody)->GetId());
          
          //@todo move this offset and transform logic inside the motion state
          //btTransform cOffset(ARGoSToBullet((*itBody)->m_cOffsetOrientation), ARGoSToBullet((*itBody)->m_cOffsetPosition));
@@ -227,10 +230,10 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
       
 
       //@todo optimise this storing the result after calling Dynamics3DModel::Setup(...)
-      const SBodyConfiguration& sReferenceBodyConfiguration = m_vecLocalBodyConfigurations.Find(strReferenceBodyId);
+      const CDynamics3DBody& sReferenceBodyConfiguration = m_vecLocalBodyConfigurations.Find(strReferenceBodyId);
 
       return (sReferenceBodyConfiguration.m_pcMotionState->m_graphicsWorldTrans *
-              sReferenceBodyConfiguration.m_cOffsetTransform.inverse());
+              sReferenceBodyConfiguration.m_cPositionalOffset.inverse());
    }
 
    /****************************************/

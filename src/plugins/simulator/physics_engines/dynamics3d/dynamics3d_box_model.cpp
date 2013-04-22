@@ -26,7 +26,11 @@ namespace argos {
       m_pcBoxMotionState = new btDefaultMotionState(btTransform::getIdentity(),
          btTransform(btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
                      btVector3(0.0f, -c_box.GetSize().GetZ() * 0.5f, 0.0f)));
-            
+      
+
+      btTransform boxGeo(btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
+                         btVector3(0.0f, -c_box.GetSize().GetZ() * 0.5f, 0.0f));
+
       btVector3 cInteria(0.0f, 0.0f, 0.0f);
       Real fMass = 0.0f;
  
@@ -38,13 +42,14 @@ namespace argos {
       m_pcBoxRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
          fMass, m_pcBoxMotionState, m_pcBoxCollisionShape, cInteria));
 
-      m_vecLocalBodyConfigurations.push_back(SBodyConfiguration("box",
-                                                                m_pcBoxCollisionShape,
-                                                                m_pcBoxMotionState,
-                                                                m_pcBoxRigidBody,
-                                                                btTransform::getIdentity(),
-                                                                cInteria,
-                                                                fMass));
+      m_vecLocalBodyConfigurations.push_back(CDynamics3DBody("box",
+                                                             m_pcBoxCollisionShape,
+                                                             m_pcBoxMotionState,
+                                                             m_pcBoxRigidBody,
+                                                             btTransform::getIdentity(),
+                                                             boxGeo,
+                                                             cInteria,
+                                                             fMass));
       /* move the model to the specified coordinates */
       SetModelCoordinates(btTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
                                       ARGoSToBullet(GetEmbodiedEntity().GetInitPosition())));

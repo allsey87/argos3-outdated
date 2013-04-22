@@ -95,7 +95,7 @@
     </robot>
     
     <foot-bot id="fb1" position="-1.5,-1.5,0.25" orientation="0,0,0" controller="fb_lua"/>
-    <!--foot-bot id="fb2" position="-2,-2,0" orientation="-45,0,0" controller="fb_lua"/-->
+    <foot-bot id="fb2" position="-2,-2,0" orientation="0,0,0" controller="fb_lua"/>
     <!--foot-bot id="fb3" position="-1.8,-2,0" orientation="0,0,0" controller="fb_lua"/-->
     
     <!--box id="test_box2" position="-2,-2.2,0.2"  orientation="0,45,0" size="0.1, 0.1, 0.1" movable="true" mass="1" /-->
