@@ -97,32 +97,34 @@ namespace argos {
        * by iterating over the vector, we ensure that the entities are removed in the same order
        * as they were added during initisation
        */
-      for(std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator it = m_vecPhysicsModels.begin();
-          it != m_vecPhysicsModels.end(); ++it) {
+      for(std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator itModel = m_vecPhysicsModels.begin();
+          itModel != m_vecPhysicsModels.end(); ++itModel) {
          
-         //(*iterVec)->RemoveEntityFromWorld();
-         it->second->Reset();
+         RemoveConstraintsFromModel(*itModel->second);
+         RemoveBodiesFromModel(*itModel->second);
+         itModel->second->Reset();
       }
       
+      //@todo create a method/struct that contrains/creates and resets the floor
       m_pcGroundRigidBody->clearForces();
       
       /* clear all forces in the world */
       m_pcWorld->clearForces();
       
-      /*
-       * Reset the random seed - TODO take from ARGoS RNG
-       */     
+      /* Reset the random seed */
+      //@todo take the seed from ARGoS RNG */     
       m_pcBroadphaseInterface->resetPool(m_pcCollisionDispatcher);
       m_pcSolver->setRandSeed(100ul);
 
-		/* Add elements back to the engine
-		 * by iterating over the vector, we ensure that the entities are added in the same order
+      /* Add elements back to the engine
+       * by iterating over the vector, we ensure that the entities are added in the same order
        * as they were added during initisation, this is important for repeatability between resets
        */
-      for(std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator iter = m_vecPhysicsModels.begin();
-          iter != m_vecPhysicsModels.end(); ++iter) {
+      for(std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator itModel = m_vecPhysicsModels.begin();
+          itModel != m_vecPhysicsModels.end(); ++itModel) {
   
-         //(*iter)->AddEntityToWorld();
+         AddBodiesFromModel(*itModel->second);
+         AddConstraintsFromModel(*itModel->second);
       }
    }
    
@@ -165,20 +167,8 @@ namespace argos {
          it->second->UpdateFromEntityStatus();
       }
 
-      //      fprintf(stderr, )
-      //fprintf(stderr, "stepping bullet physics simulation by %d iterations of %.5f seconds\n", m_unIterations, m_fDeltaT);
-      /* Advance the simulation by m_unInterations * m_fDeltaT */
-      // for(size_t i = 0; i < m_unIterations; ++i) {
-      //   fprintf(stderr, "executing step %d of %d\n", i + 1, m_unIterations);
-      //  int ss = m_pcWorld->stepSimulation(m_fDeltaT, 0u);
-      
-      //fprintf(stderr, "m_fSimulationClockTick = %.3f\n", m_fSimulationClockTick);
-
-      //int ss = m_pcWorld->stepSimulation(m_fSimulationClockTick, 0u);
+      /* Step the simuation forwards */
       m_pcWorld->stepSimulation(m_fSimulationClockTick, m_unIterations, m_fDeltaT);
-
-      //fprintf(stderr, "executed %d iterations\n", ss);
-         // }
 
       /* Update the simulated space */
       for(std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator it = m_vecPhysicsModels.begin();
@@ -190,10 +180,10 @@ namespace argos {
    }
 
    bool CDynamics3DEngine::IsModelCollidingWithSomething(const CDynamics3DModel& c_model) {
-      // this doesn't step the simulation, but rather reruns the collision detection
+      /* this doesn't step the simulation, but rather reruns the collision detection */
       m_pcWorld->performDiscreteCollisionDetection();
 
-      // get the vector of bodies associated with the given model
+      /* get the vector of bodies associated with the given model */
       const CDynamics3DBody::TVector& vecModelBodies = c_model.GetBodies();
 
       // an iterator over the model

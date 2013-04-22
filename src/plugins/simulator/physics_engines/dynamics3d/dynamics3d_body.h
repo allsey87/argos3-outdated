@@ -38,6 +38,9 @@ namespace argos {
          }
       };
 
+
+
+
    public:
 
       CDynamics3DBody(const std::string& str_id = "",
@@ -58,7 +61,7 @@ namespace argos {
          m_cInertia(c_inertia),
          m_fMass(f_mass) {}
 
-      //@todo calculate inertia here, if mass equals 0.0f then interia equals (0,0,0)
+      // to do, calculate inertia here, if mass equals 0.0f then interia equals (0,0,0)
       // call reset to complete the construction?
 
 

@@ -65,17 +65,7 @@ namespace argos {
           itBodyConfiguration !=  m_vecLocalBodyConfigurations.end();
           ++itBodyConfiguration) {
          
-         delete(itBodyConfiguration->m_pcRigidBody);
-
-         // update the motion state here?
-         itBodyConfiguration->m_pcMotionState->m_graphicsWorldTrans =
-            itBodyConfiguration->m_cPositionalOffset;
-         
-         itBodyConfiguration->m_pcRigidBody = 
-            new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(itBodyConfiguration->m_fMass,
-                                                                     itBodyConfiguration->m_pcMotionState,
-                                                                     itBodyConfiguration->m_pcCollisionShape,
-                                                                     itBodyConfiguration->m_cInertia));
+         itBodyConfiguration->Reset();
       }
 
       btTransform cModelResetTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),

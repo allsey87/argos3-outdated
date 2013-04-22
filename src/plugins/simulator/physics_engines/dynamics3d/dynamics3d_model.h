@@ -139,22 +139,6 @@ namespace argos {
 
       CDynamics3DEngine&      m_cEngine;
 
-      /*
-      class : public std::vector<SBodyConfiguration> {
-      public:
-         const SBodyConfiguration& Find(const std::string& str_id) const {
-            std::vector<SBodyConfiguration>::const_iterator it;
-            
-            for(it = this->begin(); it != this->end(); ++it) {
-               if(it->m_strId == str_id) break;
-            }
-            if(it == this->end()) {
-               THROW_ARGOSEXCEPTION("Could not find a body with ID \"" << str_id << "\".");
-            }
-            return *it;
-         }
-         } m_vecLocalBodyConfigurations; */
-
       CDynamics3DBody::TVector m_vecLocalBodyConfigurations;
 
 
