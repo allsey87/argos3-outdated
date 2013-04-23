@@ -65,11 +65,11 @@ namespace argos {
    
    private:
 
-      void AddBodiesFromModel(const CDynamics3DModel& c_model);
-      void AddConstraintsFromModel(const CDynamics3DModel& c_model);
+      void AddBodiesFromModel(CDynamics3DModel& c_model);
+      void AddConstraintsFromModel(CDynamics3DModel& c_model);
 
-      void RemoveConstraintsFromModel(const CDynamics3DModel& c_model);
-      void RemoveBodiesFromModel(const CDynamics3DModel& c_model);
+      void RemoveConstraintsFromModel(CDynamics3DModel& c_model);
+      void RemoveBodiesFromModel(CDynamics3DModel& c_model);
 
    private:
 

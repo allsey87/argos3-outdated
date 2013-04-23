@@ -15,6 +15,17 @@ namespace argos {
    class CDynamics3DFootBotModel : public CDynamics3DModel {
 
    public:
+      struct Body { 
+         enum T {
+            CHASSIS     = 0,
+            LEFT_WHEEL  = 1,
+            RIGHT_WHEEL = 2,
+            FRONT_PIVOT = 3,
+            REAR_PIVOT  = 4
+         };
+      };
+
+   public:
 
       CDynamics3DFootBotModel(CDynamics3DEngine& c_engine,
                                CFootBotEntity& c_entity);
@@ -49,21 +60,6 @@ namespace argos {
       static btCylinderShape              m_cWheelCollisionShape;
       static btSphereShape                m_cPivotCollisionShape;
       static btCompoundShape              m_cChassisCollisionShape;
-      
-      
-      /**************** Motion States ****************/
-      btDefaultMotionState*               m_pcLeftWheelMotionState;
-      btDefaultMotionState*               m_pcRightWheelMotionState;
-      btDefaultMotionState*               m_pcFrontPivotMotionState;
-      btDefaultMotionState*               m_pcRearPivotMotionState;
-      btDefaultMotionState*               m_pcChassisMotionState;
-      
-      /**************** Rigid Bodies ****************/
-      btRigidBody*                        m_pcLeftWheelRigidBody;
-      btRigidBody*                        m_pcRightWheelRigidBody;
-      btRigidBody*                        m_pcFrontPivotRigidBody;
-      btRigidBody*                        m_pcRearPivotRigidBody;
-      btRigidBody*                        m_pcChassisRigidBody;
       
       /**************** Constraints ****************/
       btHingeConstraint*                  m_pcLeftWheelToChassisConstraint;

@@ -26,32 +26,17 @@ namespace argos {
       btTransform cModelTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
                                   ARGoSToBullet(GetEmbodiedEntity().GetInitPosition()));
 
-      //m_pcCylinderMotionState = new btDefaultMotionState(btTransform::getIdentity(),
-      m_pcCylinderMotionState = new btDefaultMotionState(cModelTransform,
-         btTransform(btQuaternion(0.0f, 0.0f, 0.0f, 1.0f), btVector3(0.0f, -c_cylinder.GetHeight() * 0.5f, 0.0f)));
-
       btTransform cylinderGeo(btQuaternion(0.0f, 0.0f, 0.0f, 1.0f), btVector3(0.0f, -c_cylinder.GetHeight() * 0.5f, 0.0f));
 
           
-      btVector3 cInteria(0.0f, 0.0f, 0.0f);
-      Real fMass = 0.0f;
- 
-      if(c_cylinder.GetEmbodiedEntity().IsMovable()) {
-         fMass = c_cylinder.GetMass();
-         m_pcCylinderCollisionShape->calculateLocalInertia(fMass, cInteria);
-      }
+      Real fMass = c_cylinder.GetEmbodiedEntity().IsMovable() ? c_cylinder.GetMass() : 0.0f;
 
-      m_pcCylinderRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
-         fMass, m_pcCylinderMotionState, m_pcCylinderCollisionShape, cInteria));
-
-      m_vecLocalBodyConfigurations.push_back(CDynamics3DBody("cylinder",
-                                                             m_pcCylinderCollisionShape,
-                                                             m_pcCylinderMotionState,
-                                                             m_pcCylinderRigidBody,
-                                                             btTransform::getIdentity(),
-                                                             cylinderGeo,
-                                                             cInteria,
-                                                             fMass));
+      m_vecLocalBodies.push_back(
+         CDynamics3DBody::TNamedElement("cylinder", new CDynamics3DBody(m_pcCylinderCollisionShape,
+                                                                        cModelTransform,
+                                                                        //btTransform::getIdentity(),
+                                                                        cylinderGeo,
+                                                                        fMass)));
       
       /* move the model to the specified coordinates */
       //SetModelCoordinates(btTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),ARGoSToBullet(GetEmbodiedEntity().GetInitPosition())));
@@ -63,8 +48,6 @@ namespace argos {
    /****************************************/
    
    CDynamics3DCylinderModel::~CDynamics3DCylinderModel() {
-      delete m_pcCylinderRigidBody;
-      delete m_pcCylinderMotionState;
       delete m_pcCylinderCollisionShape;
     }
    
@@ -86,7 +69,7 @@ namespace argos {
    /****************************************/
 
    btTransform CDynamics3DCylinderModel::GetModelCoordinates() const {
-      return m_pcCylinderMotionState->m_graphicsWorldTrans;
+      return m_vecLocalBodies[0]->GetMotionStateTransform();
    }
 
    /****************************************/

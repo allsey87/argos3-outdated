@@ -38,8 +38,6 @@ namespace argos {
       CCylinderEntity&           m_cCylinderEntity;
       
       btCylinderShape*           m_pcCylinderCollisionShape;
-      btDefaultMotionState*      m_pcCylinderMotionState;
-      btRigidBody*               m_pcCylinderRigidBody;
    };
 }
 

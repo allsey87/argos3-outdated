@@ -38,8 +38,6 @@ namespace argos {
       CBoxEntity&                m_cBoxEntity;
       
       btBoxShape*                m_pcBoxCollisionShape;
-      btDefaultMotionState*      m_pcBoxMotionState;
-      btRigidBody*               m_pcBoxRigidBody;
    };
 }
 

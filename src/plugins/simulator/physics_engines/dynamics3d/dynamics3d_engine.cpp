@@ -184,10 +184,10 @@ namespace argos {
       m_pcWorld->performDiscreteCollisionDetection();
 
       /* get the vector of bodies associated with the given model */
-      const CDynamics3DBody::TVector& vecModelBodies = c_model.GetBodies();
+      const CDynamics3DBody::TNamedVector& vecModelBodies = c_model.GetBodies();
 
       // an iterator over the model
-      CDynamics3DBody::TVector::const_iterator itBodyConfiguration;
+      CDynamics3DBody::TNamedVector::const_iterator itBody;
       
       for(UInt32 i = 0; i < UInt32(m_pcCollisionDispatcher->getNumManifolds()); i++) {
          
@@ -204,14 +204,14 @@ namespace argos {
          }
         
          // Check if either body in the contact manifold belongs to the model
-         for(itBodyConfiguration = vecModelBodies.begin();
-             itBodyConfiguration != vecModelBodies.end();
-             ++itBodyConfiguration) {
+         for(itBody = vecModelBodies.begin();
+             itBody != vecModelBodies.end();
+             ++itBody) {
             
-            if(itBodyConfiguration->m_pcRigidBody == pcBodyA) {
+            if(*itBody->second == (const btRigidBody*)pcBodyA) {
                bBelongsToModelBodyA = true;
             }
-            if(itBodyConfiguration->m_pcRigidBody == pcBodyB) {
+            if(*itBody->second == (const btRigidBody*)pcBodyB) {
                bBelongsToModelBodyB = true;
             }
             //@todo optimisation: once both are true we can exit this loop
@@ -235,7 +235,7 @@ namespace argos {
             btManifoldPoint& cManifoldPoint = pcContactManifold->getContactPoint(j);
             if (cManifoldPoint.getDistance() < 0.0f) {
                // This manifold tells us that the model is coliding with something
-               // We can return true
+               // We can now return true
                return true;
             }
          }
@@ -296,21 +296,21 @@ namespace argos {
    /****************************************/
 
 
-   void CDynamics3DEngine::AddBodiesFromModel(const CDynamics3DModel& c_model) {
-      const CDynamics3DBody::TVector& vecModelBodies = c_model.GetBodies();
+   void CDynamics3DEngine::AddBodiesFromModel(CDynamics3DModel& c_model) {
+      CDynamics3DBody::TNamedVector& vecModelBodies = c_model.GetBodies();
 
-      for(CDynamics3DBody::TVector::const_iterator itBodyConfiguration = vecModelBodies.begin(); 
-          itBodyConfiguration !=  vecModelBodies.end();
-          itBodyConfiguration++) {   
-         m_pcWorld->addRigidBody(itBodyConfiguration->m_pcRigidBody);
+      for(CDynamics3DBody::TNamedVector::iterator itBody = vecModelBodies.begin(); 
+          itBody !=  vecModelBodies.end();
+          ++itBody) {   
+         itBody->second->AddBodyToWorld(m_pcWorld);
       }
    }
 
    /****************************************/
    /****************************************/
 
-   void CDynamics3DEngine::AddConstraintsFromModel(const CDynamics3DModel& c_model) {
-      const std::vector<CDynamics3DModel::SConstraint>& vecModelConstraints = c_model.GetConstraints();
+   void CDynamics3DEngine::AddConstraintsFromModel(CDynamics3DModel& c_model) {
+      std::vector<CDynamics3DModel::SConstraint>& vecModelConstraints = c_model.GetConstraints();
 
       for(std::vector<CDynamics3DModel::SConstraint>::const_iterator itConstraint = vecModelConstraints.begin(); 
           itConstraint != vecModelConstraints.end(); 
@@ -322,7 +322,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics3DEngine::RemoveConstraintsFromModel(const CDynamics3DModel& c_model) {
+   void CDynamics3DEngine::RemoveConstraintsFromModel(CDynamics3DModel& c_model) {
       for(std::vector<CDynamics3DModel::SConstraint>::const_iterator itConstraint = c_model.GetConstraints().begin(); 
           itConstraint !=  c_model.GetConstraints().end();
           itConstraint++) {
@@ -333,11 +333,11 @@ namespace argos {
    /****************************************/
    /****************************************/
    
-   void CDynamics3DEngine::RemoveBodiesFromModel(const CDynamics3DModel& c_model) {
-      for(CDynamics3DBody::TVector::const_iterator itBody = c_model.GetBodies().begin(); 
+   void CDynamics3DEngine::RemoveBodiesFromModel(CDynamics3DModel& c_model) {
+      for(CDynamics3DBody::TNamedVector::iterator itBody = c_model.GetBodies().begin(); 
           itBody !=  c_model.GetBodies().end();
           itBody++) {
-         m_pcWorld->removeRigidBody(itBody->m_pcRigidBody);
+         itBody->second->RemoveBodyFromWorld(m_pcWorld);
       }
    }
 

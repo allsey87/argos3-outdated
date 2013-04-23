@@ -23,6 +23,18 @@ namespace argos {
    /****************************************/
    /****************************************/
 
+   CDynamics3DModel::~CDynamics3DModel() {
+      for(CDynamics3DBody::TNamedVector::iterator itBody = m_vecLocalBodies.begin();
+          itBody != m_vecLocalBodies.end();
+          ++itBody) {
+         delete itBody->second;
+      }  
+   }
+
+   /****************************************/
+   /****************************************/
+
+
    bool CDynamics3DModel::MoveTo(const CVector3& c_position,
                                  const CQuaternion& c_orientation,
                                  bool b_check_only) {
@@ -59,13 +71,10 @@ namespace argos {
    /****************************************/
 
    void CDynamics3DModel::Reset() {
-      // recreate each body in the model
-
-      for(CDynamics3DBody::TVector::iterator itBodyConfiguration = m_vecLocalBodyConfigurations.begin();
-          itBodyConfiguration !=  m_vecLocalBodyConfigurations.end();
-          ++itBodyConfiguration) {
-         
-         itBodyConfiguration->Reset();
+      for(CDynamics3DBody::TNamedVector::iterator itBody = m_vecLocalBodies.begin();
+          itBody != m_vecLocalBodies.end();
+          ++itBody) {
+         itBody->second->Reset();
       }
 
       btTransform cModelResetTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
@@ -81,14 +90,14 @@ namespace argos {
       btVector3 cAabbMin, cAabbMax, cBodyAabbMin, cBodyAabbMax;
       bool bAabbVectorInitRequired = true;
 
-      for(CDynamics3DBody::TVector::iterator itBodyConfiguration = m_vecLocalBodyConfigurations.begin();
-          itBodyConfiguration != m_vecLocalBodyConfigurations.end();
-          itBodyConfiguration++) {
+      for(CDynamics3DBody::TNamedVector::iterator itBody = m_vecLocalBodies.begin();
+          itBody != m_vecLocalBodies.end();
+          itBody++) {
             
          // get the axis aligned bounding box for the current body
-         itBodyConfiguration->m_pcCollisionShape->getAabb(itBodyConfiguration->m_pcRigidBody->getWorldTransform(),
-                                                          cBodyAabbMin,
-                                                          cBodyAabbMax);
+         itBody->second->GetCollisionShape().getAabb(itBody->second->GetRigidBodyTransform(),
+                                                     cBodyAabbMin,
+                                                     cBodyAabbMax);
             
          if(bAabbVectorInitRequired == true) {
             // this is the first body in the model, use it's axis aligned bounding box.
@@ -135,9 +144,9 @@ namespace argos {
       Real fBodyIntersectDist; 
          
       //@todo use SbodyComponent backed via a std::vector to increase speed (reduced cache misses)
-      for(CDynamics3DBody::TVector::const_iterator itBodyConfiguration = m_vecLocalBodyConfigurations.begin();
-          itBodyConfiguration != m_vecLocalBodyConfigurations.end();
-          itBodyConfiguration++) {
+      for(CDynamics3DBody::TNamedVector::const_iterator itBody = m_vecLocalBodies.begin();
+          itBody != m_vecLocalBodies.end();
+          ++itBody) {
 
          // This object cannot be used twice or reinitialised, we must construct it on every iteration
          btCollisionWorld::ClosestRayResultCallback cResult(cRayStartTransform.getOrigin(),
@@ -147,8 +156,8 @@ namespace argos {
          btCollisionWorld::rayTestSingle(cRayStartTransform,
                                          cRayEndTransform,
                                          &cTempCollisionObject,
-                                         itBodyConfiguration->m_pcCollisionShape,
-                                         itBodyConfiguration->m_pcRigidBody->getWorldTransform(),
+                                         &itBody->second->GetCollisionShape(),
+                                         itBody->second->GetRigidBodyTransform(),
                                          cResult);
 
          // if this body intersected the ray, we compute whether or not this has been the closest intersection
@@ -176,22 +185,22 @@ namespace argos {
       const btTransform& cCurrentCoordinates = GetModelCoordinates();
 
       // Iterate across each body in the model
-      for(CDynamics3DBody::TVector::iterator itBodyConfiguration = m_vecLocalBodyConfigurations.begin();
-          itBodyConfiguration != m_vecLocalBodyConfigurations.end();
-          ++itBodyConfiguration) {
+      for(CDynamics3DBody::TNamedVector::iterator itBody = m_vecLocalBodies.begin();
+          itBody != m_vecLocalBodies.end();
+          ++itBody) {
 
          // Calculate the transform between the entity and the body
          const btTransform& cOffsetTransform = cCurrentCoordinates.inverse() *
-            itBodyConfiguration->m_pcMotionState->m_graphicsWorldTrans;
+            itBody->second->GetMotionStateTransform();
          
          // Apply this transform to the new entity location to find the location of the body
-         itBodyConfiguration->m_pcMotionState->m_graphicsWorldTrans = c_coordinates * cOffsetTransform;
+         itBody->second->SetMotionStateTransform(c_coordinates * cOffsetTransform);
 
          // Tell Bullet to update body by resetting the motion state
-         itBodyConfiguration->m_pcRigidBody->setMotionState(itBodyConfiguration->m_pcMotionState);
+         itBody->second->SynchronizeMotionState();
 
          // activate the body
-         itBodyConfiguration->m_pcRigidBody->activate();
+         itBody->second->ActivateRigidBody();
       }
    }
 

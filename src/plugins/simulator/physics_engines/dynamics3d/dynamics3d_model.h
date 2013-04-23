@@ -48,38 +48,6 @@ namespace argos {
    class CDynamics3DModel : public CPhysicsModel {
 
    public:
-      
-      typedef std::vector<CDynamics3DModel*> TVector;
-      typedef std::map<std::string, CDynamics3DModel*> TMap;
-      typedef std::tr1::unordered_multimap<std::string, CDynamics3DModel*> TMultiMap;
-
-   public:
-
-      /*      struct SBodyConfiguration {
-
-         SBodyConfiguration(const std::string& str_id = "",
-                            btCollisionShape* pc_collision_shape = NULL,
-                            btDefaultMotionState* pc_motion_state = NULL,
-                            btRigidBody* pc_rigid_body = NULL,
-                            btTransform c_offset_transform = btTransform::getIdentity(),
-                            btVector3 c_inertia = btVector3(0.0f,0.0f,0.0f),
-                            Real f_mass = 0.0f) :
-            m_strId(str_id),
-            m_pcCollisionShape(pc_collision_shape),
-            m_pcMotionState(pc_motion_state),
-            m_pcRigidBody(pc_rigid_body),
-            m_cOffsetTransform(c_offset_transform),
-            m_cInertia(c_inertia),
-            m_fMass(f_mass) {}
-
-         std::string m_strId;
-         btCollisionShape* m_pcCollisionShape;
-         btDefaultMotionState* m_pcMotionState;
-         btRigidBody* m_pcRigidBody;
-         btTransform m_cOffsetTransform;
-         btVector3 m_cInertia;
-         Real m_fMass;
-         }; */
 
       struct SConstraint {
          SConstraint(const std::string& str_id = "",
@@ -100,25 +68,35 @@ namespace argos {
                        CEmbodiedEntity& c_entity) :
          CPhysicsModel(c_engine, c_entity),
          m_cEngine(c_engine) {}
-      virtual ~CDynamics3DModel() {}
+      virtual ~CDynamics3DModel();
 
       virtual bool MoveTo(const CVector3& c_position,
                           const CQuaternion& c_orientation,
                           bool b_check_only = false);
 
+      //@todo promote reset to children, make pure virtual?
       virtual void Reset();
       
       virtual void UpdateEntityStatus() = 0;
 
       virtual void UpdateFromEntityStatus() = 0;
       
-      inline const CDynamics3DBody::TVector& GetBodies() const {
-         return m_vecLocalBodyConfigurations;
+      inline CDynamics3DBody::TNamedVector& GetBodies() {
+         return m_vecLocalBodies;
+      }
+
+      inline const CDynamics3DBody::TNamedVector& GetBodies() const {
+         return m_vecLocalBodies;
       }
       
+      inline std::vector<SConstraint>& GetConstraints() {
+         return m_vecLocalConstraints;
+      }
+
       inline const std::vector<SConstraint>& GetConstraints() const {
          return m_vecLocalConstraints;
       }
+
 
       virtual void CalculateBoundingBox();
 
@@ -139,7 +117,7 @@ namespace argos {
 
       CDynamics3DEngine&      m_cEngine;
 
-      CDynamics3DBody::TVector m_vecLocalBodyConfigurations;
+      CDynamics3DBody::TNamedVector m_vecLocalBodies;
 
 
       class : public std::vector<SConstraint> {
