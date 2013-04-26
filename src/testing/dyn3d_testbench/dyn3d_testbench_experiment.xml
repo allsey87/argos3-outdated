@@ -8,7 +8,7 @@
     <experiment threads="2" length="0" ticks_per_second="100" />
   </framework>
 
-   <loop_functions label="dyn3d_testbench_loop_functions" />
+   <!--loop_functions label="dyn3d_testbench_loop_functions" /-->
 
   <!-- *************** -->
   <!-- * Controllers * -->
@@ -32,8 +32,8 @@
         <footbot_proximity implementation="default" show_rays="true" />
       </sensors>
       <!--params script="../../src/testing/experiment/test_script.lua" /-->
-      <!--params script="src/testing/experiment/test_script.lua" /-->
-      <params/>
+      <params script="src/testing/experiment/test_script.lua" />
+      <!--params/-->
     </lua_controller>
     
   </controllers>
@@ -87,7 +87,7 @@
          <body id="body[2]" geometry="box" size="0.05,0.05,0.2" mass="1">
             <offset position="-0.2,-0.2,0" orientation="0,0,0"/>
          </body>
-         <body id="body[4]" geometry="box" size="0.6,0.6,0.05" mass="1">
+         <body id="body[4]" geometry="box" size="0.6,0.6,0.05" mass="10">
             <offset position="0,0,0.2" orientation="0,0,0"/>
          </body>
       </bodies>

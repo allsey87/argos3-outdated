@@ -16,13 +16,18 @@ namespace argos {
 
    public:
       struct Body { 
-         enum T {
-            CHASSIS     = 0,
-            LEFT_WHEEL  = 1,
-            RIGHT_WHEEL = 2,
-            FRONT_PIVOT = 3,
-            REAR_PIVOT  = 4
-         };
+         const static UInt8 CHASSIS     = 0;
+         const static UInt8 LEFT_WHEEL  = 1;
+         const static UInt8 RIGHT_WHEEL = 2;
+         const static UInt8 FRONT_PIVOT = 3;
+         const static UInt8 REAR_PIVOT  = 4;
+      };
+
+      struct Joint {
+         const static UInt8 LEFT_WHEEL_TO_CHASSIS = 0;
+         const static UInt8 RIGHT_WHEEL_TO_CHASSIS = 1;
+         const static UInt8 FRONT_PIVOT_TO_CHASSIS = 2;
+         const static UInt8 REAR_PIVOT_TO_CHASSIS = 3;
       };
 
    public:
@@ -62,10 +67,10 @@ namespace argos {
       static btCompoundShape              m_cChassisCollisionShape;
       
       /**************** Constraints ****************/
-      btHingeConstraint*                  m_pcLeftWheelToChassisConstraint;
-      btHingeConstraint*                  m_pcRightWheelToChassisConstraint;
-      btPoint2PointConstraint*            m_pcFrontPivotToChassisConstraint;
-      btPoint2PointConstraint*            m_pcRearPivotToChassisConstraint;
+      btGeneric6DofConstraint*            m_pcLeftWheelToChassisConstraint;
+      btGeneric6DofConstraint*            m_pcRightWheelToChassisConstraint;
+      btGeneric6DofConstraint*            m_pcFrontPivotToChassisConstraint;
+      btGeneric6DofConstraint*            m_pcRearPivotToChassisConstraint;
    };
 }
 

@@ -1,18 +1,11 @@
 /**
- * @file <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_model.h>
+ * @file <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_body.h>
  *
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
 #ifndef DYNAMICS3D_BODY_H
 #define DYNAMICS3D_BODY_H
-
-namespace argos {
-   class  CDynamics3DEngine;
-}
-
-#include <argos3/core/utility/math/vector3.h>
-#include <argos3/core/utility/math/quaternion.h>
 
 namespace argos {
    
@@ -47,8 +40,8 @@ namespace argos {
    public:
 
       CDynamics3DBody(btCollisionShape* pc_collision_shape = NULL,
-                      btTransform c_positional_offset = btTransform::getIdentity(),
-                      btTransform c_geometric_offset = btTransform::getIdentity(),
+                      const btTransform& c_positional_offset = btTransform::getIdentity(),
+                      const btTransform& c_geometric_offset = btTransform::getIdentity(),
                       Real f_mass = 0.0f) :
          m_pcCollisionShape(pc_collision_shape),
          m_pcMotionState(NULL),
@@ -155,10 +148,10 @@ namespace argos {
       btDefaultMotionState* m_pcMotionState;
       btRigidBody* m_pcRigidBody;
 
-      btTransform m_cGeometricOffset;
-      btTransform m_cPositionalOffset;
+      const btTransform m_cGeometricOffset;
+      const btTransform m_cPositionalOffset;
+      
       btVector3 m_cInertia;
-
       Real m_fMass;
 
    };
