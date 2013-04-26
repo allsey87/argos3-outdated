@@ -17,6 +17,12 @@
 
 namespace argos {
 
+
+   /****************************************/
+   /****************************************/   
+
+   btStaticPlaneShape CDynamics3DEngine::m_cGroundCollisionShape(btVector3(0.0f, 1.0f, 0.0f), 0);
+
    /****************************************/
    /****************************************/
 
@@ -27,9 +33,7 @@ namespace argos {
       m_pcSolver(NULL),
       m_pcWorld(NULL),
       m_pcGhostPairCallback(NULL),
-      m_pcGroundCollisionShape(NULL),
-      m_pcGroundMotionState(NULL),
-      m_pcGroundRigidBody(NULL),
+      m_pcGround(NULL),
       m_unIterations(10) {}
 
    /****************************************/
@@ -43,18 +47,9 @@ namespace argos {
       GetNodeAttributeOrDefault(t_tree, "iterations", m_unIterations, m_unIterations);
       m_fDeltaT = m_fSimulationClockTick / (Real)m_unIterations;
 
-      std::string strBroadphaseAlgorithm("dynamic_aabb_tree");
-      GetNodeAttributeOrDefault(t_tree, "broadphase_algorithm", strBroadphaseAlgorithm, strBroadphaseAlgorithm);
-      
-      if(strBroadphaseAlgorithm == "dynamic_aabb_tree") {
-         m_pcBroadphaseInterface = new btDbvtBroadphase();
-      }
-      else {
-         THROW_ARGOSEXCEPTION("The broadphase algorithm " << strBroadphaseAlgorithm << " is not implemented");
-      }
-      
-      /* Select the default configurations, dispatches and solvers */
-      m_pcCollisionConfiguration = new btDefaultCollisionConfiguration();
+      /* Select the default broadphase, collision configuration, dispatcher and solver */
+      m_pcBroadphaseInterface = new btDbvtBroadphase;
+      m_pcCollisionConfiguration = new btDefaultCollisionConfiguration;
       m_pcCollisionDispatcher = new btCollisionDispatcher(m_pcCollisionConfiguration);
       m_pcSolver = new btSequentialImpulseConstraintSolver;
 
@@ -66,16 +61,6 @@ namespace argos {
        
       /* Set the gravity in the world */
       m_pcWorld->setGravity(btVector3(0.0f, -9.8f, 0.0f));
-   
-      /* Add a static plane as the experiment floor on request */
-      if(NodeExists(t_tree, "floor")) {
-         m_pcGroundCollisionShape = new btStaticPlaneShape(btVector3(0.0f, 1.0f, 0.0f), 0);
-         m_pcGroundMotionState = new btDefaultMotionState(btTransform::getIdentity());
-         m_pcGroundRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
-            0.0f, m_pcGroundMotionState, m_pcGroundCollisionShape, btVector3(0.0f, 0.0f, 0.0f)));
-            
-         m_pcWorld->addRigidBody(m_pcGroundRigidBody);
-      }
       
       /* Enable ghost objects (used by CDynamics3DEngine::IsLocationOccupied) */
       m_pcGhostPairCallback = new btGhostPairCallback();
@@ -86,6 +71,13 @@ namespace argos {
       
       m_pcBroadphaseInterface->resetPool(m_pcCollisionDispatcher);
       m_pcSolver->setRandSeed(100ul);
+
+      /* Add a static plane as the experiment floor on request */
+      if(NodeExists(t_tree, "floor")) {
+         m_pcGround = new CDynamics3DBody(&m_cGroundCollisionShape);
+         m_pcGround->AddBodyToWorld(m_pcWorld);
+      }
+
    }
 
    /****************************************/
@@ -100,19 +92,21 @@ namespace argos {
       for(std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator itModel = m_vecPhysicsModels.begin();
           itModel != m_vecPhysicsModels.end(); ++itModel) {
          
-         RemoveConstraintsFromModel(*itModel->second);
+         RemoveJointsFromModel(*itModel->second);
          RemoveBodiesFromModel(*itModel->second);
          itModel->second->Reset();
       }
       
-      //@todo create a method/struct that contrains/creates and resets the floor
-      m_pcGroundRigidBody->clearForces();
+      if(m_pcGround != NULL) {
+         m_pcGround->RemoveBodyFromWorld(m_pcWorld);
+         m_pcGround->Reset();
+      }
       
       /* clear all forces in the world */
       m_pcWorld->clearForces();
       
       /* Reset the random seed */
-      //@todo take the seed from ARGoS RNG */     
+      //@todo take the seed from ARGoS RNG */
       m_pcBroadphaseInterface->resetPool(m_pcCollisionDispatcher);
       m_pcSolver->setRandSeed(100ul);
 
@@ -120,11 +114,15 @@ namespace argos {
        * by iterating over the vector, we ensure that the entities are added in the same order
        * as they were added during initisation, this is important for repeatability between resets
        */
+      if(m_pcGround != NULL) {
+         m_pcGround->AddBodyToWorld(m_pcWorld);
+      }
+
       for(std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator itModel = m_vecPhysicsModels.begin();
           itModel != m_vecPhysicsModels.end(); ++itModel) {
   
          AddBodiesFromModel(*itModel->second);
-         AddConstraintsFromModel(*itModel->second);
+         AddJointsFromModel(*itModel->second);
       }
    }
    
@@ -140,14 +138,12 @@ namespace argos {
       m_vecPhysicsModels.clear();
       
       /* remove the floor if it was added */
-      if(m_pcGroundRigidBody != NULL) {
-         m_pcWorld->removeRigidBody(m_pcGroundRigidBody);
-         delete m_pcGroundRigidBody;
-         delete m_pcGroundMotionState;
-         delete m_pcGroundCollisionShape;
+      if(m_pcGround != NULL) {
+         m_pcGround->RemoveBodyFromWorld(m_pcWorld);
+         delete m_pcGround;
       }
       
-      /* cleanup the dynamics world */
+      /* delete the dynamics world */
       delete m_pcWorld;
       delete m_pcGhostPairCallback;
       delete m_pcSolver;
@@ -175,9 +171,11 @@ namespace argos {
           it != m_vecPhysicsModels.end(); ++it) {
          it->second->CalculateBoundingBox();
          it->second->UpdateEntityStatus();
-         
       }
    }
+
+   /****************************************/
+   /****************************************/
 
    bool CDynamics3DEngine::IsModelCollidingWithSomething(const CDynamics3DModel& c_model) {
       /* this doesn't step the simulation, but rather reruns the collision detection */
@@ -187,7 +185,7 @@ namespace argos {
       const CDynamics3DBody::TNamedVector& vecModelBodies = c_model.GetBodies();
 
       // an iterator over the model
-      CDynamics3DBody::TNamedVector::const_iterator itBody;
+      CDynamics3DBody::TVector::const_iterator itBody;
       
       for(UInt32 i = 0; i < UInt32(m_pcCollisionDispatcher->getNumManifolds()); i++) {
          
@@ -199,7 +197,7 @@ namespace argos {
          bool bBelongsToModelBodyB = false;
 
          // ignore collisions with the ground
-         if(m_pcGroundRigidBody == pcBodyA || m_pcGroundRigidBody == pcBodyB) {
+         if(*m_pcGround == pcBodyA || *m_pcGround == pcBodyB) {
             continue;
          }
         
@@ -208,10 +206,10 @@ namespace argos {
              itBody != vecModelBodies.end();
              ++itBody) {
             
-            if(*itBody->second == (const btRigidBody*)pcBodyA) {
+            if(**itBody == (const btRigidBody*)pcBodyA) {
                bBelongsToModelBodyA = true;
             }
-            if(*itBody->second == (const btRigidBody*)pcBodyB) {
+            if(**itBody == (const btRigidBody*)pcBodyB) {
                bBelongsToModelBodyB = true;
             }
             //@todo optimisation: once both are true we can exit this loop
@@ -288,45 +286,41 @@ namespace argos {
          m_vecPhysicsModels.erase(itModel);
       }
       else {
-         THROW_ARGOSEXCEPTION("Dynamics3D model id \"" << str_id << "\" not found in dynamics 3D engine \"" << GetId() << "\"");
+         THROW_ARGOSEXCEPTION("Dynamics3D model with ID=\"" << str_id <<
+                              "\" not found in dynamics 3D engine \"" << GetId() << "\"");
       }
    }
 
    /****************************************/
    /****************************************/
-
 
    void CDynamics3DEngine::AddBodiesFromModel(CDynamics3DModel& c_model) {
-      CDynamics3DBody::TNamedVector& vecModelBodies = c_model.GetBodies();
-
-      for(CDynamics3DBody::TNamedVector::iterator itBody = vecModelBodies.begin(); 
-          itBody !=  vecModelBodies.end();
+      for(CDynamics3DBody::TVector::iterator itBody = c_model.GetBodies().begin(); 
+          itBody != c_model.GetBodies().end();
           ++itBody) {   
-         itBody->second->AddBodyToWorld(m_pcWorld);
+         itBody->AddBodyToWorld(m_pcWorld);
       }
    }
 
    /****************************************/
    /****************************************/
 
-   void CDynamics3DEngine::AddConstraintsFromModel(CDynamics3DModel& c_model) {
-      std::vector<CDynamics3DModel::SConstraint>& vecModelConstraints = c_model.GetConstraints();
-
-      for(std::vector<CDynamics3DModel::SConstraint>::const_iterator itConstraint = vecModelConstraints.begin(); 
-          itConstraint != vecModelConstraints.end(); 
-          itConstraint++) {
-         m_pcWorld->addConstraint(itConstraint->m_pcConstraint, itConstraint->m_bDisableCollisions);
+   void CDynamics3DEngine::AddJointsFromModel(CDynamics3DModel& c_model) {
+      for(CDynamics3DJoint::TVector::iterator itJoint = c_model.GetJoints().begin(); 
+          itJoint != c_model.GetJoints().end(); 
+          itJoint++) {
+         itJoint->AddJointToWorld(m_pcWorld);
       }
    }
 
    /****************************************/
    /****************************************/
 
-   void CDynamics3DEngine::RemoveConstraintsFromModel(CDynamics3DModel& c_model) {
-      for(std::vector<CDynamics3DModel::SConstraint>::const_iterator itConstraint = c_model.GetConstraints().begin(); 
-          itConstraint !=  c_model.GetConstraints().end();
-          itConstraint++) {
-         m_pcWorld->removeConstraint(itConstraint->m_pcConstraint);
+   void CDynamics3DEngine::RemoveJointsFromModel(CDynamics3DModel& c_model) {
+      for(CDynamics3DJoint::TVector::iterator itJoint = c_model.GetJoints().begin(); 
+          itJoint != c_model.GetJoints().end(); 
+          itJoint++) {
+         itJoint->RemoveJointFromWorld(m_pcWorld);
       }
    }
 
@@ -334,7 +328,7 @@ namespace argos {
    /****************************************/
    
    void CDynamics3DEngine::RemoveBodiesFromModel(CDynamics3DModel& c_model) {
-      for(CDynamics3DBody::TNamedVector::iterator itBody = c_model.GetBodies().begin(); 
+      for(CDynamics3DBody::TVector::iterator itBody = c_model.GetBodies().begin(); 
           itBody !=  c_model.GetBodies().end();
           itBody++) {
          itBody->second->RemoveBodyFromWorld(m_pcWorld);

@@ -24,11 +24,16 @@ namespace argos {
    /****************************************/
 
    CDynamics3DModel::~CDynamics3DModel() {
-      for(CDynamics3DBody::TNamedVector::iterator itBody = m_vecLocalBodies.begin();
+       for(CDynamics3DJoint::TVector::iterator itJoint = m_vecLocalJoints.begin();
+          itJoint != m_vecLocalBodies.end();
+          ++itJoint) {
+         delete *itJoint;
+      }
+      for(CDynamics3DBody::TVector::iterator itBody = m_vecLocalBodies.begin();
           itBody != m_vecLocalBodies.end();
           ++itBody) {
-         delete itBody->second;
-      }  
+         delete *itBody;
+      }
    }
 
    /****************************************/
@@ -39,7 +44,6 @@ namespace argos {
                                  const CQuaternion& c_orientation,
                                  bool b_check_only) {
 
-      //
       const std::string& strId = GetEmbodiedEntity().GetParent().GetId();
 
       fprintf(stderr, "MoveTo called on %s - requested coordinates are: [%.3f, %.3f, %.3f]\n", 
@@ -71,10 +75,16 @@ namespace argos {
    /****************************************/
 
    void CDynamics3DModel::Reset() {
-      for(CDynamics3DBody::TNamedVector::iterator itBody = m_vecLocalBodies.begin();
+      for(CDynamics3DBody::TVector::iterator itBody = m_vecLocalBodies.begin();
           itBody != m_vecLocalBodies.end();
           ++itBody) {
-         itBody->second->Reset();
+         itBody->Reset();
+      }
+
+      for(CDynamics3DJoint::TVector::iterator itJoint = m_vecLocalJoints.begin();
+          itJoint != m_vecLocalJoints.end();
+          ++itJoint) {
+         itJoint->Reset();
       }
 
       btTransform cModelResetTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
@@ -90,14 +100,14 @@ namespace argos {
       btVector3 cAabbMin, cAabbMax, cBodyAabbMin, cBodyAabbMax;
       bool bAabbVectorInitRequired = true;
 
-      for(CDynamics3DBody::TNamedVector::iterator itBody = m_vecLocalBodies.begin();
+      for(CDynamics3DBody::TVector::iterator itBody = m_vecLocalBodies.begin();
           itBody != m_vecLocalBodies.end();
           itBody++) {
             
          // get the axis aligned bounding box for the current body
-         itBody->second->GetCollisionShape().getAabb(itBody->second->GetRigidBodyTransform(),
-                                                     cBodyAabbMin,
-                                                     cBodyAabbMax);
+         itBody->GetCollisionShape().getAabb(itBody->GetRigidBodyTransform(),
+                                             cBodyAabbMin,
+                                             cBodyAabbMax);
             
          if(bAabbVectorInitRequired == true) {
             // this is the first body in the model, use it's axis aligned bounding box.
@@ -144,7 +154,7 @@ namespace argos {
       Real fBodyIntersectDist; 
          
       //@todo use SbodyComponent backed via a std::vector to increase speed (reduced cache misses)
-      for(CDynamics3DBody::TNamedVector::const_iterator itBody = m_vecLocalBodies.begin();
+      for(CDynamics3DBody::TVector::const_iterator itBody = m_vecLocalBodies.begin();
           itBody != m_vecLocalBodies.end();
           ++itBody) {
 
@@ -156,8 +166,8 @@ namespace argos {
          btCollisionWorld::rayTestSingle(cRayStartTransform,
                                          cRayEndTransform,
                                          &cTempCollisionObject,
-                                         &itBody->second->GetCollisionShape(),
-                                         itBody->second->GetRigidBodyTransform(),
+                                         &itBody->GetCollisionShape(),
+                                         itBody->GetRigidBodyTransform(),
                                          cResult);
 
          // if this body intersected the ray, we compute whether or not this has been the closest intersection
@@ -185,22 +195,22 @@ namespace argos {
       const btTransform& cCurrentCoordinates = GetModelCoordinates();
 
       // Iterate across each body in the model
-      for(CDynamics3DBody::TNamedVector::iterator itBody = m_vecLocalBodies.begin();
+      for(CDynamics3DBody::TVector::iterator itBody = m_vecLocalBodies.begin();
           itBody != m_vecLocalBodies.end();
           ++itBody) {
 
          // Calculate the transform between the entity and the body
          const btTransform& cOffsetTransform = cCurrentCoordinates.inverse() *
-            itBody->second->GetMotionStateTransform();
+            itBody->GetMotionStateTransform();
          
          // Apply this transform to the new entity location to find the location of the body
-         itBody->second->SetMotionStateTransform(c_coordinates * cOffsetTransform);
+         itBody->SetMotionStateTransform(c_coordinates * cOffsetTransform);
 
          // Tell Bullet to update body by resetting the motion state
-         itBody->second->SynchronizeMotionState();
+         itBody->SynchronizeMotionState();
 
          // activate the body
-         itBody->second->ActivateRigidBody();
+         itBody->ActivateRigidBody();
       }
    }
 

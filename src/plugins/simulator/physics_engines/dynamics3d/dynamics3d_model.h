@@ -16,6 +16,7 @@ namespace argos {
 #include <argos3/core/utility/math/quaternion.h>
 #include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_engine.h>
 #include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_body.h>
+#include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_joint.h>
 
 #include <tr1/unordered_map>
 
@@ -49,21 +50,6 @@ namespace argos {
 
    public:
 
-      struct SConstraint {
-         SConstraint(const std::string& str_id = "",
-                     btTypedConstraint* pc_constraint = NULL,
-                     bool b_disable_collisions = false) : 
-            m_strId(str_id),
-            m_pcConstraint(pc_constraint),
-            m_bDisableCollisions(b_disable_collisions) {}
-         
-         std::string m_strId;
-         btTypedConstraint* m_pcConstraint;
-         bool m_bDisableCollisions;
-      };
-
-   public:
-
       CDynamics3DModel(CDynamics3DEngine& c_engine,
                        CEmbodiedEntity& c_entity) :
          CPhysicsModel(c_engine, c_entity),
@@ -81,20 +67,20 @@ namespace argos {
 
       virtual void UpdateFromEntityStatus() = 0;
       
-      inline CDynamics3DBody::TNamedVector& GetBodies() {
+
+      inline CDynamics3DBody::TVector& GetBodies() {
          return m_vecLocalBodies;
       }
-
-      inline const CDynamics3DBody::TNamedVector& GetBodies() const {
+      inline const CDynamics3DBody::TVector& GetBodies() const {
          return m_vecLocalBodies;
       }
       
-      inline std::vector<SConstraint>& GetConstraints() {
-         return m_vecLocalConstraints;
-      }
 
-      inline const std::vector<SConstraint>& GetConstraints() const {
-         return m_vecLocalConstraints;
+      inline CDynamics3DJoint::TVector& GetJoints() {
+         return m_vecLocalJoints;
+      }
+      inline const CDynamics3DJoint::TVector& GetJoints() const {
+         return m_vecLocalJoints;
       }
 
 
@@ -107,8 +93,6 @@ namespace argos {
 
    protected:
 
-      //virtual void Setup() = 0;
-
       virtual btTransform GetModelCoordinates() const = 0;
 
       virtual void SetModelCoordinates(const btTransform& c_coordinates);
@@ -117,23 +101,8 @@ namespace argos {
 
       CDynamics3DEngine&      m_cEngine;
 
-      CDynamics3DBody::TNamedVector m_vecLocalBodies;
-
-
-      class : public std::vector<SConstraint> {
-      public:
-         const SConstraint& Find(const std::string& str_id) const {
-            std::vector<SConstraint>::const_iterator it;
-            
-            for(it = this->begin(); it != this->end(); ++it) {
-               if(it->m_strId == str_id) break;
-            }
-            if(it == this->end()) {
-               THROW_ARGOSEXCEPTION("Could not find a constraint with ID \"" << str_id << "\".");
-            }
-            return *it;
-         }
-      } m_vecLocalConstraints;
+      CDynamics3DBody::TVector m_vecLocalBodies;
+      CDynamics3DJoint::TVector m_vecLocalJoints;
    };
 }
 

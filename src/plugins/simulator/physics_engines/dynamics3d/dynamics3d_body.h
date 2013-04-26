@@ -16,33 +16,29 @@ namespace argos {
 
    public:
 
-      typedef std::pair<std::string, CDynamics3DBody*> TNamedElement;
-
-      class TNamedVector : public std::vector<TNamedElement> {
+      class TVector : public std::vector<CDynamics3DBody*> {
       public:
-         const TNamedVector::const_iterator Find(const std::string& str_id) const {
-            TNamedVector::const_iterator it;
+         TVector::iterator Find(const std::string& str_id) {
+            TVector::iterator it;
             for(it = this->begin(); it != this->end(); ++it) {
-               if(it->first == str_id) break;
+               if(it->GetId() == str_id) break;
             }
             return it;
          }
 
-         const CDynamics3DBody* operator[](UInt32 un_index) const {
-            return std::vector<TNamedElement>::operator[](un_index).second;
-         }
-
-         CDynamics3DBody* operator[](UInt32 un_index) {
-            return std::vector<TNamedElement>::operator[](un_index).second;
+         CDynamics3DBody* operator[](const std::string& str_id) {
+            return *Find(str_id);
          }
       };
 
    public:
 
-      CDynamics3DBody(btCollisionShape* pc_collision_shape = NULL,
+      CDynamics3DBody(const std::string& str_id,
+                      btCollisionShape* pc_collision_shape = NULL,
                       const btTransform& c_positional_offset = btTransform::getIdentity(),
                       const btTransform& c_geometric_offset = btTransform::getIdentity(),
                       Real f_mass = 0.0f) :
+         m_strId(str_id),
          m_pcCollisionShape(pc_collision_shape),
          m_pcMotionState(NULL),
          m_pcRigidBody(NULL),
@@ -67,12 +63,9 @@ namespace argos {
       }
 
       ~CDynamics3DBody() {
-         //@todo these checks should not be required...
-         if(m_pcRigidBody != NULL) delete m_pcRigidBody; 
-         if(m_pcMotionState != NULL) delete m_pcMotionState;
+         delete m_pcRigidBody; 
+         delete m_pcMotionState;
       }
-
-      
 
       void Reset() {
          // recreate the motion state
@@ -87,7 +80,9 @@ namespace argos {
                                                                                   m_cInertia));
       }
 
-
+      const std::string& GetId() {
+         return m_strId;
+      }
 
       void SynchronizeMotionState() {
          m_pcRigidBody->setMotionState(m_pcMotionState);
@@ -114,7 +109,7 @@ namespace argos {
       }
 
 
-      //@todo Methods to be revised  / updated / deleted
+      //@todo some methods to be revised / updated / deleted
 
       bool operator==(const btRigidBody* pc_other_body) const {
          return (pc_other_body == m_pcRigidBody);
@@ -142,7 +137,8 @@ namespace argos {
          return m_pcRigidBody->getWorldTransform();
       }
     
-   public: //@todo make this private add getters setters
+   private:
+      std::string m_strId;
 
       btCollisionShape* m_pcCollisionShape;
       btDefaultMotionState* m_pcMotionState;

@@ -51,13 +51,14 @@ namespace argos {
       Real m_pfCurrentWheelVelocityFromSensor[2];
       
       /******** Shared Transforms **********/
-      static btTransform                  m_cBatterySocketTransform;
-      static btTransform                  m_cBaseModuleTransform;
-      static btTransform                  m_cLeftWheelTransform;
-      static btTransform                  m_cRightWheelTransform; 
-      static btTransform                  m_cFrontPivotTransform;
-      static btTransform                  m_cRearPivotTransform;
-      static btTransform                  m_cChassisTransform;
+      static btTransform                  m_cBatterySocketCompoundOffset;
+      static btTransform                  m_cBaseModuleCompoundOffset;
+
+      static btTransform                  m_cLeftWheelPositionalOffset;
+      static btTransform                  m_cRightWheelPositionalOffset; 
+      static btTransform                  m_cFrontPivotPositionalOffset;
+      static btTransform                  m_cRearPivotPositionalOffset;
+      static btTransform                  m_cChassisPositionalOffset;
       
       /******** Shared Collision Shapes **********/
       static btBoxShape                   m_cBatterySocketCollisionShape;

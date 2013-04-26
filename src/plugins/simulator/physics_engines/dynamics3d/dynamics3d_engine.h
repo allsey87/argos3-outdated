@@ -73,7 +73,6 @@ namespace argos {
 
    private:
 
-      //@question Is there any reason not to put the actual models into the vector?
       class : public std::vector<std::pair<std::string, CDynamics3DModel*> > {
       public:
          std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator Find(const std::string& str_id) {
@@ -96,10 +95,9 @@ namespace argos {
       btDiscreteDynamicsWorld*               m_pcWorld;
       btGhostPairCallback*                   m_pcGhostPairCallback;
       
-      /* Dynamics World Floor Data */
-      btStaticPlaneShape*                    m_pcGroundCollisionShape;
-      btDefaultMotionState*                  m_pcGroundMotionState;
-      btRigidBody*                           m_pcGroundRigidBody; 
+      /* Dynamics 3D Ground */
+      const static btStaticPlaneShape        m_cGroundCollisionShape;
+      CDynamics3DBody*                       m_pcGround;
 
       size_t m_unIterations;
       Real m_fDeltaT;
