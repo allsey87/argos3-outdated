@@ -74,7 +74,8 @@ namespace argos {
 
       /* Add a static plane as the experiment floor on request */
       if(NodeExists(t_tree, "floor")) {
-         m_pcGround = new CDynamics3DBody(&m_cGroundCollisionShape);
+         m_pcGround = new CDynamics3DBody("floor",
+                                          &m_cGroundCollisionShape);
          m_pcGround->AddBodyToWorld(m_pcWorld);
       }
 
@@ -92,8 +93,8 @@ namespace argos {
       for(std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator itModel = m_vecPhysicsModels.begin();
           itModel != m_vecPhysicsModels.end(); ++itModel) {
          
-         RemoveJointsFromModel(*itModel->second);
-         RemoveBodiesFromModel(*itModel->second);
+         RemoveJointsFromModel(*(itModel->second));
+         RemoveBodiesFromModel(*(itModel->second));
          itModel->second->Reset();
       }
       
@@ -182,7 +183,7 @@ namespace argos {
       m_pcWorld->performDiscreteCollisionDetection();
 
       /* get the vector of bodies associated with the given model */
-      const CDynamics3DBody::TNamedVector& vecModelBodies = c_model.GetBodies();
+      const CDynamics3DBody::TVector& vecModelBodies = c_model.GetBodies();
 
       // an iterator over the model
       CDynamics3DBody::TVector::const_iterator itBody;
@@ -206,10 +207,10 @@ namespace argos {
              itBody != vecModelBodies.end();
              ++itBody) {
             
-            if(**itBody == (const btRigidBody*)pcBodyA) {
+            if(**itBody == pcBodyA) {
                bBelongsToModelBodyA = true;
             }
-            if(**itBody == (const btRigidBody*)pcBodyB) {
+            if(**itBody == pcBodyB) {
                bBelongsToModelBodyB = true;
             }
             //@todo optimisation: once both are true we can exit this loop
@@ -270,7 +271,7 @@ namespace argos {
       //@todo check for duplicates?
       m_vecPhysicsModels.push_back(std::pair<std::string, CDynamics3DModel*>(str_id, &c_model));
       AddBodiesFromModel(c_model);      
-      AddConstraintsFromModel(c_model);
+      AddJointsFromModel(c_model);
       
    }
 
@@ -280,7 +281,7 @@ namespace argos {
    void CDynamics3DEngine::RemovePhysicsModel(const std::string& str_id) {
       std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator itModel = m_vecPhysicsModels.Find(str_id);
       if(itModel != m_vecPhysicsModels.end()) {
-         RemoveConstraintsFromModel(*itModel->second);
+         RemoveJointsFromModel(*itModel->second);
          RemoveBodiesFromModel(*itModel->second);
          delete itModel->second;
          m_vecPhysicsModels.erase(itModel);
@@ -298,7 +299,7 @@ namespace argos {
       for(CDynamics3DBody::TVector::iterator itBody = c_model.GetBodies().begin(); 
           itBody != c_model.GetBodies().end();
           ++itBody) {   
-         itBody->AddBodyToWorld(m_pcWorld);
+         (*itBody)->AddBodyToWorld(m_pcWorld);
       }
    }
 
@@ -307,9 +308,9 @@ namespace argos {
 
    void CDynamics3DEngine::AddJointsFromModel(CDynamics3DModel& c_model) {
       for(CDynamics3DJoint::TVector::iterator itJoint = c_model.GetJoints().begin(); 
-          itJoint != c_model.GetJoints().end(); 
+          itJoint != c_model.GetJoints().end();
           itJoint++) {
-         itJoint->AddJointToWorld(m_pcWorld);
+         (*itJoint)->AddJointToWorld(m_pcWorld);
       }
    }
 
@@ -317,10 +318,10 @@ namespace argos {
    /****************************************/
 
    void CDynamics3DEngine::RemoveJointsFromModel(CDynamics3DModel& c_model) {
-      for(CDynamics3DJoint::TVector::iterator itJoint = c_model.GetJoints().begin(); 
-          itJoint != c_model.GetJoints().end(); 
+      for(CDynamics3DJoint::TVector::iterator itJoint = c_model.GetJoints().begin();
+          itJoint != c_model.GetJoints().end();
           itJoint++) {
-         itJoint->RemoveJointFromWorld(m_pcWorld);
+         (*itJoint)->RemoveJointFromWorld(m_pcWorld);
       }
    }
 
@@ -331,7 +332,7 @@ namespace argos {
       for(CDynamics3DBody::TVector::iterator itBody = c_model.GetBodies().begin(); 
           itBody !=  c_model.GetBodies().end();
           itBody++) {
-         itBody->second->RemoveBodyFromWorld(m_pcWorld);
+         (*itBody)->RemoveBodyFromWorld(m_pcWorld);
       }
    }
 

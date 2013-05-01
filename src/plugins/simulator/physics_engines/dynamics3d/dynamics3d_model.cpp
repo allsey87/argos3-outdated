@@ -25,7 +25,7 @@ namespace argos {
 
    CDynamics3DModel::~CDynamics3DModel() {
        for(CDynamics3DJoint::TVector::iterator itJoint = m_vecLocalJoints.begin();
-          itJoint != m_vecLocalBodies.end();
+          itJoint != m_vecLocalJoints.end();
           ++itJoint) {
          delete *itJoint;
       }
@@ -44,15 +44,9 @@ namespace argos {
                                  const CQuaternion& c_orientation,
                                  bool b_check_only) {
 
-      const std::string& strId = GetEmbodiedEntity().GetParent().GetId();
-
-      fprintf(stderr, "MoveTo called on %s - requested coordinates are: [%.3f, %.3f, %.3f]\n", 
-              strId.c_str(), c_position.GetX(), c_position.GetY(), c_position.GetZ());
-
-
       const btTransform& cCurrentCoordinates = GetModelCoordinates();
-      const btTransform& cMoveToCoordinates = btTransform(ARGoSToBullet(c_orientation),
-                                                          ARGoSToBullet(c_position));           
+      const btTransform& cMoveToCoordinates  = btTransform(ARGoSToBullet(c_orientation),
+                                                           ARGoSToBullet(c_position));           
       
       SetModelCoordinates(cMoveToCoordinates);
 
@@ -60,11 +54,7 @@ namespace argos {
       
       // Check if we are performing the move operation or not
       if(bModelHasCollision == true || b_check_only == true) {
-         fprintf(stderr, ":: location occupied or check: restoring entity location\n");
          SetModelCoordinates(cCurrentCoordinates);
-      }
-      else {
-         fprintf(stderr, ":: move operation sucessful!\n");
       }
 
       // return whether the MoveTo was or would have been sucessful
@@ -78,13 +68,13 @@ namespace argos {
       for(CDynamics3DBody::TVector::iterator itBody = m_vecLocalBodies.begin();
           itBody != m_vecLocalBodies.end();
           ++itBody) {
-         itBody->Reset();
+         (*itBody)->Reset();
       }
 
       for(CDynamics3DJoint::TVector::iterator itJoint = m_vecLocalJoints.begin();
           itJoint != m_vecLocalJoints.end();
           ++itJoint) {
-         itJoint->Reset();
+         (*itJoint)->Reset();
       }
 
       btTransform cModelResetTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
@@ -105,9 +95,9 @@ namespace argos {
           itBody++) {
             
          // get the axis aligned bounding box for the current body
-         itBody->GetCollisionShape().getAabb(itBody->GetRigidBodyTransform(),
-                                             cBodyAabbMin,
-                                             cBodyAabbMax);
+         (*itBody)->GetCollisionShape().getAabb((*itBody)->GetRigidBodyTransform(),
+                                                cBodyAabbMin,
+                                                cBodyAabbMax);
             
          if(bAabbVectorInitRequired == true) {
             // this is the first body in the model, use it's axis aligned bounding box.
@@ -166,8 +156,8 @@ namespace argos {
          btCollisionWorld::rayTestSingle(cRayStartTransform,
                                          cRayEndTransform,
                                          &cTempCollisionObject,
-                                         &itBody->GetCollisionShape(),
-                                         itBody->GetRigidBodyTransform(),
+                                         &(*itBody)->GetCollisionShape(),
+                                         (*itBody)->GetRigidBodyTransform(),
                                          cResult);
 
          // if this body intersected the ray, we compute whether or not this has been the closest intersection
@@ -201,16 +191,19 @@ namespace argos {
 
          // Calculate the transform between the entity and the body
          const btTransform& cOffsetTransform = cCurrentCoordinates.inverse() *
-            itBody->GetMotionStateTransform();
+            (*itBody)->GetMotionStateTransform();
          
          // Apply this transform to the new entity location to find the location of the body
-         itBody->SetMotionStateTransform(c_coordinates * cOffsetTransform);
+         (*itBody)->SetMotionStateTransform(c_coordinates * cOffsetTransform);
 
          // Tell Bullet to update body by resetting the motion state
-         itBody->SynchronizeMotionState();
+         (*itBody)->SynchronizeMotionState();
 
          // activate the body
-         itBody->ActivateRigidBody();
+         (*itBody)->ActivateRigidBody();
+
+         // Update the bounding box
+         CalculateBoundingBox();
       }
    }
 

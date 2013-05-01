@@ -39,12 +39,12 @@ namespace argos {
          btTransform cOffset(ARGoSToBullet((*itBody)->m_cOffsetOrientation), ARGoSToBullet((*itBody)->m_cOffsetPosition));
          
          btTransform geo(btQuaternion(0,0,0,1), btVector3(0, -bodyHalfExtents.getY(), 0));
-
-         m_vecLocalBodies.push_back(
-            CDynamics3DBody::TNamedElement((*itBody)->GetId(), new CDynamics3DBody(pcCollisionShape, 
-                                                                                   cOffset,
-                                                                                   geo,
-                                                                                   (*itBody)->GetMass())));
+         
+         m_vecLocalBodies.push_back(new CDynamics3DBody((*itBody)->GetId(), 
+                                                        pcCollisionShape, 
+                                                        cOffset,
+                                                        geo,
+                                                        (*itBody)->GetMass()));
       }
 
       for(CJointEntity::TList::iterator itJoint = m_cJointEquippedEntity.GetAllJoints().begin();
@@ -87,7 +87,9 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
    /****************************************/
 
    CDynamics3DRobotModel::~CDynamics3DRobotModel() {
-      CDynamics3DBody::TNamedVector::iterator itBody;
+
+      /*
+      CDynamics3DBody::TVector::iterator itBody;
       std::vector<SConstraint>::iterator itConstraint;
 
       for(itConstraint = m_vecLocalConstraints.begin();
@@ -101,6 +103,7 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
           ++itBody) {
          delete itBody->second->m_pcCollisionShape;
       }
+      */
    }
 
    /****************************************/
@@ -118,13 +121,13 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
           ++itBody) {
          
          //@todo optimise by storing a pointer to the CPositionalEntity inside the SBodyConfiguration structure
-         const CDynamics3DBody& sBodyConfiguration = *m_vecLocalBodies.Find((*itBody)->GetId())->second;
+         const CDynamics3DBody& sBodyConfiguration = *m_vecLocalBodies[(*itBody)->GetId()];
          
          //@todo move this offset and transform logic inside the motion state
          //btTransform cOffset(ARGoSToBullet((*itBody)->m_cOffsetOrientation), ARGoSToBullet((*itBody)->m_cOffsetPosition));
          
          // when updating the components we don't want to undo the offset!!
-         const btTransform& cBodyUpdateTransform = sBodyConfiguration.m_pcMotionState->m_graphicsWorldTrans;
+         const btTransform& cBodyUpdateTransform = sBodyConfiguration.GetMotionStateTransform();
          //const btTransform& cBodyUpdateTransform = psBodyConfiguration->m_pcMotionState->m_graphicsWorldTrans * cOffset.inverse();
          /*
          fprintf(stderr, "[DEBUG] Position of %s in ARGoS *before* update\n", (*itBody)->GetId().c_str());
@@ -216,10 +219,10 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
       
 
       //@todo optimise this storing the result after calling Dynamics3DModel::Setup(...)
-      const CDynamics3DBody& sReferenceBodyConfiguration = *m_vecLocalBodies.Find(strReferenceBodyId)->second;
+      const CDynamics3DBody& sReferenceBodyConfiguration = *m_vecLocalBodies[strReferenceBodyId];
 
-      return (sReferenceBodyConfiguration.m_pcMotionState->m_graphicsWorldTrans *
-              sReferenceBodyConfiguration.m_cPositionalOffset.inverse());
+      return (sReferenceBodyConfiguration.GetMotionStateTransform() *
+              sReferenceBodyConfiguration.GetPositionalOffset().inverse());
    }
 
    /****************************************/

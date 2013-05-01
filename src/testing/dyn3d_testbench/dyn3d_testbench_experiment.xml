@@ -108,7 +108,7 @@
   <!-- * Physics engines * -->
   <!-- ******************* -->
   <physics_engines>
-    <dynamics3d id="dyn3d" iterations="15">
+    <dynamics3d id="dyn3d" iterations="25">
       <floor/>
     </dynamics3d>
   </physics_engines>
@@ -121,7 +121,7 @@
     <!-- ************************************************************************ -->
     <!-- * To activate the Lua editor, just use the 'lua_editor' flag attribute * -->
     <!-- ************************************************************************ -->
-    <qt-opengl lua_editor="true">
+    <qt-opengl lua_editor="false">
       <camera>
         <placement idx="0" position=" 0,-4, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" />
         <placement idx="1" position=" 4,-4, 1.5" look_at="2,-2,1" lens_focal_length="30" />

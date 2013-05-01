@@ -24,16 +24,18 @@ namespace argos {
                                                        c_box.GetSize().GetY() * 0.5f));
       
 
-      btTransform boxGeo(btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-                         btVector3(0.0f, -c_box.GetSize().GetZ() * 0.5f, 0.0f));
+      btTransform cBoxGeometricOffset(
+         btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
+         btVector3(0.0f, -c_box.GetSize().GetZ() * 0.5f, 0.0f));
 
       Real fMass = c_box.GetEmbodiedEntity().IsMovable() ? c_box.GetMass() : 0.0f;
  
-      m_vecLocalBodies.push_back(
-         CDynamics3DBody::TNamedElement("box", new CDynamics3DBody(m_pcBoxCollisionShape,
-                                                                   btTransform::getIdentity(),
-                                                                   boxGeo,
-                                                                   fMass)));
+      m_vecLocalBodies.push_back(new CDynamics3DBody("box",
+                                                     m_pcBoxCollisionShape,
+                                                     btTransform::getIdentity(),
+                                                     cBoxGeometricOffset,
+                                                     fMass));
+
       /* move the model to the specified coordinates */
       SetModelCoordinates(btTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
                                       ARGoSToBullet(GetEmbodiedEntity().GetInitPosition())));

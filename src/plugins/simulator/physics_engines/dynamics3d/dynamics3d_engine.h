@@ -10,6 +10,7 @@
 namespace argos {
    class CDynamics3DEngine;
    class CDynamics3DModel;
+   class CDynamics3DBody;
 }
 
 #include <argos3/core/simulator/entity/controllable_entity.h>
@@ -66,9 +67,9 @@ namespace argos {
    private:
 
       void AddBodiesFromModel(CDynamics3DModel& c_model);
-      void AddConstraintsFromModel(CDynamics3DModel& c_model);
+      void AddJointsFromModel(CDynamics3DModel& c_model);
 
-      void RemoveConstraintsFromModel(CDynamics3DModel& c_model);
+      void RemoveJointsFromModel(CDynamics3DModel& c_model);
       void RemoveBodiesFromModel(CDynamics3DModel& c_model);
 
    private:
@@ -96,7 +97,7 @@ namespace argos {
       btGhostPairCallback*                   m_pcGhostPairCallback;
       
       /* Dynamics 3D Ground */
-      const static btStaticPlaneShape        m_cGroundCollisionShape;
+      static btStaticPlaneShape              m_cGroundCollisionShape;
       CDynamics3DBody*                       m_pcGround;
 
       size_t m_unIterations;

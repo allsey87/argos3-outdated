@@ -43,47 +43,66 @@ namespace argos {
    /****************************************/
 
    // Shared static transforms describing the FootBot geometric layout
-   btTransform CDynamics3DFootBotModel::m_cBatterySocketCompoundOffset(
+   const btTransform CDynamics3DFootBotModel::m_cBatterySocketCompoundOffset(
       btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
       btVector3(0.0f, -FOOTBOT_BATT_H * 0.5f, 0.0f));
 
-   btTransform CDynamics3DFootBotModel::m_cBaseModuleCompoundOffset(
+   const btTransform CDynamics3DFootBotModel::m_cBaseModuleCompoundOffset(
       btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
       btVector3(0.0f, FOOTBOT_BASEMODULE_HEIGHT * 0.5f, 0.0f));
 
-   btTransform CDynamics3DFootBotModel::m_cChassisGeometricOffset(
+   const btTransform CDynamics3DFootBotModel::m_cChassisGeometricOffset(
       btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
       btVector3(0.0f, -FOOTBOT_BATT_H, 0.0f)); 
 
-   btTransform CDynamics3DFootBotModel::m_cChassisPositionalOffset(
+   const btTransform CDynamics3DFootBotModel::m_cChassisPositionalOffset(
       btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
       btVector3(0.0f, FOOTBOT_BATT_GROUND_OFFSET, 0.0f));
 
 
-   btTransform CDynamics3DFootBotModel::m_cWheelGeometricOffset(
+   const btTransform CDynamics3DFootBotModel::m_cWheelGeometricOffset(
       btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
       btVector3(0.0f, -FOOTBOT_WHEEL_THICKNESS * 0.5f, 0.0f));
 
-   btTransform CDynamics3DFootBotModel::m_cLeftWheelPositionalOffset(
+   const btTransform CDynamics3DFootBotModel::m_cLeftWheelPositionalOffset(
       btQuaternion(btVector3(1.0f, 0.0f, 0.0f), -ARGOS_PI * 0.5f),
       btVector3(0.0f, FOOTBOT_WHEEL_RADIUS, -FOOTBOT_WHEEL_HALF_DISTANCE + FOOTBOT_WHEEL_THICKNESS * 0.5f));
 
-   btTransform CDynamics3DFootBotModel::m_cRightWheelPositionalOffset(
+   const btTransform CDynamics3DFootBotModel::m_cRightWheelPositionalOffset(
       btQuaternion(btVector3(1.0f, 0.0f, 0.0f), -ARGOS_PI * 0.5f),
       btVector3(0.0f, FOOTBOT_WHEEL_RADIUS, FOOTBOT_WHEEL_HALF_DISTANCE + FOOTBOT_WHEEL_THICKNESS * 0.5f));
 
 
-   btTransform CDynamics3DFootBotModel::m_cPivotGeometricOffset(
+   const btTransform CDynamics3DFootBotModel::m_cPivotGeometricOffset(
       btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
       btVector3(0.0f, -FOOTBOT_PIVOT_RADIUS, 0.0f));
 
-   btTransform CDynamics3DFootBotModel::m_cFrontPivotPositionalOffset(
+   const btTransform CDynamics3DFootBotModel::m_cFrontPivotPositionalOffset(
       btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
       btVector3(FOOTBOT_PIVOT_HALF_DISTANCE, 0.0f, 0.0f));
 
-   btTransform CDynamics3DFootBotModel::m_cRearPivotPositionalOffset(
+   const btTransform CDynamics3DFootBotModel::m_cRearPivotPositionalOffset(
       btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
       btVector3(-FOOTBOT_PIVOT_HALF_DISTANCE, 0.0f, 0.0f));
+
+
+
+   const btTransform CDynamics3DFootBotModel::m_cChassisToLeftWheelTransform(
+      btQuaternion(btVector3(1.0f, 0.0f, 0.0f), -ARGOS_PI * 0.5f),
+      btVector3(0.0f, -FOOTBOT_WHEEL_Y_OFFSET, -FOOTBOT_WHEEL_HALF_DISTANCE));
+
+   const btTransform CDynamics3DFootBotModel::m_cChassisToRightWheelTransform(
+      btQuaternion(btVector3(1.0f, 0.0f, 0.0f), -ARGOS_PI * 0.5f),
+      btVector3(0.0f, -FOOTBOT_WHEEL_Y_OFFSET, FOOTBOT_WHEEL_HALF_DISTANCE));
+
+   const btTransform CDynamics3DFootBotModel::m_cChassisToFrontPivotTransform(
+      btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
+      btVector3(FOOTBOT_PIVOT_HALF_DISTANCE, -FOOTBOT_PIVOT_Y_OFFSET, 0.0f));
+
+   const btTransform CDynamics3DFootBotModel::m_cChassisToRearPivotTransform(
+      btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
+      btVector3(-FOOTBOT_PIVOT_HALF_DISTANCE, -FOOTBOT_PIVOT_Y_OFFSET, 0.0f));
+
 
    // Shared static collsion shapes describing the FootBot geometry
    btBoxShape CDynamics3DFootBotModel::m_cBatterySocketCollisionShape(
@@ -119,7 +138,7 @@ namespace argos {
                                                      &m_cChassisCollisionShape,
                                                      m_cChassisPositionalOffset,
                                                      m_cChassisGeometricOffset,
-                                                     FOOTBOT_BASEMODULE_MASS));
+                                                     FOOTBOT_CHASSIS_MASS));
 
       m_vecLocalBodies.push_back(new CDynamics3DBody("left-wheel", 
                                                      &m_cWheelCollisionShape,
@@ -150,9 +169,9 @@ namespace argos {
                                                      *m_vecLocalBodies[Body::LEFT_WHEEL],
                                                      *m_vecLocalBodies[Body::CHASSIS],
                                                      btTransform::getIdentity(),
-                                                     m_cChassisToLeftWheelTransform, //@todo
-                                                     CDynamics3DJoint::m_cLockAllAxes, //@todo
-                                                     CDynamics3DJoint::m_cFreeAxisY, //@todo
+                                                     m_cChassisToLeftWheelTransform,
+                                                     CDynamics3DJoint::m_cLockAxes,
+                                                     CDynamics3DJoint::m_cFreeAxisY,
                                                      true,
                                                      true));
                                                      
@@ -160,9 +179,9 @@ namespace argos {
                                                      *m_vecLocalBodies[Body::RIGHT_WHEEL],
                                                      *m_vecLocalBodies[Body::CHASSIS],
                                                      btTransform::getIdentity(),
-                                                     m_cChassisToRightWheelTransform, //@todo
-                                                     CDynamics3DJoint::m_cLockAllAxes, //@todo
-                                                     CDynamics3DJoint::m_cFreeAxisY, //@todo
+                                                     m_cChassisToRightWheelTransform,
+                                                     CDynamics3DJoint::m_cLockAxes,
+                                                     CDynamics3DJoint::m_cFreeAxisY,
                                                      true,
                                                      true));                                                     
 
@@ -170,9 +189,9 @@ namespace argos {
                                                      *m_vecLocalBodies[Body::FRONT_PIVOT],
                                                      *m_vecLocalBodies[Body::CHASSIS],
                                                      btTransform::getIdentity(),
-                                                     m_cChassisToFrontPivotTransform, //@todo
-                                                     CDynamics3DJoint::m_cLockAllAxes, //@todo
-                                                     CDynamics3DJoint::m_cFreeAxisXYZ, //@todo
+                                                     m_cChassisToFrontPivotTransform,
+                                                     CDynamics3DJoint::m_cLockAxes,
+                                                     CDynamics3DJoint::m_cFreeAxisXYZ,
                                                      true,
                                                      true));                                                     
 
@@ -180,135 +199,56 @@ namespace argos {
                                                      *m_vecLocalBodies[Body::REAR_PIVOT],
                                                      *m_vecLocalBodies[Body::CHASSIS],
                                                      btTransform::getIdentity(),
-                                                     m_cChassisToRearPivotTransform, //@todo
-                                                     CDynamics3DJoint::m_cLockAllAxes, //@todo
-                                                     CDynamics3DJoint::m_cFreeAxisXYZ, //@todo
+                                                     m_cChassisToRearPivotTransform,
+                                                     CDynamics3DJoint::m_cLockAxes,
+                                                     CDynamics3DJoint::m_cFreeAxisXYZ,
                                                      true,
                                                      true));                                                     
 
-     /** move the model to the specified coordinates */
+     /* move the model to the specified coordinates */
      SetModelCoordinates(btTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
                                      ARGoSToBullet(GetEmbodiedEntity().GetInitPosition())));
 
-      
+     /* enable the motors */ 
+     m_vecLocalJoints[Joint::LEFT_WHEEL_TO_CHASSIS]->SetActuatorParameters(
+        CDynamics3DJoint::Actuator::ANGULAR_Y,
+        true,
+        FOOTBOT_WHEEL_MOTOR_IMPULSE);
+     
+     m_vecLocalJoints[Joint::RIGHT_WHEEL_TO_CHASSIS]->SetActuatorParameters(
+        CDynamics3DJoint::Actuator::ANGULAR_Y,
+        true,
+        FOOTBOT_WHEEL_MOTOR_IMPULSE);
    }
-   
-
-   /*
-
-
-   m_pcLeftWheelToChassisConstraint = new btGeneric6DofConstraint(
-         m_vecLocalBodies[Body::LEFT_WHEEL]->GetRigidBody(),
-         m_vecLocalBodies[Body::CHASSIS]->GetRigidBody(),
-         btTransform(
-                     btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-                     btVector3(0.0f, 0.0f, 0.0f)),
-         btTransform(
-                     btQuaternion(btVector3(1.0f, 0.0f, 0.0f), -ARGOS_PI * 0.5f),
-                     btVector3(0.0f, -FOOTBOT_WHEEL_Y_OFFSET, -FOOTBOT_WHEEL_HALF_DISTANCE)),
-         true);
-
-      // setup constraint limits, all DOF locked except rotation around the frame's Y axis which is free
-      m_pcLeftWheelToChassisConstraint->setLinearLowerLimit(btVector3(0,0,0));
-      m_pcLeftWheelToChassisConstraint->setLinearUpperLimit(btVector3(0,0,0));
-      m_pcLeftWheelToChassisConstraint->setAngularLowerLimit(btVector3(0,1,0));
-      m_pcLeftWheelToChassisConstraint->setAngularUpperLimit(btVector3(0,-1,0));
-
-      m_pcRightWheelToChassisConstraint = new btGeneric6DofConstraint(
-         m_vecLocalBodies[Body::RIGHT_WHEEL]->GetRigidBody(),
-         m_vecLocalBodies[Body::CHASSIS]->GetRigidBody(),
-
-         btTransform(
-                     btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-                     btVector3(0.0f, 0.0f, 0.0f)),         // Identity
-
-         btTransform CDynamics3DFootBotModel::m_cChassisToRightWheelTransform(
-                     btQuaternion(btVector3(1.0f, 0.0f, 0.0f), -ARGOS_PI * 0.5f),
-                     btVector3(0.0f, -FOOTBOT_WHEEL_Y_OFFSET, FOOTBOT_WHEEL_HALF_DISTANCE)),
-         true);
-      
-      // setup constraint limits, all DOF locked except rotation around the frame's Y axis which is free
-      m_pcRightWheelToChassisConstraint->setLinearLowerLimit(btVector3(0,0,0));
-      m_pcRightWheelToChassisConstraint->setLinearUpperLimit(btVector3(0,0,0));
-      m_pcRightWheelToChassisConstraint->setAngularLowerLimit(btVector3(0,1,0));
-      m_pcRightWheelToChassisConstraint->setAngularUpperLimit(btVector3(0,-1,0));
-
-
-      m_vecLocalConstraints.push_back(SConstraint("left-wheel:chassis",
-                                                  m_pcLeftWheelToChassisConstraint,
-                                                  true));
-      
-      m_vecLocalConstraints.push_back(SConstraint("right-wheel:chassis",
-                                                  m_pcRightWheelToChassisConstraint,
-                                                 true));
-    
-      m_pcFrontPivotToChassisConstraint = new btGeneric6DofConstraint(
-         m_vecLocalBodies[Body::FRONT_PIVOT]->GetRigidBody(),
-         m_vecLocalBodies[Body::CHASSIS]->GetRigidBody(),
-         btTransform(
-                     btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-                     btVector3(0.0f, 0.0f, 0.0f)),
-         btTransform(
-                     btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-                     btVector3(FOOTBOT_PIVOT_HALF_DISTANCE, -FOOTBOT_PIVOT_Y_OFFSET, 0.0f)),
-         true);
-
-      // Lock the translational DOFs and free the rotational DOFs
-      m_pcFrontPivotToChassisConstraint->setLinearLowerLimit(btVector3(0,0,0));
-      m_pcFrontPivotToChassisConstraint->setLinearUpperLimit(btVector3(0,0,0));
-      m_pcFrontPivotToChassisConstraint->setAngularLowerLimit(btVector3(1,1,1));
-      m_pcFrontPivotToChassisConstraint->setAngularUpperLimit(btVector3(-1,-1,-1));
-
-
-      m_pcRearPivotToChassisConstraint = new btGeneric6DofConstraint(
-         m_vecLocalBodies[Body::REAR_PIVOT]->GetRigidBody(),
-         m_vecLocalBodies[Body::CHASSIS]->GetRigidBody(),
-         btTransform(
-                     btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-                     btVector3(0.0f, 0.0f, 0.0f)),
-         btTransform(
-                     btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-                     btVector3(-FOOTBOT_PIVOT_HALF_DISTANCE, -FOOTBOT_PIVOT_Y_OFFSET, 0.0f)),
-         true);
-
-      // Lock the translational DOFs and free the rotational DOFs      
-      m_pcRearPivotToChassisConstraint->setLinearLowerLimit(btVector3(0,0,0));
-      m_pcRearPivotToChassisConstraint->setLinearUpperLimit(btVector3(0,0,0));
-      m_pcRearPivotToChassisConstraint->setAngularLowerLimit(btVector3(1,1,1));
-      m_pcRearPivotToChassisConstraint->setAngularUpperLimit(btVector3(-1,-1,-1));
-
-      m_vecLocalConstraints.push_back(SConstraint("front-pivot:chassis",
-                                                  m_pcFrontPivotToChassisConstraint,
-                                                  true));
-      m_vecLocalConstraints.push_back(SConstraint("rear-pivot:chassis",
-                                                  m_pcRearPivotToChassisConstraint,
-                                                  true));
-                                                  
-   */
-    
 
    /****************************************/
    /****************************************/
 
-   CDynamics3DFootBotModel::~CDynamics3DFootBotModel() { }
+   void CDynamics3DFootBotModel::Reset() {
+      
+      /* call the CDynamics3DModel::Reset method to reset
+         and reposition the bodies and joints */
+      CDynamics3DModel::Reset();
+
+     /* reenable the motors */ 
+     m_vecLocalJoints[Joint::LEFT_WHEEL_TO_CHASSIS]->SetActuatorParameters(
+        CDynamics3DJoint::Actuator::ANGULAR_Y,
+        true,
+        FOOTBOT_WHEEL_MOTOR_IMPULSE);
+     
+     m_vecLocalJoints[Joint::RIGHT_WHEEL_TO_CHASSIS]->SetActuatorParameters(
+        CDynamics3DJoint::Actuator::ANGULAR_Y,
+        true,
+        FOOTBOT_WHEEL_MOTOR_IMPULSE);
+   }
 
    /****************************************/
    /****************************************/
 
    void CDynamics3DFootBotModel::UpdateEntityStatus() {
-      /* Update footbot position and orientation based on the location of a reference body */
+      /* Update footbot position and orientation based on the location of the reference body */
       const btTransform& cEntityUpdateTransform = GetModelCoordinates();
-      /*
-      for(CDynamics3DBody::TNamedVector::iterator it = m_vecLocalBodies.begin();
-          it != m_vecLocalBodies.end();
-          it++) {
 
-         btDefaultMotionState* pcMotionState = &it->second->GetMotionState();
-
-         fprintf(stderr, "[DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = %.3f\n", it->first.c_str(), pcMotionState->m_graphicsWorldTrans.getOrigin().getX(), pcMotionState->m_graphicsWorldTrans.getOrigin().getY(), pcMotionState->m_graphicsWorldTrans.getOrigin().getZ(), pcMotionState->m_graphicsWorldTrans.getRotation().getAxis().getX(), pcMotionState->m_graphicsWorldTrans.getRotation().getAxis().getY(), pcMotionState->m_graphicsWorldTrans.getRotation().getAxis().getZ(), pcMotionState->m_graphicsWorldTrans.getRotation().getAngle() * 57.2957795131f);
-
-         }
-      */
       GetEmbodiedEntity().SetPosition(BulletToARGoS(cEntityUpdateTransform.getOrigin()));
       GetEmbodiedEntity().SetOrientation(BulletToARGoS(cEntityUpdateTransform.getRotation()));
 
@@ -337,20 +277,25 @@ namespace argos {
             when we activate one body in the island, all of the bodies become activated */
          m_vecLocalBodies[Body::CHASSIS]->ActivateRigidBody();
          
-         m_pcLeftWheelToChassisConstraint->getRotationalLimitMotor(1)->m_enableMotor = true;
-         m_pcLeftWheelToChassisConstraint->getRotationalLimitMotor(1)->m_targetVelocity = fLeftWheelVelocity;
-         m_pcLeftWheelToChassisConstraint->getRotationalLimitMotor(1)->m_maxMotorForce = FOOTBOT_WHEEL_MOTOR_IMPULSE;
+         /* Write the motor target velocities to the joints */
+         m_vecLocalJoints[Joint::LEFT_WHEEL_TO_CHASSIS]->SetActuatorTargetVelocity(
+            CDynamics3DJoint::Actuator::ANGULAR_Y,
+            fLeftWheelVelocity);
 
-         m_pcRightWheelToChassisConstraint->getRotationalLimitMotor(1)->m_enableMotor = true;
-         m_pcRightWheelToChassisConstraint->getRotationalLimitMotor(1)->m_targetVelocity = fRightWheelVelocity;
-         m_pcRightWheelToChassisConstraint->getRotationalLimitMotor(1)->m_maxMotorForce = FOOTBOT_WHEEL_MOTOR_IMPULSE;
-
+         m_vecLocalJoints[Joint::RIGHT_WHEEL_TO_CHASSIS]->SetActuatorTargetVelocity(
+            CDynamics3DJoint::Actuator::ANGULAR_Y,
+            fRightWheelVelocity);
       }
       else {
+         
+         /* Write a target velocity of zero to the joints */
+         m_vecLocalJoints[Joint::LEFT_WHEEL_TO_CHASSIS]->SetActuatorTargetVelocity(
+            CDynamics3DJoint::Actuator::ANGULAR_Y,
+            0.0f);
 
-         /* No, we don't want to move - zero all speeds */
-         m_pcLeftWheelToChassisConstraint->getRotationalLimitMotor(1)->m_enableMotor = false;
-         m_pcRightWheelToChassisConstraint->getRotationalLimitMotor(1)->m_enableMotor = false;
+         m_vecLocalJoints[Joint::RIGHT_WHEEL_TO_CHASSIS]->SetActuatorTargetVelocity(
+            CDynamics3DJoint::Actuator::ANGULAR_Y,
+            0.0f);
       }
    }
 
@@ -359,7 +304,7 @@ namespace argos {
 
    btTransform CDynamics3DFootBotModel::GetModelCoordinates() const {
       return m_vecLocalBodies[Body::CHASSIS]->GetMotionStateTransform() *
-         m_cChassisTransform.inverse();
+         m_cChassisPositionalOffset.inverse();
    }
 
    /****************************************/

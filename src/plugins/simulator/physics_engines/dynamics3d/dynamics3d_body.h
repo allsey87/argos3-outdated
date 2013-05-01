@@ -8,6 +8,16 @@
 #define DYNAMICS3D_BODY_H
 
 namespace argos {
+
+}
+
+#include <vector>
+#include <string>
+
+#include <argos3/plugins/simulator/physics_engines/dynamics3d/bullet/btBulletDynamicsCommon.h>
+#include <argos3/core/utility/datatypes/datatypes.h>
+
+namespace argos {
    
    /****************************************/
    /****************************************/
@@ -18,17 +28,12 @@ namespace argos {
 
       class TVector : public std::vector<CDynamics3DBody*> {
       public:
-         TVector::iterator Find(const std::string& str_id) {
-            TVector::iterator it;
-            for(it = this->begin(); it != this->end(); ++it) {
-               if(it->GetId() == str_id) break;
-            }
-            return it;
-         }
-
-         CDynamics3DBody* operator[](const std::string& str_id) {
-            return *Find(str_id);
-         }
+         iterator Find(const std::string& str_id);
+         const_iterator Find(const std::string& str_id) const;
+         CDynamics3DBody* operator[](const std::string& str_id);
+         const CDynamics3DBody* operator[](const std::string& str_id) const;
+         CDynamics3DBody* operator[](UInt32 un_idx);
+         const CDynamics3DBody* operator[](UInt32 un_idx) const;
       };
 
    public:
@@ -37,106 +42,35 @@ namespace argos {
                       btCollisionShape* pc_collision_shape = NULL,
                       const btTransform& c_positional_offset = btTransform::getIdentity(),
                       const btTransform& c_geometric_offset = btTransform::getIdentity(),
-                      Real f_mass = 0.0f) :
-         m_strId(str_id),
-         m_pcCollisionShape(pc_collision_shape),
-         m_pcMotionState(NULL),
-         m_pcRigidBody(NULL),
-         m_cGeometricOffset(c_geometric_offset),
-         m_cPositionalOffset(c_positional_offset),
-         m_cInertia(btVector3(0.0f, 0.0f, 0.0f)),
-         m_fMass(f_mass) {
-         
-         /* calculate the inertia */
-         if(m_fMass != 0.0f && m_pcCollisionShape != NULL) {
-            m_pcCollisionShape->calculateLocalInertia(m_fMass, m_cInertia);
-         }
-         
-         /* construct the motion state */
-         m_pcMotionState = new btDefaultMotionState(m_cPositionalOffset, m_cGeometricOffset);
-         
-         /* construct the rigid body */
-         m_pcRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(m_fMass,
-                                                                                  m_pcMotionState,
-                                                                                  m_pcCollisionShape,
-                                                                                  m_cInertia));
-      }
+                      Real f_mass = 0.0f);
 
-      ~CDynamics3DBody() {
-         delete m_pcRigidBody; 
-         delete m_pcMotionState;
-      }
+      ~CDynamics3DBody();
 
-      void Reset() {
-         // recreate the motion state
-         delete m_pcMotionState;
-         m_pcMotionState = new btDefaultMotionState(m_cPositionalOffset, m_cGeometricOffset);
-
-         // delete the body and recreate it
-         delete m_pcRigidBody;
-         m_pcRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(m_fMass,
-                                                                                  m_pcMotionState,
-                                                                                  m_pcCollisionShape,
-                                                                                  m_cInertia));
-      }
+      void Reset();
 
       const std::string& GetId() {
          return m_strId;
       }
 
-      void SynchronizeMotionState() {
-         m_pcRigidBody->setMotionState(m_pcMotionState);
-      }
+      const btCollisionShape& GetCollisionShape() const;
 
-      inline const btTransform& GetMotionStateTransform() const {
-         return m_pcMotionState->m_graphicsWorldTrans;
-      }
+      bool operator==(const btCollisionObject* pc_collision_object) const;
 
-      inline void SetMotionStateTransform(const btTransform & cTransform) {
-         m_pcMotionState->m_graphicsWorldTrans = cTransform;
-      }
+      const btTransform& GetRigidBodyTransform() const;    
 
-      void ActivateRigidBody() {
-         m_pcRigidBody->activate();
-      }
+      const btTransform& GetPositionalOffset() const;
 
-      void AddBodyToWorld(btDynamicsWorld * pc_dynamics_world) {
-         pc_dynamics_world->addRigidBody(m_pcRigidBody);
-      }
+      const btTransform& GetMotionStateTransform() const;
+      
+      void SetMotionStateTransform(const btTransform & cTransform);
 
-      void RemoveBodyFromWorld(btDynamicsWorld * pc_dynamics_world) {
-         pc_dynamics_world->removeRigidBody(m_pcRigidBody);
-      }
+      void SynchronizeMotionState();
 
+      void ActivateRigidBody();
 
-      //@todo some methods to be revised / updated / deleted
+      void AddBodyToWorld(btDynamicsWorld * pc_dynamics_world);
+      void RemoveBodyFromWorld(btDynamicsWorld * pc_dynamics_world);
 
-      bool operator==(const btRigidBody* pc_other_body) const {
-         return (pc_other_body == m_pcRigidBody);
-      }
-
-      inline const btRigidBody& GetRigidBody() const {
-         return *m_pcRigidBody;
-      }
-
-      inline btRigidBody& GetRigidBody() {
-         return *m_pcRigidBody;
-      }
-
-
-      inline btDefaultMotionState& GetMotionState() {
-         return *m_pcMotionState;
-      }
-
-      inline const btCollisionShape& GetCollisionShape() const {
-         return *m_pcCollisionShape;
-      }
-
-      // @todo can I use the motion state for this?
-      inline const btTransform& GetRigidBodyTransform() const {
-         return m_pcRigidBody->getWorldTransform();
-      }
-    
    private:
       std::string m_strId;
 
@@ -150,6 +84,8 @@ namespace argos {
       btVector3 m_cInertia;
       Real m_fMass;
 
+
+      friend class CDynamics3DJoint;
    };
 }
 
