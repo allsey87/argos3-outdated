@@ -15,17 +15,34 @@ namespace argos {
    class CDynamics3DFootBotModel : public CDynamics3DModel {
 
    public:
+      struct Body { 
+         const static UInt8 CHASSIS     = 0;
+         const static UInt8 LEFT_WHEEL  = 1;
+         const static UInt8 RIGHT_WHEEL = 2;
+         const static UInt8 FRONT_PIVOT = 3;
+         const static UInt8 REAR_PIVOT  = 4;
+      };
+
+      struct Joint {
+         const static UInt8 LEFT_WHEEL_TO_CHASSIS = 0;
+         const static UInt8 RIGHT_WHEEL_TO_CHASSIS = 1;
+         const static UInt8 FRONT_PIVOT_TO_CHASSIS = 2;
+         const static UInt8 REAR_PIVOT_TO_CHASSIS = 3;
+      };
+
+   public:
 
       CDynamics3DFootBotModel(CDynamics3DEngine& c_engine,
-                               CFootBotEntity& c_entity);
-      virtual ~CDynamics3DFootBotModel();
+                              CFootBotEntity& c_entity);
+
+      virtual void Reset();
 
       virtual void UpdateEntityStatus();
       virtual void UpdateFromEntityStatus();
 
-      virtual const btTransform& GetModelWorldTransform() const {
-         return m_pcChassisRigidBody->getWorldTransform();
-      }
+   protected:
+
+      virtual btTransform GetModelCoordinates() const;
 
    private:
 
@@ -35,41 +52,31 @@ namespace argos {
       Real m_pfCurrentWheelVelocityFromSensor[2];
       
       /******** Shared Transforms **********/
-      static btTransform                  m_cBatterySocketTransform;
-      static btTransform                  m_cBaseModuleTransform;
-      static btTransform                  m_cLeftWheelTransform;
-      static btTransform                  m_cRightWheelTransform; 
-      static btTransform                  m_cFrontPivotTransform;
-      static btTransform                  m_cRearPivotTransform;
-      static btTransform                  m_cChassisTransform;
+      const static btTransform   m_cBatterySocketCompoundOffset;
+      const static btTransform   m_cBaseModuleCompoundOffset;
+
+      const static btTransform   m_cLeftWheelPositionalOffset;
+      const static btTransform   m_cRightWheelPositionalOffset; 
+      const static btTransform   m_cFrontPivotPositionalOffset;
+      const static btTransform   m_cRearPivotPositionalOffset;
+      const static btTransform   m_cChassisPositionalOffset;
+
+      const static btTransform   m_cChassisGeometricOffset;
+      const static btTransform   m_cWheelGeometricOffset;
+      const static btTransform   m_cPivotGeometricOffset;
+
+      const static btTransform   m_cChassisToLeftWheelTransform;
+      const static btTransform   m_cChassisToRightWheelTransform;
+      const static btTransform   m_cChassisToFrontPivotTransform;
+      const static btTransform   m_cChassisToRearPivotTransform;
       
       /******** Shared Collision Shapes **********/
-      static btBoxShape                   m_cBatterySocketCollisionShape;
-      static btCylinderShape              m_cBaseModuleCollisionShape;
-      static btCylinderShape              m_cWheelCollisionShape;
-      static btSphereShape                m_cPivotCollisionShape;
-      static btCompoundShape              m_cChassisCollisionShape;
+      static btBoxShape          m_cBatterySocketCollisionShape;
+      static btCylinderShape     m_cBaseModuleCollisionShape;
+      static btCylinderShape     m_cWheelCollisionShape;
+      static btSphereShape       m_cPivotCollisionShape;
+      static btCompoundShape     m_cChassisCollisionShape;
       
-      
-      /**************** Motion States ****************/
-      btDefaultMotionState*               m_pcLeftWheelMotionState;
-      btDefaultMotionState*               m_pcRightWheelMotionState;
-      btDefaultMotionState*               m_pcFrontPivotMotionState;
-      btDefaultMotionState*               m_pcRearPivotMotionState;
-      btDefaultMotionState*               m_pcChassisMotionState;
-      
-      /**************** Rigid Bodies ****************/
-      btRigidBody*                        m_pcLeftWheelRigidBody;
-      btRigidBody*                        m_pcRightWheelRigidBody;
-      btRigidBody*                        m_pcFrontPivotRigidBody;
-      btRigidBody*                        m_pcRearPivotRigidBody;
-      btRigidBody*                        m_pcChassisRigidBody;
-      
-      /**************** Constraints ****************/
-      btHingeConstraint*                  m_pcLeftWheelToChassisConstraint;
-      btHingeConstraint*                  m_pcRightWheelToChassisConstraint;
-      btPoint2PointConstraint*            m_pcFrontPivotToChassisConstraint;
-      btPoint2PointConstraint*            m_pcRearPivotToChassisConstraint;
    };
 }
 

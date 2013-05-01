@@ -364,13 +364,17 @@ set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D
   dynamics3d_box_model.h
   dynamics3d_cylinder_model.h
   dynamics3d_model.h
-  dynamics3d_engine.h)
+  dynamics3d_engine.h
+  dynamics3d_body.h
+  dynamics3d_joint.h)
 
 #
 # Source files
 #
 # Dynamics 3D source files
 set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D
+  dynamics3d_body.cpp
+  dynamics3d_joint.cpp
   dynamics3d_box_model.cpp
   dynamics3d_cylinder_model.cpp
   dynamics3d_model.cpp

@@ -23,39 +23,28 @@ namespace argos {
                                                                  c_cylinder.GetHeight() * 0.5f,
                                                                  c_cylinder.GetRadius()));
       
-      //fprintf(stderr, "[init] position of %s in ARGoS: [%.3f, %.3f, %.3f]\n", m_cCylinderEntity.GetId().c_str(), GetEmbodiedEntity().GetInitPosition().GetX(), GetEmbodiedEntity().GetInitPosition().GetY(),GetEmbodiedEntity().GetInitPosition().GetZ());
+      btTransform cCylinderGeometricOffset(
+         btQuaternion(0.0f, 0.0f, 0.0f, 1.0f), 
+         btVector3(0.0f, -c_cylinder.GetHeight() * 0.5f, 0.0f));
 
-      btTransform cModelTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
-                                  ARGoSToBullet(GetEmbodiedEntity().GetInitPosition()));
-      
-      m_pcCylinderMotionState = new btDefaultMotionState(cModelTransform,
-                                                         btTransform(btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-                                                                     btVector3(0.0f, -c_cylinder.GetHeight() * 0.5f, 0.0f)));
           
-      if(c_cylinder.GetEmbodiedEntity().IsMovable()) {
-         btVector3 cInertia;
-         m_pcCylinderCollisionShape->calculateLocalInertia(c_cylinder.GetMass(), cInertia);
-         m_pcCylinderRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
-            c_cylinder.GetMass(), m_pcCylinderMotionState, m_pcCylinderCollisionShape, cInertia));
-      }
-      else {
-         m_pcCylinderRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
-            0.0f, m_pcCylinderMotionState, m_pcCylinderCollisionShape, btVector3(0.0f,0.0f,0.0f)));
-      }
+      Real fMass = c_cylinder.GetEmbodiedEntity().IsMovable() ? c_cylinder.GetMass() : 0.0f;
 
-      //fprintf(stderr, "[init] position of %s in Bullet: [%.3f, %.3f, %.3f]\n", m_cCylinderEntity.GetId().c_str(), m_pcCylinderRigidBody->getWorldTransform().getOrigin().getX(), m_pcCylinderRigidBody->getWorldTransform().getOrigin().getY(),m_pcCylinderRigidBody->getWorldTransform().getOrigin().getZ() );
+      m_vecLocalBodies.push_back(new CDynamics3DBody("cylinder",
+                                                     m_pcCylinderCollisionShape,
+                                                     btTransform::getIdentity(),
+                                                     cCylinderGeometricOffset,
+                                                     fMass));
       
-      m_mapLocalBodyConfigurations["cylinder"] = SBodyConfiguration(m_pcCylinderCollisionShape,
-                                                                    m_pcCylinderMotionState,
-                                                                    m_pcCylinderRigidBody);
+      /* move the model to the specified coordinates */
+      SetModelCoordinates(btTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
+                                      ARGoSToBullet(GetEmbodiedEntity().GetInitPosition())));
    }
    
    /****************************************/
    /****************************************/
    
    CDynamics3DCylinderModel::~CDynamics3DCylinderModel() {
-      delete m_pcCylinderRigidBody;
-      delete m_pcCylinderMotionState;
       delete m_pcCylinderCollisionShape;
     }
    
@@ -63,21 +52,12 @@ namespace argos {
    /****************************************/
 
    void CDynamics3DCylinderModel::UpdateEntityStatus() {
-      if(m_cCylinderEntity.GetEmbodiedEntity().IsMovable()) {      
-         
-         //fprintf(stderr, "position of %s in Bullet: [%.3f, %.3f, %.3f]\n", m_cCylinderEntity.GetId().c_str(), m_pcCylinderRigidBody->getWorldTransform().getOrigin().getX(), m_pcCylinderRigidBody->getWorldTransform().getOrigin().getY(),m_pcCylinderRigidBody->getWorldTransform().getOrigin().getZ() );
-
-         //fprintf(stderr, "position of %s in ARGoS (before update): [%.3f, %.3f, %.3f]\n", m_cCylinderEntity.GetId().c_str(), GetEmbodiedEntity().GetPosition().GetX(), GetEmbodiedEntity().GetPosition().GetY(),GetEmbodiedEntity().GetPosition().GetZ());
-         
-         //const btTransform& cUpdateTransform = m_pcCylinderRigidBody->getWorldTransform();
-         const btTransform& cUpdateTransform = m_pcCylinderMotionState->m_graphicsWorldTrans;
+      if(m_cCylinderEntity.GetEmbodiedEntity().IsMovable()) {
+         const btTransform& cUpdateTransform = GetModelCoordinates();
          
          GetEmbodiedEntity().SetPosition(BulletToARGoS(cUpdateTransform.getOrigin()));
          GetEmbodiedEntity().SetOrientation(BulletToARGoS(cUpdateTransform.getRotation()));
 
-         //fprintf(stderr, "position of %s in ARGoS: [%.3f, %.3f, %.3f]\n", m_cCylinderEntity.GetId().c_str(), GetEmbodiedEntity().GetPosition().GetX(), GetEmbodiedEntity().GetPosition().GetY(),GetEmbodiedEntity().GetPosition().GetZ());
-      
-         /* Update components */
          m_cCylinderEntity.UpdateComponents();
       }
    }
@@ -85,14 +65,9 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   /*void CDynamics3DCylinderModel::CalculateBoundingBox() {
-      btVector3 cAABBMin, cAABBMax;
-      btTransform cTransform;
-      m_pcCylinderMotionState->getWorldTransform(cTransform);
-      m_pcCylinderCollisionShape->getAabb(cTransform, cAABBMin, cAABBMax);
-      GetBoundingBox().MinCorner = BulletToARGoS(cAABBMin);
-      GetBoundingBox().MaxCorner = BulletToARGoS(cAABBMax);
-      }*/
+   btTransform CDynamics3DCylinderModel::GetModelCoordinates() const {
+      return m_vecLocalBodies[0]->GetMotionStateTransform();
+   }
 
    /****************************************/
    /****************************************/

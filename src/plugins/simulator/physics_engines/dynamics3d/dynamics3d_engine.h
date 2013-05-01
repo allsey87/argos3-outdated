@@ -10,6 +10,7 @@
 namespace argos {
    class CDynamics3DEngine;
    class CDynamics3DModel;
+   class CDynamics3DBody;
 }
 
 #include <argos3/core/simulator/entity/controllable_entity.h>
@@ -42,11 +43,11 @@ namespace argos {
       virtual void AddEntity(CEntity& c_entity);
       virtual void RemoveEntity(CEntity& c_entity);
       
-      bool IsRegionOccupied(const btTransform& c_transform, 
-                            btCollisionShape* pc_collsion_shape);
+      bool IsModelCollidingWithSomething(const CDynamics3DModel& c_model);
       
       void AddPhysicsModel(const std::string& str_id,
-                            CDynamics3DModel& c_model);
+                           CDynamics3DModel& c_model);
+      
       void RemovePhysicsModel(const std::string& str_id);
 
       virtual bool IsPointContained(const CVector3& c_point) {
@@ -65,9 +66,25 @@ namespace argos {
    
    private:
 
-      CControllableEntity::TMap m_tControllableEntities;
-      std::map<std::string, CDynamics3DModel*> m_tPhysicsModels;
-      
+      void AddBodiesFromModel(CDynamics3DModel& c_model);
+      void AddJointsFromModel(CDynamics3DModel& c_model);
+
+      void RemoveJointsFromModel(CDynamics3DModel& c_model);
+      void RemoveBodiesFromModel(CDynamics3DModel& c_model);
+
+   private:
+
+      class : public std::vector<std::pair<std::string, CDynamics3DModel*> > {
+      public:
+         std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator Find(const std::string& str_id) {
+            std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator it;
+            for(it = this->begin(); it != this->end(); ++it) {
+               if(it->first == str_id) break;
+            }
+            return it;
+         }
+      } m_vecPhysicsModels;
+
       /* ARGoS RNG */
       //CARGoSRandom::CRNG* m_pcRNG;
      
@@ -79,10 +96,9 @@ namespace argos {
       btDiscreteDynamicsWorld*               m_pcWorld;
       btGhostPairCallback*                   m_pcGhostPairCallback;
       
-      /* Dynamics World Floor Data */
-      btStaticPlaneShape*                    m_pcGroundCollisionShape;
-      btDefaultMotionState*                  m_pcGroundMotionState;
-      btRigidBody*                           m_pcGroundRigidBody; 
+      /* Dynamics 3D Ground */
+      static btStaticPlaneShape              m_cGroundCollisionShape;
+      CDynamics3DBody*                       m_pcGround;
 
       size_t m_unIterations;
       Real m_fDeltaT;

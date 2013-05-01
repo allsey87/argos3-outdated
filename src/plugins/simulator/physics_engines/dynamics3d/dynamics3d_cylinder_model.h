@@ -27,28 +27,17 @@ namespace argos {
       virtual ~CDynamics3DCylinderModel();
 
       virtual void UpdateEntityStatus();
-      virtual void UpdateFromEntityStatus() {
-
-         //fprintf(stderr, "[DEBUG] m_graphicsWorldTrans: position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = %.3f\n", m_pcCylinderMotionState->m_graphicsWorldTrans.getOrigin().getX(), m_pcCylinderMotionState->m_graphicsWorldTrans.getOrigin().getY(), m_pcCylinderMotionState->m_graphicsWorldTrans.getOrigin().getZ(), m_pcCylinderMotionState->m_graphicsWorldTrans.getRotation().getAxis().getX(), m_pcCylinderMotionState->m_graphicsWorldTrans.getRotation().getAxis().getY(), m_pcCylinderMotionState->m_graphicsWorldTrans.getRotation().getAxis().getZ(), m_pcCylinderMotionState->m_graphicsWorldTrans.getRotation().getAngle() * 57.2957795131f);
-
-         //fprintf(stderr, "[DEBUG] m_centerOfMassOffset: position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = %.3f\n", m_pcCylinderMotionState->m_centerOfMassOffset.getOrigin().getX(), m_pcCylinderMotionState->m_centerOfMassOffset.getOrigin().getY(), m_pcCylinderMotionState->m_centerOfMassOffset.getOrigin().getZ(), m_pcCylinderMotionState->m_centerOfMassOffset.getRotation().getAxis().getX(), m_pcCylinderMotionState->m_centerOfMassOffset.getRotation().getAxis().getY(), m_pcCylinderMotionState->m_centerOfMassOffset.getRotation().getAxis().getZ(), m_pcCylinderMotionState->m_centerOfMassOffset.getRotation().getAngle() * 57.2957795131f);
-
-         //fprintf(stderr, "[DEBUG] m_startWorldTrans: position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = %.3f\n", m_pcCylinderMotionState->m_startWorldTrans.getOrigin().getX(), m_pcCylinderMotionState->m_startWorldTrans.getOrigin().getY(), m_pcCylinderMotionState->m_startWorldTrans.getOrigin().getZ(), m_pcCylinderMotionState->m_startWorldTrans.getRotation().getAxis().getX(), m_pcCylinderMotionState->m_startWorldTrans.getRotation().getAxis().getY(), m_pcCylinderMotionState->m_startWorldTrans.getRotation().getAxis().getZ(), m_pcCylinderMotionState->m_startWorldTrans.getRotation().getAngle() * 57.2957795131f);
-      }
+      virtual void UpdateFromEntityStatus() {}
       
-      virtual const btTransform& GetModelWorldTransform() const {
-         return m_pcCylinderRigidBody->getWorldTransform();
-      }
+   protected:
 
-      //virtual void CalculateBoundingBox();
+      virtual btTransform GetModelCoordinates() const;
       
    private:
 
       CCylinderEntity&           m_cCylinderEntity;
       
       btCylinderShape*           m_pcCylinderCollisionShape;
-      btDefaultMotionState*      m_pcCylinderMotionState;
-      btRigidBody*               m_pcCylinderRigidBody;
    };
 }
 

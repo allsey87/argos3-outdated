@@ -23,52 +23,81 @@ namespace argos {
    /****************************************/
    /****************************************/
 
+   CDynamics3DModel::~CDynamics3DModel() {
+       for(CDynamics3DJoint::TVector::iterator itJoint = m_vecLocalJoints.begin();
+          itJoint != m_vecLocalJoints.end();
+          ++itJoint) {
+         delete *itJoint;
+      }
+      for(CDynamics3DBody::TVector::iterator itBody = m_vecLocalBodies.begin();
+          itBody != m_vecLocalBodies.end();
+          ++itBody) {
+         delete *itBody;
+      }
+   }
+
+   /****************************************/
+   /****************************************/
+
+
    bool CDynamics3DModel::MoveTo(const CVector3& c_position,
                                  const CQuaternion& c_orientation,
                                  bool b_check_only) {
-                  
-      /* For each body in the model, ask the engine if that region at the new location is free
 
-         for(std::map<std::string, btRigidBody*>::const_iterator itBody = m_mapLocalRigidBodies.begin();
-         itBody != m_mapLocalRigidBodies.end();
-         itBody++) {
-            
-         btTransform cBodyNewTransform = itBody->second->getWorldTransform()
-         m_cEngine.IsRegionOccupied(cBodyNewTransform, itBody->second->getCollisionShape()); // const transform&, btCollisionShapePointer
+      const btTransform& cCurrentCoordinates = GetModelCoordinates();
+      const btTransform& cMoveToCoordinates  = btTransform(ARGoSToBullet(c_orientation),
+                                                           ARGoSToBullet(c_position));           
+      
+      SetModelCoordinates(cMoveToCoordinates);
 
-         }
-      */
-      return false;
+      bool bModelHasCollision = m_cEngine.IsModelCollidingWithSomething(*this);    
+      
+      // Check if we are performing the move operation or not
+      if(bModelHasCollision == true || b_check_only == true) {
+         SetModelCoordinates(cCurrentCoordinates);
+      }
 
+      // return whether the MoveTo was or would have been sucessful
+      return !bModelHasCollision;
    }
+
+   /****************************************/
+   /****************************************/
 
    void CDynamics3DModel::Reset() {
-      // reset each body and clearing all velocities and forces
-      for(std::map<std::string, SBodyConfiguration>::iterator itBodyConfiguration = m_mapLocalBodyConfigurations.begin();
-          itBodyConfiguration !=  m_mapLocalBodyConfigurations.end();
-          ++itBodyConfiguration) {
-         
-         btMotionState* pcMotionState = itBodyConfiguration->second.m_pcMotionState;
-         pcMotionState->reset();
-         itBodyConfiguration->second.m_pcRigidBody->setMotionState(pcMotionState);
-            
-         itBodyConfiguration->second.m_pcRigidBody->setAngularVelocity(btVector3(0.0f, 0.0f, 0.0f));
-         itBodyConfiguration->second.m_pcRigidBody->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
-         itBodyConfiguration->second.m_pcRigidBody->clearForces();
+      for(CDynamics3DBody::TVector::iterator itBody = m_vecLocalBodies.begin();
+          itBody != m_vecLocalBodies.end();
+          ++itBody) {
+         (*itBody)->Reset();
       }
+
+      for(CDynamics3DJoint::TVector::iterator itJoint = m_vecLocalJoints.begin();
+          itJoint != m_vecLocalJoints.end();
+          ++itJoint) {
+         (*itJoint)->Reset();
+      }
+
+      btTransform cModelResetTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
+                                       ARGoSToBullet(GetEmbodiedEntity().GetInitPosition()));
+
+      SetModelCoordinates(cModelResetTransform);
    }
-   
+
+   /****************************************/
+   /****************************************/
 
    void CDynamics3DModel::CalculateBoundingBox() {
       btVector3 cAabbMin, cAabbMax, cBodyAabbMin, cBodyAabbMax;
       bool bAabbVectorInitRequired = true;
 
-      for(std::map<std::string, SBodyConfiguration>::const_iterator itBodyConfiguration = m_mapLocalBodyConfigurations.begin();
-          itBodyConfiguration != m_mapLocalBodyConfigurations.end();
-          itBodyConfiguration++) {
+      for(CDynamics3DBody::TVector::iterator itBody = m_vecLocalBodies.begin();
+          itBody != m_vecLocalBodies.end();
+          itBody++) {
             
          // get the axis aligned bounding box for the current body
-         itBodyConfiguration->second.m_pcCollisionShape->getAabb(itBodyConfiguration->second.m_pcRigidBody->getWorldTransform(), cBodyAabbMin, cBodyAabbMax);
+         (*itBody)->GetCollisionShape().getAabb((*itBody)->GetRigidBodyTransform(),
+                                                cBodyAabbMin,
+                                                cBodyAabbMax);
             
          if(bAabbVectorInitRequired == true) {
             // this is the first body in the model, use it's axis aligned bounding box.
@@ -96,9 +125,15 @@ namespace argos {
       GetBoundingBox().MaxCorner.SetY(BulletToARGoS(cAabbMin).GetY());
    }
 
+   /****************************************/
+   /****************************************/
+
    bool CDynamics3DModel::IsCollidingWithSomething() const {
-      return false;
+      return m_cEngine.IsModelCollidingWithSomething(*this);
    }
+
+   /****************************************/
+   /****************************************/
 
    bool CDynamics3DModel::CheckIntersectionWithRay(Real& f_t_on_ray, const CRay3& c_ray) const {
       btTransform cRayStartTransform(btQuaternion::getIdentity(), ARGoSToBullet(c_ray.GetStart()));
@@ -109,9 +144,9 @@ namespace argos {
       Real fBodyIntersectDist; 
          
       //@todo use SbodyComponent backed via a std::vector to increase speed (reduced cache misses)
-      for(std::map<std::string, SBodyConfiguration>::const_iterator itBodyConfiguration = m_mapLocalBodyConfigurations.begin();
-          itBodyConfiguration != m_mapLocalBodyConfigurations.end();
-          itBodyConfiguration++) {
+      for(CDynamics3DBody::TVector::const_iterator itBody = m_vecLocalBodies.begin();
+          itBody != m_vecLocalBodies.end();
+          ++itBody) {
 
          // This object cannot be used twice or reinitialised, we must construct it on every iteration
          btCollisionWorld::ClosestRayResultCallback cResult(cRayStartTransform.getOrigin(),
@@ -121,8 +156,8 @@ namespace argos {
          btCollisionWorld::rayTestSingle(cRayStartTransform,
                                          cRayEndTransform,
                                          &cTempCollisionObject,
-                                         itBodyConfiguration->second.m_pcCollisionShape,
-                                         itBodyConfiguration->second.m_pcRigidBody->getWorldTransform(),
+                                         &(*itBody)->GetCollisionShape(),
+                                         (*itBody)->GetRigidBodyTransform(),
                                          cResult);
 
          // if this body intersected the ray, we compute whether or not this has been the closest intersection
@@ -141,5 +176,38 @@ namespace argos {
       return bIntersectionOccured;
    }
 
+   /****************************************/
+   /****************************************/
+
+   void CDynamics3DModel::SetModelCoordinates(const btTransform& c_coordinates) {
+
+      // Calculate the position and orientation of the entity using the reference body
+      const btTransform& cCurrentCoordinates = GetModelCoordinates();
+
+      // Iterate across each body in the model
+      for(CDynamics3DBody::TVector::iterator itBody = m_vecLocalBodies.begin();
+          itBody != m_vecLocalBodies.end();
+          ++itBody) {
+
+         // Calculate the transform between the entity and the body
+         const btTransform& cOffsetTransform = cCurrentCoordinates.inverse() *
+            (*itBody)->GetMotionStateTransform();
+         
+         // Apply this transform to the new entity location to find the location of the body
+         (*itBody)->SetMotionStateTransform(c_coordinates * cOffsetTransform);
+
+         // Tell Bullet to update body by resetting the motion state
+         (*itBody)->SynchronizeMotionState();
+
+         // activate the body
+         (*itBody)->ActivateRigidBody();
+
+         // Update the bounding box
+         CalculateBoundingBox();
+      }
+   }
+
+   /****************************************/
+   /****************************************/
 
 }

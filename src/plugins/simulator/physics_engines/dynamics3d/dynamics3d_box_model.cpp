@@ -1,4 +1,4 @@
-/**
+/*sudo*
  * @file <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_box_model.cpp>
  *
  * @author Michael Allwright - <allsey87@gmail.com>
@@ -14,46 +14,37 @@ namespace argos {
    /****************************************/
 
    CDynamics3DBoxModel::CDynamics3DBoxModel(CDynamics3DEngine& c_engine,
-                                  CBoxEntity& c_box) :
+                                            CBoxEntity& c_box) :
       CDynamics3DModel(c_engine, c_box.GetEmbodiedEntity()),
       m_cBoxEntity(c_box) {
       
-      const CVector3 cBoxHalfSize = c_box.GetSize() * 0.5f;
-      
       /* When defining size of objects we must manually swap the Z and Y components */
-      m_pcBoxCollisionShape = new btBoxShape(btVector3(cBoxHalfSize.GetX(),
-                                                       cBoxHalfSize.GetZ(), 
-                                                       cBoxHalfSize.GetY()));
-     
-      btTransform cModelTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
-                                   ARGoSToBullet(GetEmbodiedEntity().GetInitPosition()));
+      m_pcBoxCollisionShape = new btBoxShape(btVector3(c_box.GetSize().GetX() * 0.5f,
+                                                       c_box.GetSize().GetZ() * 0.5f, 
+                                                       c_box.GetSize().GetY() * 0.5f));
       
-      m_pcBoxMotionState = new btDefaultMotionState(cModelTransform,
-                                                    btTransform(btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
-                                                                btVector3(0.0f, -cBoxHalfSize.GetZ(), 0.0f)));
-          
-      if(c_box.GetEmbodiedEntity().IsMovable()) {
-         btVector3 cInteria;
-         m_pcBoxCollisionShape->calculateLocalInertia(c_box.GetMass(), cInteria);
-         m_pcBoxRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
-            c_box.GetMass(), m_pcBoxMotionState, m_pcBoxCollisionShape, cInteria));
-      }
-      else {
-         m_pcBoxRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(
-            0.0f, m_pcBoxMotionState, m_pcBoxCollisionShape, btVector3(0.0f,0.0f,0.0f)));
-      }
-      
-      m_mapLocalBodyConfigurations["box"] = SBodyConfiguration(m_pcBoxCollisionShape,
-                                                                m_pcBoxMotionState,
-                                                                m_pcBoxRigidBody);
+
+      btTransform cBoxGeometricOffset(
+         btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
+         btVector3(0.0f, -c_box.GetSize().GetZ() * 0.5f, 0.0f));
+
+      Real fMass = c_box.GetEmbodiedEntity().IsMovable() ? c_box.GetMass() : 0.0f;
+ 
+      m_vecLocalBodies.push_back(new CDynamics3DBody("box",
+                                                     m_pcBoxCollisionShape,
+                                                     btTransform::getIdentity(),
+                                                     cBoxGeometricOffset,
+                                                     fMass));
+
+      /* move the model to the specified coordinates */
+      SetModelCoordinates(btTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
+                                      ARGoSToBullet(GetEmbodiedEntity().GetInitPosition())));
    }
    
    /****************************************/
    /****************************************/
    
    CDynamics3DBoxModel::~CDynamics3DBoxModel() {
-      delete m_pcBoxRigidBody;
-      delete m_pcBoxMotionState;
       delete m_pcBoxCollisionShape;
    }
    
@@ -61,33 +52,23 @@ namespace argos {
    /****************************************/
 
    void CDynamics3DBoxModel::UpdateEntityStatus() {
-      //if(m_cBoxEntity.GetEmbodiedEntity().IsMovable()) {      
-         
-         //fprintf(stderr, "position of %s in Bullet: [%.3f, %.3f, %.3f]\n", m_cBoxEntity.GetId().c_str(), m_pcBoxRigidBody->getWorldTransform().getOrigin().getX(), m_pcBoxRigidBody->getWorldTransform().getOrigin().getY(),m_pcBoxRigidBody->getWorldTransform().getOrigin().getZ() );
-
-         const btTransform& cUpdateTransform = m_pcBoxMotionState->m_graphicsWorldTrans;
+      if(m_cBoxEntity.GetEmbodiedEntity().IsMovable()) {      
+         const btTransform& cUpdateTransform = GetModelCoordinates();
          
          GetEmbodiedEntity().SetPosition(BulletToARGoS(cUpdateTransform.getOrigin()));
          GetEmbodiedEntity().SetOrientation(BulletToARGoS(cUpdateTransform.getRotation()));
 
-         //fprintf(stderr, "position of %s in ARGoS: [%.3f, %.3f, %.3f]\n", m_cBoxEntity.GetId().c_str(), GetEmbodiedEntity().GetPosition().GetX(), GetEmbodiedEntity().GetPosition().GetY(),GetEmbodiedEntity().GetPosition().GetZ());
-      
          /* Update components */
          m_cBoxEntity.UpdateComponents();
-     //}
+     }
    }
 
    /****************************************/
    /****************************************/
 
-   /*void CDynamics3DBoxModel::CalculateBoundingBox() {
-      btVector3 cAABBMin, cAABBMax;
-      btTransform cTransform;
-      m_pcBoxMotionState->getWorldTransform(cTransform);
-      m_pcBoxCollisionShape->getAabb(cTransform, cAABBMin, cAABBMax);
-      GetBoundingBox().MinCorner = BulletToARGoS(cAABBMin);
-      GetBoundingBox().MaxCorner = BulletToARGoS(cAABBMax);
-    }*/
+   btTransform CDynamics3DBoxModel::GetModelCoordinates() const {
+      return m_vecLocalBodies[0]->GetMotionStateTransform();
+   }
 
    /****************************************/
    /****************************************/

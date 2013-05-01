@@ -28,20 +28,16 @@ namespace argos {
 
       virtual void UpdateEntityStatus();
       virtual void UpdateFromEntityStatus() {}
-
-      //virtual void CalculateBoundingBox();
  
-      virtual const btTransform& GetModelWorldTransform() const {
-         return m_pcBoxRigidBody->getWorldTransform();
-      }
+   protected:
+      
+      virtual btTransform GetModelCoordinates() const;
       
    private:
 
       CBoxEntity&                m_cBoxEntity;
       
       btBoxShape*                m_pcBoxCollisionShape;
-      btDefaultMotionState*      m_pcBoxMotionState;
-      btRigidBody*               m_pcBoxRigidBody;
    };
 }
 
