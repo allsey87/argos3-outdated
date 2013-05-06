@@ -12,8 +12,7 @@
 #include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_model.h>
 #include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_body.h>
 
-//#include <cstring>
-//#include <algorithm>
+#include <algorithm>
 
 namespace argos {
 
@@ -27,6 +26,8 @@ namespace argos {
    /****************************************/
 
    CDynamics3DEngine::CDynamics3DEngine() :
+      m_pcRNG(NULL),
+      m_cRandomSeedRange(0,1000),
       m_pcBroadphaseInterface(NULL),
       m_pcCollisionConfiguration(NULL),
       m_pcCollisionDispatcher(NULL),
@@ -34,7 +35,8 @@ namespace argos {
       m_pcWorld(NULL),
       m_pcGhostPairCallback(NULL),
       m_pcGround(NULL),
-      m_unIterations(10) {}
+      m_unIterations(10),
+      m_bEntityTransferActive(false) {}
 
    /****************************************/
    /****************************************/
@@ -42,6 +44,9 @@ namespace argos {
    void CDynamics3DEngine::Init(TConfigurationNode& t_tree) {
       /* Init parent */
       CPhysicsEngine::Init(t_tree);
+
+      /* create the random number generator */
+      CRandom::CRNG* m_pcRNG = CRandom::CreateRNG("argos");
       
       /* Parse the XML */
       GetNodeAttributeOrDefault(t_tree, "iterations", m_unIterations, m_unIterations);
@@ -66,11 +71,12 @@ namespace argos {
       m_pcGhostPairCallback = new btGhostPairCallback();
       m_pcWorld->getPairCache()->setInternalGhostPairCallback(m_pcGhostPairCallback);
       
-      /* Set the random seed from a random number taken from ARGoS RNG */
-      //m_pcRNG = CARGoSRandom::CreateRNG("argos");
-      
+      /* clear the forces in the world (shouldn't  be required as there are no bodies in the world) */
+      m_pcWorld->clearForces();
+
+      /* reset the solvers and dispatchers */
       m_pcBroadphaseInterface->resetPool(m_pcCollisionDispatcher);
-      m_pcSolver->setRandSeed(100ul);
+      m_pcSolver->setRandSeed(m_pcRNG->Uniform(m_cRandomSeedRange));
 
       /* Add a static plane as the experiment floor on request */
       if(NodeExists(t_tree, "floor")) {
@@ -79,37 +85,85 @@ namespace argos {
          m_pcGround->AddBodyToWorld(m_pcWorld);
       }
 
+      /* Parse the boundaries of this physics engine if they exist */
+      if(NodeExists(t_tree, "boundaries")) {
+         /* Parse the boundary definition */
+         TConfigurationNode& tBoundaries = GetNode(t_tree, "boundaries");
+         SBoundarySegment sBoundSegment;
+         CVector2 cLastPoint, cCurPoint;
+         std::string strConnectWith;
+         TConfigurationNodeIterator tVertexIt("vertex");
+         /* Get the first vertex */
+         tVertexIt = tVertexIt.begin(&tBoundaries);
+         if(tVertexIt == tVertexIt.end()) {
+            THROW_ARGOSEXCEPTION("Physics engine of type \"dynamics3d\", id \"" << GetId() << "\": you didn't specify any <vertex>!");
+         }
+         GetNodeAttribute(*tVertexIt, "point", cLastPoint);
+         m_vecVertices.push_back(cLastPoint);
+         /* Go through the other vertices */
+         ++tVertexIt;
+         while(tVertexIt != tVertexIt.end()) {
+            /* Read vertex data and fill in segment struct */
+            GetNodeAttribute(*tVertexIt, "point", cCurPoint);
+            m_vecVertices.push_back(cCurPoint);
+            sBoundSegment.Segment.SetStart(cLastPoint);
+            sBoundSegment.Segment.SetEnd(cCurPoint);
+            GetNodeAttribute(*tVertexIt, "connect_with", strConnectWith);
+            if(strConnectWith == "gate") {
+               /* Connect to previous vertex with a gate */
+               sBoundSegment.Type = SBoundarySegment::SEGMENT_TYPE_GATE;
+               GetNodeAttribute(*tVertexIt, "to_engine", sBoundSegment.EngineId);
+            }
+            else if(strConnectWith == "wall") {
+               /* Connect to previous vertex with a wall */
+               sBoundSegment.Type = SBoundarySegment::SEGMENT_TYPE_WALL;
+               sBoundSegment.EngineId = "";
+            }
+            else {
+               /* Parse error */
+               THROW_ARGOSEXCEPTION("Physics engine of type \"dynamics3d\", id \"" << GetId() << "\": unknown vertex connection method \"" << strConnectWith << "\". Allowed methods are \"wall\" and \"gate\".");
+            }
+            m_vecSegments.push_back(sBoundSegment);
+            /* Next vertex */
+            cLastPoint = cCurPoint;
+            ++tVertexIt;
+         }
+         /* Check that the boundary is a closed path */
+         if(m_vecVertices.front() != m_vecVertices.back()) {
+            THROW_ARGOSEXCEPTION("Physics engine of type \"dynamics3d\", id \"" << GetId() << "\": the specified path is not closed. The first and last points of the boundaries MUST be the same.");
+         }
+      }
    }
 
    /****************************************/
    /****************************************/
 
    void CDynamics3DEngine::Reset() {
-
       /* Remove and reset the physics entities
        * by iterating over the vector, we ensure that the entities are removed in the same order
        * as they were added during initisation
        */
-      for(std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator itModel = m_vecPhysicsModels.begin();
-          itModel != m_vecPhysicsModels.end(); ++itModel) {
-         
-         RemoveJointsFromModel(*(itModel->second));
-         RemoveBodiesFromModel(*(itModel->second));
-         itModel->second->Reset();
+      for(CDynamics3DModel::TVector::iterator itModel = m_vecPhysicsModels.begin();
+          itModel != m_vecPhysicsModels.end();
+          ++itModel) {         
+         RemoveJointsFromModel(**itModel);
+         RemoveBodiesFromModel(**itModel);
+         (*itModel)->Reset();
       }
-      
       if(m_pcGround != NULL) {
          m_pcGround->RemoveBodyFromWorld(m_pcWorld);
          m_pcGround->Reset();
       }
-      
-      /* clear all forces in the world */
+
+      /* clear the forces in the world (shouldn't  be required as there are no bodies in the world) */
       m_pcWorld->clearForces();
-      
-      /* Reset the random seed */
-      //@todo take the seed from ARGoS RNG */
+
+      /* reset the solvers and dispatchers */
       m_pcBroadphaseInterface->resetPool(m_pcCollisionDispatcher);
+      
+      //@todo: use the later once the RNG segfault on reset bug is removed
       m_pcSolver->setRandSeed(100ul);
+      //m_pcSolver->setRandSeed(m_pcRNG->Uniform(m_cRandomSeedRange));
 
       /* Add elements back to the engine
        * by iterating over the vector, we ensure that the entities are added in the same order
@@ -118,12 +172,11 @@ namespace argos {
       if(m_pcGround != NULL) {
          m_pcGround->AddBodyToWorld(m_pcWorld);
       }
-
-      for(std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator itModel = m_vecPhysicsModels.begin();
-          itModel != m_vecPhysicsModels.end(); ++itModel) {
-  
-         AddBodiesFromModel(*itModel->second);
-         AddJointsFromModel(*itModel->second);
+      for(CDynamics3DModel::TVector::iterator itModel = m_vecPhysicsModels.begin();
+          itModel != m_vecPhysicsModels.end();
+          ++itModel) {
+         AddBodiesFromModel(**itModel);
+         AddJointsFromModel(**itModel);
       }
    }
    
@@ -132,18 +185,17 @@ namespace argos {
 
    void CDynamics3DEngine::Destroy() {
       /* empty the physics entity map */
-      for(std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator it = m_vecPhysicsModels.begin();
-          it != m_vecPhysicsModels.end(); ++it) {
-         delete it->second;
+      for(CDynamics3DModel::TVector::iterator itModel = m_vecPhysicsModels.begin();
+          itModel != m_vecPhysicsModels.end();
+          ++itModel) {
+         delete *itModel;
       }
-      m_vecPhysicsModels.clear();
-      
+      m_vecPhysicsModels.clear();      
       /* remove the floor if it was added */
       if(m_pcGround != NULL) {
          m_pcGround->RemoveBodyFromWorld(m_pcWorld);
          delete m_pcGround;
-      }
-      
+      }      
       /* delete the dynamics world */
       delete m_pcWorld;
       delete m_pcGhostPairCallback;
@@ -156,92 +208,24 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics3DEngine::Update() {
-      
+   void CDynamics3DEngine::Update() {      
       /* Update the physics state from the entities */
-      for(std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator it = m_vecPhysicsModels.begin();
-          it != m_vecPhysicsModels.end(); ++it) {
-         it->second->UpdateFromEntityStatus();
+      for(CDynamics3DModel::TVector::iterator itModel = m_vecPhysicsModels.begin();
+          itModel != m_vecPhysicsModels.end();
+          ++itModel) {
+         (*itModel)->UpdateFromEntityStatus();
       }
-
       /* Step the simuation forwards */
       m_pcWorld->stepSimulation(m_fSimulationClockTick, m_unIterations, m_fDeltaT);
-
       /* Update the simulated space */
-      for(std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator it = m_vecPhysicsModels.begin();
-          it != m_vecPhysicsModels.end(); ++it) {
-         it->second->CalculateBoundingBox();
-         it->second->UpdateEntityStatus();
+      for(CDynamics3DModel::TVector::iterator itModel = m_vecPhysicsModels.begin();
+          itModel != m_vecPhysicsModels.end();
+          ++itModel) {
+         (*itModel)->CalculateBoundingBox();
+         (*itModel)->UpdateEntityStatus();
       }
    }
 
-   /****************************************/
-   /****************************************/
-
-   bool CDynamics3DEngine::IsModelCollidingWithSomething(const CDynamics3DModel& c_model) {
-      /* this doesn't step the simulation, but rather reruns the collision detection */
-      m_pcWorld->performDiscreteCollisionDetection();
-
-      /* get the vector of bodies associated with the given model */
-      const CDynamics3DBody::TVector& vecModelBodies = c_model.GetBodies();
-
-      // an iterator over the model
-      CDynamics3DBody::TVector::const_iterator itBody;
-      
-      for(UInt32 i = 0; i < UInt32(m_pcCollisionDispatcher->getNumManifolds()); i++) {
-         
-         btPersistentManifold* pcContactManifold = m_pcCollisionDispatcher->getManifoldByIndexInternal(i);
-         const btCollisionObject* pcBodyA = pcContactManifold->getBody0();
-         const btCollisionObject* pcBodyB = pcContactManifold->getBody1();
-         
-         bool bBelongsToModelBodyA = false;
-         bool bBelongsToModelBodyB = false;
-
-         // ignore collisions with the ground
-         if(*m_pcGround == pcBodyA || *m_pcGround == pcBodyB) {
-            continue;
-         }
-        
-         // Check if either body in the contact manifold belongs to the model
-         for(itBody = vecModelBodies.begin();
-             itBody != vecModelBodies.end();
-             ++itBody) {
-            
-            if(**itBody == pcBodyA) {
-               bBelongsToModelBodyA = true;
-            }
-            if(**itBody == pcBodyB) {
-               bBelongsToModelBodyB = true;
-            }
-            //@todo optimisation: once both are true we can exit this loop
-         }
-
-         // if the collision pair exists within the same model, ignore it!
-         if(bBelongsToModelBodyA == true && bBelongsToModelBodyB == true) {
-            continue;
-         }
-         
-         // if niether body in the collision pair belongs to this model, ignore it!
-         if(bBelongsToModelBodyA == false && bBelongsToModelBodyB == false) {
-            continue;
-         }
-
-         /* At this point we know that one of the two bodies involved in the contact manifold
-            belong to this model, we now check for contact points with negative distance to 
-            indicate a collision */
-         for(UInt32 j = 0; j < UInt32(pcContactManifold->getNumContacts()); j++) {
-            
-            btManifoldPoint& cManifoldPoint = pcContactManifold->getContactPoint(j);
-            if (cManifoldPoint.getDistance() < 0.0f) {
-               // This manifold tells us that the model is coliding with something
-               // We can now return true
-               return true;
-            }
-         }
-      }
-      return false;
-   }
-   
    /****************************************/
    /****************************************/
    
@@ -266,30 +250,163 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics3DEngine::AddPhysicsModel(const std::string& str_id,
-                                           CDynamics3DModel& c_model) {
+   bool CDynamics3DEngine::IsModelCollidingWithSomething(const CDynamics3DModel& c_model) {
+      /* this doesn't step the simulation, but rather reruns the collision detection */
+      /* @todo: this method is very slow and memory consuming, find an alternative */
+      m_pcWorld->performDiscreteCollisionDetection();
+      /* get the vector of bodies associated with the given model */
+      const CDynamics3DBody::TVector& vecModelBodies = c_model.GetBodies();
+      // an iterator over the model
+      CDynamics3DBody::TVector::const_iterator itBody;
+      for(UInt32 i = 0; i < UInt32(m_pcCollisionDispatcher->getNumManifolds()); i++) {
+         btPersistentManifold* pcContactManifold = m_pcCollisionDispatcher->getManifoldByIndexInternal(i);
+         const btCollisionObject* pcBodyA = pcContactManifold->getBody0();
+         const btCollisionObject* pcBodyB = pcContactManifold->getBody1();
+         bool bBelongsToModelBodyA = false;
+         bool bBelongsToModelBodyB = false;
+         // ignore collisions with the ground
+         if(*m_pcGround == pcBodyA || *m_pcGround == pcBodyB) {
+            continue;
+         }        
+         // Check if either body in the contact manifold belongs to the model
+         for(itBody = vecModelBodies.begin();
+             itBody != vecModelBodies.end();
+             ++itBody) {  
+            if(**itBody == pcBodyA) {
+               bBelongsToModelBodyA = true;
+            }
+            if(**itBody == pcBodyB) {
+               bBelongsToModelBodyB = true;
+            }
+            //@todo optimisation: once both are true we can exit this loop
+         }
+         // if the collision pair exists within the same model, ignore it!
+         if(bBelongsToModelBodyA == true && bBelongsToModelBodyB == true) {
+            continue;
+         }
+         // if niether body in the collision pair belongs to this model, ignore it!
+         if(bBelongsToModelBodyA == false && bBelongsToModelBodyB == false) {
+            continue;
+         }
+         /* At this point we know that one of the two bodies involved in the contact manifold
+            belong to this model, we now check for contact points with negative distance to 
+            indicate a collision */
+         for(UInt32 j = 0; j < UInt32(pcContactManifold->getNumContacts()); j++) {  
+            btManifoldPoint& cManifoldPoint = pcContactManifold->getContactPoint(j);
+            if (cManifoldPoint.getDistance() < 0.0f) {
+               // This manifold tells us that the model is coliding with something
+               // We can now return true
+               return true;
+            }
+         }
+      }
+      return false;
+   }
+   
+   /****************************************/
+   /****************************************/
+
+   void CDynamics3DEngine::AddPhysicsModel(CDynamics3DModel& c_model) {
       //@todo check for duplicates?
-      m_vecPhysicsModels.push_back(std::pair<std::string, CDynamics3DModel*>(str_id, &c_model));
+      m_vecPhysicsModels.push_back(&c_model);
       AddBodiesFromModel(c_model);      
       AddJointsFromModel(c_model);
-      
    }
 
    /****************************************/
    /****************************************/
 
    void CDynamics3DEngine::RemovePhysicsModel(const std::string& str_id) {
-      std::vector<std::pair<std::string, CDynamics3DModel*> >::iterator itModel = m_vecPhysicsModels.Find(str_id);
+
+      CDynamics3DModel::TVector::iterator itModel = std::find(m_vecPhysicsModels.begin(),
+                                                              m_vecPhysicsModels.end(),
+                                                              str_id);
       if(itModel != m_vecPhysicsModels.end()) {
-         RemoveJointsFromModel(*itModel->second);
-         RemoveBodiesFromModel(*itModel->second);
-         delete itModel->second;
+         RemoveJointsFromModel(**itModel);
+         RemoveBodiesFromModel(**itModel);
+         delete *itModel;
          m_vecPhysicsModels.erase(itModel);
       }
       else {
-         THROW_ARGOSEXCEPTION("Dynamics3D model with ID=\"" << str_id <<
+         THROW_ARGOSEXCEPTION("Dynamics3D model id \"" << str_id <<
                               "\" not found in dynamics 3D engine \"" << GetId() << "\"");
       }
+   }
+
+   /****************************************/
+   /****************************************/
+
+   bool CDynamics3DEngine::IsPointContained(const CVector3& c_point) {
+      if(!IsEntityTransferActive()) {
+         /* The engine has no boundaries on XY, so the wanted point is in for sure */
+         return true;
+      }
+      else {
+         /* Check the boundaries */
+         for(size_t i = 0; i < m_vecSegments.size(); ++i) {
+            const CVector2& cP0 = m_vecSegments[i].Segment.GetStart();
+            const CVector2& cP1 = m_vecSegments[i].Segment.GetEnd();
+            Real fCriterion =
+               (c_point.GetY() - cP0.GetY()) * (cP1.GetX() - cP0.GetX()) -
+               (c_point.GetX() - cP0.GetX()) * (cP1.GetY() - cP0.GetY());
+            if(fCriterion > 0.0f) {
+               return false;
+            }
+         }
+         return true;
+      }
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CDynamics3DEngine::TransferEntities() {
+      for(size_t i = 0; i < m_vecTransferData.size(); ++i) {
+         CPhysicsEngine& cToEngine = CSimulator::GetInstance().GetPhysicsEngine(m_vecTransferData[i].EngineId);
+         /* @todo: we need to extend the add entity method to recieve information about 
+          * velocity of individual bodies
+          */
+         cToEngine.AddEntity(*m_vecTransferData[i].Entity);
+         RemoveEntity(*m_vecTransferData[i].Entity);
+      }
+      m_vecTransferData.clear();
+   }
+
+   /****************************************/
+   /****************************************/
+
+   bool CDynamics3DEngine::CalculateTransfer(Real f_x,
+                                             Real f_y,
+                                             std::string& str_engine_id) {
+      /*
+       * @todo: this method makes the assumption that only one gate is trespassed at any time.
+       * This assumption may be false in some ill-shaped polygons or when the gate isn't just a
+       * segment, but is a sequence of segments.
+       */
+      for(size_t i = 0; i < m_vecSegments.size(); ++i) {
+         if(m_vecSegments[i].Type == SBoundarySegment::SEGMENT_TYPE_GATE) {
+            const CVector2& cP0 = m_vecSegments[i].Segment.GetStart();
+            const CVector2& cP1 = m_vecSegments[i].Segment.GetEnd();
+            Real fCriterion =
+               (f_y - cP0.GetY()) * (cP1.GetX() - cP0.GetX()) -
+               (f_x - cP0.GetX()) * (cP1.GetY() - cP0.GetY());
+            if(fCriterion < 0.0f) {
+               str_engine_id = m_vecSegments[i].EngineId;
+               return true;
+            }
+         }
+      }
+      return false;
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CDynamics3DEngine::ScheduleEntityForTransfer(CEntity& c_entity,
+                                                     const std::string& str_engine_id) {
+      m_vecTransferData.push_back(SEntityTransferData());
+      m_vecTransferData.back().EngineId = str_engine_id;
+      m_vecTransferData.back().Entity = &c_entity;
    }
 
    /****************************************/

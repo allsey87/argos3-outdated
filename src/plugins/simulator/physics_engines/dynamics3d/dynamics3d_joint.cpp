@@ -50,45 +50,6 @@ namespace argos {
 
    /****************************************/
    /****************************************/
-
-   CDynamics3DJoint::TVector::iterator CDynamics3DJoint::TVector::Find(const std::string& str_id) {
-      TVector::iterator it;
-      for(it = this->begin(); it != this->end(); ++it) {
-         if((*it)->GetId() == str_id) break;
-      }
-      return it;
-   }
-
-   CDynamics3DJoint::TVector::const_iterator CDynamics3DJoint::TVector::Find(const std::string& str_id) const {
-      TVector::const_iterator it;
-      for(it = this->begin(); it != this->end(); ++it) {
-         if((*it)->GetId() == str_id) break;
-      }
-      return it;
-   }
-
-   /****************************************/
-   /****************************************/
-   
-   CDynamics3DJoint* CDynamics3DJoint::TVector::operator[](const std::string& str_id) {
-      return *Find(str_id);
-   }
-
-   const CDynamics3DJoint* CDynamics3DJoint::TVector::operator[](const std::string& str_id) const {
-      return *Find(str_id);
-   }
-
-   CDynamics3DJoint* CDynamics3DJoint::TVector::operator[](UInt32 un_idx) {
-      return std::vector<CDynamics3DJoint*>::operator[](un_idx);
-   }
-
-   const CDynamics3DJoint* CDynamics3DJoint::TVector::operator[](UInt32 un_idx) const {
-      return std::vector<CDynamics3DJoint*>::operator[](un_idx);
-   }
-   
-
-   /****************************************/
-   /****************************************/
    
    CDynamics3DJoint::CDynamics3DJoint(const std::string& str_id,
                                       CDynamics3DBody& c_body_a,
@@ -203,6 +164,13 @@ namespace argos {
    
    void CDynamics3DJoint::RemoveJointFromWorld(btDynamicsWorld* pc_dynamics_world) {
       pc_dynamics_world->removeConstraint(m_pcJoint);
+   }
+
+   /****************************************/
+   /****************************************/
+
+   bool operator==(const CDynamics3DJoint* pc_dyn3d_joint, const std::string& str_id) {
+      return (pc_dyn3d_joint->GetId()) == str_id;
    }
 
    /****************************************/

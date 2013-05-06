@@ -210,4 +210,11 @@ namespace argos {
    /****************************************/
    /****************************************/
 
+   bool operator==(const CDynamics3DModel* pc_dyn3d_model, const std::string& str_id) {
+      return (pc_dyn3d_model->GetId() == str_id);
+   }
+
+   /****************************************/
+   /****************************************/
+
 }

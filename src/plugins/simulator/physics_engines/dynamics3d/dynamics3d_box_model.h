@@ -23,7 +23,7 @@ namespace argos {
    public:
       
       CDynamics3DBoxModel(CDynamics3DEngine& c_engine,
-                     CBoxEntity& c_box);
+                          CBoxEntity& c_box);
       virtual ~CDynamics3DBoxModel();
 
       virtual void UpdateEntityStatus();
@@ -36,8 +36,23 @@ namespace argos {
    private:
 
       CBoxEntity&                m_cBoxEntity;
-      
       btBoxShape*                m_pcBoxCollisionShape;
+
+      class CBoxShapeManager {
+         public:
+            btBoxShape* RequestBoxShape(const btVector3& c_half_extents);
+            void ReleaseBoxShape(const btBoxShape* pc_release);
+         private:
+            struct CResource {
+               CResource(const btVector3& c_half_extents, btBoxShape* c_shape);
+               btVector3 m_cHalfExtents;
+               btBoxShape* m_cShape;
+               UInt32 m_unInUseCount;
+            };
+            std::vector<CResource> m_vecResources;
+      };
+
+      static CBoxShapeManager m_cBoxShapeManager;
    };
 }
 

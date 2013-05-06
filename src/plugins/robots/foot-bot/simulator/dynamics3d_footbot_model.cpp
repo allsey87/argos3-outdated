@@ -123,8 +123,8 @@ namespace argos {
    /****************************************/
 
    CDynamics3DFootBotModel::CDynamics3DFootBotModel(CDynamics3DEngine& c_engine,
-                                                      CFootBotEntity& c_entity) :
-      CDynamics3DModel(c_engine, c_entity.GetEmbodiedEntity()),
+                                                    CFootBotEntity& c_entity) :
+      CDynamics3DModel(c_engine, c_entity.GetEmbodiedEntity(), c_entity.GetId()),
       m_cFootBotEntity(c_entity),
       m_cWheeledEntity(m_cFootBotEntity.GetWheeledEntity()) {
 

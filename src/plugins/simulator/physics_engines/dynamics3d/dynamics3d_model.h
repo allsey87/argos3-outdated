@@ -50,10 +50,16 @@ namespace argos {
 
    public:
 
+      typedef std::vector<CDynamics3DModel*> TVector;
+
+   public:
+
       CDynamics3DModel(CDynamics3DEngine& c_engine,
-                       CEmbodiedEntity& c_entity) :
+                       CEmbodiedEntity& c_entity,
+                       const std::string& str_id) :
          CPhysicsModel(c_engine, c_entity),
-         m_cEngine(c_engine) {}
+         m_cEngine(c_engine),
+         m_strId(str_id) {}
       virtual ~CDynamics3DModel();
 
       virtual bool MoveTo(const CVector3& c_position,
@@ -66,8 +72,11 @@ namespace argos {
       virtual void UpdateEntityStatus() = 0;
 
       virtual void UpdateFromEntityStatus() = 0;
-      
 
+      const std::string& GetId() const {
+         return m_strId;
+      }
+      
       inline CDynamics3DBody::TVector& GetBodies() {
          return m_vecLocalBodies;
       }
@@ -103,7 +112,19 @@ namespace argos {
 
       CDynamics3DBody::TVector m_vecLocalBodies;
       CDynamics3DJoint::TVector m_vecLocalJoints;
+
+      std::string m_strId;
+
    };
+   
+   /****************************************/
+   /****************************************/
+
+   bool operator==(const CDynamics3DModel* pc_dyn3d_model, const std::string& str_id);
+
+   /****************************************/
+   /****************************************/
+
 }
 
 #endif
