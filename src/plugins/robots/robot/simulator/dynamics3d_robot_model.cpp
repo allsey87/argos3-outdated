@@ -20,7 +20,7 @@ namespace argos {
 
    CDynamics3DRobotModel::CDynamics3DRobotModel(CDynamics3DEngine& c_engine,
                                                 CRobotEntity& c_entity) :
-      CDynamics3DModel(c_engine, c_entity.GetEmbodiedEntity()),
+      CDynamics3DModel(c_engine, c_entity.GetEmbodiedEntity(), c_entity.GetId()),
       m_cRobotEntity(c_entity),
       m_cBodyEquippedEntity(c_entity.GetBodyEquippedEntity()),
       m_cJointEquippedEntity(c_entity.GetJointEquippedEntity()) {
@@ -121,7 +121,9 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
           ++itBody) {
          
          //@todo optimise by storing a pointer to the CPositionalEntity inside the SBodyConfiguration structure
-         const CDynamics3DBody& sBodyConfiguration = *m_vecLocalBodies[(*itBody)->GetId()];
+         const CDynamics3DBody& sBodyConfiguration = **std::find(m_vecLocalBodies.begin(),
+                                                                 m_vecLocalBodies.end(),
+                                                                 (*itBody)->GetId());
          
          //@todo move this offset and transform logic inside the motion state
          //btTransform cOffset(ARGoSToBullet((*itBody)->m_cOffsetOrientation), ARGoSToBullet((*itBody)->m_cOffsetPosition));
@@ -219,7 +221,9 @@ fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %
       
 
       //@todo optimise this storing the result after calling Dynamics3DModel::Setup(...)
-      const CDynamics3DBody& sReferenceBodyConfiguration = *m_vecLocalBodies[strReferenceBodyId];
+      const CDynamics3DBody& sReferenceBodyConfiguration = **std::find(m_vecLocalBodies.begin(),
+                                                                       m_vecLocalBodies.end(),
+                                                                       strReferenceBodyId);
 
       return (sReferenceBodyConfiguration.GetMotionStateTransform() *
               sReferenceBodyConfiguration.GetPositionalOffset().inverse());

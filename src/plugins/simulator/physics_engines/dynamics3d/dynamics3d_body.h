@@ -18,7 +18,7 @@ namespace argos {
 #include <argos3/core/utility/datatypes/datatypes.h>
 
 namespace argos {
-   
+
    /****************************************/
    /****************************************/
 
@@ -26,15 +26,7 @@ namespace argos {
 
    public:
 
-      class TVector : public std::vector<CDynamics3DBody*> {
-      public:
-         iterator Find(const std::string& str_id);
-         const_iterator Find(const std::string& str_id) const;
-         CDynamics3DBody* operator[](const std::string& str_id);
-         const CDynamics3DBody* operator[](const std::string& str_id) const;
-         CDynamics3DBody* operator[](UInt32 un_idx);
-         const CDynamics3DBody* operator[](UInt32 un_idx) const;
-      };
+      typedef std::vector<CDynamics3DBody*> TVector;
 
    public:
 
@@ -48,7 +40,7 @@ namespace argos {
 
       void Reset();
 
-      const std::string& GetId() {
+      const std::string& GetId() const {
          return m_strId;
       }
 
@@ -84,9 +76,17 @@ namespace argos {
       btVector3 m_cInertia;
       Real m_fMass;
 
-
       friend class CDynamics3DJoint;
    };
+
+   /****************************************/
+   /****************************************/
+
+   bool operator==(const CDynamics3DBody* pc_dyn3d_body, const std::string& str_id);
+
+   /****************************************/
+   /****************************************/
+   
 }
 
 #endif

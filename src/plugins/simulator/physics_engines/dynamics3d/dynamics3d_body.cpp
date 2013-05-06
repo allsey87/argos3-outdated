@@ -10,44 +10,6 @@ namespace argos {
 
    /****************************************/
    /****************************************/
-   
-   CDynamics3DBody::TVector::iterator CDynamics3DBody::TVector::Find(const std::string& str_id) {
-      iterator it;
-      for(it = this->begin(); it != this->end(); ++it) {
-         if((*it)->GetId() == str_id) break;
-      }
-      return it;
-   }
-
-   CDynamics3DBody::TVector::const_iterator CDynamics3DBody::TVector::Find(const std::string& str_id) const {
-      const_iterator it;
-      for(it = this->begin(); it != this->end(); ++it) {
-         if((*it)->GetId() == str_id) break;
-      }
-      return it;
-   }
-
-   /****************************************/
-   /****************************************/
-   
-   CDynamics3DBody* CDynamics3DBody::TVector::operator[](const std::string& str_id) {
-      return *Find(str_id);
-   }
-
-   const CDynamics3DBody* CDynamics3DBody::TVector::operator[](const std::string& str_id) const {
-      return *Find(str_id);
-   }
-
-   CDynamics3DBody* CDynamics3DBody::TVector::operator[](UInt32 un_idx) {
-      return std::vector<CDynamics3DBody*>::operator[](un_idx);
-   }
-
-   const CDynamics3DBody* CDynamics3DBody::TVector::operator[](UInt32 un_idx) const {
-      return std::vector<CDynamics3DBody*>::operator[](un_idx);
-   }
-
-   /****************************************/
-   /****************************************/
 
    CDynamics3DBody::CDynamics3DBody(const std::string& str_id,
                                     btCollisionShape* pc_collision_shape,
@@ -174,4 +136,12 @@ namespace argos {
 
    /****************************************/
    /****************************************/
+
+   bool operator==(const CDynamics3DBody* pc_dyn3d_body, const std::string& str_id) {
+      return (pc_dyn3d_body->GetId()) == str_id;
+   }
+
+   /****************************************/
+   /****************************************/
+
 }

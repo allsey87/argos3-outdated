@@ -26,15 +26,7 @@ namespace argos {
 
    public:
 
-      class TVector : public std::vector<CDynamics3DJoint*> {
-      public:
-         TVector::iterator Find(const std::string& str_id);
-         const_iterator Find(const std::string& str_id) const;
-         CDynamics3DJoint* operator[](const std::string& str_id);
-         const CDynamics3DJoint* operator[](const std::string& str_id) const;
-         CDynamics3DJoint* operator[](UInt32 un_idx);
-         const CDynamics3DJoint* operator[](UInt32 un_idx) const;
-      };
+      typedef std::vector<CDynamics3DJoint*> TVector;
 
    public:
 
@@ -78,7 +70,7 @@ namespace argos {
 
       ~CDynamics3DJoint();
 
-      const std::string& GetId() {
+      const std::string& GetId() const {
          return m_strId;
       }
 
@@ -132,6 +124,14 @@ namespace argos {
       const static SJointLimits m_cLockAxes;
 
    };
+
+   /****************************************/
+   /****************************************/
+
+   bool operator==(const CDynamics3DJoint* pc_dyn3d_joint, const std::string& str_id);
+
+   /****************************************/
+   /****************************************/
 }
 
 #endif

@@ -44,24 +44,40 @@
     <box id="bw" position="0,2.5,0"  orientation="0,0,0" size="5, 0.1, 0.2" movable="false" mass="1" />
 
     <!-- two test entities for tracking -->
-    <cylinder id="test_cylinder" position="0,0,0.5" orientation="45,45,45" height="0.15" radius="0.05" movable="true" mass="0.05" />
-    <box id="test_box" position="0,0,0.25" orientation="45,45,45" size="0.1, 0.1, 0.1" movable="true" mass="0.05" />
+    <cylinder id="test_cylinder" position="0,0,1" orientation="45,45,45" height="0.15" radius="0.05" movable="true" mass="0.05" />
+    <box id="test_box" position="0,0,2" orientation="45,45,45" size="0.1, 0.1, 0.1" movable="true" mass="0.05" />
+   
+    <!--cylinder id="test_cylinderx" position="0.3,2,0.5" orientation="2,4,5" height="0.15" radius="0.05" movable="true" mass="0.05" />
+    <box id="test_boxx" position="0.4,0.5,0.25" orientation="45,35,45" size="0.1, 0.1, 0.1" movable="true" mass="0.05" />
+     <cylinder id="test_cylindery" position="1,0.3,0.8" orientation="22,4,5" height="0.15" radius="0.05" movable="true" mass="0.05" />
+    <box id="test_boxy" position="-0.2,0.1,0.25" orientation="45,45,19" size="0.1, 0.1, 0.1" movable="true" mass="0.05" />
+    <cylinder id="test_cylinderz" position="0.1,0.2,0.3" orientation="34,4,5" height="0.15" radius="0.05" movable="true" mass="0.05" />
+    <box id="test_boxz" position="-0.1,0.3,0.25" orientation="45,10,45" size="0.1, 0.1, 0.1" movable="true" mass="0.05" /-->
+   
    
     <distribute>
+      <position method="grid" center="0,0,4" distances="0.4,0.4,0.4" layout="3,3,3"/>
+      <orientation method="constant" values="45,30,20" />
+      <entity quantity="27" max_trials="100">
+        <cylinder id="cylinder" height="0.15" radius="0.05" movable="true" mass="0.05" />
+      </entity>
+    </distribute>
+    
+    <!--distribute>
       <position method="uniform" min="-0.5,-0.5,0.5" max="0.5,0.5,10.0" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,360,360" />
       <entity quantity="50" max_trials="100">
         <box id="box" size="0.1, 0.1, 0.1" movable="true" mass="0.05" />
       </entity>
-    </distribute>
+    </distribute-->
     
-    <distribute>
+    <!--distribute>
       <position method="uniform" min="-0.5,-0.5,0.5" max="0.5,0.5,10.0" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,360,360" />
       <entity quantity="50" max_trials="100">
         <cylinder id="cylinder" height="0.15" radius="0.05" movable="true" mass="0.05" />
       </entity>
-    </distribute>
+    </distribute-->
     
   </arena>
   
