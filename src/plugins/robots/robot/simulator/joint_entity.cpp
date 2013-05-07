@@ -17,24 +17,21 @@ namespace argos {
    /****************************************/
    /****************************************/
 
+   
    CJointEntity::CJointEntity(CComposableEntity* pc_parent,
                               const std::string& str_id,
                               EJointType e_joint_type,
                               bool b_disable_collisions,                              
-                              const CBodyEntity::TList& t_connected_bodies,                              
-                              const std::vector<CVector3>& vec_rotation_axes,
-                              const std::vector<CVector3>& vec_rotation_points) :
+                              const CBodyEntity::TList& t_connected_bodies) :
                               
                               //const std::vector<Real>& vec_joint_parameters) :
       
       CComposableEntity(pc_parent, str_id),
       m_eJointType(e_joint_type),
-      m_bDisableCollisions(b_disable_collisions),
-      m_tConnectedBodies(t_connected_bodies),
-      m_vecRotationAxes(vec_rotation_axes),
-      m_vecRotationPoints(vec_rotation_points) {
-      //@todo clean up the parameter passing logic / parsing etc
-      //m_vecJointParameters(vec_joint_parameters) {
+      m_bDisableCollisions(b_disable_collisions) {
+      
+      CFrame* m_pcFrame = new CFrame(this, "id", c_frame_position, c_frame_orientation, c_frame_body);
+      AddComponent(m_pcFrame);
    }
 
    /****************************************/
@@ -48,22 +45,9 @@ namespace argos {
          /* Determine the joint type */
          std::string strJointType;
          GetNodeAttribute(t_tree, "type", strJointType);
-
-         if(strJointType == "rotary") {
-            m_eJointType = ROTARY;
-         }/*
-         else if(strJointType == "prismatic") {
-            m_eJointType = EJointType::PRIMATIC;
-         }
-         else if(strJointType == "pivot") {
-            m_eJointType = EJointType::PIVOT;
-            }*/
-         else {
-            THROW_ARGOSEXCEPTION("The specified joint type \"" + strJointType + "\" is not implemented.")
-         }
          
          /* check if we are disabling collisions */
-         GetNodeAttributeOrDefault(t_tree, "disable_collisions", m_bDisableCollisions, true);
+         GetNodeAttributeOrDefault(t_tree, "disable_collisions", m_bDisableCollisions, false);
 
          /* Get a reference to the bodies is the parent entity */
          //@todo make this a pass parameter?
@@ -83,12 +67,6 @@ namespace argos {
             
             m_tConnectedBodies.push_back(&cBodyEquippedEntity.GetBody(strConnectedBodyId));
             
-            //@todo find a generic way of parsing and storing attributes
-            m_vecRotationAxes.push_back(CVector3(0,0,0));
-            m_vecRotationPoints.push_back(CVector3(0,0,0));
-
-            GetNodeAttribute(*itConnectedBody, "rotation_axis", m_vecRotationAxes.back());
-            GetNodeAttribute(*itConnectedBody, "rotation_point", m_vecRotationPoints.back());
          }
       }
       catch(CARGoSException& ex) {

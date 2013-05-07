@@ -29,9 +29,14 @@ namespace argos {
       m_cSize(c_size),
       m_fMass(f_mass) {
       
-      /* the position of this body is driven by the joints and the dynamics engine */
+      /* default constructors are used for the positional component of the entity as
+       * the position of this body is driven by the the dynamics engine. The offset 
+       * component is initialised using the passed parameters */
       m_pcPositionalEntity = new CPositionalEntity(this, GetId() + ".positional", CVector3(), CQuaternion());
+      m_pcOffsetEntity = new CPositionalEntity(this, GetId() + ".offset", c_offset_position, c_offset_orientation);
+
       AddComponent(*m_pcPositionalEntity);
+      AddComponent(*m_pcOffsetEntity);
    }
 
    /****************************************/
@@ -46,6 +51,10 @@ namespace argos {
          /* Parse XML */
          m_pcPositionalEntity = new CPositionalEntity(this);
          m_pcPositionalEntity->Init(t_tree);
+         AddComponent(*m_pcPositionalEntity);
+         m_pcOffsetEntity = new CPositionalEntity(this);
+         m_pcOffsetEntity->Init(GetNode(t_tree, "offset"));
+         AddComponent(*m_pcOffsetEntity);
       }
       catch(CARGoSException& ex) {
          THROW_ARGOSEXCEPTION_NESTED("Error while initializing body entity", ex);

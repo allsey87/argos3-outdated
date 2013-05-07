@@ -28,12 +28,17 @@ namespace argos {
       typedef std::vector<CJointEntity*> TList;
 
    public:
-      enum EJointType {
-         ROTARY,
-         PRISMATIC,
-         PIVOT
-      };
+      class CFrame : public CEntity {
+         CFrame(CComposableEntity* pc_parent,
+                const std::string& str_id,
+                CPositionEntity* pc_reference_frame,
+                CBodyEntity* pc_reference_body) :
+            m_pcReferenceFrame(pc_reference_frame),
+            m_pcReferenceBody(pc_reference_body) {}
 
+         CPositionalEntity* m_pcReferenceFrame;
+         CBodyEntity* m_pcReferenceBody;
+      };
 
    public:
 
@@ -41,12 +46,7 @@ namespace argos {
 
       CJointEntity(CComposableEntity* pc_parent,
                    const std::string& str_id,
-                   EJointType e_joint_type,
-                   bool b_disable_collisions,
-                   const CBodyEntity::TList& t_connected_bodies,
-                   
-                   const std::vector<CVector3>& vec_rotation_axes,
-                   const std::vector<CVector3>& vec_rotation_points);
+                   bool b_disable_collisions,);
 
       virtual ~CJointEntity() {}
 
@@ -73,13 +73,10 @@ namespace argos {
 
       bool m_bDisableCollisions;
 
-      CBodyEntity::TList m_tConnectedBodies;
+      std::vector<CPositionalEntity *> m_vecJointFrames;
 
    public:
 
-      //@todo find a generic way of parsing and storing attributes
-      std::vector<CVector3> m_vecRotationAxes;
-      std::vector<CVector3> m_vecRotationPoints;
    };
 
 }

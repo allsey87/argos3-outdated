@@ -62,13 +62,21 @@
          </body>
       </bodies>
       <joints>
-         <joint id="joint[0]" type="rotary" disable_collisions="true" sensor="enabled" actuator="enabled">
-            <body id="body[0]" rotation_axis="0,1,0" rotation_point="0,0,0.35"/>
-            <body id="body[1]" rotation_axis="0,1,0" rotation_point="0,0,0.05"/>
+         <joint id="joint[0]" disable_collisions="true" sensor="enabled" actuator="enabled">
+            <frames>
+               <frame body="robotic-arm.bodies.body[0]" position="0,0, 0.025" orientation="0,0,0"/>
+               <frame body="robotic-arm.bodies.body[1]" position="0,0,-0.200" orientation="0,0,0"/>
+            <frames/>
+            <!-- not specifying the limits here results in a locked joint -->
          </joint>
-         <joint id="joint[1]" type="rotary" disable_collisions="true" sensor="enabled" actuator="enabled">
-            <body id="body[1]" rotation_axis="0,1,0" rotation_point="0,0,0.35"/>
-            <body id="body[2]" rotation_axis="0,1,0" rotation_point="0,0,0.05"/>
+         <joint id="joint[0]" disable_collisions="true" sensor="enabled" actuator="enabled">
+            <frames>
+               <frame body="robotic-arm.bodies.body[1]" position="0,0, 0.200" orientation="0,0,0"/>
+               <frame body="robotic-arm.bodies.body[2]" position="0,0,-0.200" orientation="0,0,0"/>
+            <frames/>
+            <limits>
+               <angular lowerbound="-90,0,0" upperbound="90,0,0"/>
+            <limits>
          </joint>
       </joints>
     </robot>

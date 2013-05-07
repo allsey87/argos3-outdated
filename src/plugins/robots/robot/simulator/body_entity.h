@@ -47,16 +47,16 @@ namespace argos {
 
       CPositionalEntity& GetPositionalEntity() {
          return *m_pcPositionalEntity;
+      }
+
+      CPositionalEntity& GetOffsetPositionalEntity() {
+         return *m_pcOffsetPositionalEntity;
       }   
 
 
       virtual std::string GetTypeDescription() const {
          return "body";
       }
-
-      //@todo replace public variables with entity or getters/setters#
-      CVector3 m_cOffsetPosition;
-      CQuaternion m_cOffsetOrientation;
 
       const CVector3 & GetSize() const {
          return m_cSize;
@@ -69,6 +69,7 @@ namespace argos {
    private:
 
       CPositionalEntity* m_pcPositionalEntity;
+      CPositionalEntity* m_pcOffsetPositionalEntity;
       CVector3 m_cSize;
       Real m_fMass;
 
