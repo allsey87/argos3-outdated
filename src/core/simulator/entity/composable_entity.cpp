@@ -94,9 +94,35 @@ namespace argos {
    /****************************************/
    /****************************************/
 
+   /*
    CEntity& CComposableEntity::GetComponent(const std::string& str_component) {
       try {
          return *(FindComponent(str_component)->second);
+      }
+      catch(CARGoSException& ex) {
+         THROW_ARGOSEXCEPTION_NESTED("While getting a component from a composable entity", ex);
+      }
+   }
+   */
+
+   CEntity& CComposableEntity::GetComponent(const std::string& str_path) {
+      try {
+         size_t unFirstSeperatorIdx = str_path.find("/");
+         std::string strFrontIdentifier = str_path.substr(0, unFirstSeperatorIdx);
+         CEntity* pcEntity = FindComponent(strFrontIdentifier)->second;
+         if(unFirstSeperatorIdx == std::string::npos) {
+            return *pcEntity;
+         }
+         else {
+            CComposableEntity* pcComposableEntity = dynamic_cast<CComposableEntity*>(pcEntity);
+            if(pcComposableEntity != NULL) {
+               return pcComposableEntity->GetComponent(str_path.substr(unFirstSeperatorIdx, std::string::npos));
+            }
+            else {
+               THROW_ARGOSEXCEPTION("Component \"" << strFrontIdentifier << "\" of \"" << GetContext() << GetId()
+                                    << "\" is not a composable entity");
+            }
+         }
       }
       catch(CARGoSException& ex) {
          THROW_ARGOSEXCEPTION_NESTED("While getting a component from a composable entity", ex);

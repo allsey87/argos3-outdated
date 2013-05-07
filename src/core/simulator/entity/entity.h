@@ -142,10 +142,16 @@ namespace argos {
       }
 
       /**
+       * Returns the context of this entity.
+       * @return The context of this entity.
+       */
+      const std::string GetContext() const;
+
+      /**
        * Returns <tt>true</tt> if this entity has a parent.
        * @return <tt>true</tt> if this entity has a parent.
        */
-      inline bool HasParent() {
+      inline bool HasParent() const {
          return (m_pcParent != NULL);
       }
 

@@ -36,29 +36,29 @@ namespace argos {
    /****************************************/
 
    void CEntity::Init(TConfigurationNode& t_tree) {
-      /*
-       * Set an ID if it has not been set yet
-       * In this way, entities that are part of a composable can have an ID set by the parent
-       */
-      if(m_strId == "") {
-         if(! HasParent()) {
-            /*
-             * Root-level entity
-             */
-            try {
-               /* Get the id of the entity */
-               GetNodeAttribute(t_tree, "id", m_strId);
-            }
-            catch(CARGoSException& ex) {
-               THROW_ARGOSEXCEPTION_NESTED("Failed to initialize an entity.", ex);
-            }
+      try {
+         /* Set the id of the entity from XML or type description */
+         if(NodeAttributeExists(t_tree, "id")) {
+            GetNodeAttribute(t_tree, "id", m_strId);
          }
          else {
-            /*
-             * Part of a component
-             */
-            m_strId = GetParent().GetId() + "." + GetTypeDescription();
+            m_strId = GetTypeDescription();
          }
+      }
+      catch(CARGoSException& ex) {
+         THROW_ARGOSEXCEPTION_NESTED("Failed to initialize an entity.", ex);
+      }
+   }
+
+   /****************************************/
+   /****************************************/
+
+   const std::string CEntity::GetContext() const {
+      if(HasParent()) {
+         return GetParent().GetContext() + GetParent().GetId() + "/";
+      }
+      else {
+         return "";
       }
    }
 
