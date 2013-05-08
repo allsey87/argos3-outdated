@@ -9,17 +9,18 @@
 
 namespace argos {
    class CLEDEntity;
+   class CPositionalEntity;
 }
 
 #include <argos3/core/simulator/entity/positional_entity.h>
+#include <argos3/core/simulator/entity/composable_entity.h>
 #include <argos3/core/utility/datatypes/set.h>
 #include <argos3/core/utility/datatypes/color.h>
-#include <argos3/core/utility/math/vector3.h>
 #include <argos3/core/simulator/space/space_hash.h>
 
 namespace argos {
 
-   class CLEDEntity : public CPositionalEntity {
+   class CLEDEntity : public CComposableEntity {
 
    public:
 
@@ -42,6 +43,10 @@ namespace argos {
       virtual void Init(TConfigurationNode& t_tree);
 
       virtual void Reset();
+
+      inline CPositionalEntity& GetPositionalEntity() {
+         return *m_pcPositionalEntity;
+      }
 
       inline const CColor& GetColor() const {
          return m_cColor;
@@ -67,6 +72,8 @@ namespace argos {
 
       CColor m_cColor;
       CColor m_cInitColor;
+
+      CPositionalEntity* m_pcPositionalEntity;
 
    };
 

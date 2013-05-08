@@ -76,7 +76,7 @@ namespace argos {
       CLEDEntity* pcLED =
          new CLEDEntity(
             this,
-            "led",
+            std::string("led") + ToString(m_tLEDs.size()),
             c_position,
             c_color);
       m_tLEDs.push_back(pcLED);

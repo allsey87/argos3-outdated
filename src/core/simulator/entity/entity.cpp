@@ -54,7 +54,7 @@ namespace argos {
    /****************************************/
 
    const std::string CEntity::GetContext() const {
-      if(HasParent()) {
+      if(m_pcParent != NULL) {
          return GetParent().GetContext() + GetParent().GetId() + "/";
       }
       else {
@@ -83,6 +83,30 @@ namespace argos {
       }
       else {
          THROW_ARGOSEXCEPTION("Entity \"" << GetId() << "\" has no parent");
+      }
+   }
+
+   /****************************************/
+   /****************************************/
+
+   CEntity& CEntity::GetRootEntity() {
+      if(m_pcParent != NULL) {
+         return m_pcParent->GetRootEntity();
+      }
+      else {
+         return *this;
+      }
+   }
+
+   /****************************************/
+   /****************************************/
+   
+   const CEntity& CEntity::GetRootEntity() const {
+      if(m_pcParent != NULL) {
+         return m_pcParent->GetRootEntity();
+      }
+      else {
+         return *this;
       }
    }
 

@@ -156,6 +156,18 @@ namespace argos {
       }
 
       /**
+       * Returns the root entity containing this entity.
+       * @return The root entity containing this entity.
+       */
+      CEntity& GetRootEntity();
+
+      /**
+       * Returns the root entity containing this entity.
+       * @return The root entity containing this entity.
+       */
+      const CEntity& GetRootEntity() const;
+
+      /**
        * Returns this entity's parent.
        * @return This entity's parent.
        * @throws CARGoSException if this entity has no parent.

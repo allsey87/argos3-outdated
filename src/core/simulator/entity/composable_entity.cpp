@@ -107,16 +107,21 @@ namespace argos {
 
    CEntity& CComposableEntity::GetComponent(const std::string& str_path) {
       try {
+         fprintf(stderr, "%s%s::GetComponent(\"%s\")\n", GetContext().c_str(), GetId().c_str(), str_path.c_str());
          size_t unFirstSeperatorIdx = str_path.find("/");
          std::string strFrontIdentifier = str_path.substr(0, unFirstSeperatorIdx);
+         fprintf(stderr, "strFrontIdentifier = %s\n", strFrontIdentifier.c_str());
          CEntity* pcEntity = FindComponent(strFrontIdentifier)->second;
          if(unFirstSeperatorIdx == std::string::npos) {
+            fprintf(stderr, "we contain this component, returning...\n");
             return *pcEntity;
          }
          else {
+            fprintf(stderr, "we contain don't have this component, doing recusive lookup...\n");
             CComposableEntity* pcComposableEntity = dynamic_cast<CComposableEntity*>(pcEntity);
             if(pcComposableEntity != NULL) {
-               return pcComposableEntity->GetComponent(str_path.substr(unFirstSeperatorIdx, std::string::npos));
+               fprintf(stderr, "conversion to composable sucessfully, requesting %s from %s\n", str_path.substr(unFirstSeperatorIdx + 1, std::string::npos).c_str(), strFrontIdentifier.c_str());
+               return pcComposableEntity->GetComponent(str_path.substr(unFirstSeperatorIdx + 1, std::string::npos));
             }
             else {
                THROW_ARGOSEXCEPTION("Component \"" << strFrontIdentifier << "\" of \"" << GetContext() << GetId()
@@ -140,16 +145,29 @@ namespace argos {
    /****************************************/
 
    CEntity::TMultiMap::iterator CComposableEntity::FindComponent(const std::string& str_component) {      
+      
+      fprintf(stderr, "executing %s%s::FindComponent(%s)\n", GetContext().c_str(), GetId().c_str(), str_component.c_str());
       /* Check for the presence of [ */
       std::string::size_type unIndexStart = str_component.find('[');
       if(unIndexStart != std::string::npos) {
          /* Found, now check for the presence of ] after [ */
          std::string::size_type unIndexEnd = str_component.rfind(']');
          if(unIndexEnd != std::string::npos &&
-            unIndexEnd < unIndexStart) {
+            unIndexEnd > unIndexStart) {
             /* Use the string between [ and ] as an index and whatever comes before as base id */
             /* Count how many components there are for the base type */
             std::string strBaseType = str_component.substr(0,unIndexStart);
+            ///////////// DEBUG
+
+            fprintf(stderr, "searching for strBaseType %s in m_mapComponents\n it contains:\n", strBaseType.c_str());
+
+            for(CEntity::TMultiMap::iterator it = m_mapComponents.begin();
+                it != m_mapComponents.end();
+                ++it) {
+               fprintf(stderr, "%s\n", it->first.c_str());
+            }
+
+            /////////// DEBUG END
             size_t unCount = m_mapComponents.count(strBaseType);
             if(unCount == 0) {
                /* No components -> error */
