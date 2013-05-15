@@ -13,7 +13,7 @@ namespace argos {
    /****************************************/
 
    CLEDEntity::CLEDEntity(CComposableEntity* pc_parent) :
-      CComposableEntity(pc_parent) {}
+      CPositionalEntity(pc_parent) {}
 
    /****************************************/
    /****************************************/
@@ -22,15 +22,9 @@ namespace argos {
                           const std::string& str_id,
                           const CVector3& c_position,
                           const CColor& c_color) :
-      CComposableEntity(pc_parent, str_id),
+      CPositionalEntity(pc_parent, str_id, c_position, CQuaternion()),
       m_cColor(c_color),
-      m_cInitColor(c_color) {
-      m_pcPositionalEntity = new CPositionalEntity(this,
-                                                   "position",
-                                                   c_position,
-                                                   CQuaternion());
-      AddComponent(*m_pcPositionalEntity);
-   }
+      m_cInitColor(c_color) {}
 
    /****************************************/
    /****************************************/
@@ -38,9 +32,7 @@ namespace argos {
    void CLEDEntity::Init(TConfigurationNode& t_tree) {
       try {
          /* Parse XML */
-         m_pcPositionalEntity = new CPositionalEntity(this);
-         m_pcPositionalEntity->Init(t_tree);
-         AddComponent(*m_pcPositionalEntity);
+         CPositionalEntity::Init(t_tree);
          GetNodeAttribute(t_tree, "color", m_cInitColor);
          m_cColor = m_cInitColor;
       }
@@ -53,7 +45,7 @@ namespace argos {
    /****************************************/
 
    void CLEDEntity::Reset() {
-      CComposableEntity::Reset();
+      CPositionalEntity::Reset();
       m_cColor = m_cInitColor;
    }
 
@@ -65,7 +57,7 @@ namespace argos {
       /* Discard LEDs switched off */
       if(c_element.GetColor() != CColor::BLACK) {
          /* Calculate the position of the LED in the space hash */
-         c_space_hash.SpaceToHashTable(m_nI, m_nJ, m_nK, c_element.GetPositionalEntity().GetPosition());
+         c_space_hash.SpaceToHashTable(m_nI, m_nJ, m_nK, c_element.GetPosition());
          /* Update the corresponding cell */
          c_space_hash.UpdateCell(m_nI, m_nJ, m_nK, c_element);
       }

@@ -55,7 +55,7 @@ namespace argos {
 
    const std::string CEntity::GetContext() const {
       if(m_pcParent != NULL) {
-         return GetParent().GetContext() + GetParent().GetId() + "/";
+         return GetParent().GetContext() + GetParent().GetTypeDescription() + "[" + GetParent().GetId() + "]/";
       }
       else {
          return "";

@@ -169,37 +169,38 @@ namespace argos {
 
             /////////// DEBUG END
             size_t unCount = m_mapComponents.count(strBaseType);
+            fprintf(stderr, "we have %lu of component type %s\n", unCount, strBaseType.c_str());
             if(unCount == 0) {
                /* No components -> error */
                THROW_ARGOSEXCEPTION("No component of type \"" << strBaseType << "\" found for entity \"" << GetId() << "\"");
             }
             else {
                /* Components found */
-               size_t unIndex = FromString<size_t>(str_component.substr(unIndexStart, unIndexEnd - unIndexStart));
+               //size_t unIndex = FromString<size_t>(str_component.substr(unIndexStart + 1, unIndexEnd - unIndexStart));
+
+               std::string strComponentId = str_component.substr(unIndexStart + 1, unIndexEnd - unIndexStart - 1);
+
+               //fprintf(stderr, "the index %s, was decoded as  %lu\n", str_component.substr(unIndexStart + 1, unIndexEnd - unIndexStart).c_str(), unIndex);
                /* Is index valid? */
-               if(unIndex < unCount) {
-                  /* All OK, return the wanted component */
-                  /* Get the range of matching components */
-                  std::pair<CEntity::TMultiMap::iterator,
-                            CEntity::TMultiMap::iterator> cRange = m_mapComponents.equal_range(strBaseType);
-                  /* Start from the first */
-                  CEntity::TMultiMap::iterator it = cRange.first;
-                  size_t i = 0;
-                  /* Go through elements until we hit the element */
-                  while(1) {
-                     ++i;
-                     if(i < unIndex) {
-                        ++it;
-                     }
-                     else {
-                        break;
-                     }
+               std::pair<CEntity::TMultiMap::iterator,
+                         CEntity::TMultiMap::iterator> cRange = m_mapComponents.equal_range(strBaseType);
+               
+               CEntity::TMultiMap::iterator itComponent;
+
+               for(itComponent = cRange.first;
+                   itComponent != cRange.second;
+                   ++itComponent) {
+                  if(itComponent->second->GetId() == strComponentId) {
+                     break;
                   }
-                  return it;
+               }
+
+               if(itComponent != cRange.second) {
+                  return itComponent;
                }
                else {
                   /* Index out of bounds -> error */
-                  THROW_ARGOSEXCEPTION("Index out of bound for component of type \"" << str_component.substr(0,unIndexStart) << "\" in entity \"" << GetId() << "\"; max = " << unCount << ", index = " << unIndex);
+                  THROW_ARGOSEXCEPTION("There is no component of type \"" << str_component.substr(0,unIndexStart) << "\" in entity \"" << GetContext() << GetId() << "\" with an Id \"" << strComponentId << "\".");
                }
             }
          }

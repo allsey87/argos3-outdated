@@ -302,18 +302,20 @@ namespace argos {
        */
       template <typename ENTITY>
       void AddEntity(ENTITY& c_entity) {
+         std::string strEntityQualifiedName = c_entity.GetContext() + c_entity.GetTypeDescription() + "[" + c_entity.GetId() + "]";
+      
          /* Check that the id of the entity is not already present */
-         if(m_mapEntitiesPerId.find(c_entity.GetContext() + c_entity.GetId()) != m_mapEntitiesPerId.end()) {
-            THROW_ARGOSEXCEPTION("Error inserting a " << c_entity.GetTypeDescription() << " entity with id \"" << c_entity.GetId() << "\". An entity with that id exists already.");
+         if(m_mapEntitiesPerId.find(strEntityQualifiedName) != m_mapEntitiesPerId.end()) {
+            THROW_ARGOSEXCEPTION("Error inserting a " << c_entity.GetTypeDescription() << " entity with id \"" << strEntityQualifiedName << "\". An entity with that id exists already.");
          }
          /* Add the entity to the indexes */
          if(!c_entity.HasParent()) {
             m_vecRootEntities.push_back(&c_entity);
          }
          m_vecEntities.push_back(&c_entity);
-         m_mapEntitiesPerId[c_entity.GetContext() + c_entity.GetId()] = &c_entity;
-         m_mapEntitiesPerTypePerId[c_entity.GetTypeDescription()][c_entity.GetContext() + c_entity.GetId()] = &c_entity;
-         LOG << "[DEBUG] Added entity \"" << c_entity.GetContext() + c_entity.GetId() << "\" to space\n";
+         m_mapEntitiesPerId[strEntityQualifiedName] = &c_entity;
+         m_mapEntitiesPerTypePerId[c_entity.GetTypeDescription()][strEntityQualifiedName] = &c_entity;
+         LOG << "[DEBUG] Added entity \"" << strEntityQualifiedName << "\" to space\n";
       }
 
       /**
@@ -323,11 +325,12 @@ namespace argos {
        */
       template <typename ENTITY>
       void RemoveEntity(ENTITY& c_entity) {
+         std::string strEntityQualifiedName = c_entity.GetContext() + c_entity.GetTypeDescription() + "[" + c_entity.GetId() + "]";
          /* Search for entity in the index per type */
          TMapPerTypePerId::iterator itMapPerType = m_mapEntitiesPerTypePerId.find(c_entity.GetTypeDescription());
          if(itMapPerType != m_mapEntitiesPerTypePerId.end()) {
             /* Search for entity in the index per type per id */
-            TMapPerType::iterator itMapPerTypePerId = itMapPerType->second.find(c_entity.GetContext() + c_entity.GetId());
+            TMapPerType::iterator itMapPerTypePerId = itMapPerType->second.find(strEntityQualifiedName);
             if(itMapPerTypePerId != itMapPerType->second.end()) {
                /* Remove the entity from the indexes */
                CEntity::TVector::iterator itVec = find(m_vecEntities.begin(),
