@@ -12,10 +12,10 @@
 
 void CTestLoopFunctions::Init(TConfigurationNode& t_tree) {
    LOG << "CTestLoopFunctions init running!\n";
-   CFootBotEntity& fb = dynamic_cast<CFootBotEntity&>(m_cSpace.GetEntity("footbot[fb]"));
-   CLEDEntity& cLedA = fb.GetComponent<CLEDEntity>("leds[leds]/led[led_2]");
-   CLEDEntity& cLedB = fb.GetComponent<CLEDEntity>("leds[leds]/led[led_3]");
-   CLEDEntity& cLedC = fb.GetComponent<CLEDEntity>("leds[leds]/led[led_4]");
+   CFootBotEntity& fb = dynamic_cast<CFootBotEntity&>(m_cSpace.GetEntity("fb"));
+   CLEDEntity& cLedA = fb.GetComponent<CLEDEntity>("leds.led[led_2]");
+   CLEDEntity& cLedB = fb.GetComponent<CLEDEntity>("leds.led[led_3]");
+   CLEDEntity& cLedC = fb.GetComponent<CLEDEntity>("leds.led[led_4]");
    
    cLedA.SetColor(CColor::GREEN);
    cLedB.SetColor(CColor::BLUE);

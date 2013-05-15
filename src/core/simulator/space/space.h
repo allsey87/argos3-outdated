@@ -302,7 +302,7 @@ namespace argos {
        */
       template <typename ENTITY>
       void AddEntity(ENTITY& c_entity) {
-         std::string strEntityQualifiedName = c_entity.GetContext() + c_entity.GetTypeDescription() + "[" + c_entity.GetId() + "]";
+         std::string strEntityQualifiedName = c_entity.GetContext() + c_entity.GetId();
       
          /* Check that the id of the entity is not already present */
          if(m_mapEntitiesPerId.find(strEntityQualifiedName) != m_mapEntitiesPerId.end()) {
@@ -315,7 +315,6 @@ namespace argos {
          m_vecEntities.push_back(&c_entity);
          m_mapEntitiesPerId[strEntityQualifiedName] = &c_entity;
          m_mapEntitiesPerTypePerId[c_entity.GetTypeDescription()][strEntityQualifiedName] = &c_entity;
-         LOG << "[DEBUG] Added entity \"" << strEntityQualifiedName << "\" to space\n";
       }
 
       /**
@@ -325,7 +324,7 @@ namespace argos {
        */
       template <typename ENTITY>
       void RemoveEntity(ENTITY& c_entity) {
-         std::string strEntityQualifiedName = c_entity.GetContext() + c_entity.GetTypeDescription() + "[" + c_entity.GetId() + "]";
+         std::string strEntityQualifiedName = c_entity.GetContext() + c_entity.GetId();
          /* Search for entity in the index per type */
          TMapPerTypePerId::iterator itMapPerType = m_mapEntitiesPerTypePerId.find(c_entity.GetTypeDescription());
          if(itMapPerType != m_mapEntitiesPerTypePerId.end()) {
@@ -337,7 +336,7 @@ namespace argos {
                                                        m_vecEntities.end(),
                                                        &c_entity);
                m_vecEntities.erase(itVec);
-               CEntity::TMap::iterator itMap = m_mapEntitiesPerId.find(c_entity.GetContext() + c_entity.GetId());
+               CEntity::TMap::iterator itMap = m_mapEntitiesPerId.find(strEntityQualifiedName);
                itMapPerType->second.erase(itMapPerTypePerId);
                m_mapEntitiesPerId.erase(itMap);
                if(!c_entity.HasParent()) {
@@ -353,7 +352,7 @@ namespace argos {
             }
          }
          THROW_ARGOSEXCEPTION("CSpace::RemoveEntity() : Entity \"" <<
-                              c_entity.GetContext() << c_entity.GetId() <<
+                              strEntityQualifiedName <<
                               "\" has not been found in the indexes.");
       }
 

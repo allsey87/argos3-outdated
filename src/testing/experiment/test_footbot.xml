@@ -54,10 +54,10 @@
            color="yellow"
            intensity="1" />
 
-      <foot-bot id="fb">
-         <body position="0,0,0" orientation="0,0,0"/>
-         <controller controller="x"/>
-      </foot-bot>
+   <foot-bot id="fb">
+      <body position="0,0,0" orientation="0,0,0"/>
+      <controller controller="x"/>
+   </foot-bot>
         
   </arena>
 
