@@ -15,8 +15,9 @@ target_link_libraries(test_footbot_controller
 add_library(test_loop_functions MODULE
   experiment/test_loop_functions.h
   experiment/test_loop_functions.cpp)
-target_link_libraries(test_footbot_controller
-  argos3core_${ARGOS_BUILD_FOR})
+target_link_libraries(test_loop_functions
+  argos3core_${ARGOS_BUILD_FOR}
+  argos3plugin_${ARGOS_BUILD_FOR}_footbot)
 
 add_library(dyn3d_testbench_loop_functions MODULE
   dyn3d_testbench/dyn3d_testbench_loop_functions.h

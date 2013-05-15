@@ -8,6 +8,8 @@
     <experiment length="0" ticks_per_second="10" />
     <system threads="10" />>
   </framework>
+  
+  <loop_functions label="test_lf" />
 
   <!-- *************** -->
   <!-- * Controllers * -->
@@ -30,10 +32,21 @@
   <!-- * Arena configuration * -->
   <!-- *********************** -->
   <arena size="20, 20, 1">
-    <box id="bn" position="10,0,0"  orientation="0,0,0" size="0.1, 20, 0.2" movable="false" />
-    <box id="bs" position="-10,0,0" orientation="0,0,0" size="0.1, 20, 0.2" movable="false" />
-    <box id="be" position="0,-10,0" orientation="0,0,0" size="20, 0.1, 0.2" movable="false" />
-    <box id="bw" position="0,10,0"  orientation="0,0,0" size="20, 0.1, 0.2" movable="false" />
+    <box id="bn" size="0.1, 20, 0.2" movable="false" >
+      <body position="10,0,0" orientation="0,0,0"/>
+    </box>
+    
+    <box id="bs" size="0.1, 20, 0.2" movable="false">
+      <body position="-10,0,0" orientation="0,0,0"/>
+    </box>
+    
+    <box id="be" size="20, 0.1, 0.2" movable="false">
+       <body position="0,-10,0" orientation="0,0,0"/>
+    </box>
+    
+    <box id="bw" size="20, 0.1, 0.2" movable="false">
+       <body position="0,10,0"  orientation="0,0,0" />
+    </box>
 
     <light id="l0"
            position="1,1,1"
@@ -41,14 +54,11 @@
            color="yellow"
            intensity="1" />
 
-    <distribute>
-      <position method="uniform" min="-10,-10,0" max="10,10,0" />
-      <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
-      <entity quantity="100" max_trials="100">
-        <foot-bot id="fb"
-                  controller="x" />
-      </entity>
-    </distribute>
+   <foot-bot id="fb">
+      <body position="0,0,0" orientation="0,0,0"/>
+      <controller controller="x"/>
+   </foot-bot>
+        
   </arena>
 
   <!-- ******************* -->
