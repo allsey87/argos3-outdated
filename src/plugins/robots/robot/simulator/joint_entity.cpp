@@ -6,13 +6,21 @@
 
 #include "joint_entity.h"
 
+#include <argos3/plugins/robots/robot/simulator/frame_equipped_entity.h>
+
 namespace argos {
 
    /****************************************/
    /****************************************/
 
    CJointEntity::CJointEntity(CComposableEntity* pc_parent) :
-      CComposableEntity(pc_parent) {}
+      CComposableEntity(pc_parent),
+      m_bDisableCollisions(false),
+      m_pcFrameEquippedEntity(NULL),
+      m_cLinearLowerLimit(0.0f,0.0f,0.0f),
+      m_cLinearUpperLimit(0.0f,0.0f,0.0f),
+      m_cAngularLowerLimit(0.0f,0.0f,0.0f),
+      m_cAngularUpperLimit(0.0f,0.0f,0.0f) {}
 
    /****************************************/
    /****************************************/
@@ -20,18 +28,15 @@ namespace argos {
    
    CJointEntity::CJointEntity(CComposableEntity* pc_parent,
                               const std::string& str_id,
-                              EJointType e_joint_type,
-                              bool b_disable_collisions,                              
-                              const CBodyEntity::TList& t_connected_bodies) :
-                              
-                              //const std::vector<Real>& vec_joint_parameters) :
-      
+                              bool b_disable_collisions) :
       CComposableEntity(pc_parent, str_id),
-      m_eJointType(e_joint_type),
-      m_bDisableCollisions(b_disable_collisions) {
-      
-      CFrame* m_pcFrame = new CFrame(this, "id", c_frame_position, c_frame_orientation, c_frame_body);
-      AddComponent(m_pcFrame);
+      m_bDisableCollisions(b_disable_collisions),
+      m_cLinearLowerLimit(0.0f,0.0f,0.0f),
+      m_cLinearUpperLimit(0.0f,0.0f,0.0f),
+      m_cAngularLowerLimit(0.0f,0.0f,0.0f),
+      m_cAngularUpperLimit(0.0f,0.0f,0.0f) {
+ 
+      m_pcFrameEquippedEntity = new CFrameEquippedEntity(this, "frames");
    }
 
    /****************************************/
@@ -42,31 +47,43 @@ namespace argos {
          /* Init parent */
          CComposableEntity::Init(t_tree);
 
-         /* Determine the joint type */
-         std::string strJointType;
-         GetNodeAttribute(t_tree, "type", strJointType);
-         
          /* check if we are disabling collisions */
          GetNodeAttributeOrDefault(t_tree, "disable_collisions", m_bDisableCollisions, false);
 
-         /* Get a reference to the bodies is the parent entity */
-         //@todo make this a pass parameter?
-         CBodyEquippedEntity& cBodyEquippedEntity 
-            = GetParent().GetParent().GetComponent<CBodyEquippedEntity>("body_equipped_entity");
+         m_pcFrameEquippedEntity = new CFrameEquippedEntity(this, "frames");
+         if(NodeExists(t_tree, "frames")) {
+            m_pcFrameEquippedEntity->Init(GetNode(t_tree, "frames"));
+         }
+         else {
+            //todo what happens here, error here or later in dynamics engine?
+         }
 
-         /* Get a reference to the bodies involved in the joint relationship */
-         TConfigurationNodeIterator itConnectedBody("body");
-         
-         for(itConnectedBody = itConnectedBody.begin(&t_tree);
-             itConnectedBody != itConnectedBody.end();
-             ++itConnectedBody) {
-            
-            /* get the id for this body and store the reference using that id */
-            std::string strConnectedBodyId;
-            GetNodeAttribute(*itConnectedBody, "id", strConnectedBodyId);
-            
-            m_tConnectedBodies.push_back(&cBodyEquippedEntity.GetBody(strConnectedBodyId));
-            
+         AddComponent(*m_pcFrameEquippedEntity);
+         /* parse the joints limits if they exist */
+         if(NodeExists(t_tree, "limits")) {
+            TConfigurationNode& tLimits = GetNode(t_tree, "limits");
+            if(NodeExists(tLimits, "linear")) {
+               TConfigurationNode& tLinearLimits = GetNode(tLimits, "linear");
+               if(NodeAttributeExists(tLinearLimits, "lowerbound") &&
+                  NodeAttributeExists(tLinearLimits, "upperbound")) {
+                  GetNodeAttribute(tLinearLimits, "lowerbound", m_cLinearLowerLimit);
+                  GetNodeAttribute(tLinearLimits, "upperbound", m_cLinearUpperLimit);
+               }
+               else {
+                  THROW_ARGOSEXCEPTION("Error in parsing the joint's linear limits. You must specify both an upper and lower bound");
+               }
+            }
+            if(NodeExists(tLimits, "angular")) {
+               TConfigurationNode& tAngularLimits = GetNode(tLimits, "angular");
+               if(NodeAttributeExists(tAngularLimits, "lowerbound") &&
+                  NodeAttributeExists(tAngularLimits, "upperbound")) {
+                  GetNodeAttribute(tAngularLimits, "lowerbound", m_cAngularLowerLimit);
+                  GetNodeAttribute(tAngularLimits, "upperbound", m_cAngularUpperLimit);
+               }
+               else {
+                  THROW_ARGOSEXCEPTION("Error in parsing the joint's angular limits. You must specify both an upper and lower bound");
+               }
+            }
          }
       }
       catch(CARGoSException& ex) {
@@ -79,29 +96,19 @@ namespace argos {
 
    void CJointEntity::Reset() {
       CComposableEntity::Reset();
+      m_pcFrameEquippedEntity->Reset();
    }
 
    /****************************************/
    /****************************************/
 
    void CJointEntity::Destroy() {
+      m_pcFrameEquippedEntity->Destroy();      
       CComposableEntity::Destroy();
    }
 
    /****************************************/
    /****************************************/
-
-   CBodyEntity& CJointEntity::GetConnectedBody(UInt32 un_index) {
-      ARGOS_ASSERT(un_index < m_tConnectedBodies.size(),
-                   "CJointEquippedEntity::GetConnectedBody(), id=\"" <<
-                   GetId() <<
-                   "\": index out of bounds: un_index = " <<
-                   un_index <<
-                   ", m_tConnectedBodies.size() = " <<
-                   m_tConnectedBodies.size());
-      return *m_tConnectedBodies[un_index];
-   }
-
 
    void CJointEntity::UpdateComponents() {}
 

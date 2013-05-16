@@ -315,6 +315,7 @@ namespace argos {
          m_vecEntities.push_back(&c_entity);
          m_mapEntitiesPerId[strEntityQualifiedName] = &c_entity;
          m_mapEntitiesPerTypePerId[c_entity.GetTypeDescription()][strEntityQualifiedName] = &c_entity;
+         LOG << "[DEBUG] Adding entity " << strEntityQualifiedName <<  " to space.\n";
       }
 
       /**

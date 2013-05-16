@@ -10,6 +10,7 @@
 
 #include <argos3/plugins/robots/robot/simulator/joint_equipped_entity.h>
 #include <argos3/plugins/robots/robot/simulator/body_equipped_entity.h>
+#include <argos3/plugins/robots/robot/simulator/frame_equipped_entity.h>
 
 #include <argos3/core/utility/math/matrix/rotationmatrix3.h>
 
@@ -36,7 +37,8 @@ namespace argos {
          //@todo becareful with cleaning up this memory!
          btBoxShape* pcCollisionShape = new btBoxShape(bodyHalfExtents);
          
-         btTransform cOffset(ARGoSToBullet((*itBody)->m_cOffsetOrientation), ARGoSToBullet((*itBody)->m_cOffsetPosition));
+         btTransform cOffset(ARGoSToBullet((*itBody)->GetPositionalEntity().GetOrientation()),
+                                ARGoSToBullet((*itBody)->GetPositionalEntity().GetPosition()));
          
          btTransform geo(btQuaternion(0,0,0,1), btVector3(0, -bodyHalfExtents.getY(), 0));
          
@@ -51,35 +53,53 @@ namespace argos {
           itJoint != m_cJointEquippedEntity.GetAllJoints().end();
           ++itJoint) {
          
-         //CBodyEntity::TList& tConnectedBodies = (*itJoint)->GetAllConnectedBodies();
+         CFrameEntity::TList& tFrames = (*itJoint)->GetFrameEquippedEntity().GetAllFrames();
+         
+         if(tFrames.size() != 2) {
+            THROW_ARGOSEXCEPTION("This version of the Dynamics3D plugin only allows joints between two bodies");
+         }
+         else {
+            CDynamics3DBody::TVector::iterator itDyn3dBody0 = std::find(m_vecLocalBodies.begin(),
+                                                                        m_vecLocalBodies.end(),
+                                                                        tFrames[0]->GetBodyEntity().GetId());
+            if(itDyn3dBody0 == m_vecLocalBodies.end()) {
+               THROW_ARGOSEXCEPTION("Unable to find referenced body \"" <<
+                                    tFrames[0]->GetBodyEntity().GetId() << "\"." );
+            }
+            CDynamics3DBody::TVector::iterator itDyn3dBody1 = std::find(m_vecLocalBodies.begin(),
+                                                                        m_vecLocalBodies.end(),
+                                                                        tFrames[1]->GetBodyEntity().GetId());
+            if(itDyn3dBody1 == m_vecLocalBodies.end()) {
+               THROW_ARGOSEXCEPTION("Unable to find referenced body \"" <<
+                                    tFrames[1]->GetBodyEntity().GetId() << "\"." );
+            }
+            /* Get the frames in each respective bodies */
+            btTransform cFrameOriginInBody0(ARGoSToBullet(tFrames[0]->GetPositionalEntity().GetOrientation()),
+                                            ARGoSToBullet(tFrames[0]->GetPositionalEntity().GetPosition()));
+            btTransform cFrameOriginInBody1(ARGoSToBullet(tFrames[1]->GetPositionalEntity().GetOrientation()),
+                                            ARGoSToBullet(tFrames[1]->GetPositionalEntity().GetPosition()));
 
-         //@todo check joint type!
-
-         //@todo remove these public members, find clean solutions for parameterising joints
-         //const std::vector<CVector3>& vecRotationAxes = (*itJoint)->m_vecRotationAxes;
-         //const std::vector<CVector3>& vecRotationPoints = (*itJoint)->m_vecRotationPoints;
+            /* Get the limits of the joint - @todo issues ahoy!! */
+            CDynamics3DJoint::SJointLimits sLinearLimits(ARGoSToBullet((*itJoint)->GetLinearLowerLimit()),
+                                                         ARGoSToBullet((*itJoint)->GetLinearUpperLimit()));
+            CDynamics3DJoint::SJointLimits sAngularLimits(ARGoSToBullet((*itJoint)->GetAngularLowerLimit()),
+                                                          ARGoSToBullet((*itJoint)->GetAngularUpperLimit()));
+            
+            m_vecLocalJoints.push_back(new CDynamics3DJoint((*itJoint)->GetId(),
+                                                            **itDyn3dBody0,
+                                                            **itDyn3dBody1,
+                                                            cFrameOriginInBody0,
+                                                            cFrameOriginInBody1,
+                                                            sLinearLimits,
+                                                            sAngularLimits,
+                                                            true,
+                                                            (*itJoint)->GetDisableLinkedBodyCollisions()));
+         }
       }
-
-         //DEBUG
-         //btDefaultMotionState * pcMotionState = itBodyConfiguration->second->m_pcMotionState;
-         /*
-fprintf(stderr, "[INIT_DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = %.3f\n", itBodyConfiguration->first.c_str(), pcMotionState->m_graphicsWorldTrans.getOrigin().getX(), pcMotionState->m_graphicsWorldTrans.getOrigin().getY(), pcMotionState->m_graphicsWorldTrans.getOrigin().getZ(), pcMotionState->m_graphicsWorldTrans.getRotation().getAxis().getX(), pcMotionState->m_graphicsWorldTrans.getRotation().getAxis().getY(), pcMotionState->m_graphicsWorldTrans.getRotation().getAxis().getZ(), pcMotionState->m_graphicsWorldTrans.getRotation().getAngle() * 57.2957795131f);
-
-         fprintf(stderr, "[INIT_DEBUG] %s/m_centerOfMassOffset: position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = %.3f\n", itBodyConfiguration->first.c_str(), pcMotionState->m_centerOfMassOffset.getOrigin().getX(), pcMotionState->m_centerOfMassOffset.getOrigin().getY(), pcMotionState->m_centerOfMassOffset.getOrigin().getZ(), pcMotionState->m_centerOfMassOffset.getRotation().getAxis().getX(), pcMotionState->m_centerOfMassOffset.getRotation().getAxis().getY(), pcMotionState->m_centerOfMassOffset.getRotation().getAxis().getZ(), pcMotionState->m_centerOfMassOffset.getRotation().getAngle() * 57.2957795131f);
-
-         fprintf(stderr, "[INIT_DEBUG] %s/m_startWorldTrans:    position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = %.3f\n", itBodyConfiguration->first.c_str(), pcMotionState->m_startWorldTrans.getOrigin().getX(), pcMotionState->m_startWorldTrans.getOrigin().getY(), pcMotionState->m_startWorldTrans.getOrigin().getZ(), pcMotionState->m_startWorldTrans.getRotation().getAxis().getX(), pcMotionState->m_startWorldTrans.getRotation().getAxis().getY(), pcMotionState->m_startWorldTrans.getRotation().getAxis().getZ(), pcMotionState->m_startWorldTrans.getRotation().getAngle() * 57.2957795131f);
-         */
-
-         //DEBUG
-
-
       SetModelCoordinates(btTransform(ARGoSToBullet(GetEmbodiedEntity().GetOrientation()),
                                       ARGoSToBullet(GetEmbodiedEntity().GetPosition())));
-      
-      // move model into the requested position
-      //SetModelCoordinates(GetEmbodiedEntity().GetInitPosition(), GetEmoddiedEntity().GetInitOrientation());
 
-      // Update the bodies inside the entity which have their positions driven by the physics engines
+      /* Update the bodies inside the entity which have their positions driven by the physics engines */
       UpdateEntityStatus();
    }
 

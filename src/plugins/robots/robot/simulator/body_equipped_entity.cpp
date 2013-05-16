@@ -85,7 +85,7 @@ namespace argos {
       CBodyEntity* pcBody =
          new CBodyEntity(
             this,
-            GetId() + ".body[" + ToString(m_tBodies.size()) + "]",
+            "body_" + ToString(m_tBodies.size()),
             c_offset_position,
             c_offset_orientation,
             c_size,
@@ -118,6 +118,7 @@ namespace argos {
       for(itBody = m_tBodies.begin();
           itBody != m_tBodies.end();
           ++itBody) {
+         LOG << "body: " << (*itBody)->GetId() << std::endl;
          if((*itBody)->GetId() == str_id) {
             break;
          }   

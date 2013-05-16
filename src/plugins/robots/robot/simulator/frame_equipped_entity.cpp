@@ -26,30 +26,15 @@ namespace argos {
 
    void CFrameEquippedEntity::Init(TConfigurationNode& t_tree) {
       try {
-         /* Init parent */
-         CComposableEntity::Init(t_tree);
-
-         /* @todo remove this method and search the simulated space directly */
-         CBodyEquippedEntity& cBodyEquippedEntity = GetParent().GetParent().GetParent().GetComponent<CBodyEquippedEntity>("bodies")
-
          /* Go through the frames */
          TConfigurationNodeIterator itFrame("frame");
          for(itFrame = itFrame.begin(&t_tree);
              itFrame != itFrame.end();
              ++itFrame) {
             
-            std::string strBody;
-            CVector3 cFramePosition;
-            CQuaternion cFrameOrientation;
-            
-            GetNodeAttribute(*itFrame, "body", strBody);
-            GetNodeAttribute(*itFrame, "position", cFramePosition);
-            GetNodeAttribute(*itFrame, "orientation", cFrameOrientation);
-
-            // @todo implement method to find this body directly from the space
-            CBodyEntity& cBody = cBodyEquippedEntity.GetBody(strBody);
-            fprintf(stderr, "Adding frame for body: %s\n", strBody.c_str());
-            AddFrame(&cBody, cFramePosition, cFrameOrientation);
+            CFrameEntity* pcFrame = new CFrameEntity(this);
+            pcFrame->Init(*itFrame);
+            AddComponent(*pcFrame);
          }     
       }
       catch(CARGoSException& ex) {
@@ -61,23 +46,24 @@ namespace argos {
    /****************************************/
 
    void CFrameEquippedEntity::Reset() {
-      for(CFrameEntity::TList::iterator it = m_tFrames.begin();
-          it != m_tFrames.end();
-          ++it) {
-         (*it)->Reset();
+      for(CFrameEntity::TList::iterator itFrame = m_tFrames.begin();
+          itFrame != m_tFrames.end();
+          ++itFrame) {
+         (*itFrame)->Reset();
       }
    }
 
    /****************************************/
    /****************************************/
 
-   void CFrameEquippedEntity::AddFrame(CBodyEntty* pc_body,
+   void CFrameEquippedEntity::AddFrame(CBodyEntity* pc_body,
                                        const CVector3& c_position,
                                        const CQuaternion& c_orientation) {
       CFrameEntity* pcFrame =
          new CFrameEntity(
             this,
-            GetId() + ".frame[" + ToString(m_tFrames.size()) + "]",
+            GetId() + ".frame_" + ToString(m_tFrames.size()),
+            pc_body,
             c_position,
             c_orientation);
       m_tFrames.push_back(pcFrame);

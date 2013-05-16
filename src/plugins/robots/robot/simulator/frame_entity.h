@@ -15,7 +15,7 @@ namespace argos {
 #include <argos3/core/utility/math/vector3.h>
 #include <argos3/core/utility/math/quaternion.h>
 #include <argos3/core/simulator/entity/composable_entity.h>
-#include <argos3/plugins/robots/robot/simulator/body_entity.h>
+//#include <argos3/plugins/robots/robot/simulator/body_entity.h>
 
 namespace argos {
 
@@ -33,7 +33,7 @@ namespace argos {
 
       CFrameEntity(CComposableEntity* pc_parent,
                    const std::string& str_id,
-                   CBodyEntty* pc_body,
+                   CBodyEntity* pc_body,
                    const CVector3& c_position,
                    const CQuaternion& c_orientation);
       
@@ -47,7 +47,7 @@ namespace argos {
     
       virtual void UpdateComponents();
 
-      CBodyEntity& GetBodyEntity() {
+      const CBodyEntity& GetBodyEntity() const {
          return *m_pcBodyEntity;
       }
 
@@ -60,8 +60,8 @@ namespace argos {
       }
 
    private:      
-      CBodyEntity& m_cBodyEntity;
-      CPositionalEntity m_pcPositionalEntity;
+      CBodyEntity* m_pcBodyEntity;
+      CPositionalEntity* m_pcPositionalEntity;
    };
 
 }

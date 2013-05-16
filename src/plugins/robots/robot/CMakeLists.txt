@@ -15,6 +15,8 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
 #   simulator/robot_rotational_joint_actuator.h
     simulator/body_entity.h
     simulator/body_equipped_entity.h
+    simulator/frame_entity.h
+    simulator/frame_equipped_entity.h
     simulator/joint_entity.h
     simulator/joint_equipped_entity.h
     simulator/robot_entity.h)
@@ -38,6 +40,8 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
 #   simulator/robot_rotational_joint_actuator.cpp
     simulator/body_entity.cpp
     simulator/body_equipped_entity.cpp
+    simulator/frame_entity.cpp
+    simulator/frame_equipped_entity.cpp
     simulator/joint_entity.cpp
     simulator/joint_equipped_entity.cpp
     simulator/robot_entity.cpp)

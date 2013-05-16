@@ -44,66 +44,79 @@
   <arena size="10, 10, 1">
     <!-- floor id="f" source="loop_functions" pixels_per_meter="100" / -->
 
-    <box id="bn" position="2.5,0,0"  orientation="0,0,0" size="0.1, 5, 0.2" movable="false" mass="1" />
-    <box id="bs" position="-2.5,0,0" orientation="0,0,0" size="0.1, 5, 0.2" movable="false" mass="1" />
-    <box id="be" position="0,-2.5,0" orientation="0,0,0" size="5, 0.1, 0.2" movable="false" mass="1" />
-    <box id="bw" position="0,2.5,0"  orientation="0,0,0" size="5, 0.1, 0.2" movable="false" mass="1" />
+    <box id="bn" size="0.1, 5, 0.2" movable="false" mass="1">
+      <body position="2.5,0,0"  orientation="0,0,0"/>
+    </box>
+    <box id="bs" size="0.1, 5, 0.2" movable="false" mass="1">
+      <body position="-2.5,0,0" orientation="0,0,0"/>
+    </box>
+    <box id="be" size="5, 0.1, 0.2" movable="false" mass="1">
+      <body position="0,-2.5,0" orientation="0,0,0"/>
+    </box>
+    <box id="bw" size="5, 0.1, 0.2" movable="false" mass="1">
+      <body position="0,2.5,0"  orientation="0,0,0"/>
+    </box>
 
     <robot id="robotic-arm" position="0,0,0" orientation="0,0,0" controller="r_lua">
-      <bodies reference_body="robotic-arm.bodies.body[0]">
-         <body id="body[0]" geometry="box" size="0.3,0.3,0.05" mass="1">
+      <bodies reference_body="body_0">
+         <body id="body_0" geometry="box" size="0.3,0.3,0.05" mass="1">
             <offset position="0,0,0" orientation="0,0,0"/>
          </body>
-         <body id="body[1]" geometry="box" size="0.05,0.05,0.4" mass="1">
+         <body id="body_1" geometry="box" size="0.05,0.05,0.4" mass="1">
             <offset position="0,0,0.05" orientation="0,0,0"/>
          </body>
-         <body id="body[2]" geometry="box" size="0.05,0.05,0.4" mass="1">
+         <body id="body_2" geometry="box" size="0.05,0.05,0.4" mass="1">
             <offset position="0,0,0.45" orientation="0,0,0"/>
          </body>
       </bodies>
       <joints>
-         <joint id="joint[0]" disable_collisions="true" sensor="enabled" actuator="enabled">
+         <joint id="joint_0" disable_collisions="false" sensor="enabled" actuator="enabled">
             <frames>
-               <frame body="robotic-arm.bodies.body[0]" position="0,0, 0.025" orientation="0,0,0"/>
-               <frame body="robotic-arm.bodies.body[1]" position="0,0,-0.200" orientation="0,0,0"/>
-            <frames/>
+               <frame body="body_0" position="0,0, 0.025" orientation="0,0,0"/>
+               <frame body="body_1" position="0,0,-0.200" orientation="0,0,0"/>
+            </frames>
             <!-- not specifying the limits here results in a locked joint -->
          </joint>
-         <joint id="joint[0]" disable_collisions="true" sensor="enabled" actuator="enabled">
+         <joint id="joint_0" disable_collisions="true" sensor="enabled" actuator="enabled">
             <frames>
-               <frame body="robotic-arm.bodies.body[1]" position="0,0, 0.200" orientation="0,0,0"/>
-               <frame body="robotic-arm.bodies.body[2]" position="0,0,-0.200" orientation="0,0,0"/>
-            <frames/>
+               <frame body="body_1" position="0,0, 0.200" orientation="0,0,0"/>
+               <frame body="body_2" position="0,0,-0.200" orientation="0,0,0"/>
+            </frames>
             <limits>
                <angular lowerbound="-90,0,0" upperbound="90,0,0"/>
-            <limits>
+               <!-- not specifying the linear limits here results in a linear locked joint -->
+            </limits>
          </joint>
       </joints>
     </robot>
     
     <robot id="table" position="-1.5,-1.5,0" orientation="0,0,0" controller="r_lua">
-      <bodies reference_body="table.bodies.body[4]">
-         <body id="body[0]" geometry="box" size="0.05,0.05,0.2" mass="1">
+      <bodies reference_body="body_4">
+         <body id="table_leg_0" geometry="box" size="0.05,0.05,0.2" mass="1">
             <offset position="0.2,0.2,0" orientation="0,0,0"/>
          </body>
-         <body id="body[1]" geometry="box" size="0.05,0.05,0.2" mass="1">
+         <body id="table_leg_1" geometry="box" size="0.05,0.05,0.2" mass="1">
             <offset position="-0.2,0.2,0" orientation="0,0,0"/>
          </body>
-         <body id="body[3]" geometry="box" size="0.05,0.05,0.2" mass="1">
+         <body id="table_leg_2" geometry="box" size="0.05,0.05,0.2" mass="1">
             <offset position="0.2,-0.2,0" orientation="0,0,0"/>
          </body>
-         <body id="body[2]" geometry="box" size="0.05,0.05,0.2" mass="1">
+         <body id="table_leg_3" geometry="box" size="0.05,0.05,0.2" mass="1">
             <offset position="-0.2,-0.2,0" orientation="0,0,0"/>
          </body>
-         <body id="body[4]" geometry="box" size="0.6,0.6,0.05" mass="10">
+         <body id="table_top" geometry="box" size="0.6,0.6,0.05" mass="10">
             <offset position="0,0,0.2" orientation="0,0,0"/>
          </body>
       </bodies>
       <joints/>
     </robot>
     
-    <foot-bot id="fb1" position="-1.5,-1.5,0.25" orientation="0,0,0" controller="fb_lua"/>
-    <foot-bot id="fb2" position="-2,-2,0" orientation="0,0,0" controller="fb_lua"/>
+    <foot-bot id="fb1">
+      <body position="-1.5,-1.5,0.25" orientation="0,0,0"/>
+      <controller controller="fb_lua"/>
+    </foot-bot>
+    
+    <!--foot-bot id="fb2" position="-2,-2,0" orientation="0,0,0" controller="fb_lua"/-->
     <!--foot-bot id="fb3" position="-1.8,-2,0" orientation="0,0,0" controller="fb_lua"/-->
     
     <!--box id="test_box2" position="-2,-2.2,0.2"  orientation="0,45,0" size="0.1, 0.1, 0.1" movable="true" mass="1" /-->

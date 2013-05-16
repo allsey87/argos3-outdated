@@ -60,10 +60,10 @@ namespace argos {
 
    /****************************************/
    /****************************************/
-
+   /*
    void CJointEquippedEntity::AddJoint(CFrameEntity::TList tFrames,
                                        bool b_disable_collisions) {
-      /*
+
       CJointEntity* pcJoint =
          new CJointEntity(
             this,
@@ -71,9 +71,9 @@ namespace argos {
       m_tJoints.push_back(pcJoint);
       fprintf(stderr, "adding joint %s\n", pcJoint->GetId().c_str());
       AddComponent(*pcJoint);
-      */
+     
    }
-
+   */
    /****************************************/
    /****************************************/
 

@@ -37,12 +37,6 @@ namespace argos {
       virtual void Reset();
       virtual void Update() {}
 
-      void AddJoint(CJointEntity::EJointType e_joint_type,
-                    bool b_disable_collisions,                              
-                    const CBodyEntity::TList& t_connected_bodies,                              
-                    const std::vector<CVector3>& vec_rotation_axes,
-                    const std::vector<CVector3>& vec_rotation_points);
-
       CJointEntity& GetJoint(UInt32 un_index);
 
       inline CJointEntity::TList& GetAllJoints() {

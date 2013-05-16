@@ -37,7 +37,7 @@ namespace argos {
       virtual void Reset();
       virtual void Update() {}
 
-      void AddFrame(CBodyEntty* pc_body,
+      void AddFrame(CBodyEntity* pc_body,
                     const CVector3& c_position,
                     const CQuaternion& c_orientation);
 
@@ -46,13 +46,13 @@ namespace argos {
       inline CFrameEntity::TList& GetAllFrames() {
          return m_tFrames;
       }
-
+      /*
       void SetFramePosition(UInt32 un_index,
                            const CVector3& c_position);
 
       void SetFrameOrientation(UInt32 un_index,
                               const CQuaternion& c_orientation);
-
+      */
       virtual std::string GetTypeDescription() const {
          return "frames";
       }

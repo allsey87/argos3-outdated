@@ -9,13 +9,13 @@
 
 namespace argos {
    class CJointEntity;
-   class CBodyEntity;
+   class CFrameEquippedEntity;
 }
 
 #include <argos3/core/utility/math/vector3.h>
 #include <argos3/core/utility/math/quaternion.h>
 #include <argos3/core/simulator/entity/composable_entity.h>
-#include <argos3/plugins/robots/robot/simulator/body_equipped_entity.h>
+//#include <argos3/plugins/robots/robot/simulator/frame_equipped_entity.h>
 
 namespace argos {
 
@@ -28,25 +28,12 @@ namespace argos {
       typedef std::vector<CJointEntity*> TList;
 
    public:
-      class CFrame : public CEntity {
-         CFrame(CComposableEntity* pc_parent,
-                const std::string& str_id,
-                CPositionEntity* pc_reference_frame,
-                CBodyEntity* pc_reference_body) :
-            m_pcReferenceFrame(pc_reference_frame),
-            m_pcReferenceBody(pc_reference_body) {}
-
-         CPositionalEntity* m_pcReferenceFrame;
-         CBodyEntity* m_pcReferenceBody;
-      };
-
-   public:
 
       CJointEntity(CComposableEntity* pc_parent);
 
       CJointEntity(CComposableEntity* pc_parent,
                    const std::string& str_id,
-                   bool b_disable_collisions,);
+                   bool b_disable_collisions);
 
       virtual ~CJointEntity() {}
 
@@ -56,25 +43,44 @@ namespace argos {
 
       virtual void UpdateComponents();
 
-      CBodyEntity& GetConnectedBody(UInt32 un_index);
-            
-      CBodyEntity::TList& GetAllConnectedBodies() {
-         return m_tConnectedBodies;
+      CFrameEquippedEntity& GetFrameEquippedEntity() {
+         return *m_pcFrameEquippedEntity;
       }
 
       virtual std::string GetTypeDescription() const {
          return "joint";
       }
 
+      const CVector3& GetLinearLowerLimit() const {
+         return m_cLinearLowerLimit;
+      }
 
+      const CVector3& GetLinearUpperLimit() const {
+         return m_cLinearUpperLimit;
+      }
+
+      const CVector3& GetAngularLowerLimit() const {
+         return m_cAngularLowerLimit;
+      }
+
+      const CVector3& GetAngularUpperLimit() const {
+         return m_cAngularUpperLimit;
+      }
+
+      bool GetDisableLinkedBodyCollisions() const {
+         return m_bDisableCollisions;
+      }
 
    private:      
-      EJointType m_eJointType;
-
       bool m_bDisableCollisions;
 
-      std::vector<CPositionalEntity *> m_vecJointFrames;
+      CFrameEquippedEntity* m_pcFrameEquippedEntity;
 
+      CVector3 m_cLinearLowerLimit;
+      CVector3 m_cLinearUpperLimit;
+      CVector3 m_cAngularLowerLimit;
+      CVector3 m_cAngularUpperLimit;
+      
    public:
 
    };
