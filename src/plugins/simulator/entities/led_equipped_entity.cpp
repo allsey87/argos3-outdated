@@ -46,10 +46,13 @@ namespace argos {
          for(itLED = itLED.begin(&t_tree);
              itLED != itLED.end();
              ++itLED) {
-            GetNodeAttribute(*itLED, "position", cPosition);
-            GetNodeAttribute(*itLED, "color", cColor);
-            m_vecLEDOffsetPositions.push_back(cPosition);
-            AddLED(cPosition, cColor);
+            /* Initialise the LED using the XML */
+            CLEDEntity* pcLED = new CLEDEntity(this);
+            pcLED->Init(*itLED);
+            /* Add the LED to this container */
+            m_vecLEDOffsetPositions.push_back(pcLED->GetPosition());
+            m_tLEDs.push_back(pcLED);
+            AddComponent(*pcLED);
          }
       }
       catch(CARGoSException& ex) {

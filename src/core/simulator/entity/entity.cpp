@@ -42,7 +42,19 @@ namespace argos {
             GetNodeAttribute(t_tree, "id", m_strId);
          }
          else {
-            m_strId = GetTypeDescription();
+            if(m_pcParent != NULL) {
+               UInt32 unIdCount = 0;
+               while(GetParent().HasComponent(GetTypeDescription() +
+                                              "[" + GetTypeDescription() +
+                                              "_" + ToString(unIdCount) +
+                                              "]")) {
+                  ++unIdCount;
+               }
+               m_strId = GetTypeDescription() + "_" + ToString(unIdCount);
+            }
+            else {
+               THROW_ARGOSEXCEPTION("Root entities must provide the identifier tag");
+            }
          }
       }
       catch(CARGoSException& ex) {

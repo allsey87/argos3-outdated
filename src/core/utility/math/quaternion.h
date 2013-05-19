@@ -274,7 +274,7 @@ namespace argos {
       }
 
       /**
-       * Serializes the contents of the passed quaternion onto a stream as euler angles in the Z,Y,X
+       * Serializes the contents of the passed quaternion into a stream as euler angles in the Z,Y,X
        * format in degrees.
        * @param c_os The stream.
        * @param c_quaternion The quaternion.
@@ -290,7 +290,7 @@ namespace argos {
       }
       
       /**
-       * Deserializes the contents of a stream and stores them into the passed quaternion.
+       * Deserializes the contents of a stream and stores it into the passed quaternion.
        * This method assumes euler angles in Z,Y,X format and given in degrees.
        * @param c_is The stream.
        * @param c_quaternion The quaternion.

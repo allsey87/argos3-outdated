@@ -32,8 +32,14 @@
   <!-- * Arena configuration * -->
   <!-- *********************** -->
   <arena size="20, 20, 1">
-    <box id="bn" size="0.1, 20, 0.2" movable="false" >
+    <box id="bn" size="0.1, 20, 0.2" movable="false">
       <body position="10,0,0" orientation="0,0,0"/>
+      <leds>
+         <led position="0.0,0.0,0.2" color="yellow"/>
+         <led position="0.0,0.1,0.2" color="green"/>
+         <led position="0.0,0.2,0.2" color="blue"/>
+         <led position="0.0,0.3,0.2" color="red"/>
+      </leds>
     </box>
     
     <box id="bs" size="0.1, 20, 0.2" movable="false">
