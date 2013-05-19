@@ -44,8 +44,6 @@ namespace argos {
 
       CBodyEntity& GetBody(UInt32 un_index);
 
-      CBodyEntity& GetBody(std::string str_id);
-
       CBodyEntity& GetReferenceBody() {
          return *m_pcReferenceBody;
       }

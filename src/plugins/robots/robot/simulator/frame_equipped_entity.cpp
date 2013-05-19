@@ -32,9 +32,10 @@ namespace argos {
              itFrame != itFrame.end();
              ++itFrame) {
             
-            CFrameEntity* pcFrame = new CFrameEntity(this);
-            pcFrame->Init(*itFrame);
-            AddComponent(*pcFrame);
+            CFrameEntity* pcFrameEntity = new CFrameEntity(this);
+            pcFrameEntity->Init(*itFrame);
+            AddComponent(*pcFrameEntity);
+            m_tFrames.push_back(pcFrameEntity);
          }     
       }
       catch(CARGoSException& ex) {

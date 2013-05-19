@@ -29,35 +29,21 @@ namespace argos {
          /* Init parent */
          CComposableEntity::Init(t_tree);
 
-         /* Go through the body entries */
-         CVector3 cPosition;
-         CVector3 cSize;
-         CQuaternion cOrientation;
-         Real fMass;
-         
          TConfigurationNodeIterator itBody("body");
          for(itBody = itBody.begin(&t_tree);
              itBody != itBody.end();
              ++itBody) {
             
-            GetNodeAttribute(*itBody, "size", cSize);
-            GetNodeAttribute(*itBody, "mass", fMass);
-
-            TConfigurationNode tOffset = GetNode(*itBody,"offset");
-
-            GetNodeAttribute(tOffset, "position", cPosition);
-            GetNodeAttribute(tOffset, "orientation", cOrientation);
-            
-            AddBody(cPosition, cOrientation, cSize, fMass);
+            CBodyEntity* pcBodyEntity = new CBodyEntity(this);
+            pcBodyEntity->Init(*itBody);
+            AddComponent(*pcBodyEntity);
+            m_tBodies.push_back(pcBodyEntity);
          }
 
-         // get a reference to the reference body
+         /* get a pointer to the reference body */
          std::string strReferenceBody;
          GetNodeAttribute(t_tree, "reference_body", strReferenceBody);
-
-         //@todo fix this mess with the ids already!
-         m_pcReferenceBody = &GetBody(strReferenceBody);
-
+         m_pcReferenceBody = &GetComponent<CBodyEntity>("body[" + strReferenceBody + "]");
       }
       catch(CARGoSException& ex) {
          THROW_ARGOSEXCEPTION_NESTED("Failed to initialize body equipped entity \"" << GetId() << "\".", ex);
@@ -111,25 +97,6 @@ namespace argos {
 
    /****************************************/
    /****************************************/
-
-   CBodyEntity& CBodyEquippedEntity::GetBody(std::string str_id) {
-      CBodyEntity::TList::iterator itBody;
-
-      for(itBody = m_tBodies.begin();
-          itBody != m_tBodies.end();
-          ++itBody) {
-         LOG << "body: " << (*itBody)->GetId() << std::endl;
-         if((*itBody)->GetId() == str_id) {
-            break;
-         }   
-      }
-      ARGOS_ASSERT(itBody != m_tBodies.end(),
-                   "CBodyEquippedEntity::GetBody(), id=\"" <<
-                   GetId() <<
-                   "\": body with id=\"" << str_id <<
-                   "\" not found!");
-      return **itBody;
-   }
 
    void CBodyEquippedEntity::UpdateComponents() {}
 

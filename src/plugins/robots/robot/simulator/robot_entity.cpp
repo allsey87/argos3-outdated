@@ -43,16 +43,16 @@ namespace argos {
          m_pcEmbodiedEntity = new CEmbodiedEntity(this);
          AddComponent(*m_pcEmbodiedEntity);
          m_pcEmbodiedEntity->Init(t_tree);
-         
+
+         m_pcBodyEquippedEntity = new CBodyEquippedEntity(this);
+         AddComponent(*m_pcBodyEquippedEntity);
          if(NodeExists(t_tree, "bodies")) {
-            m_pcBodyEquippedEntity = new CBodyEquippedEntity(this);
-            AddComponent(*m_pcBodyEquippedEntity);
             m_pcBodyEquippedEntity->Init(GetNode(t_tree, "bodies"));
          }
 
+         m_pcJointEquippedEntity = new CJointEquippedEntity(this);
+         AddComponent(*m_pcJointEquippedEntity);
          if(NodeExists(t_tree, "joints")) {
-            m_pcJointEquippedEntity = new CJointEquippedEntity(this);
-            AddComponent(*m_pcJointEquippedEntity);
             m_pcJointEquippedEntity->Init(GetNode(t_tree, "joints"));
          }
 

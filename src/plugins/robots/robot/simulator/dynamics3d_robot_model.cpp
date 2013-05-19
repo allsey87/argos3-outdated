@@ -37,11 +37,13 @@ namespace argos {
          //@todo becareful with cleaning up this memory!
          btBoxShape* pcCollisionShape = new btBoxShape(bodyHalfExtents);
          
-         btTransform cOffset(ARGoSToBullet((*itBody)->GetPositionalEntity().GetOrientation()),
-                                ARGoSToBullet((*itBody)->GetPositionalEntity().GetPosition()));
+         btTransform cOffset(ARGoSToBullet((*itBody)->GetOffsetPositionalEntity().GetOrientation()),
+                                ARGoSToBullet((*itBody)->GetOffsetPositionalEntity().GetPosition()));
          
          btTransform geo(btQuaternion(0,0,0,1), btVector3(0, -bodyHalfExtents.getY(), 0));
          
+         fprintf(stderr, "cOffset for %s: position = [%.3f, %.3f, %.3f], orientaton-axis = [%.3f, %.3f, %.3f], orientation-rotation = [%.3f]\n", (*itBody)->GetId().c_str(), cOffset.getOrigin().getX(), cOffset.getOrigin().getY(), cOffset.getOrigin().getZ(), cOffset.getRotation().getAxis().getX(), cOffset.getRotation().getAxis().getY(), cOffset.getRotation().getAxis().getZ(), cOffset.getRotation().getAngle());
+
          m_vecLocalBodies.push_back(new CDynamics3DBody((*itBody)->GetId(), 
                                                         pcCollisionShape, 
                                                         cOffset,
@@ -52,6 +54,8 @@ namespace argos {
       for(CJointEntity::TList::iterator itJoint = m_cJointEquippedEntity.GetAllJoints().begin();
           itJoint != m_cJointEquippedEntity.GetAllJoints().end();
           ++itJoint) {
+
+         fprintf(stderr, "Adding joint %s\n", (*itJoint)->GetId().c_str());
          
          CFrameEntity::TList& tFrames = (*itJoint)->GetFrameEquippedEntity().GetAllFrames();
          

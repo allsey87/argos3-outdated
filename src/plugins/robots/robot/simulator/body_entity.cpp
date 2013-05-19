@@ -46,13 +46,20 @@ namespace argos {
          /* Init parent */
          CComposableEntity::Init(t_tree);
 
-         /* Parse XML */
+         /* just use the default initialisation method for the positional entity
+          * as the position will be driven directly from a physics engine */
          m_pcPositionalEntity = new CPositionalEntity(this);
-         m_pcPositionalEntity->Init(t_tree);
          AddComponent(*m_pcPositionalEntity);
+
+         /* Parse body attributes */  
+         GetNodeAttribute(t_tree, "size", m_cSize);
+         GetNodeAttribute(t_tree, "mass", m_fMass);
+
          m_pcOffsetPositionalEntity = new CPositionalEntity(this);
-         m_pcOffsetPositionalEntity->Init(GetNode(t_tree, "offset"));
          AddComponent(*m_pcOffsetPositionalEntity);
+         if(NodeExists(t_tree, "offset")) {
+            m_pcOffsetPositionalEntity->Init(GetNode(t_tree, "offset"));
+         }
       }
       catch(CARGoSException& ex) {
          THROW_ARGOSEXCEPTION_NESTED("Error while initializing body entity", ex);

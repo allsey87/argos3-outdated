@@ -38,8 +38,10 @@ namespace argos {
              itJoint != itJoint.end();
              ++itJoint) {
            
-            
-
+            CJointEntity* pcJointEntity = new CJointEntity(this);
+            pcJointEntity->Init(*itJoint);
+            AddComponent(*pcJointEntity);
+            m_tJoints.push_back(pcJointEntity);
          }
       }
       catch(CARGoSException& ex) {

@@ -72,26 +72,24 @@
       <joints>
          <joint id="joint_0" disable_collisions="false" sensor="enabled" actuator="enabled">
             <frames>
-               <frame body="body_0" position="0,0, 0.025" orientation="0,0,0"/>
-               <frame body="body_1" position="0,0,-0.200" orientation="0,0,0"/>
+               <frame id="1" body="body_0" position="0,0, 0.025" orientation="0,0,0"/>
+               <frame id="2" body="body_1" position="0,0,-0.200" orientation="0,0,0"/>
             </frames>
-            <!-- not specifying the limits here results in a locked joint -->
          </joint>
-         <joint id="joint_0" disable_collisions="true" sensor="enabled" actuator="enabled">
+         <joint id="joint_1" disable_collisions="true" sensor="enabled" actuator="enabled">
             <frames>
-               <frame body="body_1" position="0,0, 0.200" orientation="0,0,0"/>
-               <frame body="body_2" position="0,0,-0.200" orientation="0,0,0"/>
+               <frame id="1" body="body_1" position="0,0, 0.200" orientation="0,0,0"/>
+               <frame id="2" body="body_2" position="0,0,-0.200" orientation="0,0,0"/>
             </frames>
             <limits>
                <angular lowerbound="-90,0,0" upperbound="90,0,0"/>
-               <!-- not specifying the linear limits here results in a linear locked joint -->
             </limits>
          </joint>
       </joints>
     </robot>
     
     <robot id="table" position="-1.5,-1.5,0" orientation="0,0,0" controller="r_lua">
-      <bodies reference_body="body_4">
+      <bodies reference_body="table_top">
          <body id="table_leg_0" geometry="box" size="0.05,0.05,0.2" mass="1">
             <offset position="0.2,0.2,0" orientation="0,0,0"/>
          </body>
@@ -121,7 +119,9 @@
     
     <!--box id="test_box2" position="-2,-2.2,0.2"  orientation="0,45,0" size="0.1, 0.1, 0.1" movable="true" mass="1" /-->
 
-    <!--box id="test_box" position="0.01,-0.01,1"  orientation="0,0,0" size="0.1, 0.1, 0.1" movable="true" mass="1" /-->
+    <box id="test_box" size="0.1, 0.1, 0.1" movable="true" mass="15">
+      <body position="0.01,-0.01,1"  orientation="0,0,0"/>
+    </box>
     
   </arena>
   
