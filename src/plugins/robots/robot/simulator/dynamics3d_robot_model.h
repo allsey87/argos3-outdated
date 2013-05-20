@@ -34,7 +34,51 @@ namespace argos {
       CBodyEquippedEntity&    m_cBodyEquippedEntity;
       CJointEquippedEntity&   m_cJointEquippedEntity;
      
-      //std::map<std::string, btHingeConstraint> m_mapRobotConstraints;
+      class CBoxShapeManager {
+         public:
+            btBoxShape* RequestBoxShape(const btVector3& c_half_extents);
+            void ReleaseBoxShape(const btBoxShape* pc_release);
+         private:
+            struct CResource {
+               CResource(const btVector3& c_half_extents, btBoxShape* c_shape);
+               btVector3 m_cHalfExtents;
+               btBoxShape* m_cShape;
+               UInt32 m_unInUseCount;
+            };
+            std::vector<CResource> m_vecResources;
+      };
+      
+      class CCylinderShapeManager {
+         public:
+            btCylinderShape* RequestCylinderShape(const btVector3& c_half_extents);
+            void ReleaseCylinderShape(const btCylinderShape* pc_release);
+         private:
+            struct CResource {
+               CResource(const btVector3& c_half_extents, btCylinderShape* c_shape);
+               btVector3 m_cHalfExtents;
+               btCylinderShape* m_cShape;
+               UInt32 m_unInUseCount;
+            };
+            std::vector<CResource> m_vecResources;
+      };
+
+      class CSphereShapeManager {
+         public:
+            btSphereShape* RequestSphereShape(Real f_radius);
+            void ReleaseSphereShape(const btSphereShape* pc_release);
+         private:
+            struct CResource {
+               CResource(Real f_radius, btSphereShape* c_shape);
+               Real m_fRadius;
+               btSphereShape* m_cShape;
+               UInt32 m_unInUseCount;
+            };
+            std::vector<CResource> m_vecResources;
+      };
+      
+      static CBoxShapeManager m_cBoxShapeManager;
+      static CCylinderShapeManager m_cCylinderShapeManager;
+      static CSphereShapeManager m_cSphereShapeManager;
    };
 }
 

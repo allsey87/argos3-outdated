@@ -10,6 +10,7 @@
 namespace argos {
    class CBodyEntity;
    class CPositionalEntity;
+   class CGeometry3;
 }
 
 #include <argos3/core/utility/math/vector3.h>
@@ -53,13 +54,16 @@ namespace argos {
          return *m_pcOffsetPositionalEntity;
       }   
 
-
       virtual std::string GetTypeDescription() const {
          return "body";
       }
 
       const CVector3 & GetSize() const {
          return m_cSize;
+      }
+
+      const CGeometry3& GetGeometry() const {
+         return *m_pcGeometry;
       }
 
       Real GetMass() const {
@@ -70,10 +74,9 @@ namespace argos {
 
       CPositionalEntity* m_pcPositionalEntity;
       CPositionalEntity* m_pcOffsetPositionalEntity;
-      CVector3 m_cSize;
+
+      CGeometry3* m_pcGeometry;
       Real m_fMass;
-
-
    };
 
 }

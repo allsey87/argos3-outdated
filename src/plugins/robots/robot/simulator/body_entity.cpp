@@ -6,6 +6,10 @@
 
 #include "body_entity.h"
 
+#include <argos3/plugins/robots/robot/simulator/box_geometry3.h>
+#include <argos3/plugins/robots/robot/simulator/cylinder_geometry3.h>
+#include <argos3/plugins/robots/robot/simulator/sphere_geometry3.h>
+
 namespace argos {
 
    /****************************************/
@@ -19,11 +23,13 @@ namespace argos {
 
    CBodyEntity::CBodyEntity(CComposableEntity* pc_parent,
                             const std::string& str_id,
+                            EGeometry e_body_geometry,
                             const CVector3& c_offset_position,
                             const CQuaternion& c_offset_orientation,
                             const CVector3& c_size,
                             Real f_mass) :
       CComposableEntity(pc_parent, str_id),
+      m_eBodyGeometry(e_body_geometry),
       m_cSize(c_size),
       m_fMass(f_mass) {
       
@@ -54,8 +60,30 @@ namespace argos {
             m_pcPositionalEntity->Init(GetNode(t_tree, "coordinates"));
          }
 
-         /* Parse body attributes */  
-         GetNodeAttribute(t_tree, "size", m_cSize);
+         /* Parse body attributes */ 
+         std::string strBodyGeometry;
+         GetNodeAttribute(t_tree, "geometry", strBodyGeometry);
+         if(strBodyGeometry = "box") {
+            /* requested geometry is a box*/
+            CVector3 cSize;
+            GetNodeAttribute(t_tree, "size", cSize);
+            m_pcGeometry =  = new CBoxGeometry3(cSize);
+         } else if(strBodyGeometry = "cylinder") {
+            /* requested geometry is a cylinder */
+            Real fHeight, fRadius;
+            GetNodeAttribute(t_tree, "height", fHeight);
+            GetNodeAttribute(t_tree, "radius", fRadius);
+            m_pcGeometry = new CCylinderGeometry3(fRadius, fHeight);
+         } else if(strBodyGeometry = "sphere") {
+            /* requested geometry is a sphere */
+            Real fRadius;
+            GetNodeAttribute(t_tree, "radius", fRadius);
+            m_pcGeometry =  = new CSphereGeometry3(fRadius);
+         } else {
+            /* requested geometry is unknown */
+            THROW_ARGOSEXCEPTION("Unknown geometry type " << strBodyGeometry << " provided");
+         }
+         
          GetNodeAttribute(t_tree, "mass", m_fMass);
 
          m_pcOffsetPositionalEntity = new CPositionalEntity(this);
@@ -81,6 +109,7 @@ namespace argos {
 
    void CBodyEntity::Destroy() {
       CComposableEntity::Destroy();
+      delete m_pcGeometry;
    }
 
    /****************************************/

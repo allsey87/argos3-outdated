@@ -9,7 +9,6 @@ set(ARGOS3_HEADERS_PLUGINS_ROBOTS_ROBOT_CONTROLINTERFACE
 # argos3/plugins/robots/-bot/simulator
 if(ARGOS_BUILD_FOR_SIMULATOR)
   set(ARGOS3_HEADERS_PLUGINS_ROBOTS_ROBOT_SIMULATOR
-    simulator/dynamics2d_robot_model.h
     simulator/dynamics3d_robot_model.h
 #   simulator/robot_rotational_joint_sensor.h
 #   simulator/robot_rotational_joint_actuator.h
@@ -19,7 +18,11 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     simulator/frame_equipped_entity.h
     simulator/joint_entity.h
     simulator/joint_equipped_entity.h
-    simulator/robot_entity.h)
+    simulator/robot_entity.h
+    simulator/geometry3.h
+    simulator/box_geometry3.h
+    simulator/cylinder_geometry3.h
+    simulator/sphere_geometry3.h)
 endif(ARGOS_BUILD_FOR_SIMULATOR)
 
 #
@@ -34,7 +37,7 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
   set(ARGOS3_SOURCES_PLUGINS_ROBOTS_ROBOT
     ${ARGOS3_SOURCES_PLUGINS_ROBOTS_ROBOT}
     ${ARGOS3_HEADERS_PLUGINS_ROBOTS_ROBOT_SIMULATOR}
-    simulator/dynamics2d_robot_model.cpp
+
     simulator/dynamics3d_robot_model.cpp
 #   simulator/robot_rotational_joint_sensor.cpp
 #   simulator/robot_rotational_joint_actuator.cpp
@@ -78,7 +81,6 @@ target_link_libraries(argos3plugin_${ARGOS_BUILD_FOR}_robot
   argos3plugin_${ARGOS_BUILD_FOR}_genericrobot
   argos3plugin_${ARGOS_BUILD_FOR}_actuators
   argos3plugin_${ARGOS_BUILD_FOR}_sensors
-  argos3plugin_${ARGOS_BUILD_FOR}_dynamics2d
   argos3plugin_${ARGOS_BUILD_FOR}_dynamics3d)
 if(ARGOS_COMPILE_QTOPENGL)
   target_link_libraries(argos3plugin_${ARGOS_BUILD_FOR}_robot argos3plugin_${ARGOS_BUILD_FOR}_qtopengl)

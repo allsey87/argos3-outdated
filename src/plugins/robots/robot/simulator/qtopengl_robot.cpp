@@ -28,13 +28,26 @@ namespace argos {
       m_unVertices(20) {
       
       /* Reserve the needed display lists */
-      m_unBaseList = glGenLists(2);
-      m_unBodyList = m_unBaseList;
-      m_unLEDList = m_unBaseList + 1;
+      m_unBaseList = glGenLists(4);
+      /* References to the display lists */
+      m_unBoxList      = m_unBaseList;
+      m_unCylinderList = m_unBaseList + 1;
+      m_unSphereList   = m_unBaseList + 2;
+      m_unLEDList      = m_unBaseList + 3;
       
-      /* Make body list */
-      glNewList(m_unBodyList, GL_COMPILE);
-      MakeBody();
+      /* Make box list */
+      glNewList(m_unBoxList, GL_COMPILE);
+      MakeBox();
+      glEndList();
+
+      /* Make cylinder list */
+      glNewList(m_unCylinderList, GL_COMPILE);
+      MakeCylinder();
+      glEndList();
+
+      /* Make sphere list */
+      glNewList(m_unSphereList, GL_COMPILE);
+      MakeSphere();
       glEndList();
        
       /* Make LED list */
@@ -47,7 +60,7 @@ namespace argos {
    /****************************************/
 
    CQTOpenGLRobot::~CQTOpenGLRobot() {
-      glDeleteLists(m_unBaseList, 2);
+      glDeleteLists(m_unBaseList, 4);
    }
 
    /****************************************/
@@ -59,26 +72,39 @@ namespace argos {
       /* Draw the bodies */
       glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, BODY_COLOR);
       
-      for(UInt32 i = 0; i < cBodyEquippedEntity.GetAllBodies().size(); ++i) {
-         
-         CBodyEntity& cBody = cBodyEquippedEntity.GetBody(i);
-         
+      
+      for(CBodyEntity::TList::iterator itBody = m_cBodyEquippedEntity.GetAllBodies().begin();
+          itBody != m_cBodyEquippedEntity.GetAllBodies().end();
+          ++itBody) {
          /* Get the position of the body */
-         const CVector3& cPosition = cBody.GetPositionalEntity().GetPosition();
+         const CVector3& cPosition = (*itBody)->GetPositionalEntity().GetPosition();
          /* Get the orientation of the body */
-         const CQuaternion& cOrientation = cBody.GetPositionalEntity().GetOrientation();
+         const CQuaternion& cOrientation = (*itBody)->GetPositionalEntity().GetOrientation();
          CRadians cZAngle, cYAngle, cXAngle;
          cOrientation.ToEulerAngles(cZAngle, cYAngle, cXAngle);
          glPushMatrix();
-            /* First, translate the body */
-            glTranslatef(cPosition.GetX(), cPosition.GetY(), cPosition.GetZ());
-            /* Second, rotate the body */
-            glRotatef(ToDegrees(cXAngle).GetValue(), 1.0f, 0.0f, 0.0f);
-            glRotatef(ToDegrees(cYAngle).GetValue(), 0.0f, 1.0f, 0.0f);
-            glRotatef(ToDegrees(cZAngle).GetValue(), 0.0f, 0.0f, 1.0f);
-            
-            glScalef(cBody.GetSize().GetX(), cBody.GetSize().GetY(), cBody.GetSize().GetZ());
-            glCallList(m_unBodyList);
+         /* First, translate the body */
+         glTranslatef(cPosition.GetX(), cPosition.GetY(), cPosition.GetZ());
+         /* Second, rotate the body */
+         glRotatef(ToDegrees(cXAngle).GetValue(), 1.0f, 0.0f, 0.0f);
+         glRotatef(ToDegrees(cYAngle).GetValue(), 0.0f, 1.0f, 0.0f);
+         glRotatef(ToDegrees(cZAngle).GetValue(), 0.0f, 0.0f, 1.0f);
+         /* Third, scale the body */
+         glScalef((*itBody)->GetGeometry().GetExtents().GetX(),
+                  (*itBody)->GetGeometry().GetExtents().GetY(),
+                  (*itBody)->GetGeometry().GetExtents().GetZ());
+         /* Forth, draw the body by calling the correct list */
+         switch((*itBody)->GetGeometry().GetTag()) {
+         case CGeometry3::BOX:
+            glCallList(m_unBoxList);
+            break;
+         case CGeometry3::CYLINDER:
+            glCallList(m_unCylinderList);
+            break;
+         case CGeometry3::SPHERE:
+            glCallList(m_unSphereList);
+            break;
+         }
          glPopMatrix();
       }
    }
@@ -87,7 +113,7 @@ namespace argos {
    /****************************************/
    
    /* define a unit cube that can be stetched into prism representing the bodies */
-   void CQTOpenGLRobot::MakeBody() {
+   void CQTOpenGLRobot::MakeBox() {
       glEnable(GL_NORMALIZE);
       
       /* Set the material */
@@ -141,6 +167,97 @@ namespace argos {
       glEnd();
       /* The shape definitions is finished */
       
+      /* We don't need it anymore */
+      glDisable(GL_NORMALIZE);
+   }
+   
+   /****************************************/
+   /****************************************/
+
+   void CQTOpenGLRobot::MakeCylinder() {
+      /* Since this shape can be stretched,
+         make sure the normal vectors are unit-long */
+      glEnable(GL_NORMALIZE);
+
+      /* Set the material */
+      glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, SPECULAR);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, SHININESS);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, EMISSION);
+
+      /* Let's start the actual shape */
+      /* Side surface */
+      CVector2 cVertex(1.0f, 0.0f);
+      CRadians cAngle(CRadians::TWO_PI / m_unVertices);
+      glBegin(GL_QUAD_STRIP);
+      for(GLuint i = 0; i <= m_unVertices; i++) {
+         glNormal3f(cVertex.GetX(), cVertex.GetY(), 0.0f);
+         glVertex3f(cVertex.GetX(), cVertex.GetY(), 1.0f);
+         glVertex3f(cVertex.GetX(), cVertex.GetY(), 0.0f);
+         cVertex.Rotate(cAngle);
+      }
+      glEnd();
+      /* Top disk */
+      cVertex.Set(1.0f, 0.0f);
+      glBegin(GL_POLYGON);
+      glNormal3f(0.0f, 0.0f, 1.0f);
+      for(GLuint i = 0; i <= m_unVertices; i++) {
+         glVertex3f(cVertex.GetX(), cVertex.GetY(), 1.0f);
+         cVertex.Rotate(cAngle);
+      }
+      glEnd();
+      /* Bottom disk */
+      cVertex.Set(1.0f, 0.0f);
+      cAngle = -cAngle;
+      glBegin(GL_POLYGON);
+      glNormal3f(0.0f, 0.0f, -1.0f);
+      for(GLuint i = 0; i <= m_unVertices; i++) {
+         glVertex3f(cVertex.GetX(), cVertex.GetY(), 0.0f);
+         cVertex.Rotate(cAngle);
+      }
+      glEnd();
+      /* The shape definition is finished */
+
+      /* We don't need it anymore */
+      glDisable(GL_NORMALIZE);
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CQTOpenGLRobot::MakeSphere() {
+      glEnable(GL_NORMALIZE);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, SPECULAR);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, SHININESS);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, EMISSION);
+
+      /* Let's start the actual shape */
+      CVector3 cNormal, cPoint;
+      CRadians cSlice(CRadians::TWO_PI / m_unVertices);
+      
+      glBegin(GL_TRIANGLE_STRIP);
+      for(CRadians cInclination; cInclination <= CRadians::PI; cInclination += cSlice) {
+         for(CRadians cAzimuth; cAzimuth <= CRadians::TWO_PI; cAzimuth += cSlice) {
+
+            cPoint.FromSphericalCoords(1.0f, cInclination, cAzimuth);
+            glNormal3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
+            glVertex3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
+
+            cPoint.FromSphericalCoords(1.0f, cInclination + cSlice, cAzimuth);
+            glNormal3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
+            glVertex3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
+
+            cPoint.FromSphericalCoords(1.0f, cInclination, cAzimuth + cSlice);
+            glNormal3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
+            glVertex3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
+
+            cPoint.FromSphericalCoords(1.0f, cInclination + cSlice, cAzimuth + cSlice);
+            glNormal3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
+            glVertex3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
+
+         }
+      }
+      glEnd();
+
       /* We don't need it anymore */
       glDisable(GL_NORMALIZE);
    }

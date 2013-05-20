@@ -12,6 +12,8 @@
 #include <argos3/plugins/robots/robot/simulator/body_equipped_entity.h>
 #include <argos3/plugins/robots/robot/simulator/frame_equipped_entity.h>
 
+#include <argos3/plugins/robots/robot/simulator/geometry3.h>
+
 #include <argos3/core/utility/math/matrix/rotationmatrix3.h>
 
 namespace argos {
@@ -29,34 +31,40 @@ namespace argos {
       for(CBodyEntity::TList::iterator itBody = m_cBodyEquippedEntity.GetAllBodies().begin();
           itBody != m_cBodyEquippedEntity.GetAllBodies().end();
           ++itBody) {
-         
-         btVector3 bodyHalfExtents((*itBody)->GetSize().GetX() * 0.5f,
-                                   (*itBody)->GetSize().GetZ() * 0.5f,
-                                   (*itBody)->GetSize().GetY() * 0.5f);
 
-         //@todo becareful with cleaning up this memory!
-         btBoxShape* pcCollisionShape = new btBoxShape(bodyHalfExtents);
-         
-         btTransform cOffset(ARGoSToBullet((*itBody)->GetOffsetPositionalEntity().GetOrientation()),
-                                ARGoSToBullet((*itBody)->GetOffsetPositionalEntity().GetPosition()));
-         
-         btTransform geo(btQuaternion(0,0,0,1), btVector3(0, -bodyHalfExtents.getY(), 0));
-         
+         btCollisionShape* pcShape = NULL;
+         btVector3 cExtents((*itBody)->GetGeometry().GetExtents().GetX(),
+                            (*itBody)->GetGeometry().GetExtents().GetZ(),
+                            (*itBody)->GetGeometry().GetExtents().GetY());
+         /* check the tag to determine which shape manager to use */
+         switch((*itBody)->GetGeometry().GetTag()) {
+         case CGeometry3::BOX:
+            pcShape = m_cBoxShapeManager.RequestBoxShape(cExtents * 0.5f);
+            break;
+         case CGeometry3::CYLINDER:
+            pcShape = m_cCylinderShapeManager.RequestCylinderShape(cExtents * 0.5f);
+            break;
+         case CGeometry3::SPHERE:
+            /* we could dynamically cast this geometry to a sphere and take the radius
+             * directly, however this is more efficient */
+            pcShape = m_cSphereShapeManager.RequestSphereShape(cExtents.getX() * 0.5f);
+            break;
+         }
+         btTransform cPositionalOffset(ARGoSToBullet((*itBody)->GetOffsetPositionalEntity().GetOrientation()),
+                                       ARGoSToBullet((*itBody)->GetOffsetPositionalEntity().GetPosition()));
+         btTransform cGeometricOffset(btQuaternion(0,0,0,1),
+                                      btVector3(0, -cExtents.getY() * 0.5f, 0));
          m_vecLocalBodies.push_back(new CDynamics3DBody((*itBody)->GetId(), 
-                                                        pcCollisionShape, 
-                                                        cOffset,
-                                                        geo,
+                                                        pcShape, 
+                                                        cPositionalOffset,
+                                                        cGeometricOffset,
                                                         (*itBody)->GetMass()));
       }
 
       for(CJointEntity::TList::iterator itJoint = m_cJointEquippedEntity.GetAllJoints().begin();
           itJoint != m_cJointEquippedEntity.GetAllJoints().end();
           ++itJoint) {
-
-         fprintf(stderr, "Adding joint %s\n", (*itJoint)->GetId().c_str());
-         
          CFrameEntity::TList& tFrames = (*itJoint)->GetFrameEquippedEntity().GetAllFrames();
-         
          if(tFrames.size() != 2) {
             THROW_ARGOSEXCEPTION("This version of the Dynamics3D plugin only allows joints between two bodies");
          }
@@ -274,6 +282,160 @@ namespace argos {
       return (sReferenceBodyConfiguration.GetMotionStateTransform() *
               sReferenceBodyConfiguration.GetPositionalOffset().inverse());
    }
+
+   /****************************************/
+   /****************************************/
+
+   btBoxShape* CDynamics3DRobotModel::CBoxShapeManager::RequestBoxShape(const btVector3& c_half_extents) {
+      std::vector<CResource>::iterator itResource;      
+      for(itResource = m_vecResources.begin();
+          itResource != m_vecResources.end();
+          ++itResource) {
+         if(itResource->m_cHalfExtents == c_half_extents) break;
+      }      
+      // if it doesn't exist, create a new one
+      if(itResource == m_vecResources.end()) {
+         itResource = m_vecResources.insert(itResource, 
+                                            CResource(c_half_extents, new btBoxShape(c_half_extents)));
+      }
+      itResource->m_unInUseCount++;
+      return itResource->m_cShape;
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CDynamics3DRobotModel::CBoxShapeManager::ReleaseBoxShape(const btBoxShape* pc_release) {
+      std::vector<CResource>::iterator itResource;      
+      for(itResource = m_vecResources.begin();
+          itResource != m_vecResources.end();
+          ++itResource) {
+         if(itResource->m_cShape == pc_release) break;
+      }
+      // if it doesn't exist, throw an exception
+      if(itResource == m_vecResources.end()) {
+         THROW_ARGOSEXCEPTION("Attempt to release unknown btBoxShape from the box shape manager!");
+      }
+      itResource->m_unInUseCount--;
+      if(itResource->m_unInUseCount == 0) {
+         delete itResource->m_cShape;
+         m_vecResources.erase(itResource);
+      }
+   }
+
+   /****************************************/
+   /****************************************/
+
+   CDynamics3DRobotModel::CBoxShapeManager::CResource::CResource(const btVector3& c_half_extents,
+                                                                 btBoxShape* c_shape) : 
+      m_cHalfExtents(c_half_extents),
+      m_cShape(c_shape),
+      m_unInUseCount(0) {}
+
+   /****************************************/
+   /****************************************/
+
+   btCylinderShape* CDynamics3DRobotModel::CCylinderShapeManager::RequestCylinderShape(const btVector3& c_half_extents) {
+      std::vector<CResource>::iterator itResource;      
+      for(itResource = m_vecResources.begin();
+          itResource != m_vecResources.end();
+          ++itResource) {
+         if(itResource->m_cHalfExtents == c_half_extents) break;
+      }      
+      // if it doesn't exist, create a new one
+      if(itResource == m_vecResources.end()) {
+         itResource = m_vecResources.insert(itResource, 
+                                            CResource(c_half_extents, new btCylinderShape(c_half_extents)));
+      }
+      itResource->m_unInUseCount++;
+      return itResource->m_cShape;
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CDynamics3DRobotModel::CCylinderShapeManager::ReleaseCylinderShape(const btCylinderShape* pc_release) {
+      std::vector<CResource>::iterator itResource;      
+      for(itResource = m_vecResources.begin();
+          itResource != m_vecResources.end();
+          ++itResource) {
+         if(itResource->m_cShape == pc_release) break;
+      }
+      // if it doesn't exist, throw an exception
+      if(itResource == m_vecResources.end()) {
+         THROW_ARGOSEXCEPTION("Attempt to release unknown btCylinderShape from the cylinder shape manager!");
+      }
+      itResource->m_unInUseCount--;
+      if(itResource->m_unInUseCount == 0) {
+         delete itResource->m_cShape;
+         m_vecResources.erase(itResource);
+      }
+   }
+
+   /****************************************/
+   /****************************************/
+
+   CDynamics3DRobotModel::CCylinderShapeManager::CResource::CResource(const btVector3& c_half_extents,
+                                                                      btCylinderShape* c_shape) : 
+      m_cHalfExtents(c_half_extents),
+      m_cShape(c_shape),
+      m_unInUseCount(0) {}
+
+   /****************************************/
+   /****************************************/
+
+   btSphereShape* CDynamics3DRobotModel::CSphereShapeManager::RequestSphereShape(const btVector3& c_half_extents) {
+      std::vector<CResource>::iterator itResource;      
+      for(itResource = m_vecResources.begin();
+          itResource != m_vecResources.end();
+          ++itResource) {
+         if(itResource->m_cHalfExtents == c_half_extents) break;
+      }      
+      // if it doesn't exist, create a new one
+      if(itResource == m_vecResources.end()) {
+         itResource = m_vecResources.insert(itResource, 
+                                            CResource(c_half_extents, new btSphereShape(c_half_extents)));
+      }
+      itResource->m_unInUseCount++;
+      return itResource->m_cShape;
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CDynamics3DRobotModel::CSphereShapeManager::ReleaseSphereShape(const btSphereShape* pc_release) {
+      std::vector<CResource>::iterator itResource;      
+      for(itResource = m_vecResources.begin();
+          itResource != m_vecResources.end();
+          ++itResource) {
+         if(itResource->m_cShape == pc_release) break;
+      }
+      // if it doesn't exist, throw an exception
+      if(itResource == m_vecResources.end()) {
+         THROW_ARGOSEXCEPTION("Attempt to release unknown btSphereShape from the sphere shape manager!");
+      }
+      itResource->m_unInUseCount--;
+      if(itResource->m_unInUseCount == 0) {
+         delete itResource->m_cShape;
+         m_vecResources.erase(itResource);
+      }
+   }
+
+   /****************************************/
+   /****************************************/
+
+   CDynamics3DRobotModel::CSphereShapeManager::CResource::CResource(const btVector3& c_half_extents,
+                                                                    btSphereShape* c_shape) : 
+      m_cHalfExtents(c_half_extents),
+      m_cShape(c_shape),
+      m_unInUseCount(0) {}
+
+   /****************************************/
+   /****************************************/
+
+   CDynamics3DRobotModel::CBoxShapeManager      CDynamics3DRobotModel::m_cBoxShapeManager;
+   CDynamics3DRobotModel::CCylinderShapeManager CDynamics3DRobotModel::m_cCylinderShapeManager;
+   CDynamics3DRobotModel::CSphereShapeManager   CDynamics3DRobotModel::m_cSphereShapeManager;
 
    /****************************************/
    /****************************************/
