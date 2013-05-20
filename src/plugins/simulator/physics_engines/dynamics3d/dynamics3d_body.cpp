@@ -94,6 +94,13 @@ namespace argos {
   
    /****************************************/
    /****************************************/
+
+   const btTransform& CDynamics3DBody::GetGeometricOffset() const {
+      return m_cGeometricOffset;
+   }
+  
+   /****************************************/
+   /****************************************/
    
    const btTransform& CDynamics3DBody::GetMotionStateTransform() const {
       return m_pcMotionState->m_graphicsWorldTrans;

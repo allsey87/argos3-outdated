@@ -26,6 +26,8 @@ namespace argos {
 
    void CFrameEquippedEntity::Init(TConfigurationNode& t_tree) {
       try {
+         CComposableEntity::Init(t_tree);
+
          /* Go through the frames */
          TConfigurationNodeIterator itFrame("frame");
          for(itFrame = itFrame.begin(&t_tree);
@@ -63,7 +65,7 @@ namespace argos {
       CFrameEntity* pcFrame =
          new CFrameEntity(
             this,
-            GetId() + ".frame_" + ToString(m_tFrames.size()),
+            "frame_" + ToString(m_tFrames.size()),
             pc_body,
             c_position,
             c_orientation);

@@ -16,11 +16,7 @@ namespace argos {
    CJointEntity::CJointEntity(CComposableEntity* pc_parent) :
       CComposableEntity(pc_parent),
       m_bDisableCollisions(false),
-      m_pcFrameEquippedEntity(NULL),
-      m_cLinearLowerLimit(0.0f,0.0f,0.0f),
-      m_cLinearUpperLimit(0.0f,0.0f,0.0f),
-      m_cAngularLowerLimit(0.0f,0.0f,0.0f),
-      m_cAngularUpperLimit(0.0f,0.0f,0.0f) {}
+      m_pcFrameEquippedEntity(NULL) {}
 
    /****************************************/
    /****************************************/
@@ -30,12 +26,7 @@ namespace argos {
                               const std::string& str_id,
                               bool b_disable_collisions) :
       CComposableEntity(pc_parent, str_id),
-      m_bDisableCollisions(b_disable_collisions),
-      m_cLinearLowerLimit(0.0f,0.0f,0.0f),
-      m_cLinearUpperLimit(0.0f,0.0f,0.0f),
-      m_cAngularLowerLimit(0.0f,0.0f,0.0f),
-      m_cAngularUpperLimit(0.0f,0.0f,0.0f) {
- 
+      m_bDisableCollisions(b_disable_collisions) {
       m_pcFrameEquippedEntity = new CFrameEquippedEntity(this, "frames");
    }
 
@@ -50,38 +41,98 @@ namespace argos {
          /* check if we are disabling collisions */
          GetNodeAttributeOrDefault(t_tree, "disable_collisions", m_bDisableCollisions, false);
 
-         m_pcFrameEquippedEntity = new CFrameEquippedEntity(this, "frames");
+         m_pcFrameEquippedEntity = new CFrameEquippedEntity(this);
          if(NodeExists(t_tree, "frames")) {
             m_pcFrameEquippedEntity->Init(GetNode(t_tree, "frames"));
          }
          else {
             //todo what happens here, error here or later in dynamics engine?
          }
-
          AddComponent(*m_pcFrameEquippedEntity);
-         /* parse the joints limits if they exist */
-         if(NodeExists(t_tree, "limits")) {
-            TConfigurationNode& tLimits = GetNode(t_tree, "limits");
-            if(NodeExists(tLimits, "linear")) {
-               TConfigurationNode& tLinearLimits = GetNode(tLimits, "linear");
-               if(NodeAttributeExists(tLinearLimits, "lowerbound") &&
-                  NodeAttributeExists(tLinearLimits, "upperbound")) {
-                  GetNodeAttribute(tLinearLimits, "lowerbound", m_cLinearLowerLimit);
-                  GetNodeAttribute(tLinearLimits, "upperbound", m_cLinearUpperLimit);
+
+
+         /* parse the degrees of freedom if they exist */
+         if(NodeExists(t_tree, "dof")) {
+            TConfigurationNode& tDof = GetNode(t_tree, "dof");
+            if(NodeExists(tDof, "linear")) {
+               TConfigurationNode& tLinearDofs = GetNode(tDof, "linear");
+               /* Check for degrees of freedom for linear X */
+               if(NodeAttributeExists(tLinearDofs, "x" )) {
+                  std::string strDofs;
+                  GetNodeAttribute(tLinearDofs, "x", strDofs);
+                  if(strDofs == "free") {
+                     m_sLinearDofs.m_sX.m_bUnconstrained = true;
+                  }
+                  else {
+                     GetNodeAttribute(tLinearDofs, "x", m_sLinearDofs.m_sX.m_cLimits);
+                  }
                }
-               else {
-                  THROW_ARGOSEXCEPTION("Error in parsing the joint's linear limits. You must specify both an upper and lower bound");
+               /* Check for degrees of freedom for linear Y */
+               if(NodeAttributeExists(tLinearDofs, "y" )) {
+                  std::string strDofs;
+                  GetNodeAttribute(tLinearDofs, "y", strDofs);
+                  if(strDofs == "free") {
+                     m_sLinearDofs.m_sY.m_bUnconstrained = true;
+                  }
+                  else {
+                     GetNodeAttribute(tLinearDofs, "y", m_sLinearDofs.m_sY.m_cLimits);
+                  }
+               }
+               /* Check for degrees of freedom for linear X */
+               if(NodeAttributeExists(tLinearDofs, "z" )) {
+                  std::string strDofs;
+                  GetNodeAttribute(tLinearDofs, "z", strDofs);
+                  if(strDofs == "free") {
+                     m_sLinearDofs.m_sZ.m_bUnconstrained = true;
+                  }
+                  else {
+                     GetNodeAttribute(tLinearDofs, "z", m_sLinearDofs.m_sZ.m_cLimits);
+                  }
                }
             }
-            if(NodeExists(tLimits, "angular")) {
-               TConfigurationNode& tAngularLimits = GetNode(tLimits, "angular");
-               if(NodeAttributeExists(tAngularLimits, "lowerbound") &&
-                  NodeAttributeExists(tAngularLimits, "upperbound")) {
-                  GetNodeAttribute(tAngularLimits, "lowerbound", m_cAngularLowerLimit);
-                  GetNodeAttribute(tAngularLimits, "upperbound", m_cAngularUpperLimit);
+            if(NodeExists(tDof, "angular")) {
+               TConfigurationNode& tAngularDofs = GetNode(tDof, "angular");
+               /* Check for degrees of freedom for angular X */
+               if(NodeAttributeExists(tAngularDofs, "x" )) {
+                  std::string strDofs;
+                  GetNodeAttribute(tAngularDofs, "x", strDofs);
+                  if(strDofs == "free") {
+                     m_sAngularDofs.m_sX.m_bUnconstrained = true;
+                  }
+                  else {
+                     CRange<CDegrees> cAngularDofRange;
+                     GetNodeAttribute(tAngularDofs, "x", cAngularDofRange);
+                     m_sAngularDofs.m_sX.m_cLimits.Set(ToRadians(cAngularDofRange.GetMin()),
+                                                       ToRadians(cAngularDofRange.GetMax()));
+                  }
                }
-               else {
-                  THROW_ARGOSEXCEPTION("Error in parsing the joint's angular limits. You must specify both an upper and lower bound");
+               /* Check for degrees of freedom for angular Y */
+               if(NodeAttributeExists(tAngularDofs, "y" )) {
+                  std::string strDofs;
+                  GetNodeAttribute(tAngularDofs, "y", strDofs);
+                  if(strDofs == "free") {
+                     m_sAngularDofs.m_sY.m_bUnconstrained = true;
+                  }
+                  else {
+                     CRange<CDegrees> cAngularDofRange;
+                     GetNodeAttribute(tAngularDofs, "y", cAngularDofRange);
+                     m_sAngularDofs.m_sY.m_cLimits.Set(ToRadians(cAngularDofRange.GetMin()),
+                                                       ToRadians(cAngularDofRange.GetMax()));
+                  }
+               }
+               /* Check for degrees of freedom for angular X */
+               if(NodeAttributeExists(tAngularDofs, "z" )) {
+                  std::string strDofs;
+                  GetNodeAttribute(tAngularDofs, "z", strDofs);
+                  if(strDofs == "free") {
+                     m_sAngularDofs.m_sZ.m_bUnconstrained = true;
+                  }
+                  else {
+                     CRange<CDegrees> cAngularDofRange;
+                     GetNodeAttribute(tAngularDofs, "z", cAngularDofRange);
+                     m_sAngularDofs.m_sZ.m_cLimits.Set(ToRadians(cAngularDofRange.GetMin()),
+                                                       ToRadians(cAngularDofRange.GetMax()));
+                  }
                }
             }
          }

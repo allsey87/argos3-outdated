@@ -52,6 +52,8 @@ namespace argos {
 
       const btTransform& GetPositionalOffset() const;
 
+      const btTransform& GetGeometricOffset() const;
+
       const btTransform& GetMotionStateTransform() const;
       
       void SetMotionStateTransform(const btTransform & cTransform);

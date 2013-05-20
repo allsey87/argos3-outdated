@@ -50,6 +50,9 @@ namespace argos {
           * as the position will be driven directly from a physics engine */
          m_pcPositionalEntity = new CPositionalEntity(this);
          AddComponent(*m_pcPositionalEntity);
+         if(NodeExists(t_tree, "coordinates")) {
+            m_pcPositionalEntity->Init(GetNode(t_tree, "coordinates"));
+         }
 
          /* Parse body attributes */  
          GetNodeAttribute(t_tree, "size", m_cSize);

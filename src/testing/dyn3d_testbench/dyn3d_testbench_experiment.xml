@@ -60,53 +60,86 @@
     <robot id="robotic-arm" position="0,0,0" orientation="0,0,0" controller="r_lua">
       <bodies reference_body="body_0">
          <body id="body_0" geometry="box" size="0.3,0.3,0.05" mass="1">
+            <coordinates/>
             <offset position="0,0,0" orientation="0,0,0"/>
          </body>
          <body id="body_1" geometry="box" size="0.05,0.05,0.4" mass="1">
+            <coordinates/>
             <offset position="0,0,0.05" orientation="0,0,0"/>
          </body>
          <body id="body_2" geometry="box" size="0.05,0.05,0.4" mass="1">
+            <coordinates/>
             <offset position="0,0,0.45" orientation="0,0,0"/>
          </body>
       </bodies>
       <joints>
          <joint id="joint_0" disable_collisions="false" sensor="enabled" actuator="enabled">
             <frames>
-               <frame id="1" body="body_0" position="0,0, 0.025" orientation="0,0,0"/>
-               <frame id="2" body="body_1" position="0,0,-0.200" orientation="0,0,0"/>
+               <frame body="body_0" position="0,0, 0.05" orientation="0,0,0"/>
+               <frame body="body_1" position="0,0,0" orientation="0,0,0"/>
             </frames>
          </joint>
          <joint id="joint_1" disable_collisions="true" sensor="enabled" actuator="enabled">
             <frames>
-               <frame id="1" body="body_1" position="0,0, 0.200" orientation="0,0,0"/>
-               <frame id="2" body="body_2" position="0,0,-0.200" orientation="0,0,0"/>
+               <frame body="body_1" position="0,0,0.4" orientation="0,0,0"/>
+               <frame body="body_2" position="0,0,0" orientation="0,0,0"/>
             </frames>
-            <limits>
-               <angular lowerbound="-90,0,0" upperbound="90,0,0"/>
-            </limits>
+            <dof>
+               <angular x="-90:90" z="free"/>
+            </dof>
          </joint>
       </joints>
     </robot>
     
-    <robot id="table" position="-1.5,-1.5,0" orientation="0,0,0" controller="r_lua">
+    <robot id="table" position="-1.5,-1.5,1" orientation="45,30,0" controller="r_lua">
       <bodies reference_body="table_top">
          <body id="table_leg_0" geometry="box" size="0.05,0.05,0.2" mass="1">
+            <coordinates/>
             <offset position="0.2,0.2,0" orientation="0,0,0"/>
          </body>
          <body id="table_leg_1" geometry="box" size="0.05,0.05,0.2" mass="1">
+            <coordinates/>
             <offset position="-0.2,0.2,0" orientation="0,0,0"/>
          </body>
          <body id="table_leg_2" geometry="box" size="0.05,0.05,0.2" mass="1">
+            <coordinates/>
             <offset position="0.2,-0.2,0" orientation="0,0,0"/>
          </body>
          <body id="table_leg_3" geometry="box" size="0.05,0.05,0.2" mass="1">
+            <coordinates/>
             <offset position="-0.2,-0.2,0" orientation="0,0,0"/>
          </body>
-         <body id="table_top" geometry="box" size="0.6,0.6,0.05" mass="10">
+         <body id="table_top" geometry="box" size="0.6,0.6,0.05" mass="1">
+            <coordinates/>
             <offset position="0,0,0.2" orientation="0,0,0"/>
          </body>
       </bodies>
-      <joints/>
+      <joints>
+         <joint id="table_leg_0_to_table_top" disable_collisions="false" sensor="enabled" actuator="enabled">
+            <frames>
+               <frame body="table_leg_0" position="0,0,0.2" orientation="0,0,0"/>
+               <frame body="table_top" position="0.2,0.2,0" orientation="0,0,0"/>
+            </frames>
+         </joint>
+         <joint id="table_leg_1_to_table_top" disable_collisions="false" sensor="enabled" actuator="enabled">
+            <frames>
+               <frame body="table_leg_1" position="0,0,0.2" orientation="0,0,0"/>
+               <frame body="table_top" position="-0.2,0.2,0" orientation="0,0,0"/>
+            </frames>
+         </joint>
+         <joint id="table_leg_2_to_table_top" disable_collisions="false" sensor="enabled" actuator="enabled">
+            <frames>
+               <frame body="table_leg_2" position="0,0,0.2" orientation="0,0,0"/>
+               <frame body="table_top" position="0.2,-0.2,0" orientation="0,0,0"/>
+            </frames>
+         </joint>
+         <joint id="table_leg_3_to_table_top" disable_collisions="false" sensor="enabled" actuator="enabled">
+            <frames>
+               <frame body="table_leg_3" position="0,0,0.2" orientation="0,0,0"/>
+               <frame body="table_top" position="-0.2,-0.2,0" orientation="0,0,0"/>
+            </frames>
+         </joint>
+      </joints>
     </robot>
     
     <foot-bot id="fb1">

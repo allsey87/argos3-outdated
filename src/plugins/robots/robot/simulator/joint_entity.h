@@ -29,6 +29,18 @@ namespace argos {
 
    public:
 
+      template <class T>
+      struct SAxisDegreeOfFreedom {
+         SAxisDegreeOfFreedom(bool b_unconstrained = false, 
+                              const CRange<T>& c_limits = CRange<T>()) :
+            m_bUnconstrained(b_unconstrained),  
+            m_cLimits(c_limits) {}
+         bool m_bUnconstrained;
+         CRange<T> m_cLimits;
+      };
+
+   public:
+
       CJointEntity(CComposableEntity* pc_parent);
 
       CJointEntity(CComposableEntity* pc_parent,
@@ -51,24 +63,32 @@ namespace argos {
          return "joint";
       }
 
-      const CVector3& GetLinearLowerLimit() const {
-         return m_cLinearLowerLimit;
-      }
-
-      const CVector3& GetLinearUpperLimit() const {
-         return m_cLinearUpperLimit;
-      }
-
-      const CVector3& GetAngularLowerLimit() const {
-         return m_cAngularLowerLimit;
-      }
-
-      const CVector3& GetAngularUpperLimit() const {
-         return m_cAngularUpperLimit;
-      }
-
       bool GetDisableLinkedBodyCollisions() const {
          return m_bDisableCollisions;
+      }
+
+      const SAxisDegreeOfFreedom<Real>& GetDofLinearX() const {
+         return m_sLinearDofs.m_sX;
+      }
+
+      const SAxisDegreeOfFreedom<Real>& GetDofLinearY() const {
+         return m_sLinearDofs.m_sY;
+      }
+
+      const SAxisDegreeOfFreedom<Real>& GetDofLinearZ() const {
+         return m_sLinearDofs.m_sZ;
+      }
+
+      const SAxisDegreeOfFreedom<CRadians>& GetDofAngularX() const {
+         return m_sAngularDofs.m_sX;
+      }
+
+      const SAxisDegreeOfFreedom<CRadians>& GetDofAngularY() const {
+         return m_sAngularDofs.m_sY;
+      }
+
+      const SAxisDegreeOfFreedom<CRadians>& GetDofAngularZ() const {
+         return m_sAngularDofs.m_sZ;
       }
 
    private:      
@@ -76,12 +96,14 @@ namespace argos {
 
       CFrameEquippedEntity* m_pcFrameEquippedEntity;
 
-      CVector3 m_cLinearLowerLimit;
-      CVector3 m_cLinearUpperLimit;
-      CVector3 m_cAngularLowerLimit;
-      CVector3 m_cAngularUpperLimit;
+      struct {
+         SAxisDegreeOfFreedom<CRadians> m_sX, m_sY, m_sZ;
+      } m_sAngularDofs;
       
-   public:
+      struct {
+         SAxisDegreeOfFreedom<Real> m_sX, m_sY, m_sZ;
+      } m_sLinearDofs;
+      
 
    };
 

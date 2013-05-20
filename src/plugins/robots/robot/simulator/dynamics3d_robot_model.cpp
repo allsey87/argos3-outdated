@@ -42,8 +42,6 @@ namespace argos {
          
          btTransform geo(btQuaternion(0,0,0,1), btVector3(0, -bodyHalfExtents.getY(), 0));
          
-         fprintf(stderr, "cOffset for %s: position = [%.3f, %.3f, %.3f], orientaton-axis = [%.3f, %.3f, %.3f], orientation-rotation = [%.3f]\n", (*itBody)->GetId().c_str(), cOffset.getOrigin().getX(), cOffset.getOrigin().getY(), cOffset.getOrigin().getZ(), cOffset.getRotation().getAxis().getX(), cOffset.getRotation().getAxis().getY(), cOffset.getRotation().getAxis().getZ(), cOffset.getRotation().getAngle());
-
          m_vecLocalBodies.push_back(new CDynamics3DBody((*itBody)->GetId(), 
                                                         pcCollisionShape, 
                                                         cOffset,
@@ -78,31 +76,55 @@ namespace argos {
                                     tFrames[1]->GetBodyEntity().GetId() << "\"." );
             }
             /* Get the frames in each respective bodies */
-            btTransform cFrameOriginInBody0(ARGoSToBullet(tFrames[0]->GetPositionalEntity().GetOrientation()),
-                                            ARGoSToBullet(tFrames[0]->GetPositionalEntity().GetPosition()));
-            btTransform cFrameOriginInBody1(ARGoSToBullet(tFrames[1]->GetPositionalEntity().GetOrientation()),
-                                            ARGoSToBullet(tFrames[1]->GetPositionalEntity().GetPosition()));
-
-            /* Get the limits of the joint - @todo issues ahoy!! */
-            CDynamics3DJoint::SJointLimits sLinearLimits(ARGoSToBullet((*itJoint)->GetLinearLowerLimit()),
-                                                         ARGoSToBullet((*itJoint)->GetLinearUpperLimit()));
-            CDynamics3DJoint::SJointLimits sAngularLimits(ARGoSToBullet((*itJoint)->GetAngularLowerLimit()),
-                                                          ARGoSToBullet((*itJoint)->GetAngularUpperLimit()));
-            
+            btTransform cFrameOriginInBody0 = 
+               btTransform(ARGoSToBullet(tFrames[0]->GetPositionalEntity().GetOrientation()),
+                           ARGoSToBullet(tFrames[0]->GetPositionalEntity().GetPosition())) *
+               (*itDyn3dBody0)->GetGeometricOffset();
+            btTransform cFrameOriginInBody1 =
+               btTransform(ARGoSToBullet(tFrames[1]->GetPositionalEntity().GetOrientation()),
+                           ARGoSToBullet(tFrames[1]->GetPositionalEntity().GetPosition())) * 
+               (*itDyn3dBody1)->GetGeometricOffset();
+            /* Get the limits of the joint - we must manually swap Z and Y here! */
+            /* linear */
+            btVector3 cLinearLowerLimit((*itJoint)->GetDofLinearX().m_bUnconstrained ?
+                                        1.0f : (*itJoint)->GetDofLinearX().m_cLimits.GetMin(),
+                                        (*itJoint)->GetDofLinearZ().m_bUnconstrained ?
+                                        1.0f : (*itJoint)->GetDofLinearZ().m_cLimits.GetMin(),
+                                        (*itJoint)->GetDofLinearY().m_bUnconstrained ?
+                                        1.0f : (*itJoint)->GetDofLinearY().m_cLimits.GetMin());
+            btVector3 cLinearUpperLimit((*itJoint)->GetDofLinearX().m_bUnconstrained ?
+                                        -1.0f : (*itJoint)->GetDofLinearX().m_cLimits.GetMax(),
+                                        (*itJoint)->GetDofLinearZ().m_bUnconstrained ?
+                                        -1.0f : (*itJoint)->GetDofLinearZ().m_cLimits.GetMax(),
+                                        (*itJoint)->GetDofLinearY().m_bUnconstrained ?
+                                        -1.0f : (*itJoint)->GetDofLinearY().m_cLimits.GetMax());               
+            /* angular */
+            btVector3 cAngularLowerLimit((*itJoint)->GetDofAngularX().m_bUnconstrained ?
+                                         1.0f : (*itJoint)->GetDofAngularX().m_cLimits.GetMin().GetValue(),
+                                         (*itJoint)->GetDofAngularZ().m_bUnconstrained ?
+                                         1.0f : (*itJoint)->GetDofAngularZ().m_cLimits.GetMin().GetValue(),
+                                         (*itJoint)->GetDofAngularY().m_bUnconstrained ?
+                                         1.0f : (*itJoint)->GetDofAngularY().m_cLimits.GetMin().GetValue());
+            btVector3 cAngularUpperLimit((*itJoint)->GetDofAngularX().m_bUnconstrained ?
+                                         -1.0f : (*itJoint)->GetDofAngularX().m_cLimits.GetMax().GetValue(),
+                                         (*itJoint)->GetDofAngularZ().m_bUnconstrained ?
+                                         -1.0f : (*itJoint)->GetDofAngularZ().m_cLimits.GetMax().GetValue(),
+                                         (*itJoint)->GetDofAngularY().m_bUnconstrained ?
+                                         -1.0f : (*itJoint)->GetDofAngularY().m_cLimits.GetMax().GetValue());               
+            /* create the joint */
             m_vecLocalJoints.push_back(new CDynamics3DJoint((*itJoint)->GetId(),
                                                             **itDyn3dBody0,
                                                             **itDyn3dBody1,
                                                             cFrameOriginInBody0,
                                                             cFrameOriginInBody1,
-                                                            sLinearLimits,
-                                                            sAngularLimits,
+                                                            CDynamics3DJoint::SJointLimits(cLinearLowerLimit, cLinearUpperLimit),
+                                                            CDynamics3DJoint::SJointLimits(cAngularLowerLimit, cAngularUpperLimit),
                                                             true,
                                                             (*itJoint)->GetDisableLinkedBodyCollisions()));
          }
       }
       SetModelCoordinates(btTransform(ARGoSToBullet(GetEmbodiedEntity().GetOrientation()),
                                       ARGoSToBullet(GetEmbodiedEntity().GetPosition())));
-
       /* Update the bodies inside the entity which have their positions driven by the physics engines */
       UpdateEntityStatus();
    }
