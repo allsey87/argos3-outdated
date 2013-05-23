@@ -371,7 +371,11 @@ set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D
   dynamics3d_engine.h
   dynamics3d_body.h
   dynamics3d_joint.h)
-
+# Headers of the sphere entity (provided by the dynamics3d engine)
+set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_SPHERE
+  sphere/dynamics3d_sphere_model.h
+  sphere/sphere_entity.h)
+  
 #
 # Source files
 #
@@ -383,6 +387,23 @@ set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D
   dynamics3d_cylinder_model.cpp
   dynamics3d_model.cpp
   dynamics3d_engine.cpp)
+# Sphere entity source files (provided by the dynamics3d engine)
+set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_SPHERE
+  sphere/dynamics3d_sphere_model.cpp
+  sphere/sphere_entity.cpp)
+
+# Compile the graphical visualization for the sphere only if the necessary 
+# libraries have been found
+include(ARGoSCheckQTOpenGL)
+if(ARGOS_COMPILE_QTOPENGL)
+ set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_SPHERE
+   ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_SPHERE}
+   sphere/qtopengl_sphere.h)
+ set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_SPHERE
+   ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_SPHERE}
+#   simulator/qtopengl_robot.h
+   sphere/qtopengl_sphere.cpp)
+endif(ARGOS_COMPILE_QTOPENGL)
 
 #
 # Create dynamics3d engine plugin library
@@ -390,7 +411,9 @@ set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D
 # Create library
 add_library(argos3plugin_${ARGOS_BUILD_FOR}_dynamics3d SHARED
   ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET}
-  ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D})
+  ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D}
+  ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_SPHERE}
+  ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_SPHERE})
 target_link_libraries(argos3plugin_${ARGOS_BUILD_FOR}_dynamics3d)
 install(
   FILES

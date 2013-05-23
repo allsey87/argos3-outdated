@@ -20,17 +20,14 @@ namespace argos {
 
    /****************************************/
    /****************************************/
-
+   
    CBodyEntity::CBodyEntity(CComposableEntity* pc_parent,
                             const std::string& str_id,
-                            EGeometry e_body_geometry,
+                            const CGeometry3& c_geometry,
                             const CVector3& c_offset_position,
                             const CQuaternion& c_offset_orientation,
-                            const CVector3& c_size,
                             Real f_mass) :
       CComposableEntity(pc_parent, str_id),
-      m_eBodyGeometry(e_body_geometry),
-      m_cSize(c_size),
       m_fMass(f_mass) {
       
       /* default constructors are used for the positional component of the entity as
@@ -39,10 +36,13 @@ namespace argos {
       m_pcPositionalEntity = new CPositionalEntity(this, "absolute", CVector3(), CQuaternion());
       m_pcOffsetPositionalEntity = new CPositionalEntity(this, "relative", c_offset_position, c_offset_orientation);
 
+      //check tag type, dynamic cast, clone??
+      //m_pcGeometry = new CGeometry3(c_geometry);
+      
       AddComponent(*m_pcPositionalEntity);
       AddComponent(*m_pcOffsetPositionalEntity);
    }
-
+   
    /****************************************/
    /****************************************/
 
@@ -63,22 +63,22 @@ namespace argos {
          /* Parse body attributes */ 
          std::string strBodyGeometry;
          GetNodeAttribute(t_tree, "geometry", strBodyGeometry);
-         if(strBodyGeometry = "box") {
+         if(strBodyGeometry == "box") {
             /* requested geometry is a box*/
             CVector3 cSize;
             GetNodeAttribute(t_tree, "size", cSize);
-            m_pcGeometry =  = new CBoxGeometry3(cSize);
-         } else if(strBodyGeometry = "cylinder") {
+            m_pcGeometry = new CBoxGeometry3(cSize);
+         } else if(strBodyGeometry == "cylinder") {
             /* requested geometry is a cylinder */
             Real fHeight, fRadius;
             GetNodeAttribute(t_tree, "height", fHeight);
             GetNodeAttribute(t_tree, "radius", fRadius);
             m_pcGeometry = new CCylinderGeometry3(fRadius, fHeight);
-         } else if(strBodyGeometry = "sphere") {
+         } else if(strBodyGeometry == "sphere") {
             /* requested geometry is a sphere */
             Real fRadius;
             GetNodeAttribute(t_tree, "radius", fRadius);
-            m_pcGeometry =  = new CSphereGeometry3(fRadius);
+            m_pcGeometry = new CSphereGeometry3(fRadius);
          } else {
             /* requested geometry is unknown */
             THROW_ARGOSEXCEPTION("Unknown geometry type " << strBodyGeometry << " provided");

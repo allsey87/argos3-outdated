@@ -32,11 +32,15 @@ namespace argos {
 
    private:
 
-      void MakeBody();
+      void MakeBox();
+      void MakeCylinder();
+      void MakeSphere();
 
    private:
       GLuint m_unBaseList;
-      GLuint m_unBodyList;
+      GLuint m_unBoxList;
+      GLuint m_unCylinderList;
+      GLuint m_unSphereList;
       GLuint m_unLEDList;
       GLuint m_unVertices;
 

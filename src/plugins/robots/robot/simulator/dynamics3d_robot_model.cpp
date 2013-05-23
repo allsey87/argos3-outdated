@@ -5,6 +5,7 @@
  */
 
 #include "dynamics3d_robot_model.h"
+
 #include <argos3/core/simulator/entity/embodied_entity.h>
 #include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_engine.h>
 
@@ -68,68 +69,67 @@ namespace argos {
          if(tFrames.size() != 2) {
             THROW_ARGOSEXCEPTION("This version of the Dynamics3D plugin only allows joints between two bodies");
          }
-         else {
-            CDynamics3DBody::TVector::iterator itDyn3dBody0 = std::find(m_vecLocalBodies.begin(),
-                                                                        m_vecLocalBodies.end(),
-                                                                        tFrames[0]->GetBodyEntity().GetId());
-            if(itDyn3dBody0 == m_vecLocalBodies.end()) {
-               THROW_ARGOSEXCEPTION("Unable to find referenced body \"" <<
-                                    tFrames[0]->GetBodyEntity().GetId() << "\"." );
-            }
-            CDynamics3DBody::TVector::iterator itDyn3dBody1 = std::find(m_vecLocalBodies.begin(),
-                                                                        m_vecLocalBodies.end(),
-                                                                        tFrames[1]->GetBodyEntity().GetId());
-            if(itDyn3dBody1 == m_vecLocalBodies.end()) {
-               THROW_ARGOSEXCEPTION("Unable to find referenced body \"" <<
-                                    tFrames[1]->GetBodyEntity().GetId() << "\"." );
-            }
-            /* Get the frames in each respective bodies */
-            btTransform cFrameOriginInBody0 = 
-               btTransform(ARGoSToBullet(tFrames[0]->GetPositionalEntity().GetOrientation()),
-                           ARGoSToBullet(tFrames[0]->GetPositionalEntity().GetPosition())) *
-               (*itDyn3dBody0)->GetGeometricOffset();
-            btTransform cFrameOriginInBody1 =
-               btTransform(ARGoSToBullet(tFrames[1]->GetPositionalEntity().GetOrientation()),
-                           ARGoSToBullet(tFrames[1]->GetPositionalEntity().GetPosition())) * 
-               (*itDyn3dBody1)->GetGeometricOffset();
-            /* Get the limits of the joint - we must manually swap Z and Y here! */
-            /* linear */
-            btVector3 cLinearLowerLimit((*itJoint)->GetDofLinearX().m_bUnconstrained ?
-                                        1.0f : (*itJoint)->GetDofLinearX().m_cLimits.GetMin(),
-                                        (*itJoint)->GetDofLinearZ().m_bUnconstrained ?
-                                        1.0f : (*itJoint)->GetDofLinearZ().m_cLimits.GetMin(),
-                                        (*itJoint)->GetDofLinearY().m_bUnconstrained ?
-                                        1.0f : (*itJoint)->GetDofLinearY().m_cLimits.GetMin());
-            btVector3 cLinearUpperLimit((*itJoint)->GetDofLinearX().m_bUnconstrained ?
-                                        -1.0f : (*itJoint)->GetDofLinearX().m_cLimits.GetMax(),
-                                        (*itJoint)->GetDofLinearZ().m_bUnconstrained ?
-                                        -1.0f : (*itJoint)->GetDofLinearZ().m_cLimits.GetMax(),
-                                        (*itJoint)->GetDofLinearY().m_bUnconstrained ?
-                                        -1.0f : (*itJoint)->GetDofLinearY().m_cLimits.GetMax());               
-            /* angular */
-            btVector3 cAngularLowerLimit((*itJoint)->GetDofAngularX().m_bUnconstrained ?
-                                         1.0f : (*itJoint)->GetDofAngularX().m_cLimits.GetMin().GetValue(),
-                                         (*itJoint)->GetDofAngularZ().m_bUnconstrained ?
-                                         1.0f : (*itJoint)->GetDofAngularZ().m_cLimits.GetMin().GetValue(),
-                                         (*itJoint)->GetDofAngularY().m_bUnconstrained ?
-                                         1.0f : (*itJoint)->GetDofAngularY().m_cLimits.GetMin().GetValue());
-            btVector3 cAngularUpperLimit((*itJoint)->GetDofAngularX().m_bUnconstrained ?
-                                         -1.0f : (*itJoint)->GetDofAngularX().m_cLimits.GetMax().GetValue(),
-                                         (*itJoint)->GetDofAngularZ().m_bUnconstrained ?
-                                         -1.0f : (*itJoint)->GetDofAngularZ().m_cLimits.GetMax().GetValue(),
-                                         (*itJoint)->GetDofAngularY().m_bUnconstrained ?
-                                         -1.0f : (*itJoint)->GetDofAngularY().m_cLimits.GetMax().GetValue());               
-            /* create the joint */
-            m_vecLocalJoints.push_back(new CDynamics3DJoint((*itJoint)->GetId(),
-                                                            **itDyn3dBody0,
-                                                            **itDyn3dBody1,
-                                                            cFrameOriginInBody0,
-                                                            cFrameOriginInBody1,
-                                                            CDynamics3DJoint::SJointLimits(cLinearLowerLimit, cLinearUpperLimit),
-                                                            CDynamics3DJoint::SJointLimits(cAngularLowerLimit, cAngularUpperLimit),
-                                                            true,
-                                                            (*itJoint)->GetDisableLinkedBodyCollisions()));
+         CDynamics3DBody::TVector::iterator itDyn3dBody0 = std::find(m_vecLocalBodies.begin(),
+                                                                     m_vecLocalBodies.end(),
+                                                                     tFrames[0]->GetBodyEntity().GetId());
+         if(itDyn3dBody0 == m_vecLocalBodies.end()) {
+            THROW_ARGOSEXCEPTION("Unable to find referenced body \"" <<
+                                 tFrames[0]->GetBodyEntity().GetId() << "\"." );
          }
+         CDynamics3DBody::TVector::iterator itDyn3dBody1 = std::find(m_vecLocalBodies.begin(),
+                                                                     m_vecLocalBodies.end(),
+                                                                     tFrames[1]->GetBodyEntity().GetId());
+         if(itDyn3dBody1 == m_vecLocalBodies.end()) {
+            THROW_ARGOSEXCEPTION("Unable to find referenced body \"" <<
+                                 tFrames[1]->GetBodyEntity().GetId() << "\"." );
+         }
+
+         /* Get the frames in each respective bodies */
+         btTransform cFrameOriginInBody0 = (*itDyn3dBody0)->GetGeometricOffset() *
+            btTransform(ARGoSToBullet(tFrames[0]->GetPositionalEntity().GetOrientation()),
+                        ARGoSToBullet(tFrames[0]->GetPositionalEntity().GetPosition()));         
+         btTransform cFrameOriginInBody1 = (*itDyn3dBody1)->GetGeometricOffset() *
+            btTransform(ARGoSToBullet(tFrames[1]->GetPositionalEntity().GetOrientation()),
+                        ARGoSToBullet(tFrames[1]->GetPositionalEntity().GetPosition()));
+         
+
+         /* Get the limits of the joint - we must manually swap Z and Y here! */
+         /* linear */
+         btVector3 cLinearLowerLimit((*itJoint)->GetDofLinearX().m_bUnconstrained ?
+                                     1.0f : (*itJoint)->GetDofLinearX().m_cLimits.GetMin(),
+                                     (*itJoint)->GetDofLinearZ().m_bUnconstrained ?
+                                     1.0f : (*itJoint)->GetDofLinearZ().m_cLimits.GetMin(),
+                                     (*itJoint)->GetDofLinearY().m_bUnconstrained ?
+                                     1.0f : (*itJoint)->GetDofLinearY().m_cLimits.GetMin());
+         btVector3 cLinearUpperLimit((*itJoint)->GetDofLinearX().m_bUnconstrained ?
+                                     -1.0f : (*itJoint)->GetDofLinearX().m_cLimits.GetMax(),
+                                     (*itJoint)->GetDofLinearZ().m_bUnconstrained ?
+                                     -1.0f : (*itJoint)->GetDofLinearZ().m_cLimits.GetMax(),
+                                     (*itJoint)->GetDofLinearY().m_bUnconstrained ?
+                                     -1.0f : (*itJoint)->GetDofLinearY().m_cLimits.GetMax());               
+         /* angular */
+         btVector3 cAngularLowerLimit((*itJoint)->GetDofAngularX().m_bUnconstrained ?
+                                      1.0f : (*itJoint)->GetDofAngularX().m_cLimits.GetMin().GetValue(),
+                                      (*itJoint)->GetDofAngularZ().m_bUnconstrained ?
+                                      1.0f : (*itJoint)->GetDofAngularZ().m_cLimits.GetMin().GetValue(),
+                                      (*itJoint)->GetDofAngularY().m_bUnconstrained ?
+                                      1.0f : (*itJoint)->GetDofAngularY().m_cLimits.GetMin().GetValue());
+         btVector3 cAngularUpperLimit((*itJoint)->GetDofAngularX().m_bUnconstrained ?
+                                      -1.0f : (*itJoint)->GetDofAngularX().m_cLimits.GetMax().GetValue(),
+                                      (*itJoint)->GetDofAngularZ().m_bUnconstrained ?
+                                      -1.0f : (*itJoint)->GetDofAngularZ().m_cLimits.GetMax().GetValue(),
+                                      (*itJoint)->GetDofAngularY().m_bUnconstrained ?
+                                      -1.0f : (*itJoint)->GetDofAngularY().m_cLimits.GetMax().GetValue());               
+            /* create the joint */
+         m_vecLocalJoints.push_back(new CDynamics3DJoint((*itJoint)->GetId(),
+                                                         **itDyn3dBody0,
+                                                         **itDyn3dBody1,
+                                                         cFrameOriginInBody0,
+                                                         cFrameOriginInBody1,
+                                                         CDynamics3DJoint::SJointLimits(cLinearLowerLimit, cLinearUpperLimit),
+                                                         CDynamics3DJoint::SJointLimits(cAngularLowerLimit, cAngularUpperLimit),
+                                                         true,
+                                                         (*itJoint)->GetDisableLinkedBodyCollisions()));
       }
       SetModelCoordinates(btTransform(ARGoSToBullet(GetEmbodiedEntity().GetOrientation()),
                                       ARGoSToBullet(GetEmbodiedEntity().GetPosition())));
@@ -384,17 +384,17 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   btSphereShape* CDynamics3DRobotModel::CSphereShapeManager::RequestSphereShape(const btVector3& c_half_extents) {
+   btSphereShape* CDynamics3DRobotModel::CSphereShapeManager::RequestSphereShape(Real f_radius) {
       std::vector<CResource>::iterator itResource;      
       for(itResource = m_vecResources.begin();
           itResource != m_vecResources.end();
           ++itResource) {
-         if(itResource->m_cHalfExtents == c_half_extents) break;
+         if(itResource->m_fRadius == f_radius) break;
       }      
       // if it doesn't exist, create a new one
       if(itResource == m_vecResources.end()) {
          itResource = m_vecResources.insert(itResource, 
-                                            CResource(c_half_extents, new btSphereShape(c_half_extents)));
+                                            CResource(f_radius, new btSphereShape(f_radius)));
       }
       itResource->m_unInUseCount++;
       return itResource->m_cShape;
@@ -424,9 +424,9 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   CDynamics3DRobotModel::CSphereShapeManager::CResource::CResource(const btVector3& c_half_extents,
+   CDynamics3DRobotModel::CSphereShapeManager::CResource::CResource(Real f_radius,
                                                                     btSphereShape* c_shape) : 
-      m_cHalfExtents(c_half_extents),
+      m_fRadius(f_radius),
       m_cShape(c_shape),
       m_unInUseCount(0) {}
 

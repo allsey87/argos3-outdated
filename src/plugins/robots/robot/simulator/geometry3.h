@@ -4,11 +4,10 @@
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-#ifdef GEOMETRY3_H
+#ifndef GEOMETRY3_H
 #define GEOMETRY3_H
 
 #include <argos3/core/utility/math/vector3.h>
-
 
 namespace argos {
 
@@ -22,10 +21,9 @@ namespace argos {
          };
 
       public:
-         EGeometry3Tag GetTag() const = 0;
-         CVector3 GetExtents() const = 0;
+         virtual EGeometry3Tag GetTag() const = 0;
+         virtual CVector3 GetExtents() const = 0;
    };
-
 }
 
 #endif

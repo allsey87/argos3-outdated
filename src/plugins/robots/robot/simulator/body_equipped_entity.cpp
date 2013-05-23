@@ -64,6 +64,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
+   /*
    void CBodyEquippedEntity::AddBody(const CVector3& c_offset_position,
                                      const CQuaternion& c_offset_orientation,
                                      const CVector3& c_size,
@@ -80,6 +81,7 @@ namespace argos {
       fprintf(stderr, "adding body %s\n", pcBody->GetId().c_str());
       AddComponent(*pcBody);
    }
+   */
 
    /****************************************/
    /****************************************/

@@ -36,12 +36,12 @@ namespace argos {
       virtual void Init(TConfigurationNode& t_tree);
       virtual void Reset();
       virtual void Update() {}
-
+      /*
       void AddBody(const CVector3& c_position,
                    const CQuaternion& c_orientation,
                    const CVector3& c_size,
                    Real f_mass);
-
+      */
       CBodyEntity& GetBody(UInt32 un_index);
 
       CBodyEntity& GetReferenceBody() {

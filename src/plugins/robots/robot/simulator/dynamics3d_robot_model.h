@@ -34,6 +34,7 @@ namespace argos {
       CBodyEquippedEntity&    m_cBodyEquippedEntity;
       CJointEquippedEntity&   m_cJointEquippedEntity;
      
+      
       class CBoxShapeManager {
          public:
             btBoxShape* RequestBoxShape(const btVector3& c_half_extents);

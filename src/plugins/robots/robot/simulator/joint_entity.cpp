@@ -154,7 +154,7 @@ namespace argos {
    /****************************************/
 
    void CJointEntity::Destroy() {
-      m_pcFrameEquippedEntity->Destroy();      
+      //m_pcFrameEquippedEntity->Destroy();      
       CComposableEntity::Destroy();
    }
 

@@ -16,7 +16,7 @@ namespace argos {
    /****************************************/
 
    static const Real LED_RADIUS     = 0.01f;
-   const GLfloat BODY_COLOR[]       = { 0.2f, 0.7f, 0.2f, 1.0f };
+   const GLfloat BODY_COLOR[]       = { 0.4f, 0.4f, 0.4f, 1.0f };
    const GLfloat SPECULAR[]         = { 0.0f, 0.0f, 0.0f, 1.0f };
    const GLfloat SHININESS[]        = { 0.0f                   };
    const GLfloat EMISSION[]         = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -68,13 +68,11 @@ namespace argos {
 
    void CQTOpenGLRobot::DrawBodies(CRobotEntity& c_entity) {
       
-      CBodyEquippedEntity& cBodyEquippedEntity = c_entity.GetBodyEquippedEntity();
       /* Draw the bodies */
       glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, BODY_COLOR);
       
-      
-      for(CBodyEntity::TList::iterator itBody = m_cBodyEquippedEntity.GetAllBodies().begin();
-          itBody != m_cBodyEquippedEntity.GetAllBodies().end();
+      for(CBodyEntity::TList::iterator itBody = c_entity.GetBodyEquippedEntity().GetAllBodies().begin();
+          itBody != c_entity.GetBodyEquippedEntity().GetAllBodies().end();
           ++itBody) {
          /* Get the position of the body */
          const CVector3& cPosition = (*itBody)->GetPositionalEntity().GetPosition();
@@ -186,7 +184,7 @@ namespace argos {
 
       /* Let's start the actual shape */
       /* Side surface */
-      CVector2 cVertex(1.0f, 0.0f);
+      CVector2 cVertex(0.5f, 0.0f);
       CRadians cAngle(CRadians::TWO_PI / m_unVertices);
       glBegin(GL_QUAD_STRIP);
       for(GLuint i = 0; i <= m_unVertices; i++) {
@@ -197,7 +195,7 @@ namespace argos {
       }
       glEnd();
       /* Top disk */
-      cVertex.Set(1.0f, 0.0f);
+      cVertex.Set(0.5f, 0.0f);
       glBegin(GL_POLYGON);
       glNormal3f(0.0f, 0.0f, 1.0f);
       for(GLuint i = 0; i <= m_unVertices; i++) {
@@ -206,7 +204,7 @@ namespace argos {
       }
       glEnd();
       /* Bottom disk */
-      cVertex.Set(1.0f, 0.0f);
+      cVertex.Set(0.5f, 0.0f);
       cAngle = -cAngle;
       glBegin(GL_POLYGON);
       glNormal3f(0.0f, 0.0f, -1.0f);
@@ -238,21 +236,21 @@ namespace argos {
       for(CRadians cInclination; cInclination <= CRadians::PI; cInclination += cSlice) {
          for(CRadians cAzimuth; cAzimuth <= CRadians::TWO_PI; cAzimuth += cSlice) {
 
-            cPoint.FromSphericalCoords(1.0f, cInclination, cAzimuth);
-            glNormal3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
-            glVertex3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
+            cPoint.FromSphericalCoords(0.5f, cInclination, cAzimuth);
+            glNormal3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ() + 0.5f);
+            glVertex3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ() + 0.5f);
 
-            cPoint.FromSphericalCoords(1.0f, cInclination + cSlice, cAzimuth);
-            glNormal3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
-            glVertex3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
+            cPoint.FromSphericalCoords(0.5f, cInclination + cSlice, cAzimuth);
+            glNormal3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ() + 0.5f);
+            glVertex3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ() + 0.5f);
 
-            cPoint.FromSphericalCoords(1.0f, cInclination, cAzimuth + cSlice);
-            glNormal3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
-            glVertex3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
+            cPoint.FromSphericalCoords(0.5f, cInclination, cAzimuth + cSlice);
+            glNormal3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ() + 0.5f);
+            glVertex3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ() + 0.5f);
 
-            cPoint.FromSphericalCoords(1.0f, cInclination + cSlice, cAzimuth + cSlice);
-            glNormal3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
-            glVertex3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ());
+            cPoint.FromSphericalCoords(0.5f, cInclination + cSlice, cAzimuth + cSlice);
+            glNormal3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ() + 0.5f);
+            glVertex3f(cPoint.GetX(), cPoint.GetY(), cPoint.GetZ() + 0.5f);
 
          }
       }

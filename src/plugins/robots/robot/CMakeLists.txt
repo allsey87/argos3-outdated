@@ -56,7 +56,7 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
       simulator/qtopengl_robot.h)
     set(ARGOS3_SOURCES_PLUGINS_ROBOTS_ROBOT
       ${ARGOS3_SOURCES_PLUGINS_ROBOTS_ROBOT}
-      simulator/qtopengl_robot.h
+#      simulator/qtopengl_robot.h
       simulator/qtopengl_robot.cpp)
   endif(ARGOS_COMPILE_QTOPENGL)
 endif(ARGOS_BUILD_FOR_SIMULATOR)

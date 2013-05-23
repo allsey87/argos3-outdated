@@ -4,7 +4,7 @@
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-#ifdef SPHERE_GEOMETRY3_H
+#ifndef SPHERE_GEOMETRY3_H
 #define SPHERE_GEOMETRY3_H
 
 #include <argos3/plugins/robots/robot/simulator/geometry3.h>

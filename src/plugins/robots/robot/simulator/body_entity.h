@@ -10,12 +10,13 @@
 namespace argos {
    class CBodyEntity;
    class CPositionalEntity;
-   class CGeometry3;
 }
 
 #include <argos3/core/utility/math/vector3.h>
 #include <argos3/core/utility/math/quaternion.h>
 #include <argos3/core/simulator/entity/composable_entity.h>
+
+#include <argos3/plugins/robots/robot/simulator/geometry3.h>
 
 namespace argos {
 
@@ -33,9 +34,9 @@ namespace argos {
 
       CBodyEntity(CComposableEntity* pc_parent,
                   const std::string& str_id,
+                  const CGeometry3& c_geometry,
                   const CVector3& c_offset_position,
                   const CQuaternion& c_offset_orientation,
-                  const CVector3& c_size,
                   Real f_mass);
 
       virtual ~CBodyEntity() {}
@@ -56,10 +57,6 @@ namespace argos {
 
       virtual std::string GetTypeDescription() const {
          return "body";
-      }
-
-      const CVector3 & GetSize() const {
-         return m_cSize;
       }
 
       const CGeometry3& GetGeometry() const {
