@@ -119,7 +119,28 @@ namespace argos {
                                       (*itJoint)->GetDofAngularZ().m_bUnconstrained ?
                                       -1.0f : (*itJoint)->GetDofAngularZ().m_cLimits.GetMax().GetValue(),
                                       (*itJoint)->GetDofAngularY().m_bUnconstrained ?
-                                      -1.0f : (*itJoint)->GetDofAngularY().m_cLimits.GetMax().GetValue());               
+                                      -1.0f : (*itJoint)->GetDofAngularY().m_cLimits.GetMax().GetValue());
+
+         fprintf(stderr, "Joint Limits for %s\n", (*itJoint)->GetId().c_str());
+         
+         fprintf(stderr, "cLinearLowerLimit = [%.3f, %.3f, %.3f]\n",
+                 cLinearLowerLimit.getX(),
+                 cLinearLowerLimit.getY(),
+                 cLinearLowerLimit.getZ());
+         fprintf(stderr, "cLinearUpperLimit = [%.3f, %.3f, %.3f]\n",
+                 cLinearUpperLimit.getX(),
+                 cLinearUpperLimit.getY(),
+                 cLinearUpperLimit.getZ());
+         fprintf(stderr, "cAngularLowerLimit = [%.3f, %.3f, %.3f]\n",
+                 cAngularLowerLimit.getX(),
+                 cAngularLowerLimit.getY(),
+                 cAngularLowerLimit.getZ());
+         fprintf(stderr, "cAngularUpperLimit = [%.3f, %.3f, %.3f]\n",
+                 cAngularUpperLimit.getX(),
+                 cAngularUpperLimit.getY(),
+                 cAngularUpperLimit.getZ());
+
+               
             /* create the joint */
          m_vecLocalJoints.push_back(new CDynamics3DJoint((*itJoint)->GetId(),
                                                          **itDyn3dBody0,

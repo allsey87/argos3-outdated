@@ -30,9 +30,9 @@ namespace argos {
    public:
 
       template <class T>
-      struct SAxisDegreeOfFreedom {
-         SAxisDegreeOfFreedom(bool b_unconstrained = false, 
-                              const CRange<T>& c_limits = CRange<T>()) :
+      struct SDegreeOfFreedom {
+         SDegreeOfFreedom(bool b_unconstrained = false, 
+                          const CRange<T>& c_limits = CRange<T>()) :
             m_bUnconstrained(b_unconstrained),  
             m_cLimits(c_limits) {}
          bool m_bUnconstrained;
@@ -67,27 +67,27 @@ namespace argos {
          return m_bDisableCollisions;
       }
 
-      const SAxisDegreeOfFreedom<Real>& GetDofLinearX() const {
+      const SDegreeOfFreedom<Real>& GetDofLinearX() const {
          return m_sLinearDofs.m_sX;
       }
 
-      const SAxisDegreeOfFreedom<Real>& GetDofLinearY() const {
+      const SDegreeOfFreedom<Real>& GetDofLinearY() const {
          return m_sLinearDofs.m_sY;
       }
 
-      const SAxisDegreeOfFreedom<Real>& GetDofLinearZ() const {
+      const SDegreeOfFreedom<Real>& GetDofLinearZ() const {
          return m_sLinearDofs.m_sZ;
       }
 
-      const SAxisDegreeOfFreedom<CRadians>& GetDofAngularX() const {
+      const SDegreeOfFreedom<CRadians>& GetDofAngularX() const {
          return m_sAngularDofs.m_sX;
       }
 
-      const SAxisDegreeOfFreedom<CRadians>& GetDofAngularY() const {
+      const SDegreeOfFreedom<CRadians>& GetDofAngularY() const {
          return m_sAngularDofs.m_sY;
       }
 
-      const SAxisDegreeOfFreedom<CRadians>& GetDofAngularZ() const {
+      const SDegreeOfFreedom<CRadians>& GetDofAngularZ() const {
          return m_sAngularDofs.m_sZ;
       }
 
@@ -97,15 +97,17 @@ namespace argos {
       CFrameEquippedEntity* m_pcFrameEquippedEntity;
 
       struct {
-         SAxisDegreeOfFreedom<CRadians> m_sX, m_sY, m_sZ;
+         SDegreeOfFreedom<CRadians> m_sX, m_sY, m_sZ;
       } m_sAngularDofs;
       
       struct {
-         SAxisDegreeOfFreedom<Real> m_sX, m_sY, m_sZ;
+         SDegreeOfFreedom<Real> m_sX, m_sY, m_sZ;
       } m_sLinearDofs;
       
 
    };
+
+   
 
 }
 

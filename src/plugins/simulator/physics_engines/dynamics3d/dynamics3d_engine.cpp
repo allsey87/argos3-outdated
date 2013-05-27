@@ -55,6 +55,10 @@ namespace argos {
       /* Select the default broadphase, collision configuration, dispatcher and solver */
       m_pcBroadphaseInterface = new btDbvtBroadphase;
       m_pcCollisionConfiguration = new btDefaultCollisionConfiguration;
+      
+      //better stablity for small objects
+      //m_pcCollisionConfiguration->setConvexConvexMultipointIterations(3);
+
       m_pcCollisionDispatcher = new btCollisionDispatcher(m_pcCollisionConfiguration);
       m_pcSolver = new btSequentialImpulseConstraintSolver;
 
@@ -217,6 +221,18 @@ namespace argos {
       }
       /* Step the simuation forwards */
       m_pcWorld->stepSimulation(m_fSimulationClockTick, m_unIterations, m_fDeltaT);
+
+      /////
+      //fprintf(stderr, "m_fSimulationClockTick = %.8f, m_unIterations = %d, m_fDeltaT = %.8f\n", m_fSimulationClockTick, m_unIterations, m_fDeltaT);
+
+      	btDefaultSerializer*	serializer = new btDefaultSerializer();
+	m_pcWorld->serialize(serializer);
+ 
+	FILE* file = fopen("argos3dworld.bullet","wb");
+	fwrite(serializer->getBufferPointer(),serializer->getCurrentBufferSize(),1, file);
+	fclose(file);
+
+        ///
       /* Update the simulated space */
       for(CDynamics3DModel::TVector::iterator itModel = m_vecPhysicsModels.begin();
           itModel != m_vecPhysicsModels.end();
