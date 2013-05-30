@@ -45,94 +45,103 @@ namespace argos {
          if(NodeExists(t_tree, "frames")) {
             m_pcFrameEquippedEntity->Init(GetNode(t_tree, "frames"));
          }
-         else {
-            //todo what happens here, error here or later in dynamics engine?
-         }
          AddComponent(*m_pcFrameEquippedEntity);
 
-
          /* parse the degrees of freedom if they exist */
-         if(NodeExists(t_tree, "dof")) {
-            TConfigurationNode& tDof = GetNode(t_tree, "dof");
-            if(NodeExists(tDof, "linear")) {
-               TConfigurationNode& tLinearDofs = GetNode(tDof, "linear");
-               /* Check for degrees of freedom for linear X */
-               if(NodeAttributeExists(tLinearDofs, "x" )) {
-                  std::string strDofs;
-                  GetNodeAttribute(tLinearDofs, "x", strDofs);
-                  if(strDofs == "free") {
-                     m_sLinearDofs.m_sX.m_bUnconstrained = true;
+         if(NodeExists(t_tree, "axes")) {
+            TConfigurationNode& tAxes = GetNode(t_tree, "axes");
+            
+            TConfigurationNodeIterator itAxis("axis");
+            for(itAxis = itAxis.begin(&tAxes);
+                itAxis != itAxis.end();
+                ++itAxis) {
+
+               std::string strAxisMode, strAxisDirection, strAxisRange;
+               GetNodeAttribute(*itAxis, "mode", strAxisMode);
+               GetNodeAttribute(*itAxis, "direction", strAxisDirection);
+               GetNodeAttribute(*itAxis, "range", strAxisRange);
+
+               bool bAxisUnconstrained = (strAxisRange == "unconstrained");
+               bool bAxisHasActuator = NodeExists(*itAxis, "actuator");
+
+               bool bAxisActuatorEnabled = false;
+               Real fAxisActuatorForce = 0.0f;
+               Real fAxisActuatorTargetVelocity;
+
+               if(bAxisHasActuator) {
+                  TConfigurationNode& tActuator = GetNode(*itAxis, "actuator");
+                  GetNodeAttribute(tActuator, "enabled", bAxisActuatorEnabled);
+                  GetNodeAttribute(tActuator, "force", fAxisActuatorForce);
+                  GetNodeAttribute(tActuator, "target_velocity", fAxisActuatorTargetVelocity);
+               }
+               
+               if(strAxisMode == "linear") {
+                  CRange<Real> cAxisRange = CRange<Real>();
+                  if(!bAxisUnconstrained) {
+                     GetNodeAttribute(*itAxis, "range", cAxisRange);
                   }
-                  else {
-                     GetNodeAttribute(tLinearDofs, "x", m_sLinearDofs.m_sX.m_cLimits);
+                  switch(strAxisDirection.c_str()[0]) {
+                  case 'x':
+                     m_sLinearAxes.m_sX = SAxisParameters<Real>(bAxisUnconstrained,
+                                                                cAxisRange,
+                                                                bAxisActuatorEnabled,
+                                                                fAxisActuatorForce,
+                                                                fAxisActuatorTargetVelocity);
+                     break;
+                  case 'y':
+                     m_sLinearAxes.m_sY = SAxisParameters<Real>(bAxisUnconstrained,
+                                                                cAxisRange,
+                                                                bAxisActuatorEnabled,
+                                                                fAxisActuatorForce,
+                                                                fAxisActuatorTargetVelocity);
+                     break;
+                  case 'z':
+                     m_sLinearAxes.m_sZ = SAxisParameters<Real>(bAxisUnconstrained,
+                                                                cAxisRange,
+                                                                bAxisActuatorEnabled,
+                                                                fAxisActuatorForce,
+                                                                fAxisActuatorTargetVelocity);
+                     break;
+                  default:
+                     THROW_ARGOSEXCEPTION("Error parsing joint axis, axis direction must be one of x, y or z");
                   }
                }
-               /* Check for degrees of freedom for linear Y */
-               if(NodeAttributeExists(tLinearDofs, "y" )) {
-                  std::string strDofs;
-                  GetNodeAttribute(tLinearDofs, "y", strDofs);
-                  if(strDofs == "free") {
-                     m_sLinearDofs.m_sY.m_bUnconstrained = true;
+               else if(strAxisMode == "angular") {
+                  CRange<CDegrees> cAxisRangeDegrees = CRange<CDegrees>();
+                  CRange<CRadians> cAxisRangeRadians = CRange<CRadians>();
+                  if(!bAxisUnconstrained) {
+                     GetNodeAttribute(*itAxis, "range", cAxisRangeDegrees);
+                     cAxisRangeRadians.Set(ToRadians(cAxisRangeDegrees.GetMin()),
+                                           ToRadians(cAxisRangeDegrees.GetMax()));
                   }
-                  else {
-                     GetNodeAttribute(tLinearDofs, "y", m_sLinearDofs.m_sY.m_cLimits);
-                  }
-               }
-               /* Check for degrees of freedom for linear X */
-               if(NodeAttributeExists(tLinearDofs, "z" )) {
-                  std::string strDofs;
-                  GetNodeAttribute(tLinearDofs, "z", strDofs);
-                  if(strDofs == "free") {
-                     m_sLinearDofs.m_sZ.m_bUnconstrained = true;
-                  }
-                  else {
-                     GetNodeAttribute(tLinearDofs, "z", m_sLinearDofs.m_sZ.m_cLimits);
-                  }
-               }
-            }
-            if(NodeExists(tDof, "angular")) {
-               TConfigurationNode& tAngularDofs = GetNode(tDof, "angular");
-               /* Check for degrees of freedom for angular X */
-               if(NodeAttributeExists(tAngularDofs, "x" )) {
-                  std::string strDofs;
-                  GetNodeAttribute(tAngularDofs, "x", strDofs);
-                  if(strDofs == "free") {
-                     m_sAngularDofs.m_sX.m_bUnconstrained = true;
-                  }
-                  else {
-                     CRange<CDegrees> cAngularDofRange;
-                     GetNodeAttribute(tAngularDofs, "x", cAngularDofRange);
-                     m_sAngularDofs.m_sX.m_cLimits.Set(ToRadians(cAngularDofRange.GetMin()),
-                                                       ToRadians(cAngularDofRange.GetMax()));
+                  switch(strAxisDirection.c_str()[0]) {
+                  case 'x':
+                     m_sAngularAxes.m_sX = SAxisParameters<CRadians>(bAxisUnconstrained,
+                                                                     cAxisRangeRadians,
+                                                                     bAxisActuatorEnabled,
+                                                                     fAxisActuatorForce,
+                                                                     fAxisActuatorTargetVelocity);
+                     break;
+                  case 'y':
+                     m_sAngularAxes.m_sY = SAxisParameters<CRadians>(bAxisUnconstrained,
+                                                                     cAxisRangeRadians,
+                                                                     bAxisActuatorEnabled,
+                                                                     fAxisActuatorForce,
+                                                                     fAxisActuatorTargetVelocity);
+                     break;
+                  case 'z':
+                     m_sAngularAxes.m_sZ = SAxisParameters<CRadians>(bAxisUnconstrained,
+                                                                     cAxisRangeRadians,
+                                                                     bAxisActuatorEnabled,
+                                                                     fAxisActuatorForce,
+                                                                     fAxisActuatorTargetVelocity);
+                     break;
+                  default:
+                     THROW_ARGOSEXCEPTION("Error parsing joint axis, axis direction must be one of x, y or z");
                   }
                }
-               /* Check for degrees of freedom for angular Y */
-               if(NodeAttributeExists(tAngularDofs, "y" )) {
-                  std::string strDofs;
-                  GetNodeAttribute(tAngularDofs, "y", strDofs);
-                  if(strDofs == "free") {
-                     m_sAngularDofs.m_sY.m_bUnconstrained = true;
-                  }
-                  else {
-                     CRange<CDegrees> cAngularDofRange;
-                     GetNodeAttribute(tAngularDofs, "y", cAngularDofRange);
-                     m_sAngularDofs.m_sY.m_cLimits.Set(ToRadians(cAngularDofRange.GetMin()),
-                                                       ToRadians(cAngularDofRange.GetMax()));
-                  }
-               }
-               /* Check for degrees of freedom for angular X */
-               if(NodeAttributeExists(tAngularDofs, "z" )) {
-                  std::string strDofs;
-                  GetNodeAttribute(tAngularDofs, "z", strDofs);
-                  if(strDofs == "free") {
-                     m_sAngularDofs.m_sZ.m_bUnconstrained = true;
-                  }
-                  else {
-                     CRange<CDegrees> cAngularDofRange;
-                     GetNodeAttribute(tAngularDofs, "z", cAngularDofRange);
-                     m_sAngularDofs.m_sZ.m_cLimits.Set(ToRadians(cAngularDofRange.GetMin()),
-                                                       ToRadians(cAngularDofRange.GetMax()));
-                  }
+               else {
+                  THROW_ARGOSEXCEPTION("Error parsing joint axis, axis mode must be either linear or angular");
                }
             }
          }

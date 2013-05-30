@@ -224,14 +224,14 @@ namespace argos {
 
       /////
       //fprintf(stderr, "m_fSimulationClockTick = %.8f, m_unIterations = %d, m_fDeltaT = %.8f\n", m_fSimulationClockTick, m_unIterations, m_fDeltaT);
-
+      /*
       	btDefaultSerializer*	serializer = new btDefaultSerializer();
 	m_pcWorld->serialize(serializer);
  
 	FILE* file = fopen("argos3dworld.bullet","wb");
 	fwrite(serializer->getBufferPointer(),serializer->getCurrentBufferSize(),1, file);
 	fclose(file);
-
+      */
         ///
       /* Update the simulated space */
       for(CDynamics3DModel::TVector::iterator itModel = m_vecPhysicsModels.begin();

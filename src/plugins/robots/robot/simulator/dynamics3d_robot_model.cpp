@@ -95,32 +95,53 @@ namespace argos {
 
          /* Get the limits of the joint - we must manually swap Z and Y here! */
          /* linear */
-         btVector3 cLinearLowerLimit((*itJoint)->GetDofLinearX().m_bUnconstrained ?
-                                     1.0f : (*itJoint)->GetDofLinearX().m_cLimits.GetMin(),
-                                     (*itJoint)->GetDofLinearZ().m_bUnconstrained ?
-                                     1.0f : (*itJoint)->GetDofLinearZ().m_cLimits.GetMin(),
-                                     (*itJoint)->GetDofLinearY().m_bUnconstrained ?
-                                     1.0f : (*itJoint)->GetDofLinearY().m_cLimits.GetMin());
-         btVector3 cLinearUpperLimit((*itJoint)->GetDofLinearX().m_bUnconstrained ?
-                                     -1.0f : (*itJoint)->GetDofLinearX().m_cLimits.GetMax(),
-                                     (*itJoint)->GetDofLinearZ().m_bUnconstrained ?
-                                     -1.0f : (*itJoint)->GetDofLinearZ().m_cLimits.GetMax(),
-                                     (*itJoint)->GetDofLinearY().m_bUnconstrained ?
-                                     -1.0f : (*itJoint)->GetDofLinearY().m_cLimits.GetMax());               
+         btVector3 cLinearLowerLimit((*itJoint)->GetAxisLinearX().m_bUnconstrained ?
+                                     1.0f : (*itJoint)->GetAxisLinearX().m_cLimits.GetMin(),
+                                     (*itJoint)->GetAxisLinearZ().m_bUnconstrained ?
+                                     1.0f : (*itJoint)->GetAxisLinearZ().m_cLimits.GetMin(),
+                                     (*itJoint)->GetAxisLinearY().m_bUnconstrained ?
+                                     1.0f : (*itJoint)->GetAxisLinearY().m_cLimits.GetMin());
+         btVector3 cLinearUpperLimit((*itJoint)->GetAxisLinearX().m_bUnconstrained ?
+                                     -1.0f : (*itJoint)->GetAxisLinearX().m_cLimits.GetMax(),
+                                     (*itJoint)->GetAxisLinearZ().m_bUnconstrained ?
+                                     -1.0f : (*itJoint)->GetAxisLinearZ().m_cLimits.GetMax(),
+                                     (*itJoint)->GetAxisLinearY().m_bUnconstrained ?
+                                     -1.0f : (*itJoint)->GetAxisLinearY().m_cLimits.GetMax());               
          /* angular */
-         btVector3 cAngularLowerLimit((*itJoint)->GetDofAngularX().m_bUnconstrained ?
-                                      1.0f : (*itJoint)->GetDofAngularX().m_cLimits.GetMin().GetValue(),
-                                      (*itJoint)->GetDofAngularZ().m_bUnconstrained ?
-                                      1.0f : (*itJoint)->GetDofAngularZ().m_cLimits.GetMin().GetValue(),
-                                      (*itJoint)->GetDofAngularY().m_bUnconstrained ?
-                                      1.0f : (*itJoint)->GetDofAngularY().m_cLimits.GetMin().GetValue());
-         btVector3 cAngularUpperLimit((*itJoint)->GetDofAngularX().m_bUnconstrained ?
-                                      -1.0f : (*itJoint)->GetDofAngularX().m_cLimits.GetMax().GetValue(),
-                                      (*itJoint)->GetDofAngularZ().m_bUnconstrained ?
-                                      -1.0f : (*itJoint)->GetDofAngularZ().m_cLimits.GetMax().GetValue(),
-                                      (*itJoint)->GetDofAngularY().m_bUnconstrained ?
-                                      -1.0f : (*itJoint)->GetDofAngularY().m_cLimits.GetMax().GetValue());
+         btVector3 cAngularLowerLimit((*itJoint)->GetAxisAngularX().m_bUnconstrained ?
+                                      1.0f : (*itJoint)->GetAxisAngularX().m_cLimits.GetMin().GetValue(),
+                                      (*itJoint)->GetAxisAngularZ().m_bUnconstrained ?
+                                      1.0f : (*itJoint)->GetAxisAngularZ().m_cLimits.GetMin().GetValue(),
+                                      (*itJoint)->GetAxisAngularY().m_bUnconstrained ?
+                                      1.0f : (*itJoint)->GetAxisAngularY().m_cLimits.GetMin().GetValue());
+         btVector3 cAngularUpperLimit((*itJoint)->GetAxisAngularX().m_bUnconstrained ?
+                                      -1.0f : (*itJoint)->GetAxisAngularX().m_cLimits.GetMax().GetValue(),
+                                      (*itJoint)->GetAxisAngularZ().m_bUnconstrained ?
+                                      -1.0f : (*itJoint)->GetAxisAngularZ().m_cLimits.GetMax().GetValue(),
+                                      (*itJoint)->GetAxisAngularY().m_bUnconstrained ?
+                                      -1.0f : (*itJoint)->GetAxisAngularY().m_cLimits.GetMax().GetValue());
 
+         CDynamics3DJoint::SJointActuators sLinearActuators(
+            CDynamics3DJoint::SJointActuators::SActuator((*itJoint)->GetAxisLinearX().m_bActuatorEnabled,
+                                                         (*itJoint)->GetAxisLinearX().m_fActuatorForce,
+                                                         (*itJoint)->GetAxisLinearX().m_fActuatorTargetVelocity),
+            CDynamics3DJoint::SJointActuators::SActuator((*itJoint)->GetAxisLinearZ().m_bActuatorEnabled,
+                                                         (*itJoint)->GetAxisLinearZ().m_fActuatorForce,
+                                                         (*itJoint)->GetAxisLinearZ().m_fActuatorTargetVelocity),
+            CDynamics3DJoint::SJointActuators::SActuator((*itJoint)->GetAxisLinearY().m_bActuatorEnabled,
+                                                         (*itJoint)->GetAxisLinearY().m_fActuatorForce,
+                                                         (*itJoint)->GetAxisLinearY().m_fActuatorTargetVelocity));       
+         CDynamics3DJoint::SJointActuators sAngularActuators(
+            CDynamics3DJoint::SJointActuators::SActuator((*itJoint)->GetAxisAngularX().m_bActuatorEnabled,
+                                                         (*itJoint)->GetAxisAngularX().m_fActuatorForce,
+                                                         (*itJoint)->GetAxisAngularX().m_fActuatorTargetVelocity),
+            CDynamics3DJoint::SJointActuators::SActuator((*itJoint)->GetAxisAngularZ().m_bActuatorEnabled,
+                                                         (*itJoint)->GetAxisAngularZ().m_fActuatorForce,
+                                                         (*itJoint)->GetAxisAngularZ().m_fActuatorTargetVelocity),
+            CDynamics3DJoint::SJointActuators::SActuator((*itJoint)->GetAxisAngularY().m_bActuatorEnabled,
+                                                         (*itJoint)->GetAxisAngularY().m_fActuatorForce,
+                                                         (*itJoint)->GetAxisAngularY().m_fActuatorTargetVelocity));
+         
          fprintf(stderr, "Joint Limits for %s\n", (*itJoint)->GetId().c_str());
          
          fprintf(stderr, "cLinearLowerLimit = [%.3f, %.3f, %.3f]\n",
@@ -139,9 +160,21 @@ namespace argos {
                  cAngularUpperLimit.getX(),
                  cAngularUpperLimit.getY(),
                  cAngularUpperLimit.getZ());
+         
 
-               
-            /* create the joint */
+         fprintf(stderr, "sAngularActuators = x[%s, %.3f, %.3f], y[%s, %.3f, %.3f], z[%s, %.3f, %.3f]\n", 
+                 sAngularActuators.m_sX.m_bEnabled?"true":"false",
+                 sAngularActuators.m_sX.m_fForce,
+                 sAngularActuators.m_sX.m_fTargetVelocity,
+                 sAngularActuators.m_sY.m_bEnabled?"true":"false",
+                 sAngularActuators.m_sY.m_fForce,
+                 sAngularActuators.m_sY.m_fTargetVelocity,
+                 sAngularActuators.m_sZ.m_bEnabled?"true":"false",
+                 sAngularActuators.m_sZ.m_fForce,
+                 sAngularActuators.m_sZ.m_fTargetVelocity);
+
+
+         /* create the joint */
          m_vecLocalJoints.push_back(new CDynamics3DJoint((*itJoint)->GetId(),
                                                          **itDyn3dBody0,
                                                          **itDyn3dBody1,
@@ -149,6 +182,8 @@ namespace argos {
                                                          cFrameOriginInBody1,
                                                          CDynamics3DJoint::SJointLimits(cLinearLowerLimit, cLinearUpperLimit),
                                                          CDynamics3DJoint::SJointLimits(cAngularLowerLimit, cAngularUpperLimit),
+                                                         sLinearActuators,
+                                                         sAngularActuators,
                                                          true,
                                                          (*itJoint)->GetDisableLinkedBodyCollisions()));
       }
@@ -162,6 +197,8 @@ namespace argos {
    /****************************************/
 
    CDynamics3DRobotModel::~CDynamics3DRobotModel() {
+
+      //@todo clean up collision shapes?
 
       /*
       CDynamics3DBody::TVector::iterator itBody;
@@ -196,10 +233,12 @@ namespace argos {
           ++itBody) {
          
          //@todo optimise by storing a pointer to the CPositionalEntity inside the SBodyConfiguration structure
-         const CDynamics3DBody& sBodyConfiguration = **std::find(m_vecLocalBodies.begin(),
+         CDynamics3DBody& sBodyConfiguration = **std::find(m_vecLocalBodies.begin(),
                                                                  m_vecLocalBodies.end(),
                                                                  (*itBody)->GetId());
          
+         sBodyConfiguration.ActivateRigidBody();
+
          //@todo move this offset and transform logic inside the motion state
          //btTransform cOffset(ARGoSToBullet((*itBody)->m_cOffsetOrientation), ARGoSToBullet((*itBody)->m_cOffsetPosition));
          
@@ -285,7 +324,36 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics3DRobotModel::UpdateFromEntityStatus() {}
+   void CDynamics3DRobotModel::UpdateFromEntityStatus() {
+      for(CJointEntity::TList::iterator itJoint = m_cJointEquippedEntity.GetAllJoints().begin();
+          itJoint != m_cJointEquippedEntity.GetAllJoints().end();
+          ++itJoint) {
+         
+         CDynamics3DJoint* pcJoint = *std::find(m_vecLocalJoints.begin(),
+                                                m_vecLocalJoints.end(),
+                                                (*itJoint)->GetId());
+         /* Write the motor target velocities to the joints */
+         /* add method for enable/disable? */
+         //@todo for correctness it might be necerry to negate the z/y velocities according to the transforms
+
+         pcJoint->SetActuatorTargetVelocity(CDynamics3DJoint::LINEAR_X,
+                                            (*itJoint)->GetAxisLinearX().m_fActuatorTargetVelocity);
+         pcJoint->SetActuatorTargetVelocity(CDynamics3DJoint::LINEAR_Y,
+                                            (*itJoint)->GetAxisLinearZ().m_fActuatorTargetVelocity);
+         pcJoint->SetActuatorTargetVelocity(CDynamics3DJoint::LINEAR_Z,
+                                            (*itJoint)->GetAxisLinearY().m_fActuatorTargetVelocity);
+
+         pcJoint->SetActuatorTargetVelocity(CDynamics3DJoint::ANGULAR_X,
+                                            (*itJoint)->GetAxisAngularX().m_fActuatorTargetVelocity);
+         pcJoint->SetActuatorTargetVelocity(CDynamics3DJoint::ANGULAR_Y,
+                                            (*itJoint)->GetAxisAngularZ().m_fActuatorTargetVelocity);
+         pcJoint->SetActuatorTargetVelocity(CDynamics3DJoint::ANGULAR_Z,
+                                            (*itJoint)->GetAxisAngularY().m_fActuatorTargetVelocity);
+      }
+      // @todo run this method on the reference body!
+      //->ActivateRigidBody();
+      // Add method get reference body which sets the pointer
+   }
 
    /****************************************/
    /****************************************/
@@ -294,8 +362,6 @@ namespace argos {
       const std::string& strReferenceBodyId = 
          m_cRobotEntity.GetBodyEquippedEntity().GetReferenceBody().GetId();
       
-
-      //@todo optimise this storing the result after calling Dynamics3DModel::Setup(...)
       const CDynamics3DBody& sReferenceBodyConfiguration = **std::find(m_vecLocalBodies.begin(),
                                                                        m_vecLocalBodies.end(),
                                                                        strReferenceBodyId);

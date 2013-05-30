@@ -30,13 +30,22 @@ namespace argos {
    public:
 
       template <class T>
-      struct SDegreeOfFreedom {
-         SDegreeOfFreedom(bool b_unconstrained = false, 
-                          const CRange<T>& c_limits = CRange<T>()) :
+      struct SAxisParameters {
+         SAxisParameters(bool b_unconstrained = false,
+                         const CRange<T>& c_limits = CRange<T>(),
+                         bool b_actuator_enabled = false,
+                         Real f_actuator_force = 0.0f,
+                         Real f_actuator_target_velocity = 0.0f) :
             m_bUnconstrained(b_unconstrained),  
-            m_cLimits(c_limits) {}
+            m_cLimits(c_limits),
+            m_bActuatorEnabled(b_actuator_enabled),
+            m_fActuatorForce(f_actuator_force),
+            m_fActuatorTargetVelocity(f_actuator_target_velocity) {}
          bool m_bUnconstrained;
-         CRange<T> m_cLimits;
+         CRange<T> m_cLimits; //@todo rename to range
+         bool m_bActuatorEnabled;
+         Real m_fActuatorForce;
+         Real m_fActuatorTargetVelocity;
       };
 
    public:
@@ -67,28 +76,67 @@ namespace argos {
          return m_bDisableCollisions;
       }
 
-      const SDegreeOfFreedom<Real>& GetDofLinearX() const {
-         return m_sLinearDofs.m_sX;
+      // @todo remame to SetActuatorParametersLinearX etc
+
+      void SetActuatorParametersLinearX(Real f_target_velocity,
+                           bool b_enabled) {
+         m_sLinearAxes.m_sX.m_fActuatorTargetVelocity = f_target_velocity;
+         m_sLinearAxes.m_sX.m_bActuatorEnabled = b_enabled;
       }
 
-      const SDegreeOfFreedom<Real>& GetDofLinearY() const {
-         return m_sLinearDofs.m_sY;
+      void SetActuatorParametersLinearY(Real f_target_velocity,
+                           bool b_enabled) {
+         m_sLinearAxes.m_sY.m_fActuatorTargetVelocity = f_target_velocity;
+         m_sLinearAxes.m_sY.m_bActuatorEnabled = b_enabled;
       }
 
-      const SDegreeOfFreedom<Real>& GetDofLinearZ() const {
-         return m_sLinearDofs.m_sZ;
+      void SetActuatorParametersLinearZ(Real f_target_velocity,
+                           bool b_enabled) {
+         m_sLinearAxes.m_sZ.m_fActuatorTargetVelocity = f_target_velocity;
+         m_sLinearAxes.m_sZ.m_bActuatorEnabled = b_enabled;
       }
 
-      const SDegreeOfFreedom<CRadians>& GetDofAngularX() const {
-         return m_sAngularDofs.m_sX;
+      void SetActuatorParametersAngularX(Real f_target_velocity,
+                           bool b_enabled) {
+         m_sAngularAxes.m_sX.m_fActuatorTargetVelocity = f_target_velocity;
+         m_sAngularAxes.m_sX.m_bActuatorEnabled = b_enabled;
       }
 
-      const SDegreeOfFreedom<CRadians>& GetDofAngularY() const {
-         return m_sAngularDofs.m_sY;
+      void SetActuatorParametersAngularY(Real f_target_velocity,
+                           bool b_enabled) {
+         m_sAngularAxes.m_sY.m_fActuatorTargetVelocity = f_target_velocity;
+         m_sAngularAxes.m_sY.m_bActuatorEnabled = b_enabled;
       }
 
-      const SDegreeOfFreedom<CRadians>& GetDofAngularZ() const {
-         return m_sAngularDofs.m_sZ;
+      void SetActuatorParametersAngularZ(Real f_target_velocity,
+                           bool b_enabled) {
+         m_sAngularAxes.m_sZ.m_fActuatorTargetVelocity = f_target_velocity;
+         m_sAngularAxes.m_sZ.m_bActuatorEnabled = b_enabled;
+      }
+
+
+      const SAxisParameters<Real>& GetAxisLinearX() const { // rename to GetAxisLinearX etc
+         return m_sLinearAxes.m_sX;
+      }
+
+      const SAxisParameters<Real>& GetAxisLinearY() const {
+         return m_sLinearAxes.m_sY;
+      }
+
+      const SAxisParameters<Real>& GetAxisLinearZ() const {
+         return m_sLinearAxes.m_sZ;
+      }
+
+      const SAxisParameters<CRadians>& GetAxisAngularX() const {
+         return m_sAngularAxes.m_sX;
+      }
+
+      const SAxisParameters<CRadians>& GetAxisAngularY() const {
+         return m_sAngularAxes.m_sY;
+      }
+
+      const SAxisParameters<CRadians>& GetAxisAngularZ() const {
+         return m_sAngularAxes.m_sZ;
       }
 
    private:      
@@ -97,17 +145,15 @@ namespace argos {
       CFrameEquippedEntity* m_pcFrameEquippedEntity;
 
       struct {
-         SDegreeOfFreedom<CRadians> m_sX, m_sY, m_sZ;
-      } m_sAngularDofs;
+         SAxisParameters<CRadians> m_sX, m_sY, m_sZ;
+      } m_sAngularAxes;
       
       struct {
-         SDegreeOfFreedom<Real> m_sX, m_sY, m_sZ;
-      } m_sLinearDofs;
+         SAxisParameters<Real> m_sX, m_sY, m_sZ;
+      } m_sLinearAxes;
       
 
    };
-
-   
 
 }
 

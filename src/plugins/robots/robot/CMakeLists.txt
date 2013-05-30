@@ -4,14 +4,14 @@
 # argos3/plugins/robots/robot/control_interface
 
 set(ARGOS3_HEADERS_PLUGINS_ROBOTS_ROBOT_CONTROLINTERFACE
-  control_interface/ci_robot_rotational_joint_sensor.h
-  control_interface/ci_robot_rotational_joint_actuator.h)
-# argos3/plugins/robots/-bot/simulator
+#  control_interface/ci_robot_joints_sensor.h
+  control_interface/ci_robot_joints_actuator.h)
+
 if(ARGOS_BUILD_FOR_SIMULATOR)
   set(ARGOS3_HEADERS_PLUGINS_ROBOTS_ROBOT_SIMULATOR
     simulator/dynamics3d_robot_model.h
-#   simulator/robot_rotational_joint_sensor.h
-#   simulator/robot_rotational_joint_actuator.h
+#   simulator/robot_joints_default_sensor.h
+    simulator/robot_joints_default_actuator.h
     simulator/body_entity.h
     simulator/body_equipped_entity.h
     simulator/frame_entity.h
@@ -30,8 +30,8 @@ endif(ARGOS_BUILD_FOR_SIMULATOR)
 #
 set(ARGOS3_SOURCES_PLUGINS_ROBOTS_ROBOT
   ${ARGOS3_HEADERS_PLUGINS_ROBOTS_ROBOT_CONTROLINTERFACE}
-    control_interface/ci_robot_rotational_joint_sensor.cpp
-    control_interface/ci_robot_rotational_joint_actuator.cpp)
+#    control_interface/ci_robot_joints_sensor.cpp
+    control_interface/ci_robot_joints_actuator.cpp)
 
 if(ARGOS_BUILD_FOR_SIMULATOR)
   set(ARGOS3_SOURCES_PLUGINS_ROBOTS_ROBOT
@@ -39,8 +39,8 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     ${ARGOS3_HEADERS_PLUGINS_ROBOTS_ROBOT_SIMULATOR}
 
     simulator/dynamics3d_robot_model.cpp
-#   simulator/robot_rotational_joint_sensor.cpp
-#   simulator/robot_rotational_joint_actuator.cpp
+#   simulator/robot_joints_default_sensor.cpp
+    simulator/robot_joints_default_actuator.cpp
     simulator/body_entity.cpp
     simulator/body_equipped_entity.cpp
     simulator/frame_entity.cpp
@@ -56,7 +56,6 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
       simulator/qtopengl_robot.h)
     set(ARGOS3_SOURCES_PLUGINS_ROBOTS_ROBOT
       ${ARGOS3_SOURCES_PLUGINS_ROBOTS_ROBOT}
-#      simulator/qtopengl_robot.h
       simulator/qtopengl_robot.cpp)
   endif(ARGOS_COMPILE_QTOPENGL)
 endif(ARGOS_BUILD_FOR_SIMULATOR)

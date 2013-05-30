@@ -57,7 +57,7 @@
       <body position="0,2.5,0"  orientation="0,0,0"/>
     </box>
 
-    <!--robot id="robotic-arm" position="0,0,0" orientation="0,0,0" controller="r_lua">
+    <robot id="robotic-arm" position="-1,-1,0" orientation="0,0,0" controller="r_lua">
       <bodies reference_body="body_0">
          <body id="body_0" geometry="cylinder" radius="0.15" height="0.05" mass="10">
             <coordinates/>
@@ -67,14 +67,14 @@
             <coordinates/>
             <offset position="0,0,0.05" orientation="0,0,0"/>
          </body>
-         <body id="body_2" geometry="cylinder" radius="0.025" height="0.4" mass="1">
+         <body id="body_2" geometry="cylinder" radius="0.025" height="0.3" mass="1">
             <coordinates/>
             <offset position="0,0,0.45" orientation="0,0,0"/>
          </body>
-         <body id="body_3" geometry="sphere" radius="0.025" mass="1">
+         <!--body id="body_3" geometry="sphere" radius="0.025" mass="1">
             <coordinates/>
             <offset position="0,0,0.85" orientation="0,0,0"/>
-         </body>
+         </body-->
       </bodies>
       <joints>
          <joint id="joint_0" disable_collisions="false" sensor="enabled" actuator="enabled">
@@ -88,21 +88,22 @@
                <frame body="body_1" position="0,0,0.4" orientation="0,0,0"/>
                <frame body="body_2" position="0,0,0" orientation="0,0,0"/>
             </frames>
-            <dof>
-               <angular x="-90:90" y="-1:1" z="-90:90"/>
-               <linear x="-0.001:0.001" y="-0.001:0.001" z="-0.001:0.001"/>
-            </dof>
+            <axes>
+               <axis direction="x" mode="angular" range="unconstrained">
+                   <actuator enabled="true" force="15" target_velocity="5"/>
+               </axis>
+            </axes>
          </joint>
-         <joint id="joint_2" disable_collisions="true" sensor="enabled" actuator="enabled">
+         <!--joint id="joint_2" disable_collisions="true" sensor="enabled" actuator="enabled">
             <frames>
                <frame body="body_2" position="0,0,0.4" orientation="0,0,0"/>
                <frame body="body_3" position="0,0,0" orientation="0,0,0"/>
             </frames>
-         </joint>
+         </joint-->
       </joints>
-    </robot-->
+    </robot>
     
-    <robot id="table" position="-1.5,-1.5,0" orientation="0,0,0" controller="r_lua">
+    <!--robot id="table" position="-1.5,-1.5,0" orientation="0,0,0" controller="r_lua">
       <bodies reference_body="table_top">
          <body id="table_leg_0" geometry="box" size="0.05,0.05,0.2" mass="1">
             <coordinates/>
@@ -151,10 +152,10 @@
             </frames>
          </joint>
       </joints>
-    </robot>
+    </robot-->
     
     <cylinder id="test_cylinder_1" radius="0.025" height="0.05" movable="true" mass="0.5">
-      <body position="-0.05,-0,0.1"  orientation="0,0,90"/>
+      <body position="1,0,0"  orientation="0,0,0"/>
     </cylinder>
     
     <!--box id="test_box2" size="0.05, 0.05, 0.05" movable="true" mass="5">
@@ -170,7 +171,7 @@
       </bodies>
     </robot-->
     
-    <robot id="bebot1" position="-0,-0,0" orientation="0,0,0" controller="r_lua">
+    <robot id="bebot1" position="0,0,0.07025" orientation="0,0,180" controller="r_lua">
       <bodies reference_body="lower-chassis">
          <body id="lower-chassis" geometry="box" size="0.08951, 0.05700, 0.03000" mass="1.0">
             <coordinates/>
@@ -198,47 +199,55 @@
          </body>
       </bodies>
       <joints>
-         <joint id="upper-chassis:lower-chassis" disable_collisions="true" sensor="enabled" actuator="enabled">
+      
+         <joint id="upper-chassis:lower-chassis" disable_collisions="true">
             <frames>
                <frame body="upper-chassis" position="0,0,0" orientation="0,0,0"/>
                <frame body="lower-chassis" position="0,0,0.03000" orientation="0,0,0"/>
             </frames>
          </joint>
-         <joint id="axle-front-left" disable_collisions="true" sensor="enabled" actuator="enabled">
+         
+         <joint id="axle-front-left" disable_collisions="true">
             <frames>
                <frame body="wheel-front-left" position="0,0,0" orientation="0,0,90"/>
                <frame body="lower-chassis" position="0.031750, 0.02850, 0.01000" orientation="0,0,0"/>
             </frames>
-            <dof>
-               <angular y="free"/>
-            </dof>
+            <axes>
+               <axis direction="y" mode="angular" range="unconstrained">
+                   <actuator enabled="true" force="15" target_velocity="0.5"/>
+               </axis>
+            </axes>
          </joint>
+         
          <joint id="axle-front-right" disable_collisions="true">
             <frames>
                <frame body="wheel-front-right" position="0,0,0" orientation="0,0,-90"/>
                <frame body="lower-chassis" position="0.031750, -0.02850, 0.01000" orientation="0,0,0"/>
             </frames>
-            <dof>
-               <angular y="free"/>
-            </dof>
+            <axes>
+               <axis direction="y" mode="angular" range="unconstrained"/>
+            </axes>
          </joint>
          <joint id="axle-rear-left" disable_collisions="true">
             <frames>
                <frame body="wheel-rear-left" position="0,0,0" orientation="0,0,90"/>
                <frame body="lower-chassis" position="-0.031750, 0.02850, 0.01000" orientation="0,0,0"/>
             </frames>
-            <dof>
-               <angular y="free"/>
-            </dof>
+            <axes>
+               <axis direction="y" mode="angular" range="unconstrained"/>
+            </axes>
          </joint>
-         <joint id="axle-rear-right" disable_collisions="true" sensor="enabled" actuator="enabled">
+         <joint id="axle-rear-right" disable_collisions="true">
             <frames>
                <frame body="wheel-rear-right" position="0,0,0" orientation="0,0,-90"/>
                <frame body="lower-chassis" position="-0.031750, -0.02850, 0.01000" orientation="0,0,0"/>
             </frames>
-            <dof>
-               <angular y="free"/>
-            </dof>
+            <axes>
+               <axis direction="y" mode="angular" range="unconstrained">
+                   <actuator enabled="true" force="15" target_velocity="0.5"/>
+               </axis>
+            </axes>
+
          </joint>
          <!-- the following are virtual joints (i.e. constraints) that keep simulate the track between the wheels -->
          <!--joint id="left_track" disable_collisions="false">
@@ -262,10 +271,10 @@
       </joints>
     </robot>
     
-    <foot-bot id="fb1">
+    <!--foot-bot id="fb1">
       <body position="-1.5,-1.5,0.25" orientation="0,0,0"/>
       <controller controller="fb_lua"/>
-    </foot-bot>
+    </foot-bot-->
     
     <!--box id="test_box" size="0.1, 0.1, 0.1" movable="true" mass="5">
       <body position="0.01,-0.01,1"  orientation="0,0,0"/>
