@@ -103,12 +103,8 @@ namespace argos {
                                  Real f_max_force);
 
       void SetActuatorTargetVelocity(EAxis e_axis,
-                                 Real f_target_velocity);
-         
-      //@todo implement Real GetActuatorVelocity(Actuator::EAxis e_axis);
-
-      //@todo implement Real GetActuatorPosition(Actuator::EAxis e_axis);
-
+                                     Real f_target_velocity);
+      
       void AddJointToWorld(btDynamicsWorld* pc_dynamics_world);
 
       void RemoveJointFromWorld(btDynamicsWorld* pc_dynamics_world);

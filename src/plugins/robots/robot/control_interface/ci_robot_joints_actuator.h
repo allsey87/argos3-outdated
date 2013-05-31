@@ -62,7 +62,10 @@ namespace argos {
 
       virtual CJointActuator& GetJointActuator(std::string str_joint_id, EActuatorAxis e_axis) = 0;
 
-      virtual void CreateLuaState(lua_State*) {}
+#ifdef ARGOS_WITH_LUA
+      virtual void CreateLuaState(lua_State*);
+#endif
+
    };
 }
 

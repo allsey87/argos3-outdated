@@ -48,9 +48,9 @@ namespace argos {
          return *m_pcJointEquippedEntity;
       }
 
-      //inline CControllableEntity& GetControllableEntity() {
-      //   return *m_pcControllableEntity;
-      //}
+      inline CControllableEntity& GetControllableEntity() {
+         return *m_pcControllableEntity;
+      }
 
       virtual std::string GetTypeDescription() const {
          return "robot";
@@ -58,7 +58,7 @@ namespace argos {
 
    private:
 
-      //CControllableEntity*            m_pcControllableEntity;
+      CControllableEntity*            m_pcControllableEntity;
       CEmbodiedEntity* m_pcEmbodiedEntity;
       CBodyEquippedEntity* m_pcBodyEquippedEntity;
       CJointEquippedEntity* m_pcJointEquippedEntity;

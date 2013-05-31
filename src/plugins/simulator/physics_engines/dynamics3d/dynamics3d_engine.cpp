@@ -84,8 +84,7 @@ namespace argos {
 
       /* Add a static plane as the experiment floor on request */
       if(NodeExists(t_tree, "floor")) {
-         m_pcGround = new CDynamics3DBody("floor",
-                                          &m_cGroundCollisionShape);
+         m_pcGround = new CDynamics3DBody("floor", &m_cGroundCollisionShape);
          m_pcGround->AddBodyToWorld(m_pcWorld);
       }
 

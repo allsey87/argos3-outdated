@@ -21,7 +21,7 @@ namespace argos {
 
    CRobotEntity::CRobotEntity() :
       CComposableEntity(NULL),
-      //m_pcControllableEntity(NULL),
+      m_pcControllableEntity(NULL),
       m_pcEmbodiedEntity(NULL),
       m_pcBodyEquippedEntity(NULL),
       m_pcJointEquippedEntity(NULL) {}
@@ -58,9 +58,11 @@ namespace argos {
 
          /* Controllable entity
             It must be the last one, for actuators/sensors to link to composing entities correctly */
-         //m_pcControllableEntity = new CControllableEntity(this);
-         //AddComponent(*m_pcControllableEntity);
-         //m_pcControllableEntity->Init(t_tree);
+         if(NodeExists(t_tree, "controller")) {
+            m_pcControllableEntity = new CControllableEntity(this);
+            AddComponent(*m_pcControllableEntity);
+            m_pcControllableEntity->Init(GetNode(t_tree, "controller"));
+         }
          /* Update components */
          UpdateComponents();
       }
