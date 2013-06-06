@@ -60,6 +60,7 @@ namespace argos {
       CCI_RobotJointsActuator::CJointActuator& m_cTargetJoint = 
          CLuaUtility::GetDeviceInstance<CCI_RobotJointsActuator>(pt_lua_state, "joints")->
          GetJointActuator(lua_tostring(pt_lua_state, 1), eTargetAxis);
+
       /* Perform action */
       m_cTargetJoint.SetTargetVelocity(lua_tonumber(pt_lua_state, 3));
       return 0;
@@ -71,10 +72,11 @@ namespace argos {
 
 #ifdef ARGOS_WITH_LUA
    void CCI_RobotJointsActuator::CreateLuaState(lua_State* pt_lua_state) {
-      CLuaUtility::OpenRobotStateTable(pt_lua_state, "joints");
+      //CLuaUtility::OpenRobotStateTable(pt_lua_state, "joints");
+      CLuaUtility::StartTable(pt_lua_state, "joints");
       CLuaUtility::AddToTable(pt_lua_state, "_instance", this);
       CLuaUtility::AddToTable(pt_lua_state, "set_joint_velocity", &LuaSetJointVelocity);
-      CLuaUtility::CloseRobotStateTable(pt_lua_state);
+      CLuaUtility::EndTable(pt_lua_state);
    }
 #endif
 

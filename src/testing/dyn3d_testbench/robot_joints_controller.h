@@ -6,6 +6,7 @@
 
 #include <argos3/core/control_interface/ci_controller.h>
 #include <argos3/plugins/robots/robot/control_interface/ci_robot_joints_actuator.h>
+#include <argos3/plugins/robots/robot/control_interface/ci_robot_joints_sensor.h>
 #include <argos3/core/utility/math/vector2.h>
 
 using namespace argos;
@@ -25,6 +26,9 @@ private:
 
    CCI_RobotJointsActuator* m_pcJoints;
    CCI_RobotJointsActuator::CJointActuator* m_pcJointActuator;
+
+   CCI_RobotJointsSensor* m_pcJointsSensor;
+   CCI_RobotJointsSensor::CJointSensor* m_pcJointSensor;
 
    UInt32 m_unCount;
 

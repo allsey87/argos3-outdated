@@ -142,38 +142,6 @@ namespace argos {
                                                          (*itJoint)->GetAxisAngularY().m_fActuatorForce,
                                                          (*itJoint)->GetAxisAngularY().m_fActuatorTargetVelocity));
          
-         fprintf(stderr, "Joint Limits for %s\n", (*itJoint)->GetId().c_str());
-         
-         fprintf(stderr, "cLinearLowerLimit = [%.3f, %.3f, %.3f]\n",
-                 cLinearLowerLimit.getX(),
-                 cLinearLowerLimit.getY(),
-                 cLinearLowerLimit.getZ());
-         fprintf(stderr, "cLinearUpperLimit = [%.3f, %.3f, %.3f]\n",
-                 cLinearUpperLimit.getX(),
-                 cLinearUpperLimit.getY(),
-                 cLinearUpperLimit.getZ());
-         fprintf(stderr, "cAngularLowerLimit = [%.3f, %.3f, %.3f]\n",
-                 cAngularLowerLimit.getX(),
-                 cAngularLowerLimit.getY(),
-                 cAngularLowerLimit.getZ());
-         fprintf(stderr, "cAngularUpperLimit = [%.3f, %.3f, %.3f]\n",
-                 cAngularUpperLimit.getX(),
-                 cAngularUpperLimit.getY(),
-                 cAngularUpperLimit.getZ());
-         
-
-         fprintf(stderr, "sAngularActuators = x[%s, %.3f, %.3f], y[%s, %.3f, %.3f], z[%s, %.3f, %.3f]\n", 
-                 sAngularActuators.m_sX.m_bEnabled?"true":"false",
-                 sAngularActuators.m_sX.m_fForce,
-                 sAngularActuators.m_sX.m_fTargetVelocity,
-                 sAngularActuators.m_sY.m_bEnabled?"true":"false",
-                 sAngularActuators.m_sY.m_fForce,
-                 sAngularActuators.m_sY.m_fTargetVelocity,
-                 sAngularActuators.m_sZ.m_bEnabled?"true":"false",
-                 sAngularActuators.m_sZ.m_fForce,
-                 sAngularActuators.m_sZ.m_fTargetVelocity);
-
-
          /* create the joint */
          m_vecLocalJoints.push_back(new CDynamics3DJoint((*itJoint)->GetId(),
                                                          **itDyn3dBody0,
@@ -226,80 +194,41 @@ namespace argos {
       btTransform cBodyTransform;
       
 
-      // Update the position of the bodies
-      // loop over the SBodyConfigurations instead? link to positional entities on init?
+      /* Update the position of the bodies */
+      //  link to positional entities on init?
       for(CBodyEntity::TList::iterator itBody = m_cBodyEquippedEntity.GetAllBodies().begin();
           itBody != m_cBodyEquippedEntity.GetAllBodies().end();
           ++itBody) {
          
-         //@todo optimise by storing a pointer to the CPositionalEntity inside the SBodyConfiguration structure
-         CDynamics3DBody& sBodyConfiguration = **std::find(m_vecLocalBodies.begin(),
-                                                                 m_vecLocalBodies.end(),
-                                                                 (*itBody)->GetId());
+         //@todo optimise by storing a pointer
+         CDynamics3DBody& cBody = **std::find(m_vecLocalBodies.begin(),
+                                              m_vecLocalBodies.end(),
+                                              (*itBody)->GetId());
          
-         sBodyConfiguration.ActivateRigidBody();
+         //@todo move this line into the UpdateFromEntityStatus method, it doesn't belong here
+         cBody.ActivateRigidBody();
 
-         //@todo move this offset and transform logic inside the motion state
-         //btTransform cOffset(ARGoSToBullet((*itBody)->m_cOffsetOrientation), ARGoSToBullet((*itBody)->m_cOffsetPosition));
-         
-         // when updating the components we don't want to undo the offset!!
-         const btTransform& cBodyUpdateTransform = sBodyConfiguration.GetMotionStateTransform();
-         //const btTransform& cBodyUpdateTransform = psBodyConfiguration->m_pcMotionState->m_graphicsWorldTrans * cOffset.inverse();
-         /*
-         fprintf(stderr, "[DEBUG] Position of %s in ARGoS *before* update\n", (*itBody)->GetId().c_str());
-
-         CVector3 position;
-         CVector3 axis;
-         CRadians angle;
-
-         (*itBody)->GetPositionalEntity().GetOrientation().ToAngleAxis(angle, axis);
-         position = (*itBody)->GetPositionalEntity().GetPosition();
-
-         fprintf(stderr, "absolute: position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = %.3f\n", position.GetX(), position.GetY(), position.GetZ(), axis.GetX(), axis.GetY(), axis.GetZ(), ToDegrees(angle).GetValue());
-
-         (*itBody)->m_cOffsetOrientation.ToAngleAxis(angle, axis);
-         position = (*itBody)->m_cOffsetPosition;
-
-         fprintf(stderr, "offset: position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = %.3f\n", position.GetX(), position.GetY(), position.GetZ(), axis.GetX(), axis.GetY(), axis.GetZ(), ToDegrees(angle).GetValue());
-
-         fprintf(stderr, "\n");
-
-         btDefaultMotionState * pcMotionState = psBodyConfiguration->m_pcMotionState;
-         
-         fprintf(stderr, "[DEBUG] %s/m_graphicsWorldTrans: position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = %.3f\n", (*itBody)->GetId().c_str(), pcMotionState->m_graphicsWorldTrans.getOrigin().getX(), pcMotionState->m_graphicsWorldTrans.getOrigin().getY(), pcMotionState->m_graphicsWorldTrans.getOrigin().getZ(), pcMotionState->m_graphicsWorldTrans.getRotation().getAxis().getX(), pcMotionState->m_graphicsWorldTrans.getRotation().getAxis().getY(), pcMotionState->m_graphicsWorldTrans.getRotation().getAxis().getZ(), pcMotionState->m_graphicsWorldTrans.getRotation().getAngle() * 57.2957795131f);
-
-         fprintf(stderr, "[DEBUG] %s/m_centerOfMassOffset: position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = %.3f\n", (*itBody)->GetId().c_str(), pcMotionState->m_centerOfMassOffset.getOrigin().getX(), pcMotionState->m_centerOfMassOffset.getOrigin().getY(), pcMotionState->m_centerOfMassOffset.getOrigin().getZ(), pcMotionState->m_centerOfMassOffset.getRotation().getAxis().getX(), pcMotionState->m_centerOfMassOffset.getRotation().getAxis().getY(), pcMotionState->m_centerOfMassOffset.getRotation().getAxis().getZ(), pcMotionState->m_centerOfMassOffset.getRotation().getAngle() * 57.2957795131f);
-
-         fprintf(stderr, "[DEBUG] %s/m_startWorldTrans:    position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = %.3f\n", (*itBody)->GetId().c_str(), pcMotionState->m_startWorldTrans.getOrigin().getX(), pcMotionState->m_startWorldTrans.getOrigin().getY(), pcMotionState->m_startWorldTrans.getOrigin().getZ(), pcMotionState->m_startWorldTrans.getRotation().getAxis().getX(), pcMotionState->m_startWorldTrans.getRotation().getAxis().getY(), pcMotionState->m_startWorldTrans.getRotation().getAxis().getZ(), pcMotionState->m_startWorldTrans.getRotation().getAngle() * 57.2957795131f);
-         
-         fprintf(stderr, "\n");
-
-         fprintf(stderr, "[DEBUG] %s/cBodyUpdateTransform:    position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = %.3f\n", (*itBody)->GetId().c_str(), cBodyUpdateTransform.getOrigin().getX(), cBodyUpdateTransform.getOrigin().getY(), cBodyUpdateTransform.getOrigin().getZ(), cBodyUpdateTransform.getRotation().getAxis().getX(), cBodyUpdateTransform.getRotation().getAxis().getY(), cBodyUpdateTransform.getRotation().getAxis().getZ(), cBodyUpdateTransform.getRotation().getAngle() * 57.2957795131f);
-         */
-         (*itBody)->GetPositionalEntity().SetPosition(BulletToARGoS(cBodyUpdateTransform.getOrigin()));      
-         (*itBody)->GetPositionalEntity().SetOrientation(BulletToARGoS(cBodyUpdateTransform.getRotation()));
-         /*
-         fprintf(stderr, "\n");
-
-         fprintf(stderr, "[DEBUG] Position of %s in ARGoS *after* update\n", (*itBody)->GetId().c_str());
-
-(*itBody)->GetPositionalEntity().GetOrientation().ToAngleAxis(angle, axis);
-         position = (*itBody)->GetPositionalEntity().GetPosition();
-
-         fprintf(stderr, "absolute: position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = %.3f\n", position.GetX(), position.GetY(), position.GetZ(), axis.GetX(), axis.GetY(), axis.GetZ(), ToDegrees(angle).GetValue());
-
-         (*itBody)->m_cOffsetOrientation.ToAngleAxis(angle, axis);
-         position = (*itBody)->m_cOffsetPosition;
-
-         fprintf(stderr, "offset: position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = %.3f\n", position.GetX(), position.GetY(), position.GetZ(), axis.GetX(), axis.GetY(), axis.GetZ(), ToDegrees(angle).GetValue());
-
-         fprintf(stderr, "\n");
-
-         fprintf(stderr, "\n");
-         */
-
+         (*itBody)->GetPositionalEntity().SetPosition(BulletToARGoS(cBody.GetMotionStateTransform().getOrigin()));      
+         (*itBody)->GetPositionalEntity().SetOrientation(BulletToARGoS(cBody.GetMotionStateTransform().getRotation()));
       }
-              
+      
+      /* Write back the joint angles and positions */
+      for(CJointEntity::TList::iterator itJoint = m_cJointEquippedEntity.GetAllJoints().begin();
+          itJoint != m_cJointEquippedEntity.GetAllJoints().end();
+          ++itJoint) {
+         
+         //@todo optimise by storing a pointer
+         CDynamics3DJoint& cJoint = **std::find(m_vecLocalJoints.begin(),
+                                                m_vecLocalJoints.end(),
+                                                (*itJoint)->GetId());
+         
+         btTransform cJointTransform = cJoint.GetSensorReading();
+
+         (*itJoint)->SetJointRotation(BulletToARGoS(cJointTransform.getRotation()));
+         (*itJoint)->SetJointTranslation(BulletToARGoS(cJointTransform.getOrigin()));
+      }
+
+      /* Update the emboddied entity */
       const btTransform& cEntityUpdateTransform = GetModelCoordinates();
       
       GetEmbodiedEntity().SetPosition(BulletToARGoS(cEntityUpdateTransform.getOrigin()));
@@ -307,18 +236,6 @@ namespace argos {
 
       /* Update components */
       m_cRobotEntity.UpdateComponents();
-
-
-      //MORE DEBUGGING
-      /*CVector3 position;
-      CVector3 axis;
-      CRadians angle;
-
-      GetEmbodiedEntity().GetOrientation().ToAngleAxis(angle, axis);
-      position = GetEmbodiedEntity().GetPosition();
-
-      fprintf(stderr, "%s position = [%.3f, %.3f, %.3f], rotation axis = [%.3f, %.3f, %.3f] & angle = [%.3f]\n", m_cRobotEntity.GetId().c_str(), position.GetX(), position.GetY(), position.GetZ(), axis.GetX(), axis.GetY(), axis.GetZ(), ToDegrees(angle).GetValue());
-      */
    }
 
    /****************************************/
@@ -329,29 +246,29 @@ namespace argos {
           itJoint != m_cJointEquippedEntity.GetAllJoints().end();
           ++itJoint) {
          
-         CDynamics3DJoint* pcJoint = *std::find(m_vecLocalJoints.begin(),
+         CDynamics3DJoint& cJoint = **std::find(m_vecLocalJoints.begin(),
                                                 m_vecLocalJoints.end(),
                                                 (*itJoint)->GetId());
          /* Write the motor target velocities to the joints */
          /* add method for enable/disable? */
          //@todo for correctness it might be necerry to negate the z/y velocities according to the transforms
 
-         pcJoint->SetActuatorTargetVelocity(CDynamics3DJoint::LINEAR_X,
-                                            (*itJoint)->GetAxisLinearX().m_fActuatorTargetVelocity);
-         pcJoint->SetActuatorTargetVelocity(CDynamics3DJoint::LINEAR_Y,
-                                            (*itJoint)->GetAxisLinearZ().m_fActuatorTargetVelocity);
-         pcJoint->SetActuatorTargetVelocity(CDynamics3DJoint::LINEAR_Z,
-                                            (*itJoint)->GetAxisLinearY().m_fActuatorTargetVelocity);
+         cJoint.SetActuatorTargetVelocity(CDynamics3DJoint::LINEAR_X,
+                                          (*itJoint)->GetAxisLinearX().m_fActuatorTargetVelocity);
+         cJoint.SetActuatorTargetVelocity(CDynamics3DJoint::LINEAR_Y,
+                                          (*itJoint)->GetAxisLinearZ().m_fActuatorTargetVelocity);
+         cJoint.SetActuatorTargetVelocity(CDynamics3DJoint::LINEAR_Z,
+                                          (*itJoint)->GetAxisLinearY().m_fActuatorTargetVelocity);
 
-         pcJoint->SetActuatorTargetVelocity(CDynamics3DJoint::ANGULAR_X,
-                                            (*itJoint)->GetAxisAngularX().m_fActuatorTargetVelocity);
-         pcJoint->SetActuatorTargetVelocity(CDynamics3DJoint::ANGULAR_Y,
-                                            (*itJoint)->GetAxisAngularZ().m_fActuatorTargetVelocity);
-         pcJoint->SetActuatorTargetVelocity(CDynamics3DJoint::ANGULAR_Z,
-                                            (*itJoint)->GetAxisAngularY().m_fActuatorTargetVelocity);
+         cJoint.SetActuatorTargetVelocity(CDynamics3DJoint::ANGULAR_X,
+                                          (*itJoint)->GetAxisAngularX().m_fActuatorTargetVelocity);
+         cJoint.SetActuatorTargetVelocity(CDynamics3DJoint::ANGULAR_Y,
+                                          (*itJoint)->GetAxisAngularZ().m_fActuatorTargetVelocity);
+         cJoint.SetActuatorTargetVelocity(CDynamics3DJoint::ANGULAR_Z,
+                                          (*itJoint)->GetAxisAngularY().m_fActuatorTargetVelocity);
       }
-      // @todo run this method on the reference body!
-      //->ActivateRigidBody();
+
+      //GetReferenceBody().ActivateRigidBody();
       // Add method get reference body which sets the pointer
    }
 
@@ -362,6 +279,7 @@ namespace argos {
       const std::string& strReferenceBodyId = 
          m_cRobotEntity.GetBodyEquippedEntity().GetReferenceBody().GetId();
       
+      //@todo optimise by storing pointers
       const CDynamics3DBody& sReferenceBodyConfiguration = **std::find(m_vecLocalBodies.begin(),
                                                                        m_vecLocalBodies.end(),
                                                                        strReferenceBodyId);

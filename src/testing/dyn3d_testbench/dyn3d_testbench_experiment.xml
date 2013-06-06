@@ -19,7 +19,9 @@
       <actuators>
         <joints implementation="default" />
       </actuators>
-      <sensors/>
+      <sensors>
+         <joints implementation="default" />
+      </sensors>   
       <params />
     </robot_joints_controller>
 
@@ -27,7 +29,9 @@
       <actuators>
         <joints implementation="default" />
       </actuators>
-      <sensors/>
+      <sensors>
+         <joints implementation="default" />
+      </sensors>   
       <params/>
     </lua_controller>
     
@@ -101,6 +105,9 @@
             <axes>
                <axis direction="x" mode="angular" range="unconstrained">
                    <actuator enabled="true" force="15" target_velocity="5"/>
+               </axis>
+               <axis direction="z" mode="linear" range="0:1">
+                   <actuator enabled="true" force="2" target_velocity="1"/>
                </axis>
             </axes>
          </joint>
@@ -224,7 +231,7 @@
             </frames>
             <axes>
                <axis direction="y" mode="angular" range="unconstrained">
-                   <actuator enabled="true" force="15" target_velocity="0.5"/>
+                   <actuator enabled="true" force="15" target_velocity="5"/>
                </axis>
             </axes>
          </joint>
@@ -254,7 +261,7 @@
             </frames>
             <axes>
                <axis direction="y" mode="angular" range="unconstrained">
-                   <actuator enabled="true" force="15" target_velocity="0.5"/>
+                   <actuator enabled="true" force="15" target_velocity="5"/>
                </axis>
             </axes>
 

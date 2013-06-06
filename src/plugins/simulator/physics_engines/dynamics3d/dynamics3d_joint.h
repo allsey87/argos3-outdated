@@ -108,6 +108,10 @@ namespace argos {
       void AddJointToWorld(btDynamicsWorld* pc_dynamics_world);
 
       void RemoveJointFromWorld(btDynamicsWorld* pc_dynamics_world);
+
+      btTransform GetSensorReading() {
+         return m_pcJoint->getCalculatedTransformA().inverse() * m_pcJoint->getCalculatedTransformB();
+      }
     
    private:
       std::string m_strId;

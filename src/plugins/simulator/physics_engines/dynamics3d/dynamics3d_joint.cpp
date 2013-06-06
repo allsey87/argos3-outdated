@@ -175,7 +175,7 @@ namespace argos {
    /****************************************/
 
    void CDynamics3DJoint::SetActuatorTargetVelocity(EAxis e_axis,
-                                  Real f_target_velocity) {
+                                                    Real f_target_velocity) {
       switch(e_axis) {
       case LINEAR_X:
       case LINEAR_Y:
@@ -203,7 +203,7 @@ namespace argos {
       toFprintf = &m_pcJoint->getFrameOffsetB();
       fprintf(stderr, "%s: getFrameOffsetB() : position = [%.3f, %.3f, %.3f], orientation-axis = [%.3f, %.3f, %.3f], orientation-angle = [%.3f]\n", m_strId.c_str(), toFprintf->getOrigin().getX(), toFprintf->getOrigin().getY(), toFprintf->getOrigin().getZ(), toFprintf->getRotation().getAxis().getX(), toFprintf->getRotation().getAxis().getY(), toFprintf->getRotation().getAxis().getZ(), toFprintf->getRotation().getAngle() * 57.2957795131);
 
-      toFprintf = new btTransform(m_pcJoint->getCalculatedTransformA() * m_pcJoint->getCalculatedTransformB().inverse());
+      toFprintf = new btTransform();
       fprintf(stderr, "%s: getCalculatedTransformA() * getCalculatedTransformB().inverse : position = [%.3f, %.3f, %.3f], orientation-axis = [%.3f, %.3f, %.3f], orientation-angle = [%.3f]\n", m_strId.c_str(), toFprintf->getOrigin().getX(), toFprintf->getOrigin().getY(), toFprintf->getOrigin().getZ(), toFprintf->getRotation().getAxis().getX(), toFprintf->getRotation().getAxis().getY(), toFprintf->getRotation().getAxis().getZ(), toFprintf->getRotation().getAngle() * 57.2957795131);
 
       }*/

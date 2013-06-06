@@ -139,10 +139,39 @@ namespace argos {
          return m_sAngularAxes.m_sZ;
       }
 
+      const CQuaternion& GetJointRotation() const {
+         return m_cJointRotation;
+      }
+
+      const CVector3& GetJointTranslation() const {
+         return m_cJointTranslation;
+      }
+
+      /*
+        This method is called from a physics engine to update
+        the value of joints current rotation, it does not control the joint 
+       */
+      void SetJointRotation(const CQuaternion& c_rotation) {
+         m_cJointRotation = c_rotation;
+      }
+
+      /*
+        This method is called from a physics engine to update
+        the value of joints current translation, it does not control the joint 
+       */
+      void SetJointTranslation(const CVector3& c_translation) {
+         m_cJointTranslation = c_translation;
+      }
+
+            
    private:      
       bool m_bDisableCollisions;
 
       CFrameEquippedEntity* m_pcFrameEquippedEntity;
+
+      CQuaternion m_cJointRotation;
+
+      CVector3 m_cJointTranslation;
 
       struct {
          SAxisParameters<CRadians> m_sX, m_sY, m_sZ;
