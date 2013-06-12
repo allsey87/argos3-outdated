@@ -31,6 +31,7 @@
       </actuators>
       <sensors>
          <joints implementation="default" />
+         <robot_proximity implementation="default" target="bodies.body[body_2].proximity_sensors" show_rays="true"/>
       </sensors>   
       <params/>
     </lua_controller>
@@ -118,6 +119,11 @@
             </frames>
          </joint-->
       </joints>
+      <sensors>
+         <proximity body="body_2">
+            <sensor offset="0,0,0.3" direction="1,0,0" range="0.35" />
+         </proximity>
+      </sensors>
     </robot>
     
     <!--robot id="table" position="-1.5,-1.5,0" orientation="0,0,0" controller="r_lua">
@@ -171,8 +177,8 @@
       </joints>
     </robot-->
     
-    <cylinder id="test_cylinder_1" radius="0.025" height="0.05" movable="true" mass="0.5">
-      <body position="1,0,0"  orientation="0,0,0"/>
+    <cylinder id="test_cylinder_1" radius="0.035" height="0.15" movable="true" mass="0.5">
+      <body position="-0.7,-1,0"  orientation="0,0,0"/>
     </cylinder>
     
     <!--box id="test_box2" size="0.05, 0.05, 0.05" movable="true" mass="5">
@@ -188,7 +194,8 @@
       </bodies>
     </robot-->
     
-    <robot id="bebot1" position="0,0,0.07025" orientation="0,0,180">
+    <!--robot id="bebot1" position="0,0,0.07025" orientation="0,0,180"-->
+    <robot id="bebot1" position="0,0,0.07025" orientation="0,0,0">
       <bodies reference_body="lower-chassis">
          <body id="lower-chassis" geometry="box" size="0.08951, 0.05700, 0.03000" mass="1.0">
             <coordinates/>

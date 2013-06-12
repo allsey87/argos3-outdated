@@ -268,7 +268,9 @@ namespace argos {
       void ApplyTo(CQTOpenGLWidget& c_visualization,
                    CRobotEntity& c_entity) {
          static CQTOpenGLRobot m_cModel;
-         //c_visualization.DrawRays(c_entity.GetControllableEntity());
+         if(c_entity.HasControllableEntity()) {
+            c_visualization.DrawRays(c_entity.GetControllableEntity());
+         }
          m_cModel.DrawBodies(c_entity);
       }
    };

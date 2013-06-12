@@ -48,6 +48,10 @@ namespace argos {
          return *m_pcJointEquippedEntity;
       }
 
+      inline bool HasControllableEntity() {
+         return m_pcControllableEntity != NULL;
+      }
+
       inline CControllableEntity& GetControllableEntity() {
          return *m_pcControllableEntity;
       }

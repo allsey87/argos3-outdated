@@ -5,7 +5,8 @@
 
 set(ARGOS3_HEADERS_PLUGINS_ROBOTS_ROBOT_CONTROLINTERFACE
   control_interface/ci_robot_joints_sensor.h
-  control_interface/ci_robot_joints_actuator.h)
+  control_interface/ci_robot_joints_actuator.h
+  control_interface/ci_robot_proximity_sensor.h)
 
 if(ARGOS_BUILD_FOR_SIMULATOR)
   set(ARGOS3_HEADERS_PLUGINS_ROBOTS_ROBOT_SIMULATOR
@@ -19,6 +20,7 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     simulator/joint_entity.h
     simulator/joint_equipped_entity.h
     simulator/robot_entity.h
+    simulator/robot_proximity_default_sensor.h
     simulator/geometry3.h
     simulator/box_geometry3.h
     simulator/cylinder_geometry3.h
@@ -31,7 +33,8 @@ endif(ARGOS_BUILD_FOR_SIMULATOR)
 set(ARGOS3_SOURCES_PLUGINS_ROBOTS_ROBOT
   ${ARGOS3_HEADERS_PLUGINS_ROBOTS_ROBOT_CONTROLINTERFACE}
     control_interface/ci_robot_joints_sensor.cpp
-    control_interface/ci_robot_joints_actuator.cpp)
+    control_interface/ci_robot_joints_actuator.cpp
+    control_interface/ci_robot_proximity_sensor.cpp)
 
 if(ARGOS_BUILD_FOR_SIMULATOR)
   set(ARGOS3_SOURCES_PLUGINS_ROBOTS_ROBOT
@@ -47,7 +50,8 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     simulator/frame_equipped_entity.cpp
     simulator/joint_entity.cpp
     simulator/joint_equipped_entity.cpp
-    simulator/robot_entity.cpp)
+    simulator/robot_entity.cpp
+    simulator/robot_proximity_default_sensor.cpp)
   # Compile the graphical visualization only if the necessary libraries have been found
   include(ARGoSCheckQTOpenGL)
   if(ARGOS_COMPILE_QTOPENGL)

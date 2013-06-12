@@ -9,6 +9,8 @@
 #include <argos3/plugins/robots/robot/simulator/body_equipped_entity.h>
 #include <argos3/plugins/robots/robot/simulator/joint_equipped_entity.h>
 
+#include <argos3/plugins/simulator/entities/proximity_sensor_equipped_entity.h>
+
 #include <argos3/core/simulator/space/space.h>
 //#include <argos3/core/simulator/entity/controllable_entity.h>
 #include <argos3/core/simulator/entity/embodied_entity.h>
@@ -54,6 +56,28 @@ namespace argos {
          AddComponent(*m_pcJointEquippedEntity);
          if(NodeExists(t_tree, "joints")) {
             m_pcJointEquippedEntity->Init(GetNode(t_tree, "joints"));
+         }
+
+         if(NodeExists(t_tree, "sensors")) {
+            TConfigurationNodeIterator itSensor;
+            for(itSensor = itSensor.begin(&GetNode(t_tree, "sensors"));
+                itSensor != itSensor.end();
+                ++itSensor) {
+               
+               std::string strTargetBody;
+               GetNodeAttribute(*itSensor, "body", strTargetBody);
+               CBodyEntity& cSensorBody = GetComponent<CBodyEntity>("bodies.body[" + strTargetBody + "]");
+
+               if(itSensor->Value() == "proximity") {
+                  CProximitySensorEquippedEntity* m_pcSensorEquippedEntity = 
+                     new CProximitySensorEquippedEntity(&cSensorBody);
+                  m_pcSensorEquippedEntity->Init(*itSensor);
+                  cSensorBody.AddComponent(*m_pcSensorEquippedEntity);
+               }
+               else {
+THROW_ARGOSEXCEPTION("Attempt to add unimplemented sensor type \"" << itSensor->Value() << "\".");
+               }
+            }
          }
 
          /* Controllable entity
