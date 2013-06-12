@@ -32,6 +32,7 @@
       <sensors>
          <joints implementation="default" />
          <robot_proximity implementation="default" target="bodies.body[body_2].proximity_sensors" show_rays="true"/>
+         <!--robot_proximity implementation="default" target="bodies.body[body_1].proximity_sensors" show_rays="true"/-->
       </sensors>   
       <params/>
     </lua_controller>
@@ -123,7 +124,15 @@
          <proximity body="body_2">
             <sensor offset="0,0,0.3" direction="1,0,0" range="0.35" />
          </proximity>
+         <proximity body="body_1">
+            <sensor offset="0,0,0.3" direction="1,0,0" range="0.35" />
+         </proximity>
       </sensors>
+      <actuators>
+         <joints joint="joint_1">
+            <actuator axis="" mode="" force="" target_velocity=""/>
+         </joints>
+      </actuators>
     </robot>
     
     <!--robot id="table" position="-1.5,-1.5,0" orientation="0,0,0" controller="r_lua">
