@@ -52,6 +52,9 @@
     </lua_controller>
     
   </controllers>
+  
+  
+  
 
   <!-- *********************** -->
   <!-- * Arena configuration * -->
@@ -128,11 +131,6 @@
             <sensor offset="0,0,0.3" direction="1,0,0" range="0.35" />
          </proximity>
       </sensors>
-      <actuators>
-         <joints joint="joint_1">
-            <actuator axis="" mode="" force="" target_velocity=""/>
-         </joints>
-      </actuators>
     </robot>
     
     <!--robot id="table" position="-1.5,-1.5,0" orientation="0,0,0" controller="r_lua">
@@ -186,8 +184,21 @@
       </joints>
     </robot-->
     
+    <robot id="magnet" position="-1.5,-1.5,0" orientation="0,0,0" controller="r_lua">
+      <bodies reference_body="body">
+         <body id="body" geometry="sphere" radius="0.05" mass="0.5">
+            <coordinates/>
+            <offset position="0,0,0" orientation="0,0,0"/>
+            <attributes>
+               <attribute key="magnetic" value="true"/>
+               <attribute key="magnetic_field" value="1,1,1"/>
+            </attributes>
+         </body>
+       </bodies>
+    </robot>
+    
     <cylinder id="test_cylinder_1" radius="0.035" height="0.15" movable="true" mass="0.5">
-      <body position="-0.7,-1,0"  orientation="0,0,0"/>
+      <body position="-1.5,-1.55,0.3"  orientation="0,30,0"/>
     </cylinder>
     
     <!--box id="test_box2" size="0.05, 0.05, 0.05" movable="true" mass="5">
@@ -303,12 +314,7 @@
          </joint-->
       </joints>
     </robot>
-    
-    <!--foot-bot id="fb1">
-      <body position="-1.5,-1.5,0.25" orientation="0,0,0"/>
-      <controller controller="fb_lua"/>
-    </foot-bot-->
-    
+   
     <!--box id="test_box" size="0.1, 0.1, 0.1" movable="true" mass="5">
       <body position="0.01,-0.01,1"  orientation="0,0,0"/>
     </box-->
@@ -325,6 +331,10 @@
   <physics_engines>
     <dynamics3d id="dyn3d" iterations="25">
       <floor/>
+      <plugins>
+         <!--antigravity force="0,0,10"/-->
+         <magnetism/>
+      </plugins>
     </dynamics3d>
   </physics_engines>
 

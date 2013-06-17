@@ -20,7 +20,6 @@ namespace argos {
                                  CRobotEntity& c_entity);
       virtual ~CDynamics3DRobotModel();
       
-
       virtual void UpdateEntityStatus();
       virtual void UpdateFromEntityStatus();
 

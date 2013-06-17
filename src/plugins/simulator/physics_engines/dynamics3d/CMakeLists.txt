@@ -365,12 +365,13 @@ set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET
 #
 # Headers of the 3d dynamics physics engine
 set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D
+  dynamics3d_body.h
+  dynamics3d_joint.h
+  dynamics3d_plugin.h
   dynamics3d_box_model.h
   dynamics3d_cylinder_model.h
   dynamics3d_model.h
-  dynamics3d_engine.h
-  dynamics3d_body.h
-  dynamics3d_joint.h)
+  dynamics3d_engine.h)
 # Headers of the sphere entity (provided by the dynamics3d engine)
 set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_SPHERE
   sphere/dynamics3d_sphere_model.h
@@ -383,6 +384,7 @@ set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_SPHERE
 set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D
   dynamics3d_body.cpp
   dynamics3d_joint.cpp
+  dynamics3d_plugin.cpp
   dynamics3d_box_model.cpp
   dynamics3d_cylinder_model.cpp
   dynamics3d_model.cpp
@@ -473,3 +475,6 @@ install(TARGETS argos3plugin_${ARGOS_BUILD_FOR}_dynamics3d
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib/argos3
   ARCHIVE DESTINATION lib/argos3)
+  
+add_subdirectory(plugins)
+

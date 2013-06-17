@@ -55,11 +55,15 @@ namespace argos {
                                        ARGoSToBullet((*itBody)->GetOffsetPositionalEntity().GetPosition()));
          btTransform cGeometricOffset(btQuaternion(0,0,0,1),
                                       btVector3(0, -cExtents.getY() * 0.5f, 0));
+         
+         const std::map<std::string, std::string>& mapAttributes = (*itBody)->GetAttributes();
+
          m_vecLocalBodies.push_back(new CDynamics3DBody((*itBody)->GetId(), 
                                                         pcShape, 
                                                         cPositionalOffset,
                                                         cGeometricOffset,
-                                                        (*itBody)->GetMass()));
+                                                        (*itBody)->GetMass(),
+                                                        mapAttributes));
       }
 
       for(CJointEntity::TList::iterator itJoint = m_cJointEquippedEntity.GetAllJoints().begin();

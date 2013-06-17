@@ -11,11 +11,11 @@
 
 #include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_model.h>
 #include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_body.h>
+#include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_plugin.h>
 
 #include <algorithm>
 
 namespace argos {
-
 
    /****************************************/
    /****************************************/   
@@ -44,50 +44,49 @@ namespace argos {
    void CDynamics3DEngine::Init(TConfigurationNode& t_tree) {
       /* Init parent */
       CPhysicsEngine::Init(t_tree);
-
       /* create the random number generator */
-      CRandom::CRNG* m_pcRNG = CRandom::CreateRNG("argos");
-      
+      CRandom::CRNG* m_pcRNG = CRandom::CreateRNG("argos");      
       /* Parse the XML */
       GetNodeAttributeOrDefault(t_tree, "iterations", m_unIterations, m_unIterations);
       m_fDeltaT = m_fSimulationClockTick / (Real)m_unIterations;
-
       /* Select the default broadphase, collision configuration, dispatcher and solver */
       m_pcBroadphaseInterface = new btDbvtBroadphase;
       m_pcCollisionConfiguration = new btDefaultCollisionConfiguration;
-      
       //better stablity for small objects
       //m_pcCollisionConfiguration->setConvexConvexMultipointIterations(3);
-
       m_pcCollisionDispatcher = new btCollisionDispatcher(m_pcCollisionConfiguration);
       m_pcSolver = new btSequentialImpulseConstraintSolver;
-
       /* Create the physics world */
       m_pcWorld = new btDiscreteDynamicsWorld(m_pcCollisionDispatcher,
                                               m_pcBroadphaseInterface,
                                               m_pcSolver,
                                               m_pcCollisionConfiguration);
-       
       /* Set the gravity in the world */
       m_pcWorld->setGravity(btVector3(0.0f, -9.8f, 0.0f));
-      
       /* Enable ghost objects (used by CDynamics3DEngine::IsLocationOccupied) */
       m_pcGhostPairCallback = new btGhostPairCallback();
       m_pcWorld->getPairCache()->setInternalGhostPairCallback(m_pcGhostPairCallback);
-      
       /* clear the forces in the world (shouldn't  be required as there are no bodies in the world) */
       m_pcWorld->clearForces();
-
       /* reset the solvers and dispatchers */
       m_pcBroadphaseInterface->resetPool(m_pcCollisionDispatcher);
       m_pcSolver->setRandSeed(m_pcRNG->Uniform(m_cRandomSeedRange));
-
       /* Add a static plane as the experiment floor on request */
       if(NodeExists(t_tree, "floor")) {
          m_pcGround = new CDynamics3DBody("floor", &m_cGroundCollisionShape);
          m_pcGround->AddBodyToWorld(m_pcWorld);
       }
-
+      /* load the plugins */
+      if(NodeExists(t_tree, "plugins")) {
+         TConfigurationNodeIterator itPlugin;
+         for(itPlugin = itPlugin.begin(&GetNode(t_tree, "plugins"));
+             itPlugin != itPlugin.end();
+             ++itPlugin) {
+            CDynamics3DPlugin* pcPlugin = CFactory<CDynamics3DPlugin>::New(itPlugin->Value());
+            pcPlugin->Init(*itPlugin);
+            AddPhysicsPlugin(*pcPlugin);
+         }
+      }
       /* Parse the boundaries of this physics engine if they exist */
       if(NodeExists(t_tree, "boundaries")) {
          /* Parse the boundary definition */
@@ -157,17 +156,13 @@ namespace argos {
          m_pcGround->RemoveBodyFromWorld(m_pcWorld);
          m_pcGround->Reset();
       }
-
       /* clear the forces in the world (shouldn't  be required as there are no bodies in the world) */
       m_pcWorld->clearForces();
-
       /* reset the solvers and dispatchers */
       m_pcBroadphaseInterface->resetPool(m_pcCollisionDispatcher);
-      
       //@todo: use the later once the RNG segfault on reset bug is removed
       m_pcSolver->setRandSeed(100ul);
       //m_pcSolver->setRandSeed(m_pcRNG->Uniform(m_cRandomSeedRange));
-
       /* Add elements back to the engine
        * by iterating over the vector, we ensure that the entities are added in the same order
        * as they were added during initisation, this is important for repeatability between resets
@@ -218,9 +213,14 @@ namespace argos {
           ++itModel) {
          (*itModel)->UpdateFromEntityStatus();
       }
+      /* Execute the plugins update methods */
+      for(CDynamics3DPlugin::TVector::iterator itPlugin = m_vecPhysicsPlugins.begin();
+          itPlugin != m_vecPhysicsPlugins.end();
+          ++itPlugin) {
+         (*itPlugin)->Update(*this);
+      }
       /* Step the simuation forwards */
       m_pcWorld->stepSimulation(m_fSimulationClockTick, m_unIterations, m_fDeltaT);
-
       /////
       //fprintf(stderr, "m_fSimulationClockTick = %.8f, m_unIterations = %d, m_fDeltaT = %.8f\n", m_fSimulationClockTick, m_unIterations, m_fDeltaT);
       /*
@@ -240,7 +240,7 @@ namespace argos {
          (*itModel)->UpdateEntityStatus();
       }
    }
-
+   
    /****************************************/
    /****************************************/
    
@@ -318,6 +318,31 @@ namespace argos {
       return false;
    }
    
+   /****************************************/
+   /****************************************/
+
+   void CDynamics3DEngine::AddPhysicsPlugin(CDynamics3DPlugin& c_plugin) {
+      m_vecPhysicsPlugins.push_back(&c_plugin);
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CDynamics3DEngine::RemovePhysicsPlugin(const std::string& str_id) {
+
+      CDynamics3DPlugin::TVector::iterator itPlugin = std::find(m_vecPhysicsPlugins.begin(),
+                                                                m_vecPhysicsPlugins.end(),
+                                                                str_id);
+      if(itPlugin != m_vecPhysicsPlugins.end()) {
+         delete *itPlugin;
+         m_vecPhysicsPlugins.erase(itPlugin);
+      }
+      else {
+         THROW_ARGOSEXCEPTION("Dynamics3D plugin id \"" << str_id <<
+                              "\" not found in dynamics 3D engine \"" << GetId() << "\"");
+      }
+   }
+
    /****************************************/
    /****************************************/
 
@@ -471,6 +496,7 @@ namespace argos {
    /****************************************/
    /****************************************/   
   
+
    REGISTER_PHYSICS_ENGINE(CDynamics3DEngine,
                            "dynamics3d",
                            "Michael Allwright [allsey87@gmail.com]",

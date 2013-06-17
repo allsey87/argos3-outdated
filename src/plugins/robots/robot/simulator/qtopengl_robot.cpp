@@ -255,9 +255,35 @@ namespace argos {
          }
       }
       glEnd();
-
+      
+      /* TESTING */
+      
+         glDisable(GL_LIGHTING);
+         glLineWidth(4.0f);
+         glBegin(GL_LINES);
+         
+         // south pole
+         glColor3f(1.0, 0.0, 0.0);
+         glVertex3f(0.0f, 0.0f, 0.5f);
+         glVertex3f(0.0f, 0.0f, 1.5f);
+         
+   
+         // north pole
+         glColor3f(0.0, 0.0, 1.0);
+         glVertex3f(0.0f, 0.0f, 0.5f);
+         glVertex3f(0.0f, 0.0f, -0.5f);
+         
+         glEnd();
+         glLineWidth(1.0f);
+         glEnable(GL_LIGHTING);
+      
+      /**/
+      
       /* We don't need it anymore */
       glDisable(GL_NORMALIZE);
+      
+      
+      
    }
 
    /****************************************/

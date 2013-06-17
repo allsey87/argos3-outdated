@@ -16,33 +16,12 @@ namespace argos {
    /****************************************/
 
    CBodyEntity::CBodyEntity(CComposableEntity* pc_parent) :
-      CComposableEntity(pc_parent) {}
+      CComposableEntity(pc_parent),
+      m_pcPositionalEntity(NULL),
+      m_pcOffsetPositionalEntity(NULL),
+      m_pcGeometry(NULL),
+      m_fMass(0.0f) {}
 
-   /****************************************/
-   /****************************************/
-   
-   CBodyEntity::CBodyEntity(CComposableEntity* pc_parent,
-                            const std::string& str_id,
-                            const CGeometry3& c_geometry,
-                            const CVector3& c_offset_position,
-                            const CQuaternion& c_offset_orientation,
-                            Real f_mass) :
-      CComposableEntity(pc_parent, str_id),
-      m_fMass(f_mass) {
-      
-      /* default constructors are used for the positional component of the entity as
-       * the position of this body is driven by the the dynamics engine. The offset 
-       * component is initialised using the passed parameters */
-      m_pcPositionalEntity = new CPositionalEntity(this, "absolute", CVector3(), CQuaternion());
-      m_pcOffsetPositionalEntity = new CPositionalEntity(this, "relative", c_offset_position, c_offset_orientation);
-
-      //check tag type, dynamic cast, clone??
-      //m_pcGeometry = new CGeometry3(c_geometry);
-      
-      AddComponent(*m_pcPositionalEntity);
-      AddComponent(*m_pcOffsetPositionalEntity);
-   }
-   
    /****************************************/
    /****************************************/
 
@@ -83,13 +62,22 @@ namespace argos {
             /* requested geometry is unknown */
             THROW_ARGOSEXCEPTION("Unknown geometry type " << strBodyGeometry << " provided");
          }
-         
          GetNodeAttribute(t_tree, "mass", m_fMass);
-
          m_pcOffsetPositionalEntity = new CPositionalEntity(this);
          AddComponent(*m_pcOffsetPositionalEntity);
          if(NodeExists(t_tree, "offset")) {
             m_pcOffsetPositionalEntity->Init(GetNode(t_tree, "offset"));
+         }
+         if(NodeExists(t_tree, "attributes")) {
+            TConfigurationNodeIterator itAttribute("attribute");
+            for(itAttribute = itAttribute.begin(&GetNode(t_tree, "attributes"));
+                itAttribute != itAttribute.end();
+                ++itAttribute) {
+               std::string strKey, strValue;
+               GetNodeAttribute(*itAttribute, "key", strKey);
+               GetNodeAttribute(*itAttribute, "value", strValue);
+               m_mapAttributes.insert(std::pair<std::string, std::string>(strKey, strValue));
+            }
          }
       }
       catch(CARGoSException& ex) {

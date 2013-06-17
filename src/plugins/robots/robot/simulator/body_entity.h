@@ -53,7 +53,11 @@ namespace argos {
 
       CPositionalEntity& GetOffsetPositionalEntity() {
          return *m_pcOffsetPositionalEntity;
-      }   
+      } 
+
+      const std::map<std::string, std::string>& GetAttributes() {
+         return m_mapAttributes;
+      }
 
       virtual std::string GetTypeDescription() const {
          return "body";
@@ -71,6 +75,8 @@ namespace argos {
 
       CPositionalEntity* m_pcPositionalEntity;
       CPositionalEntity* m_pcOffsetPositionalEntity;
+
+      std::map<std::string, std::string> m_mapAttributes;
 
       CGeometry3* m_pcGeometry;
       Real m_fMass;
