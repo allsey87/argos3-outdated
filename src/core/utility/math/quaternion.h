@@ -98,9 +98,15 @@ namespace argos {
 
       inline CQuaternion& FromAngleAxis(const CRadians& c_angle,
                                         const CVector3& c_vector) {
-         CRadians fHalfAngle = c_angle * 0.5;
-         Real fSin = Sin(fHalfAngle);
-         m_fValues[0] = Cos(fHalfAngle);
+         CRadians cHalfAngle = c_angle * 0.5;
+         Real fSin, fCos;
+#ifdef ARGOS_SINCOS
+         SinCos(cHalfAngle, fSin, fCos);
+#else
+         fSin = Sin(cHalfAngle);
+         fCos = Cos(cHalfAngle);
+#endif
+         m_fValues[0] = fCos;
          m_fValues[1] = c_vector.GetX() * fSin;
          m_fValues[2] = c_vector.GetY() * fSin;
          m_fValues[3] = c_vector.GetZ() * fSin;
@@ -113,7 +119,6 @@ namespace argos {
             Square(m_fValues[1]) +
             Square(m_fValues[2]) +
             Square(m_fValues[3]);
-         
          if(fSquareLength > 0.0f) {
             c_angle = 2.0f * ACos(m_fValues[0]);
             Real fInvLength = 1.0f / ::sqrt(fSquareLength);
@@ -273,13 +278,36 @@ namespace argos {
          return result;
       }
 
+      /**
+       * Serializes the contents of the passed quaternion into a stream as Euler angles
+       * in the Z,Y,X format in degrees.
+       * @param c_os The stream.
+       * @param c_quaternion The quaternion.
+       * @return The new state of the stream.
+       */
       inline friend std::ostream& operator<<(std::ostream& c_os, const CQuaternion& c_quaternion) {
-         c_os << "CQuaternion("
-              << c_quaternion.m_fValues[0] << ","
-              << c_quaternion.m_fValues[1] << ","
-              << c_quaternion.m_fValues[2] << ","
-              << c_quaternion.m_fValues[3] << ")";
+         CRadians cZAngle, cYAngle, cXAngle;
+         c_quaternion.ToEulerAngles(cZAngle, cYAngle, cXAngle);        
+         c_os << ToDegrees(cZAngle).GetValue() << ","
+              << ToDegrees(cYAngle).GetValue() << ","
+              << ToDegrees(cXAngle).GetValue();
          return c_os;
+      }
+      
+      /**
+       * Deserializes the contents of a stream and stores it into the passed quaternion.
+       * This method assumes Euler angles in Z,Y,X format and given in degrees.
+       * @param c_is The stream.
+       * @param c_quaternion The quaternion.
+       * @return The new state of the stream.
+       */
+      inline friend std::istream& operator>>(std::istream& c_is, CQuaternion& c_quaternion) {
+         Real fValues[3];
+         ParseValues<Real>(c_is, 3, fValues, ',');
+         c_quaternion.FromEulerAngles(ToRadians(CDegrees(fValues[0])),
+                                      ToRadians(CDegrees(fValues[1])), 
+                                      ToRadians(CDegrees(fValues[2])));
+         return c_is;
       }
 
    private:

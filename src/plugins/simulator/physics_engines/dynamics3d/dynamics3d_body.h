@@ -13,6 +13,7 @@ namespace argos {
 
 #include <vector>
 #include <string>
+#include <map>
 
 #include <argos3/plugins/simulator/physics_engines/dynamics3d/bullet/btBulletDynamicsCommon.h>
 #include <argos3/core/utility/datatypes/datatypes.h>
@@ -27,6 +28,7 @@ namespace argos {
    public:
 
       typedef std::vector<CDynamics3DBody*> TVector;
+      typedef std::map<std::string, std::string> TAttributesMap;
 
    public:
 
@@ -34,7 +36,8 @@ namespace argos {
                       btCollisionShape* pc_collision_shape = NULL,
                       const btTransform& c_positional_offset = btTransform::getIdentity(),
                       const btTransform& c_geometric_offset = btTransform::getIdentity(),
-                      Real f_mass = 0.0f);
+                      Real f_mass = 0.0f,
+                      const TAttributesMap& map_attributes = TAttributesMap());
 
       ~CDynamics3DBody();
 
@@ -44,6 +47,10 @@ namespace argos {
          return m_strId;
       }
 
+      const std::string& GetAttribute(const std::string& str_key) const;
+
+      bool HasAttribute(const std::string& str_key) const;
+
       const btCollisionShape& GetCollisionShape() const;
 
       bool operator==(const btCollisionObject* pc_collision_object) const;
@@ -52,13 +59,19 @@ namespace argos {
 
       const btTransform& GetPositionalOffset() const;
 
+      const btTransform& GetGeometricOffset() const;
+
       const btTransform& GetMotionStateTransform() const;
       
-      void SetMotionStateTransform(const btTransform & cTransform);
+      void SetMotionStateTransform(const btTransform& c_transform);
 
       void SynchronizeMotionState();
 
       void ActivateRigidBody();
+
+      void ApplyForce(const btVector3& c_force, const btVector3& c_offset = btVector3(0.0f, 0.0f, 0.0f));
+
+      const btVector3& GetTotalForce() const;
 
       void AddBodyToWorld(btDynamicsWorld * pc_dynamics_world);
       void RemoveBodyFromWorld(btDynamicsWorld * pc_dynamics_world);
@@ -75,6 +88,8 @@ namespace argos {
       
       btVector3 m_cInertia;
       Real m_fMass;
+
+      std::map<std::string, std::string> m_mapAttributes;
 
       friend class CDynamics3DJoint;
    };

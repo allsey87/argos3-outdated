@@ -61,13 +61,13 @@ namespace argos {
          CEntity::Init(t_tree);
          /* Get the controller id */
          std::string strControllerId;
-         GetNodeAttribute(t_tree, "controller", strControllerId);
+         GetNodeAttribute(t_tree, "config", strControllerId);
          /* Check if the tree has parameters to pass to the controller */
-         if(NodeExists(t_tree, "controller_parameters")) {
+         if(NodeExists(t_tree, "params")) {
             /* Set the controller */
             SetController(strControllerId,
                           GetNode(t_tree,
-                                  "controller_parameters"));
+                                  "params"));
          }
          else {
             /* Set the controller */
@@ -108,15 +108,15 @@ namespace argos {
       m_vecCheckedRays.clear();
       m_vecIntersectionPoints.clear();
       if(m_pcController) {
-      /* Reset actuators */
-         for(CCI_Actuator::TMap::iterator it = m_pcController->GetAllActuators().begin();
-             it != m_pcController->GetAllActuators().end(); ++it) {
-            it->second->Reset();
+         /* Destroy sensors */
+         for(CCI_Sensor::TMap::iterator it = m_pcController->GetAllSensors().begin();
+             it != m_pcController->GetAllSensors().end(); ++it) {
+            it->second->Destroy();
          }
-         /* Reset actuators */
+         /* Destroy actuators */
          for(CCI_Actuator::TMap::iterator it = m_pcController->GetAllActuators().begin();
              it != m_pcController->GetAllActuators().end(); ++it) {
-            it->second->Reset();
+            it->second->Destroy();
          }
          /* Destroy user-defined controller */
          m_pcController->Destroy();
@@ -183,8 +183,8 @@ namespace argos {
                THROW_ARGOSEXCEPTION("BUG: actuator \"" << itAct->Value() << "\" does not inherit from CCI_Actuator");
             }
             pcAct->SetRobot(GetParent());
-            m_mapActuators[itAct->Value()] = pcAct;
             pcCIAct->Init(*itAct);
+            m_mapActuators[itAct->Value()] = pcAct;
             m_pcController->AddActuator(itAct->Value(), pcCIAct);
          }
          /* Go through sensors */
@@ -201,8 +201,8 @@ namespace argos {
                THROW_ARGOSEXCEPTION("BUG: sensor \"" << itSens->Value() << "\" does not inherit from CCI_Sensor");
             }
             pcSens->SetRobot(GetParent());
-            m_mapSensors[itSens->Value()] = pcSens;
             pcCISens->Init(*itSens);
+            m_mapSensors[itSens->Value()] = pcSens;
             m_pcController->AddSensor(itSens->Value(), pcCISens);
          }
          /* Configure the controller */

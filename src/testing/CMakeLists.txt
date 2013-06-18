@@ -3,6 +3,11 @@ target_link_libraries(test-range argos3core_${ARGOS_BUILD_FOR})
 
 add_executable(test-list unit/test-list.cpp)
 
+add_executable(test-grid
+  unit/test-grid.cpp)
+target_link_libraries(test-grid
+  argos3core_${ARGOS_BUILD_FOR})
+
 # add_executable(test-reset unit/test-reset.cpp)
 # target_link_libraries(test-reset argos3core_${ARGOS_BUILD_FOR})
 
@@ -15,8 +20,9 @@ target_link_libraries(test_footbot_controller
 add_library(test_loop_functions MODULE
   experiment/test_loop_functions.h
   experiment/test_loop_functions.cpp)
-target_link_libraries(test_footbot_controller
-  argos3core_${ARGOS_BUILD_FOR})
+target_link_libraries(test_loop_functions
+  argos3core_${ARGOS_BUILD_FOR}
+  argos3plugin_${ARGOS_BUILD_FOR}_footbot)
 
 if(GOOGLEPERFTOOLS_FOUND)
   add_executable(argos3_prof

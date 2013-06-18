@@ -10,6 +10,7 @@
 #include "qtopengl_main_window.h"
 #include "qtopengl_widget.h"
 
+#include <argos3/core/config.h>
 #include <argos3/core/wrappers/lua/lua_controller.h>
 #include <argos3/core/simulator/simulator.h>
 #include <argos3/core/simulator/space/space.h>
@@ -166,6 +167,31 @@ namespace argos {
    /****************************************/
    /****************************************/
 
+   static QString DetectLuaC() {
+      QProcess cLuaCompiler;
+      cLuaCompiler.start("luac", QStringList() << "-v");
+      /* First, try to execute luac */
+      if(!cLuaCompiler.waitForStarted()) {
+	/* luac is not installed */
+	return "";
+      }
+      /* luac is installed, but is it the right version? */
+      cLuaCompiler.waitForFinished();
+      if(QString(cLuaCompiler.readAllStandardOutput()).mid(4,3) == "5.1") {
+	return "luac";
+      }
+      cLuaCompiler.start("luac5.1", QStringList() << "-v");
+      if(!cLuaCompiler.waitForStarted()) {
+	/* luac51 is not installed */
+	return "";
+      }
+      else {
+	/* luac51 is installed */
+        cLuaCompiler.waitForFinished();
+	return "luac5.1";
+      }
+   }
+
    void CQTOpenGLLuaMainWindow::Execute() {
       /* Save script */
       Save();
@@ -185,16 +211,20 @@ namespace argos {
          QApplication::restoreOverrideCursor();
          return;
       }
-      /* Compile script */
-      QProcess cLuaCompiler;
-      cLuaCompiler.start("luac", QStringList() << "-o" << cByteCode.fileName() << m_strFileName);
-      if(! cLuaCompiler.waitForStarted()) {
-         /* Fall back to sending script directly to robots */
+      /*
+       * Compile script
+       */
+      /* Check for luac 5.1 */
+      QString cLuaC = DetectLuaC();
+      if(cLuaC == "") {
+	 /* luac 5.1 not found, fall back to sending the script directly to robots */
          for(size_t i = 0; i < m_vecControllers.size(); ++i) {
             m_vecControllers[i]->SetLuaScript(m_strFileName.toStdString());
          }
       }
       else {
+         QProcess cLuaCompiler;
+	 cLuaCompiler.start(cLuaC, QStringList() << "-o" << cByteCode.fileName() << m_strFileName);
          if(! cLuaCompiler.waitForFinished()) {
             SetMessage(0, "ALL", QString(cLuaCompiler.readAllStandardError()));
             m_pcMainWindow->SimulationCanProceed(false);
@@ -249,7 +279,7 @@ namespace argos {
    bool CQTOpenGLLuaMainWindow::MaybeSave() {
       if(m_pcCodeEditor->document()->isModified()) {
          QMessageBox::StandardButton tReply;
-         tReply = QMessageBox::warning(this, tr("ARGoS v3.0 - Lua Editor"),
+         tReply = QMessageBox::warning(this, tr("ARGoS v" ARGOS_VERSION "-" ARGOS_RELEASE " - Lua Editor"),
                                        tr("The document has been modified.\n"
                                           "Do you want to save your changes?"),
                                        QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
@@ -538,7 +568,7 @@ namespace argos {
    void CQTOpenGLLuaMainWindow::OpenFile(const QString& str_path) {
       QFile cFile(str_path);
       if(! cFile.open(QFile::ReadOnly | QFile::Text)) {
-         QMessageBox::warning(this, tr("ARGoS v3.0 - Lua Editor"),
+         QMessageBox::warning(this, tr("ARGoS v" ARGOS_VERSION "-" ARGOS_RELEASE " - Lua Editor"),
                               tr("Cannot read file %1:\n%2.")
                               .arg(str_path)
                               .arg(cFile.errorString()));
@@ -557,7 +587,7 @@ namespace argos {
    bool CQTOpenGLLuaMainWindow::SaveFile(const QString& str_path) {
       QFile cFile(str_path);
       if(! cFile.open(QFile::WriteOnly | QFile::Text)) {
-         QMessageBox::warning(this, tr("ARGoS v3.0 - Lua Editor"),
+         QMessageBox::warning(this, tr("ARGoS v" ARGOS_VERSION "-" ARGOS_RELEASE " - Lua Editor"),
                               tr("Cannot write file %1:\n%2.")
                               .arg(str_path)
                               .arg(cFile.errorString()));
@@ -584,7 +614,7 @@ namespace argos {
       else {
          strShownName = StrippedFileName(m_strFileName);
       }
-      setWindowTitle(tr("%1[*] - ARGoS v3.0 - Lua Editor").arg(strShownName));
+      setWindowTitle(tr("%1[*] - ARGoS v" ARGOS_VERSION "-" ARGOS_RELEASE " - Lua Editor").arg(strShownName));
       if(!m_strFileName.isEmpty()) {
          m_pcCodeEditor->document()->setModified(false);
          setWindowModified(false);

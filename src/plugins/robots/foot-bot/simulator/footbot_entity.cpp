@@ -10,7 +10,7 @@
 #include <argos3/core/simulator/space/space.h>
 #include <argos3/core/simulator/entity/controllable_entity.h>
 #include <argos3/core/simulator/entity/embodied_entity.h>
-#include <argos3/core/simulator/entity/rab_equipped_entity.h>
+#include <argos3/plugins/simulator/entities/rab_equipped_entity.h>
 #include <argos3/plugins/simulator/entities/gripper_equipped_entity.h>
 #include <argos3/plugins/simulator/entities/ground_sensor_equipped_entity.h>
 #include <argos3/plugins/simulator/entities/led_equipped_entity.h>
@@ -40,6 +40,7 @@ namespace argos {
    static const Real PROXIMITY_SENSOR_RING_RANGE           = 0.1f;
 
    static const Real LED_RING_ELEVATION         = 0.085f;
+   static const Real RAB_ELEVATION              = 0.1f;
    static const Real BEACON_ELEVATION           = 0.174249733f;
 
    static const Real GRIPPER_ELEVATION          = LED_RING_ELEVATION;
@@ -86,7 +87,7 @@ namespace argos {
          m_pcWheeledEntity->Init(t_tree);
          /* LED equipped entity, with LEDs [0-11] and beacon [12] */
          m_pcLEDEquippedEntity = new CLEDEquippedEntity(this,
-                                                        GetId() + ".leds",
+                                                        "leds",
                                                         m_pcEmbodiedEntity);
          AddComponent(*m_pcLEDEquippedEntity);
          for(UInt32 i = 0; i < 13; ++i) {
@@ -95,7 +96,7 @@ namespace argos {
          /* Proximity sensor equipped entity */
          m_pcProximitySensorEquippedEntity =
             new CProximitySensorEquippedEntity(this,
-                                               GetId() + ".proximity");
+                                               "proximity");
          AddComponent(*m_pcProximitySensorEquippedEntity);
          m_pcProximitySensorEquippedEntity->AddSensorRing(
             CVector3(0.0f, 0.0f, PROXIMITY_SENSOR_RING_ELEVATION),
@@ -106,7 +107,7 @@ namespace argos {
          /* Light sensor equipped entity */
          m_pcLightSensorEquippedEntity =
             new CLightSensorEquippedEntity(this,
-                                           GetId() + ".light");
+                                           "light");
          AddComponent(*m_pcLightSensorEquippedEntity);
          m_pcLightSensorEquippedEntity->AddSensorRing(
             CVector3(0.0f, 0.0f, PROXIMITY_SENSOR_RING_ELEVATION),
@@ -117,14 +118,14 @@ namespace argos {
          /* Gripper equipped entity */
          m_pcGripperEquippedEntity =
             new CGripperEquippedEntity(this,
-                                       GetId() + ".gripper",
+                                       "gripper",
                                        CVector3(BODY_RADIUS, 0.0f, GRIPPER_ELEVATION),
                                        CVector3::X);
          AddComponent(*m_pcGripperEquippedEntity);
          /* Ground sensor equipped entity */
          m_pcGroundSensorEquippedEntity =
             new CGroundSensorEquippedEntity(this,
-                                            GetId() + ".ground");
+                                            "ground");
          AddComponent(*m_pcGroundSensorEquippedEntity);
          m_pcGroundSensorEquippedEntity->AddSensor(CVector2(0.063, 0.0116),
                                                    CGroundSensorEquippedEntity::TYPE_GRAYSCALE);
@@ -152,32 +153,33 @@ namespace argos {
                                                    CGroundSensorEquippedEntity::TYPE_BLACK_WHITE);
          /* Distance scanner */
          m_pcDistanceScannerEquippedEntity = new CFootBotDistanceScannerEquippedEntity(this,
-                                                                                       GetId() + ".distance_scanner");
+                                                                                       "distance_scanner");
          AddComponent(*m_pcDistanceScannerEquippedEntity);
          /* Embodied entity */
          m_pcEmbodiedEntity = new CEmbodiedEntity(this);
          AddComponent(*m_pcEmbodiedEntity);
-         m_pcEmbodiedEntity->Init(t_tree);
+         m_pcEmbodiedEntity->Init(GetNode(t_tree, "body"));
          /* RAB equipped entity */
          Real fRange = 3.0f;
          GetNodeAttributeOrDefault(t_tree, "rab_range", fRange, fRange);
          m_pcRABEquippedEntity = new CRABEquippedEntity(this,
-                                                        GetId() + ".rab",
+                                                        "rab",
                                                         10,
                                                         fRange,
-                                                        *m_pcEmbodiedEntity);
+                                                        *m_pcEmbodiedEntity,
+                                                        CVector3(0.0f, 0.0f, RAB_ELEVATION));
          AddComponent(*m_pcRABEquippedEntity);
          /* Turret equipped entity */
-         m_pcTurretEntity = new CFootBotTurretEntity(this, GetId() + ".turret");
+         m_pcTurretEntity = new CFootBotTurretEntity(this, "turret");
          AddComponent(*m_pcTurretEntity);
          /* WiFi equipped entity */
-         m_pcWiFiEquippedEntity = new CWiFiEquippedEntity(this, GetId() + ".wifi");
+         m_pcWiFiEquippedEntity = new CWiFiEquippedEntity(this, "wifi");
          AddComponent(*m_pcWiFiEquippedEntity);
          /* Controllable entity
             It must be the last one, for actuators/sensors to link to composing entities correctly */
          m_pcControllableEntity = new CControllableEntity(this);
          AddComponent(*m_pcControllableEntity);
-         m_pcControllableEntity->Init(t_tree);
+         m_pcControllableEntity->Init(GetNode(t_tree, "controller"));
          /* Update components */
          UpdateComponents();
       }
@@ -219,13 +221,13 @@ namespace argos {
    /****************************************/
    /****************************************/
    
-#define SET_RING_LED_POSITION(IDX)                                              \
-   cLEDPosition.Set(LED_RING_RADIUS, 0.0f, LED_RING_ELEVATION); \
-   cLEDAngle = cLEDAnglePhase;                                                 \
+#define SET_RING_LED_POSITION(IDX)                                      \
+   cLEDPosition.Set(LED_RING_RADIUS, 0.0f, LED_RING_ELEVATION);         \
+   cLEDAngle = cLEDAnglePhase;                                          \
    cLEDAngle += LED_ANGLE_SLICE * IDX;                                  \
-   cLEDPosition.RotateZ(cLEDAngle);                                             \
-   cLEDPosition.Rotate(m_pcEmbodiedEntity->GetOrientation());                   \
-   cLEDPosition += cEntityPosition;                                             \
+   cLEDPosition.RotateZ(cLEDAngle);                                     \
+   cLEDPosition.Rotate(m_pcEmbodiedEntity->GetOrientation());           \
+   cLEDPosition += cEntityPosition;                                     \
    m_pcLEDEquippedEntity->SetLEDPosition(IDX, cLEDPosition);
    
    void CFootBotEntity::SetLEDPosition() {

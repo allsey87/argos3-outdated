@@ -67,6 +67,12 @@ namespace argos {
 
       const static btTransform   m_cChassisToLeftWheelTransform;
       const static btTransform   m_cChassisToRightWheelTransform;
+
+      const static btTransform   m_cChassisToLeftAxleTransform;
+      const static btTransform   m_cLeftWheelToLeftAxleTransform;
+      const static btTransform   m_cChassisToRightAxleTransform;
+      const static btTransform   m_cRightWheelToRightAxleTransform;
+
       const static btTransform   m_cChassisToFrontPivotTransform;
       const static btTransform   m_cChassisToRearPivotTransform;
       

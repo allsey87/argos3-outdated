@@ -47,10 +47,18 @@ namespace argos {
       }
       /* Delete the visualization */
       if(m_pcVisualization != NULL) delete m_pcVisualization;
-      /* Delete all the physics engines */
-      for(CPhysicsEngine::TMap::iterator it = m_mapPhysicsEngines.begin(); it
-             != m_mapPhysicsEngines.end(); ++it)
+      /* Delete all the media */
+      for(CMedium::TMap::iterator it = m_mapMedia.begin();
+          it != m_mapMedia.end(); ++it) {
          delete it->second;
+      }
+      m_mapMedia.clear();
+      m_vecMedia.clear();
+      /* Delete all the physics engines */
+      for(CPhysicsEngine::TMap::iterator it = m_mapPhysicsEngines.begin();
+          it != m_mapPhysicsEngines.end(); ++it) {
+         delete it->second;
+      }
       m_mapPhysicsEngines.clear();
       m_vecPhysicsEngines.clear();
       /* Delete the space and the dynamic linking manager */
@@ -109,23 +117,22 @@ namespace argos {
       /* Initialize controllers */
       InitControllers(GetNode(m_tConfigurationRoot, "controllers"));
       /* Create loop functions */
-      bool bUserDefLoopFunctions;
       if(NodeExists(m_tConfigurationRoot, "loop_functions")) {
          /* User specified a loop_functions section in the XML */
          InitLoopFunctions(GetNode(m_tConfigurationRoot, "loop_functions"));
-         bUserDefLoopFunctions = true;
       }
       else {
          /* No loop_functions in the XML */
          m_pcLoopFunctions = new CLoopFunctions;
-         bUserDefLoopFunctions = false;
       }
       /* Physics engines */
       InitPhysics(GetNode(m_tConfigurationRoot, "physics_engines"));
+      /* Media */
+      InitMedia(GetNode(m_tConfigurationRoot, "media"));
       /* Space */
       InitSpace(GetNode(m_tConfigurationRoot, "arena"));
       /* Call user init function */
-      if(bUserDefLoopFunctions) {
+      if(NodeExists(m_tConfigurationRoot, "loop_functions")) {
          m_pcLoopFunctions->Init(GetNode(m_tConfigurationRoot, "loop_functions"));
       }
       /* Initialise visualization */
@@ -135,7 +142,7 @@ namespace argos {
          InitVisualization(GetNode(m_tConfigurationRoot, "visualization"));
       }
       else {
-         LOGERR << "[WARNING] No visualization selected." << std::endl;
+         LOG << "[INFO] No visualization selected." << std::endl;
          m_pcVisualization = new CVisualization();
       }
       /* Start profiling, if needed */
@@ -162,19 +169,20 @@ namespace argos {
          LOG << "[INFO] Using random seed = " << m_unRandomSeed << std::endl;
       }
       CRandom::GetCategory("argos").ResetRNGs();
-
       /* Reset the space */
       m_pcSpace->Reset();
-
+      /* Reset the media */
+      for(CMedium::TMap::iterator it = m_mapMedia.begin();
+          it != m_mapMedia.end(); ++it) {
+         it->second->Reset();
+      }
       /* Reset the physics engines */
       for(CPhysicsEngine::TMap::iterator it = m_mapPhysicsEngines.begin();
           it != m_mapPhysicsEngines.end(); ++it) {
          it->second->Reset();
       }
-
       /* Reset the loop functions */
       m_pcLoopFunctions->Reset();
-
       LOG.Flush();
       LOGERR.Flush();
    }
@@ -189,18 +197,23 @@ namespace argos {
          delete m_pcLoopFunctions;
          m_pcLoopFunctions = NULL;
       }
-
       /* Destroy the visualization */
       if(m_pcVisualization != NULL) {
          m_pcVisualization->Destroy();
       }
-
       /* Destroy simulated space */
       if(m_pcSpace != NULL) {
          m_pcSpace->Destroy();
       }
-
-      /* Close physics engines */
+      /* Destroy media */
+      for(CMedium::TMap::iterator it = m_mapMedia.begin();
+          it != m_mapMedia.end(); ++it) {
+         it->second->Destroy();
+         delete it->second;
+      }
+      m_mapMedia.clear();
+      m_vecMedia.clear();
+      /* Destroy physics engines */
       for(CPhysicsEngine::TMap::iterator it = m_mapPhysicsEngines.begin();
           it != m_mapPhysicsEngines.end(); ++it) {
          it->second->Destroy();
@@ -208,26 +221,23 @@ namespace argos {
       }
       m_mapPhysicsEngines.clear();
       m_vecPhysicsEngines.clear();
-
       /* Get rid of ARGoS category */
       if(CRandom::ExistsCategory("argos")) {
          CRandom::RemoveCategory("argos");
       }
-
       /* Free up factory data */
+      CFactory<CMedium>::Destroy();
       CFactory<CPhysicsEngine>::Destroy();
       CFactory<CVisualization>::Destroy();
       CFactory<CSimulatedActuator>::Destroy();
       CFactory<CSimulatedSensor>::Destroy();
       CFactory<CCI_Controller>::Destroy();
       CFactory<CEntity>::Destroy();
-
       /* Stop profiling and flush the data */
       if(IsProfiling()) {
          m_pcProfiler->Stop();
          m_pcProfiler->Flush(m_bHumanReadableProfile);
       }
-
       LOG.Flush();
       LOGERR.Flush();
    }
@@ -268,13 +278,11 @@ namespace argos {
         the maximum value set in the XML, or when one of the visualisations asks
         to terminate.
       */
-
       /* Check simulation clock */
       if (m_unMaxSimulationClock > 0 &&
           m_pcSpace->GetSimulationClock() >= m_unMaxSimulationClock) {
          return true;
       }
-
       /* Call loop function */
       return m_pcLoopFunctions->IsExperimentFinished();
    }
@@ -320,18 +328,15 @@ namespace argos {
             LOG << "[INFO] Not using threads" << std::endl;
             m_pcSpace = new CSpaceNoThreads;
          }
-
          /* Get 'experiment' node */
          TConfigurationNode tExperiment;
          tExperiment = GetNode(t_tree, "experiment");
-
          /* Parse random seed */
          /* Buffer to hold the random seed */
          GetNodeAttributeOrDefault(tExperiment,
                                    "random_seed",
                                    m_unRandomSeed,
                                    static_cast<UInt32>(0));
-
          /* if random seed is 0 or is not specified, init with the current timeval */
          if(m_unRandomSeed != 0) {
             CRandom::CreateCategory("argos", m_unRandomSeed);
@@ -349,14 +354,12 @@ namespace argos {
             LOG << "[INFO] Using random seed = " << unSeed << std::endl;
          }
          m_pcRNG = CRandom::CreateRNG("argos");
-
          /* Set the simulation clock tick length */
          UInt32 unTicksPerSec;
          GetNodeAttribute(tExperiment,
                           "ticks_per_second",
                           unTicksPerSec);
          CPhysicsEngine::SetSimulationClockTick(1.0 / static_cast<Real>(unTicksPerSec));
-
          /* Set the maximum simulation duration (in seconds) */
          Real fExpLength;
          GetNodeAttributeOrDefault<Real>(tExperiment,
@@ -367,7 +370,6 @@ namespace argos {
          LOG << "[INFO] Total experiment length in clock ticks = "
              << (m_unMaxSimulationClock ? ToString(m_unMaxSimulationClock) : "unlimited")
              << std::endl;
-
          /* Get the profiling tag, if present */
          if(NodeExists(t_tree, "profiling")) {
             TConfigurationNode& tProfiling = GetNode(t_tree, "profiling");
@@ -463,7 +465,6 @@ namespace argos {
    void CSimulator::InitSpace(TConfigurationNode& t_tree) {
       try {
          m_pcSpace->Init(t_tree);
-         m_pcSpace->SetPhysicsEngines(m_vecPhysicsEngines);
       }
       catch(CARGoSException& ex) {
          THROW_ARGOSEXCEPTION_NESTED("Failed to initialize the space.", ex);
@@ -506,6 +507,45 @@ namespace argos {
       }
       catch(CARGoSException& ex) {
          THROW_ARGOSEXCEPTION_NESTED("Failed to initialize the physics engines. Parse error in the <physics_engines> subtree.", ex);
+      }
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CSimulator::InitMedia(TConfigurationNode& t_tree) {
+      try {
+         /* Cycle through the media */
+         TConfigurationNodeIterator itMedia;
+         for(itMedia = itMedia.begin(&t_tree);
+             itMedia != itMedia.end();
+             ++itMedia) {
+            /* Create the  medium */
+            CMedium* pcMedium = CFactory<CMedium>::New(itMedia->Value());
+            try {
+               /* Initialize the medium */
+               pcMedium->Init(*itMedia);
+               /* Check that an medium with that ID does not exist yet */
+               if(m_mapMedia.find(pcMedium->GetId()) == m_mapMedia.end()) {
+                  /* Add it to the lists */
+                  m_mapMedia[pcMedium->GetId()] = pcMedium;
+                  m_vecMedia.push_back(pcMedium);
+               }
+               else {
+                  /* Duplicate id -> error */
+                  THROW_ARGOSEXCEPTION("A medium with id \"" << pcMedium->GetId() << "\" exists already. The ids must be unique!");
+               }
+            }
+            catch(CARGoSException& ex) {
+               /* Error while executing medium init, destroy what done to prevent memory leaks */
+               pcMedium->Destroy();
+               delete pcMedium;
+               THROW_ARGOSEXCEPTION_NESTED("Error initializing medium type \"" << itMedia->Value() << "\"", ex);
+            }
+         }
+      }
+      catch(CARGoSException& ex) {
+         THROW_ARGOSEXCEPTION_NESTED("Failed to initialize the media. Parse error in the <media> subtree.", ex);
       }
    }
 

@@ -11,6 +11,7 @@ namespace argos {
    class CDynamics3DEngine;
    class CDynamics3DBody;
    class CDynamics3DModel;
+   class CDynamics3DPlugin;
 }
 
 #include <argos3/core/simulator/entity/controllable_entity.h>
@@ -28,7 +29,7 @@ namespace argos {
    /****************************************/
 
    class CDynamics3DEngine : public CPhysicsEngine {
-   
+
    public:
 
       struct SBoundarySegment {
@@ -66,11 +67,19 @@ namespace argos {
       virtual UInt32 GetNumPhysicsEngineEntities();
       virtual void AddEntity(CEntity& c_entity);
       virtual void RemoveEntity(CEntity& c_entity);
-      
+
       bool IsModelCollidingWithSomething(const CDynamics3DModel& c_model);
       
       void AddPhysicsModel(CDynamics3DModel& c_model);      
       void RemovePhysicsModel(const std::string& str_id);
+
+      void AddPhysicsPlugin(CDynamics3DPlugin& c_plugin);
+      void RemovePhysicsPlugin(const std::string& str_id);
+
+      std::vector<CDynamics3DModel*>& GetModels() {
+         return m_vecPhysicsModels;
+      }
+      
 
       virtual bool IsPointContained(const CVector3& c_point);
       virtual void TransferEntities();
@@ -96,6 +105,7 @@ namespace argos {
    private:
 
       std::vector<CDynamics3DModel*> m_vecPhysicsModels;
+      std::vector<CDynamics3DPlugin*> m_vecPhysicsPlugins;
 
       /* ARGoS RNG */
       CRandom::CRNG* m_pcRNG;
@@ -124,7 +134,7 @@ namespace argos {
       std::vector<SEntityTransferData> m_vecTransferData;
       bool m_bEntityTransferActive;
    };
- 
+
    /****************************************/
    /****************************************/
 

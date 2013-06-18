@@ -5,6 +5,7 @@
  */
 
 #include "dynamics3d_body.h"
+#include <argos3/core/utility/configuration/argos_exception.h>
 
 namespace argos {
 
@@ -15,7 +16,8 @@ namespace argos {
                                     btCollisionShape* pc_collision_shape,
                                     const btTransform& c_positional_offset,
                                     const btTransform& c_geometric_offset,
-                                    Real f_mass) :
+                                    Real f_mass,
+                                    const std::map<std::string, std::string>& map_attributes) :
       m_strId(str_id),
       m_pcCollisionShape(pc_collision_shape),
       m_pcMotionState(NULL),
@@ -23,21 +25,21 @@ namespace argos {
       m_cGeometricOffset(c_geometric_offset),
       m_cPositionalOffset(c_positional_offset),
       m_cInertia(btVector3(0.0f, 0.0f, 0.0f)),
-      m_fMass(f_mass) {
-      
+      m_fMass(f_mass),
+      m_mapAttributes(map_attributes) {      
       /* calculate the inertia */
       if(m_fMass != 0.0f && m_pcCollisionShape != NULL) {
          m_pcCollisionShape->calculateLocalInertia(m_fMass, m_cInertia);
       }
-         
       /* construct the motion state */
       m_pcMotionState = new btDefaultMotionState(m_cPositionalOffset, m_cGeometricOffset);
-      
       /* construct the rigid body */
       m_pcRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(m_fMass,
                                                                                m_pcMotionState,
                                                                                m_pcCollisionShape,
                                                                                m_cInertia));
+      /* Clone the provided map of attributes */
+      m_mapAttributes.insert(map_attributes.begin(), map_attributes.end());
    }
 
    /****************************************/
@@ -54,14 +56,37 @@ namespace argos {
    void CDynamics3DBody::Reset() {
       // recreate the motion state
       delete m_pcMotionState;
-      m_pcMotionState = new btDefaultMotionState(m_cPositionalOffset, m_cGeometricOffset);
-      
+      m_pcMotionState = new btDefaultMotionState(m_cPositionalOffset, m_cGeometricOffset);      
       // delete the body and recreate it
       delete m_pcRigidBody;
       m_pcRigidBody = new btRigidBody(btRigidBody::btRigidBodyConstructionInfo(m_fMass,
                                                                                m_pcMotionState,
                                                                                m_pcCollisionShape,
                                                                                m_cInertia));
+   }
+
+   /****************************************/
+   /****************************************/
+
+   bool CDynamics3DBody::HasAttribute(const std::string& str_key) const {
+      std::map<std::string, std::string>::const_iterator itValue;
+      itValue = m_mapAttributes.find(str_key);
+      return itValue != m_mapAttributes.end();
+   }
+
+   /****************************************/
+   /****************************************/
+
+   const std::string& CDynamics3DBody::GetAttribute(const std::string& str_key) const {
+      std::map<std::string, std::string>::const_iterator itValue;
+      itValue = m_mapAttributes.find(str_key);
+      if(itValue != m_mapAttributes.end()) {
+         return itValue->second;
+      }
+      else {
+         THROW_ARGOSEXCEPTION("Attribute \"" << str_key <<
+                              "\" does not exist in dynamics3d body \"" << m_strId << "\"." );
+      }
    }
 
    /****************************************/
@@ -94,6 +119,13 @@ namespace argos {
   
    /****************************************/
    /****************************************/
+
+   const btTransform& CDynamics3DBody::GetGeometricOffset() const {
+      return m_cGeometricOffset;
+   }
+  
+   /****************************************/
+   /****************************************/
    
    const btTransform& CDynamics3DBody::GetMotionStateTransform() const {
       return m_pcMotionState->m_graphicsWorldTrans;
@@ -118,6 +150,20 @@ namespace argos {
    
    void CDynamics3DBody::ActivateRigidBody() {
       m_pcRigidBody->activate();
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CDynamics3DBody::ApplyForce(const btVector3& c_force, const btVector3& c_offset) {
+      m_pcRigidBody->applyForce(c_force, c_offset);
+   }
+
+   /****************************************/
+   /****************************************/
+
+   const btVector3& CDynamics3DBody::GetTotalForce() const {
+      return m_pcRigidBody->getTotalForce();
    }
 
    /****************************************/

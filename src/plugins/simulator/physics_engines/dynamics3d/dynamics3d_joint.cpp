@@ -58,6 +58,8 @@ namespace argos {
                                       const btTransform& c_reference_frame_in_b,
                                       const SJointLimits& c_linear_limits,
                                       const SJointLimits& c_angular_limits,
+                                      const SJointActuators& c_linear_actuators,
+                                      const SJointActuators& c_angular_actuators,
                                       bool b_use_reference_linear_frame_a,
                                       bool b_disable_linked_body_collisions) :
       m_strId(str_id),
@@ -67,6 +69,8 @@ namespace argos {
       m_cReferenceFrameInB(c_reference_frame_in_b),
       m_sLinearLimits(c_linear_limits),
       m_sAngularLimits(c_angular_limits),
+      m_sLinearActuators(c_linear_actuators),
+      m_sAngularActuators(c_angular_actuators),
       m_bUseLinearReferenceFrameA(b_use_reference_linear_frame_a),
       m_bDisableLinkedBodyCollisions(b_disable_linked_body_collisions) {
       
@@ -80,6 +84,24 @@ namespace argos {
       m_pcJoint->setLinearUpperLimit(m_sLinearLimits.m_cUpperLimit);
       m_pcJoint->setAngularLowerLimit(m_sAngularLimits.m_cLowerLimit);
       m_pcJoint->setAngularUpperLimit(m_sAngularLimits.m_cUpperLimit);
+      m_pcJoint->getTranslationalLimitMotor()->m_enableMotor[0] = m_sLinearActuators.m_sX.m_bEnabled;
+      m_pcJoint->getTranslationalLimitMotor()->m_maxMotorForce[0] = m_sLinearActuators.m_sX.m_fForce;
+      m_pcJoint->getTranslationalLimitMotor()->m_targetVelocity[0] = m_sLinearActuators.m_sX.m_fTargetVelocity;
+      m_pcJoint->getTranslationalLimitMotor()->m_enableMotor[1] = m_sLinearActuators.m_sY.m_bEnabled;
+      m_pcJoint->getTranslationalLimitMotor()->m_maxMotorForce[1] = m_sLinearActuators.m_sY.m_fForce;
+      m_pcJoint->getTranslationalLimitMotor()->m_targetVelocity[1] = m_sLinearActuators.m_sY.m_fTargetVelocity;
+      m_pcJoint->getTranslationalLimitMotor()->m_enableMotor[2] = m_sLinearActuators.m_sZ.m_bEnabled;
+      m_pcJoint->getTranslationalLimitMotor()->m_maxMotorForce[2] = m_sLinearActuators.m_sZ.m_fForce;
+      m_pcJoint->getTranslationalLimitMotor()->m_targetVelocity[2] = m_sLinearActuators.m_sZ.m_fTargetVelocity;
+      m_pcJoint->getRotationalLimitMotor(0)->m_enableMotor = m_sAngularActuators.m_sX.m_bEnabled;
+      m_pcJoint->getRotationalLimitMotor(0)->m_maxMotorForce = m_sAngularActuators.m_sX.m_fForce;
+      m_pcJoint->getRotationalLimitMotor(0)->m_targetVelocity =  m_sAngularActuators.m_sX.m_fTargetVelocity;
+      m_pcJoint->getRotationalLimitMotor(1)->m_enableMotor = m_sAngularActuators.m_sY.m_bEnabled;
+      m_pcJoint->getRotationalLimitMotor(1)->m_maxMotorForce = m_sAngularActuators.m_sY.m_fForce;
+      m_pcJoint->getRotationalLimitMotor(1)->m_targetVelocity =  m_sAngularActuators.m_sY.m_fTargetVelocity;
+      m_pcJoint->getRotationalLimitMotor(2)->m_enableMotor = m_sAngularActuators.m_sZ.m_bEnabled;
+      m_pcJoint->getRotationalLimitMotor(2)->m_maxMotorForce = m_sAngularActuators.m_sZ.m_fForce;
+      m_pcJoint->getRotationalLimitMotor(2)->m_targetVelocity =  m_sAngularActuators.m_sZ.m_fTargetVelocity;
    }  
 
    /****************************************/
@@ -94,8 +116,7 @@ namespace argos {
 
    void CDynamics3DJoint::Reset() {
       /* delete the joint */
-      delete m_pcJoint;
-      
+      delete m_pcJoint;   
       /* recreate it */
       m_pcJoint = new btGeneric6DofConstraint(*m_cBodyA.m_pcRigidBody,
                                               *m_cBodyB.m_pcRigidBody,
@@ -107,28 +128,45 @@ namespace argos {
       m_pcJoint->setLinearUpperLimit(m_sLinearLimits.m_cUpperLimit);
       m_pcJoint->setAngularLowerLimit(m_sAngularLimits.m_cLowerLimit);
       m_pcJoint->setAngularUpperLimit(m_sAngularLimits.m_cUpperLimit);
-      
+      m_pcJoint->getTranslationalLimitMotor()->m_enableMotor[0] = m_sLinearActuators.m_sX.m_bEnabled;
+      m_pcJoint->getTranslationalLimitMotor()->m_maxMotorForce[0] = m_sLinearActuators.m_sX.m_fForce;
+      m_pcJoint->getTranslationalLimitMotor()->m_targetVelocity[0] = m_sLinearActuators.m_sX.m_fTargetVelocity;
+      m_pcJoint->getTranslationalLimitMotor()->m_enableMotor[1] = m_sLinearActuators.m_sY.m_bEnabled;
+      m_pcJoint->getTranslationalLimitMotor()->m_maxMotorForce[1] = m_sLinearActuators.m_sY.m_fForce;
+      m_pcJoint->getTranslationalLimitMotor()->m_targetVelocity[1] = m_sLinearActuators.m_sY.m_fTargetVelocity;
+      m_pcJoint->getTranslationalLimitMotor()->m_enableMotor[2] = m_sLinearActuators.m_sZ.m_bEnabled;
+      m_pcJoint->getTranslationalLimitMotor()->m_maxMotorForce[2] = m_sLinearActuators.m_sZ.m_fForce;
+      m_pcJoint->getTranslationalLimitMotor()->m_targetVelocity[2] = m_sLinearActuators.m_sZ.m_fTargetVelocity;
+      m_pcJoint->getRotationalLimitMotor(0)->m_enableMotor = m_sAngularActuators.m_sX.m_bEnabled;
+      m_pcJoint->getRotationalLimitMotor(0)->m_maxMotorForce = m_sAngularActuators.m_sX.m_fForce;
+      m_pcJoint->getRotationalLimitMotor(0)->m_targetVelocity =  m_sAngularActuators.m_sX.m_fTargetVelocity;
+      m_pcJoint->getRotationalLimitMotor(1)->m_enableMotor = m_sAngularActuators.m_sY.m_bEnabled;
+      m_pcJoint->getRotationalLimitMotor(1)->m_maxMotorForce = m_sAngularActuators.m_sY.m_fForce;
+      m_pcJoint->getRotationalLimitMotor(1)->m_targetVelocity =  m_sAngularActuators.m_sY.m_fTargetVelocity;
+      m_pcJoint->getRotationalLimitMotor(2)->m_enableMotor = m_sAngularActuators.m_sZ.m_bEnabled;
+      m_pcJoint->getRotationalLimitMotor(2)->m_maxMotorForce = m_sAngularActuators.m_sZ.m_fForce;
+      m_pcJoint->getRotationalLimitMotor(2)->m_targetVelocity =  m_sAngularActuators.m_sZ.m_fTargetVelocity;      
    }
    
    /****************************************/
    /****************************************/
 
-   void CDynamics3DJoint::SetActuatorParameters(Actuator::EAxis e_axis,
+   void CDynamics3DJoint::SetActuatorParameters(EAxis e_axis,
                                                 bool b_enable,
                                                 Real f_max_force) {
       
       switch(e_axis) {
-      case Actuator::LINEAR_X:
-      case Actuator::LINEAR_Y:
-      case Actuator::LINEAR_Z:
+      case LINEAR_X:
+      case LINEAR_Y:
+      case LINEAR_Z:
          m_pcJoint->getTranslationalLimitMotor()->m_enableMotor[e_axis] = b_enable;
          m_pcJoint->getTranslationalLimitMotor()->m_maxMotorForce[e_axis] = f_max_force;
          break;
-      case Actuator::ANGULAR_X:
-      case Actuator::ANGULAR_Y:
-      case Actuator::ANGULAR_Z:
-         m_pcJoint->getRotationalLimitMotor(e_axis - Actuator::ANGULAR_AXIS_OFFSET)->m_enableMotor = b_enable;
-         m_pcJoint->getRotationalLimitMotor(e_axis - Actuator::ANGULAR_AXIS_OFFSET)->m_maxMotorForce = f_max_force;
+      case ANGULAR_X:
+      case ANGULAR_Y:
+      case ANGULAR_Z:
+         m_pcJoint->getRotationalLimitMotor(e_axis - ANGULAR_AXIS_OFFSET)->m_enableMotor = b_enable;
+         m_pcJoint->getRotationalLimitMotor(e_axis - ANGULAR_AXIS_OFFSET)->m_maxMotorForce = f_max_force;
          break;
       }
    }
@@ -136,20 +174,39 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics3DJoint::SetActuatorTargetVelocity(Actuator::EAxis e_axis,
-                                  Real f_target_velocity) {
+   void CDynamics3DJoint::SetActuatorTargetVelocity(EAxis e_axis,
+                                                    Real f_target_velocity) {
       switch(e_axis) {
-      case Actuator::LINEAR_X:
-      case Actuator::LINEAR_Y:
-      case Actuator::LINEAR_Z:
+      case LINEAR_X:
+      case LINEAR_Y:
+      case LINEAR_Z:
          m_pcJoint->getTranslationalLimitMotor()->m_targetVelocity[e_axis] = f_target_velocity;
          break;
-      case Actuator::ANGULAR_X:
-      case Actuator::ANGULAR_Y:
-      case Actuator::ANGULAR_Z:
-         m_pcJoint->getRotationalLimitMotor(e_axis - Actuator::ANGULAR_AXIS_OFFSET)->m_targetVelocity = f_target_velocity;
+      case ANGULAR_X:
+      case ANGULAR_Y:
+      case ANGULAR_Z:
+         m_pcJoint->getRotationalLimitMotor(e_axis - ANGULAR_AXIS_OFFSET)->m_targetVelocity = f_target_velocity;
          break;
-         }
+      }
+
+      /*
+      if(e_axis == ANGULAR_X) {
+      const btTransform* toFprintf = &m_pcJoint->getCalculatedTransformA();
+      fprintf(stderr, "%s: getCalculatedTransformA() : position = [%.3f, %.3f, %.3f], orientation-axis = [%.3f, %.3f, %.3f], orientation-angle = [%.3f]\n", m_strId.c_str(), toFprintf->getOrigin().getX(), toFprintf->getOrigin().getY(), toFprintf->getOrigin().getZ(), toFprintf->getRotation().getAxis().getX(), toFprintf->getRotation().getAxis().getY(), toFprintf->getRotation().getAxis().getZ(), toFprintf->getRotation().getAngle() * 57.2957795131);
+
+      toFprintf = &m_pcJoint->getCalculatedTransformB();
+      fprintf(stderr, "%s: getCalculatedTransformB() : position = [%.3f, %.3f, %.3f], orientation-axis = [%.3f, %.3f, %.3f], orientation-angle = [%.3f]\n", m_strId.c_str(), toFprintf->getOrigin().getX(), toFprintf->getOrigin().getY(), toFprintf->getOrigin().getZ(), toFprintf->getRotation().getAxis().getX(), toFprintf->getRotation().getAxis().getY(), toFprintf->getRotation().getAxis().getZ(), toFprintf->getRotation().getAngle() * 57.2957795131);
+
+      toFprintf = &m_pcJoint->getFrameOffsetA();
+      fprintf(stderr, "%s: getFrameOffsetA() : position = [%.3f, %.3f, %.3f], orientation-axis = [%.3f, %.3f, %.3f], orientation-angle = [%.3f]\n", m_strId.c_str(), toFprintf->getOrigin().getX(), toFprintf->getOrigin().getY(), toFprintf->getOrigin().getZ(), toFprintf->getRotation().getAxis().getX(), toFprintf->getRotation().getAxis().getY(), toFprintf->getRotation().getAxis().getZ(), toFprintf->getRotation().getAngle() * 57.2957795131);
+
+      toFprintf = &m_pcJoint->getFrameOffsetB();
+      fprintf(stderr, "%s: getFrameOffsetB() : position = [%.3f, %.3f, %.3f], orientation-axis = [%.3f, %.3f, %.3f], orientation-angle = [%.3f]\n", m_strId.c_str(), toFprintf->getOrigin().getX(), toFprintf->getOrigin().getY(), toFprintf->getOrigin().getZ(), toFprintf->getRotation().getAxis().getX(), toFprintf->getRotation().getAxis().getY(), toFprintf->getRotation().getAxis().getZ(), toFprintf->getRotation().getAngle() * 57.2957795131);
+
+      toFprintf = new btTransform();
+      fprintf(stderr, "%s: getCalculatedTransformA() * getCalculatedTransformB().inverse : position = [%.3f, %.3f, %.3f], orientation-axis = [%.3f, %.3f, %.3f], orientation-angle = [%.3f]\n", m_strId.c_str(), toFprintf->getOrigin().getX(), toFprintf->getOrigin().getY(), toFprintf->getOrigin().getZ(), toFprintf->getRotation().getAxis().getX(), toFprintf->getRotation().getAxis().getY(), toFprintf->getRotation().getAxis().getZ(), toFprintf->getRotation().getAngle() * 57.2957795131);
+
+      }*/
    }
 
    /****************************************/

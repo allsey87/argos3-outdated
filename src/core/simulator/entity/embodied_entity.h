@@ -13,7 +13,8 @@ namespace argos {
 }
 
 #include <argos3/core/simulator/entity/positional_entity.h>
-#include <argos3/core/simulator/space/space_hash.h>
+#include <argos3/core/simulator/space/positional_indices/grid.h>
+#include <argos3/core/simulator/space/positional_indices/space_hash.h>
 #include <argos3/core/utility/datatypes/set.h>
 #include <argos3/core/utility/math/ray3.h>
 #include <argos3/core/utility/math/quaternion.h>
@@ -188,7 +189,7 @@ namespace argos {
        * @throws CARGoSException if this entity is not associated to any model.
        * @see CPhysicsModel::CheckIntersectionWithRay()
        */
-      virtual bool CheckIntersectionWithRay(Real& f_distance,
+      virtual bool CheckIntersectionWithRay(Real& f_t_on_ray,
                                             const CRay3& c_ray) const;
 
       /**
@@ -265,6 +266,66 @@ namespace argos {
     * @endcond
     */
    
+   /****************************************/
+   /****************************************/
+
+   class CEmbodiedEntityGridUpdater : public CGrid<CEmbodiedEntity>::COperation {
+
+   public:
+
+      CEmbodiedEntityGridUpdater(CGrid<CEmbodiedEntity>& c_grid);
+      virtual bool operator()(CEmbodiedEntity& c_entity);
+
+   private:
+
+      CGrid<CEmbodiedEntity>& m_cGrid;
+      SInt32 m_nMinI, m_nMinJ, m_nMinK;
+      SInt32 m_nMaxI, m_nMaxJ, m_nMaxK;
+      SInt32 m_nI, m_nJ, m_nK;
+   };
+
+   /****************************************/
+   /****************************************/
+
+   struct SEmbodiedEntityIntersectionItem {
+      CEmbodiedEntity* IntersectedEntity;
+      Real TOnRay;
+
+      SEmbodiedEntityIntersectionItem() :
+         IntersectedEntity(NULL),
+         TOnRay(0.0f) {}
+
+      SEmbodiedEntityIntersectionItem(CEmbodiedEntity* pc_entity,
+                                      Real f_t_on_ray) :
+         IntersectedEntity(pc_entity),
+         TOnRay(f_t_on_ray) {}
+
+      inline bool operator<(const SEmbodiedEntityIntersectionItem& s_item) {
+         return TOnRay < s_item.TOnRay;
+      }
+   };
+
+   struct SEmbodiedEntityIntersectionData {
+      bool Intersection;
+      std::vector<SEmbodiedEntityIntersectionItem*> IntersectedEntities;
+
+      SEmbodiedEntityIntersectionData() :
+         Intersection(false) {}
+
+      SEmbodiedEntityIntersectionData(std::vector<SEmbodiedEntityIntersectionItem*>& c_entities) :
+         Intersection(c_entities.size() > 0),
+         IntersectedEntities(c_entities) {}
+   };
+
+   extern bool GetClosestEmbodiedEntityIntersectedByRay(SEmbodiedEntityIntersectionItem& s_item,
+                                                        CPositionalIndex<CEmbodiedEntity>& c_pos_index,
+                                                        const CRay3& c_ray);
+
+   extern bool GetClosestEmbodiedEntityIntersectedByRay(SEmbodiedEntityIntersectionItem& s_item,
+                                                        CPositionalIndex<CEmbodiedEntity>& c_pos_index,
+                                                        const CRay3& c_ray,
+                                                        CEmbodiedEntity& c_entity);
+
    /****************************************/
    /****************************************/
 

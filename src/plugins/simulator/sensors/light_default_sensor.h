@@ -17,8 +17,9 @@ namespace argos {
 
 #include <argos3/plugins/robots/generic/control_interface/ci_light_sensor.h>
 #include <argos3/core/utility/math/range.h>
-#include <argos3/core/simulator/space/space.h>
 #include <argos3/core/utility/math/rng.h>
+#include <argos3/core/simulator/space/space.h>
+#include <argos3/core/simulator/sensor.h>
 
 namespace argos {
 
@@ -76,8 +77,8 @@ namespace argos {
       /** Reference to the space */
       CSpace& m_cSpace;
 
-      /** Reference to the space hash of embodied entities */
-      CSpaceHash<CEmbodiedEntity, CEmbodiedEntitySpaceHashUpdater>& m_cEmbodiedSpaceHash;
+      /** Reference to the embodied entity index */
+      CPositionalIndex<CEmbodiedEntity>& m_cEmbodiedEntityIndex;
    };
 
 }

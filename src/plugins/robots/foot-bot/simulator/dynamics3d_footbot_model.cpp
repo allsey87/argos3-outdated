@@ -85,15 +85,21 @@ namespace argos {
       btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
       btVector3(-FOOTBOT_PIVOT_HALF_DISTANCE, 0.0f, 0.0f));
 
-
-
-   const btTransform CDynamics3DFootBotModel::m_cChassisToLeftWheelTransform(
-      btQuaternion(btVector3(1.0f, 0.0f, 0.0f), -ARGOS_PI * 0.5f),
+   const btTransform CDynamics3DFootBotModel::m_cChassisToLeftAxleTransform(
+      btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
       btVector3(0.0f, -FOOTBOT_WHEEL_Y_OFFSET, -FOOTBOT_WHEEL_HALF_DISTANCE));
 
-   const btTransform CDynamics3DFootBotModel::m_cChassisToRightWheelTransform(
-      btQuaternion(btVector3(1.0f, 0.0f, 0.0f), -ARGOS_PI * 0.5f),
+   const btTransform CDynamics3DFootBotModel::m_cLeftWheelToLeftAxleTransform(
+      btQuaternion(btVector3(1.0f, 0.0f, 0.0f), ARGOS_PI * 0.5f),
+      btVector3(0.0f, 0.0f, 0.0f));
+
+   const btTransform CDynamics3DFootBotModel::m_cChassisToRightAxleTransform(
+      btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
       btVector3(0.0f, -FOOTBOT_WHEEL_Y_OFFSET, FOOTBOT_WHEEL_HALF_DISTANCE));
+
+   const btTransform CDynamics3DFootBotModel::m_cRightWheelToRightAxleTransform(
+      btQuaternion(btVector3(1.0f, 0.0f, 0.0f), ARGOS_PI * 0.5f),
+      btVector3(0.0f, 0.0f, 0.0f));
 
    const btTransform CDynamics3DFootBotModel::m_cChassisToFrontPivotTransform(
       btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
@@ -158,88 +164,87 @@ namespace argos {
                                                      m_cPivotGeometricOffset,
                                                      FOOTBOT_PIVOT_MASS));
  
-     m_vecLocalBodies.push_back(new CDynamics3DBody("rear-pivot",
+      m_vecLocalBodies.push_back(new CDynamics3DBody("rear-pivot",
                                                      &m_cPivotCollisionShape,
                                                      m_cRearPivotPositionalOffset,
                                                      m_cPivotGeometricOffset,
                                                      FOOTBOT_PIVOT_MASS));
 
       /* create the joints */
-     m_vecLocalJoints.push_back(new CDynamics3DJoint("left-wheel:chassis",
-                                                     *m_vecLocalBodies[Body::LEFT_WHEEL],
-                                                     *m_vecLocalBodies[Body::CHASSIS],
-                                                     btTransform::getIdentity(),
-                                                     m_cChassisToLeftWheelTransform,
-                                                     CDynamics3DJoint::m_cLockAxes,
-                                                     CDynamics3DJoint::m_cFreeAxisY,
-                                                     true,
-                                                     true));
+      m_vecLocalJoints.push_back(new CDynamics3DJoint("left-wheel:chassis",
+                                                      *m_vecLocalBodies[Body::LEFT_WHEEL],
+                                                      *m_vecLocalBodies[Body::CHASSIS],
+                                                      m_cLeftWheelToLeftAxleTransform,
+                                                      m_cChassisToLeftAxleTransform,
+                                                      CDynamics3DJoint::m_cLockAxes,
+                                                      CDynamics3DJoint::m_cFreeAxisZ,
+                                                      CDynamics3DJoint::SJointActuators(),
+                                                      CDynamics3DJoint::SJointActuators(
+                                                         CDynamics3DJoint::SJointActuators::SActuator(),
+                                                         CDynamics3DJoint::SJointActuators::SActuator(),
+                                                         CDynamics3DJoint::SJointActuators::SActuator(
+                                                            true, 
+                                                            FOOTBOT_WHEEL_MOTOR_IMPULSE,
+                                                            0.0f)),
+                                                      true,
+                                                      true));
                                                      
-     m_vecLocalJoints.push_back(new CDynamics3DJoint("right-wheel:chassis",
-                                                     *m_vecLocalBodies[Body::RIGHT_WHEEL],
-                                                     *m_vecLocalBodies[Body::CHASSIS],
-                                                     btTransform::getIdentity(),
-                                                     m_cChassisToRightWheelTransform,
-                                                     CDynamics3DJoint::m_cLockAxes,
-                                                     CDynamics3DJoint::m_cFreeAxisY,
-                                                     true,
-                                                     true));                                                     
+      m_vecLocalJoints.push_back(new CDynamics3DJoint("right-wheel:chassis",
+                                                      *m_vecLocalBodies[Body::RIGHT_WHEEL],
+                                                      *m_vecLocalBodies[Body::CHASSIS],
+                                                      m_cRightWheelToRightAxleTransform,
+                                                      m_cChassisToRightAxleTransform,
+                                                      CDynamics3DJoint::m_cLockAxes,
+                                                      CDynamics3DJoint::m_cFreeAxisZ,
+                                                      CDynamics3DJoint::SJointActuators(),
+                                                      CDynamics3DJoint::SJointActuators(
+                                                         CDynamics3DJoint::SJointActuators::SActuator(),
+                                                         CDynamics3DJoint::SJointActuators::SActuator(),
+                                                         CDynamics3DJoint::SJointActuators::SActuator(
+                                                            true, 
+                                                            FOOTBOT_WHEEL_MOTOR_IMPULSE,
+                                                            0.0f)),
+                                                      true,
+                                                      true));                                                     
 
-     m_vecLocalJoints.push_back(new CDynamics3DJoint("front-pivot:chassis",
-                                                     *m_vecLocalBodies[Body::FRONT_PIVOT],
-                                                     *m_vecLocalBodies[Body::CHASSIS],
-                                                     btTransform::getIdentity(),
-                                                     m_cChassisToFrontPivotTransform,
-                                                     CDynamics3DJoint::m_cLockAxes,
-                                                     CDynamics3DJoint::m_cFreeAxisXYZ,
-                                                     true,
-                                                     true));                                                     
+      m_vecLocalJoints.push_back(new CDynamics3DJoint("front-pivot:chassis",
+                                                      *m_vecLocalBodies[Body::FRONT_PIVOT],
+                                                      *m_vecLocalBodies[Body::CHASSIS],
+                                                      btTransform::getIdentity(),
+                                                      m_cChassisToFrontPivotTransform,
+                                                      CDynamics3DJoint::m_cLockAxes,
+                                                      CDynamics3DJoint::m_cFreeAxisXYZ,
+                                                      CDynamics3DJoint::SJointActuators(),
+                                                      CDynamics3DJoint::SJointActuators(),
+                                                      true,
+                                                      true));                                                     
 
-     m_vecLocalJoints.push_back(new CDynamics3DJoint("rear-pivot:chassis",
-                                                     *m_vecLocalBodies[Body::REAR_PIVOT],
-                                                     *m_vecLocalBodies[Body::CHASSIS],
-                                                     btTransform::getIdentity(),
-                                                     m_cChassisToRearPivotTransform,
-                                                     CDynamics3DJoint::m_cLockAxes,
-                                                     CDynamics3DJoint::m_cFreeAxisXYZ,
-                                                     true,
-                                                     true));                                                     
+      m_vecLocalJoints.push_back(new CDynamics3DJoint("rear-pivot:chassis",
+                                                      *m_vecLocalBodies[Body::REAR_PIVOT],
+                                                      *m_vecLocalBodies[Body::CHASSIS],
+                                                      btTransform::getIdentity(),
+                                                      m_cChassisToRearPivotTransform,
+                                                      CDynamics3DJoint::m_cLockAxes,
+                                                      CDynamics3DJoint::m_cFreeAxisXYZ,
+                                                      CDynamics3DJoint::SJointActuators(),
+                                                      CDynamics3DJoint::SJointActuators(),
+                                                      true,
+                                                      true));                                                     
 
      /* move the model to the specified coordinates */
      SetModelCoordinates(btTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
                                      ARGoSToBullet(GetEmbodiedEntity().GetInitPosition())));
-
-     /* enable the motors */ 
-     m_vecLocalJoints[Joint::LEFT_WHEEL_TO_CHASSIS]->SetActuatorParameters(
-        CDynamics3DJoint::Actuator::ANGULAR_Y,
-        true,
-        FOOTBOT_WHEEL_MOTOR_IMPULSE);
-     
-     m_vecLocalJoints[Joint::RIGHT_WHEEL_TO_CHASSIS]->SetActuatorParameters(
-        CDynamics3DJoint::Actuator::ANGULAR_Y,
-        true,
-        FOOTBOT_WHEEL_MOTOR_IMPULSE);
    }
 
    /****************************************/
    /****************************************/
 
    void CDynamics3DFootBotModel::Reset() {
-      
+      //@todo dissolve this method, it does nothing and is provided by the base class
+
       /* call the CDynamics3DModel::Reset method to reset
          and reposition the bodies and joints */
       CDynamics3DModel::Reset();
-
-     /* reenable the motors */ 
-     m_vecLocalJoints[Joint::LEFT_WHEEL_TO_CHASSIS]->SetActuatorParameters(
-        CDynamics3DJoint::Actuator::ANGULAR_Y,
-        true,
-        FOOTBOT_WHEEL_MOTOR_IMPULSE);
-     
-     m_vecLocalJoints[Joint::RIGHT_WHEEL_TO_CHASSIS]->SetActuatorParameters(
-        CDynamics3DJoint::Actuator::ANGULAR_Y,
-        true,
-        FOOTBOT_WHEEL_MOTOR_IMPULSE);
    }
 
    /****************************************/
@@ -279,22 +284,22 @@ namespace argos {
          
          /* Write the motor target velocities to the joints */
          m_vecLocalJoints[Joint::LEFT_WHEEL_TO_CHASSIS]->SetActuatorTargetVelocity(
-            CDynamics3DJoint::Actuator::ANGULAR_Y,
+            CDynamics3DJoint::ANGULAR_Z,
             fLeftWheelVelocity);
 
          m_vecLocalJoints[Joint::RIGHT_WHEEL_TO_CHASSIS]->SetActuatorTargetVelocity(
-            CDynamics3DJoint::Actuator::ANGULAR_Y,
+            CDynamics3DJoint::ANGULAR_Z,
             fRightWheelVelocity);
       }
       else {
          
          /* Write a target velocity of zero to the joints */
          m_vecLocalJoints[Joint::LEFT_WHEEL_TO_CHASSIS]->SetActuatorTargetVelocity(
-            CDynamics3DJoint::Actuator::ANGULAR_Y,
+            CDynamics3DJoint::ANGULAR_Z,
             0.0f);
 
          m_vecLocalJoints[Joint::RIGHT_WHEEL_TO_CHASSIS]->SetActuatorTargetVelocity(
-            CDynamics3DJoint::Actuator::ANGULAR_Y,
+            CDynamics3DJoint::ANGULAR_Z,
             0.0f);
       }
    }

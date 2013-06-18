@@ -5,7 +5,8 @@
   <!-- * General configuration * -->
   <!-- ************************* -->
   <framework>
-    <experiment threads="1000" length="0" ticks_per_second="10" />
+    <system threads="0" />
+    <experiment length="0" ticks_per_second="10" random_seed="1234" />
   </framework>
 
   <!-- ****************** -->
@@ -25,26 +26,52 @@
       <!-- Normal actuator/sensor configuration follows -->
       <actuators>
         <differential_steering implementation="default" />
-        <leds implementation="default" />
-        <footbot_gripper implementation="default" />
-        <footbot_distance_scanner implementation="default" />
         <range_and_bearing implementation="default" />
-        <footbot_turret implementation="default" />
+        <!-- leds implementation="default" / -->
+        <!-- footbot_gripper implementation="default" / -->
+        <!-- footbot_distance_scanner implementation="default" / -->
+        <!-- footbot_turret implementation="default" / -->
       </actuators>
       <sensors>
-        <differential_steering implementation="default" />
-        <footbot_base_ground implementation="rot_z_only" />
-        <footbot_distance_scanner implementation="rot_z_only" />
-        <footbot_light implementation="rot_z_only" />
-        <footbot_motor_ground implementation="rot_z_only" />
-        <footbot_proximity implementation="default" />
-        <range_and_bearing implementation="default" />
-        <footbot_turret_encoder implementation="default" />
+        <range_and_bearing implementation="medium" medium="rab" show_rays="false" />
+        <!-- <footbot_proximity implementation="default" show_rays="false" /> -->
+        <!-- differential_steering implementation="default" / -->
+        <!-- footbot_base_ground implementation="rot_z_only" / -->
+        <!-- footbot_distance_scanner implementation="rot_z_only" / -->
+        <!-- footbot_light implementation="rot_z_only" / -->
+        <!-- footbot_motor_ground implementation="rot_z_only" / -->
+        <!-- footbot_turret_encoder implementation="default" / -->
       </sensors>
       <!-- No required configuration -->
       <params />
       <!-- Optionally, you can pass a script as a controller parameter: -->
-      <!-- params script="../../src/testing/experiment/test_gripper.lua" / -->
+      <!-- <params script="../../src/testing/experiment/test_rab.lua" /> -->
+    </lua_controller>
+
+    <lua_controller id="lua2">
+      <!-- Normal actuator/sensor configuration follows -->
+      <actuators>
+        <differential_steering implementation="default" />
+        <range_and_bearing implementation="default" />
+        <!-- leds implementation="default" / -->
+        <!-- footbot_gripper implementation="default" / -->
+        <!-- footbot_distance_scanner implementation="default" / -->
+        <!-- footbot_turret implementation="default" / -->
+      </actuators>
+      <sensors>
+        <footbot_proximity implementation="default" show_rays="false" />
+        <range_and_bearing implementation="medium" medium="rab" show_rays="true" />
+        <!-- differential_steering implementation="default" / -->
+        <!-- footbot_base_ground implementation="rot_z_only" / -->
+        <!-- footbot_distance_scanner implementation="rot_z_only" / -->
+        <!-- footbot_light implementation="rot_z_only" / -->
+        <!-- footbot_motor_ground implementation="rot_z_only" / -->
+        <!-- footbot_turret_encoder implementation="default" / -->
+      </sensors>
+      <!-- No required configuration -->
+      <params />
+      <!-- Optionally, you can pass a script as a controller parameter: -->
+      <!-- <params script="../../src/testing/experiment/test_rab.lua" /> -->
     </lua_controller>
 
   </controllers>
@@ -52,13 +79,24 @@
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->
-  <arena size="10, 10, 1">
-    <floor id="f" source="loop_functions" pixels_per_meter="100" />
+  <arena size="10, 10, 1" center="0,0,0" positional_index="grid" positional_grid_size="25,25,1">
+    <!-- <floor id="f" source="loop_functions" pixels_per_meter="100" /> -->
 
-    <box id="bn" position="5,0,0"  orientation="0,0,0" size="0.1, 10, 0.2" movable="false" />
-    <box id="bs" position="-5,0,0" orientation="0,0,0" size="0.1, 10, 0.2" movable="false" />
-    <box id="be" position="0,-5,0" orientation="0,0,0" size="10, 0.1, 0.2" movable="false" />
-    <box id="bw" position="0,5,0"  orientation="0,0,0" size="10, 0.1, 0.2" movable="false" />
+    <box id="bn" size="0.1, 10, 0.2" movable="false">
+      <body position="5,0,0"  orientation="0,0,0" />
+    </box>
+
+    <box id="bs" size="0.1, 10, 0.2" movable="false">
+      <body position="-5,0,0"  orientation="0,0,0" />
+    </box>
+
+    <box id="be" size="10, 0.1, 0.2" movable="false">
+      <body position="0,-5,0"  orientation="0,0,0" />
+    </box>
+
+    <box id="bw" size="10, 0.1, 0.2" movable="false">
+      <body position="0,5,0"  orientation="0,0,0" />
+    </box>
 
     <light id="l0"
            position="1,1,1"
@@ -66,31 +104,24 @@
            color="yellow"
            intensity="1" />
 
-    <!-- <distribute> -->
-    <!--   <position method="uniform" min="-5,-5,0" max="5,5,0" /> -->
-    <!--   <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" /> -->
-    <!--   <entity quantity="1000" max_trials="100"> -->
-    <!--     <foot-bot id="fb" -->
-    <!--               controller="lua" /> -->
-    <!--   </entity> -->
-    <!-- </distribute> -->
+    <foot-bot id="fb1">
+      <body position="0,1,0" orientation="0,0,0" />
+      <controller config="lua" />
+    </foot-bot>
 
-    <!-- <distribute> -->
-    <!--   <position method="uniform" min="-1,-1,0" max="1,1,0" /> -->
-    <!--   <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" /> -->
-    <!--   <entity quantity="10" max_trials="100"> -->
-    <!--     <cylinder id="cyl" -->
-    <!--               radius="0.05" -->
-    <!--               height="0.1" -->
-    <!--               movable="true" -->
-    <!--               mass="0.1" /> -->
-    <!--   </entity> -->
-    <!-- </distribute> -->
+    <distribute>
+      <position method="uniform" min="-5,-5,0" max="5,5,0" />
+      <orientation method="uniform" min="0,0,0" max="360,0,0" />
+      <entity quantity="100" max_trials="100" base_num="100">
+        <foot-bot id="fb">
+          <controller config="lua" />
+        </foot-bot>
+      </entity>
+    </distribute>
 
-    <foot-bot id="fb0" position="0,0,0" orientation="0,0,0" controller="lua" />
-    <foot-bot id="fb1" position="0,1,0" orientation="0,0,0" controller="lua" />
-
-    <!-- cylinder id="cyl0" position="0,0.2,0" orientation="0,0,0" radius="0.05" height="0.1" movable="true" mass="0.1" / -->
+    <cylinder id="cyl0" radius="0.05" height="0.2" movable="true" mass="0.1" >
+      <body position="0,0.5,0" orientation="0,0,0" />
+    </cylinder>
 
   </arena>
 
@@ -101,9 +132,16 @@
     <dynamics2d id="dyn2d" />
   </physics_engines>
 
-  <!-- ****************** -->
+  <!-- ********* -->
+  <!-- * Media * -->
+  <!-- ********* -->
+  <media>
+    <range_and_bearing id="rab" index="grid" grid_size="2,2,1" />
+  </media>
+
+  <!-- ***************** -->
   <!-- * Visualization * -->
-  <!-- ****************** -->
+  <!-- ***************** -->
   <visualization>
 
     <!-- ************************************************************************ -->

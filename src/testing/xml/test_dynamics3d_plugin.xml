@@ -36,24 +36,43 @@
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->
-  <arena size="5, 5, 1">
-    <box id="bn" position="2.5,0,0"  orientation="0,0,0" size="0.1, 5, 0.2" movable="false" mass="1" />
-    <box id="bs" position="-2.5,0,0" orientation="0,0,0" size="0.1, 5, 0.2" movable="false" mass="1" />
-    <box id="be" position="0,-2.5,0" orientation="0,0,0" size="5, 0.1, 0.2" movable="false" mass="1" />
-    <box id="bw" position="0,2.5,0"  orientation="0,0,0" size="5, 0.1, 0.2" movable="false" mass="1" />
-        
-    <distribute>
+  <arena size="10, 10, 1" positional_index="grid" positional_grid_size="25,25,1">
+    <box id="bn" size="0.1, 5, 0.2" movable="false" mass="1">
+      <body position="2.5,0,0"  orientation="0,0,0"/>
+    </box>
+    <box id="bs" size="0.1, 5, 0.2" movable="false" mass="1">
+       <body position="-2.5,0,0" orientation="0,0,0"/>
+    </box>
+    <box id="be" size="5, 0.1, 0.2" movable="false" mass="1">
+       <body position="0,-2.5,0" orientation="0,0,0"/>
+    </box>
+    <box id="bw" size="5, 0.1, 0.2" movable="false" mass="1">
+       <body position="0,2.5,0"  orientation="0,0,0"/>
+    </box>
+    
+    <!--distribute>
+      <position method="uniform" min="-5,-5,0" max="5,5,0" />
+      <orientation method="uniform" min="0,0,0" max="360,0,0" />
+      <entity quantity="100" max_trials="100" base_num="100">
+        <foot-bot id="fb">
+          <controller config="lua" />
+        </foot-bot>
+      </entity>
+    </distribute-->
+    
+    
+    <!--distribute>
       <position method="uniform" min="-1.5,-1.5,0.0" max="1.5,1.5,12.0" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,360,360" />
-      <entity quantity="150" max_trials="100">
+      <entity quantity="150" max_trials="100" base_num="100">
         <box id="box" size="0.1, 0.1, 0.1" movable="true" mass="0.05" />
       </entity>
-    </distribute>
+    </distribute-->
     
     <distribute>
       <position method="uniform" min="-1.5,-1.5,0.0" max="1.5,1.5,12.0" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,360,360" />
-      <entity quantity="150" max_trials="100">
+      <entity quantity="150" max_trials="100" base_num="100">
         <cylinder id="cylinder" height="0.15" radius="0.05" movable="true" mass="0.05" />
       </entity>
     </distribute>
@@ -69,6 +88,13 @@
     <!--foot-bot id="fb3" position="1,1,0.2" orientation="0,0,0" controller="lua"/-->
 
   </arena>
+  
+  <!-- ********* -->
+  <!-- * Media * -->
+  <!-- ********* -->
+  <media>
+    <range_and_bearing id="rab" index="grid" grid_size="3,3,3" />
+  </media>
 
   <!-- ******************* -->
   <!-- * Physics engines * -->
