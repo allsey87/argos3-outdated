@@ -26,6 +26,7 @@ namespace argos {
 #include <argos3/core/utility/plugins/vtable.h>
 
 #include <vector>
+#include <map>
 #include <tr1/unordered_map>
 #include <string>
 
@@ -83,7 +84,7 @@ namespace argos {
       typedef std::tr1::unordered_map<std::string, CEntity*> TMap;
 
       /** A multi-map of entities */
-      typedef std::tr1::unordered_multimap<std::string, CEntity*> TMultiMap;
+      typedef std::multimap<std::string, CEntity*> TMultiMap;
 
    public:
 
@@ -145,7 +146,7 @@ namespace argos {
        * Returns the context of this entity.
        * @return The context of this entity.
        */
-      const std::string GetContext() const;
+      std::string GetContext() const;
 
       /**
        * Returns <tt>true</tt> if this entity has a parent.

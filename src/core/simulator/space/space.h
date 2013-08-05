@@ -16,11 +16,10 @@ namespace argos {
 }
 
 #include <argos3/core/utility/datatypes/any.h>
+#include <argos3/core/simulator/medium/medium.h>
+#include <argos3/core/simulator/space/positional_indices/positional_index.h>
 #include <argos3/core/simulator/entity/embodied_entity.h>
 #include <argos3/core/simulator/entity/controllable_entity.h>
-#include <argos3/core/simulator/entity/medium_entity.h>
-#include <argos3/core/simulator/entity/led_entity.h>
-#include <argos3/core/simulator/entity/rab_equipped_entity.h>
 
 namespace argos {
 
@@ -75,41 +74,6 @@ namespace argos {
        * @see any_cast()
        */
       typedef std::map <std::string, TMapPerType, std::less <std::string> > TMapPerTypePerId;
-
-      template <class E> struct SEntityIntersectionItem {
-         E* IntersectedEntity;
-         Real TOnRay;
-
-         SEntityIntersectionItem() :
-            IntersectedEntity(NULL),
-            TOnRay(0.0f) {}
-
-         SEntityIntersectionItem(E* pc_entity, Real f_t_on_ray) :
-            IntersectedEntity(pc_entity),
-            TOnRay(f_t_on_ray) {}
-
-         inline bool operator<(const SEntityIntersectionItem& s_item) {
-            return TOnRay < s_item.TOnRay;
-         }
-      };
-
-      template <class E> struct SEntityIntersectionData {
-         bool Intersection;
-         std::vector<SEntityIntersectionItem<E>*> IntersectedEntities;
-
-         SEntityIntersectionData() :
-            Intersection(false) {}
-
-         SEntityIntersectionData(std::vector<SEntityIntersectionItem<E>*>& c_entities) :
-            Intersection(c_entities.size() > 0),
-            IntersectedEntities(c_entities) {}
-      };
-
-   protected:
-
-      class CRayEmbodiedEntityIntersectionMethod;
-      class CRayEmbodiedEntityIntersectionSpaceHash;
-      class CRayEmbodiedEntityIntersectionEntitySweep;
 
       /****************************************/
       /****************************************/
@@ -200,16 +164,6 @@ namespace argos {
                                const std::string& str_pattern);
 
       /**
-       * Calculates the closest intersection point along the given ray.
-       * @param s_data Buffer containing the calculated intersection point, or lack thereof.
-       * @param c_ray The test ray.
-       * @param set_ignored_entities A list of entities that must be ignored if an intersection with them is detected.
-       */
-      bool GetClosestEmbodiedEntityIntersectedByRay(SEntityIntersectionItem<CEmbodiedEntity>& s_data,
-                                                    const CRay3& c_ray,
-                                                    const TEmbodiedEntitySet& set_ignored_entities = TEmbodiedEntitySet());
-
-      /**
        * Returns a map of all entities ordered by id.
        * @return a map of all entities ordered by id.
        */
@@ -243,7 +197,7 @@ namespace argos {
        * The 'type' here refers to the string returned by CEntity::GetTypeDescription().
        * Take this example:
        * <code>
-       *    CSpace::TMapPerType& theMap = space.GetEntityMapByType("box");
+       *    CSpace::TMapPerType& theMap = space.GetEntitiesByType("box");
        *    CBoxEntity* box = any_cast<CBoxEntity*>(theMap["my_box"]);
        *    // do stuff with the box ...
        * </code>
@@ -275,23 +229,18 @@ namespace argos {
       }
 
       /**
-       * Returns <tt>true</tt> if positional entities are indexed using the space hash.
-       * @return <tt>true</tt> if positional entities are indexed using the space hash.
-       */
-      inline bool IsUsingSpaceHash() const {
-         return m_bUseSpaceHash;
-      }
-
-      /**
-       * Sets the list of physics engines.
-       * This method is used internally.
-       */
-      inline virtual void SetPhysicsEngines(CPhysicsEngine::TVector& t_engines) {
-         m_ptPhysicsEngines = &t_engines;
-      }
-
-      /**
        * Updates the space.
+       * The operations are performed in the following order:
+       * <ol>
+       * <li>UpdateIndices()
+       * <li>UpdateControllableEntities()
+       * <li>UpdatePhysics()
+       * <li>UpdateMedia()
+       * </ol>
+       * @see UpdateIndices()
+       * @see UpdateControllableEntities()
+       * @see UpdatePhysics()
+       * @see UpdateMedia()
        */
       virtual void Update();
 
@@ -303,10 +252,13 @@ namespace argos {
       template <typename ENTITY>
       void AddEntity(ENTITY& c_entity) {
          std::string strEntityQualifiedName = c_entity.GetContext() + c_entity.GetId();
-      
          /* Check that the id of the entity is not already present */
          if(m_mapEntitiesPerId.find(strEntityQualifiedName) != m_mapEntitiesPerId.end()) {
-            THROW_ARGOSEXCEPTION("Error inserting a " << c_entity.GetTypeDescription() << " entity with id \"" << strEntityQualifiedName << "\". An entity with that id exists already.");
+            THROW_ARGOSEXCEPTION("Error inserting a " <<
+                                 c_entity.GetTypeDescription() <<
+                                 " entity with id \"" <<
+                                 strEntityQualifiedName <<
+                                 "\". An entity with that id already exists.");
          }
          /* Add the entity to the indexes */
          if(!c_entity.HasParent()) {
@@ -315,7 +267,6 @@ namespace argos {
          m_vecEntities.push_back(&c_entity);
          m_mapEntitiesPerId[strEntityQualifiedName] = &c_entity;
          m_mapEntitiesPerTypePerId[c_entity.GetTypeDescription()][strEntityQualifiedName] = &c_entity;
-         LOG << "[DEBUG] Adding entity " << strEntityQualifiedName <<  " to space.\n";
       }
 
       /**
@@ -401,86 +352,57 @@ namespace argos {
       }
 
       /**
-       * Returns the space hash containing the embodied entities.
-       * @return The space hash containing the embodied entities.
-       * @throw CARGoSException if the space hash is not being used.
+       * Returns the arena center.
+       * @return the arena center.
        */
-      inline CSpaceHash<CEmbodiedEntity, CEmbodiedEntitySpaceHashUpdater>& GetEmbodiedEntitiesSpaceHash() {
-         if(IsUsingSpaceHash()) {
-            return *m_pcEmbodiedEntitiesSpaceHash;
-         }
-         else {
-            THROW_ARGOSEXCEPTION("Attempted to access the space hash of embodied entities, but in the XML the user chose not to use it. Maybe you use a sensor or an actuator that references it directly?");
-         }
+      inline const CVector3& GetArenaCenter() const {
+         return m_cArenaCenter;
       }
 
       /**
-       * Returns the space hash containing the LED entities.
-       * @return The space hash containing the LED entities.
-       * @throw CARGoSException if the space hash is not being used.
+       * Sets the arena center.
+       * @return the arena center.
        */
-      inline CSpaceHash<CLEDEntity, CLEDEntitySpaceHashUpdater>& GetLEDEntitiesSpaceHash() {
-         if(IsUsingSpaceHash()) {
-            return *m_pcLEDEntitiesSpaceHash;
-         }
-         else {
-            THROW_ARGOSEXCEPTION("Attempted to access the space hash of LED entities, but in the XML the user chose not to use it. Maybe you use a sensor or an actuator that references it directly?");
-         }
+      inline void SetArenaCenter(const CVector3& c_center) {
+         m_cArenaCenter = c_center;
       }
 
       /**
-       * Returns the space hash containing the RAB equipped entities.
-       * @return The space hash containing the RAB equipped entities.
-       * @throw CARGoSException if the space hash is not being used.
+       * Returns the positional index for embodied entities.
+       * @return The positional index for embodied entities.
        */
-      inline CSpaceHash<CRABEquippedEntity, CRABEquippedEntitySpaceHashUpdater>& GetRABEquippedEntitiesSpaceHash() {
-         if(IsUsingSpaceHash()) {
-            return *m_pcRABEquippedEntitiesSpaceHash;
-         }
-         else {
-            THROW_ARGOSEXCEPTION("Attempted to access the space hash of RAB equipped entities, but in the XML the user chose not to use it. Maybe you use a sensor or an actuator that references it directly?");
-         }
+      inline CPositionalIndex<CEmbodiedEntity>& GetEmbodiedEntityIndex() {
+         return *m_pcEmbodiedEntityIndex;
       }
-
-   protected:
 
       virtual void AddControllableEntity(CControllableEntity& c_entity);
       virtual void RemoveControllableEntity(CControllableEntity& c_entity);
-      virtual void AddMediumEntity(CMediumEntity& c_entity);
-      virtual void RemoveMediumEntity(CMediumEntity& c_entity);
       virtual void AddEntityToPhysicsEngine(CEmbodiedEntity& c_entity);
       
-      void UpdateSpaceData();
-      
+   protected:
+
+      virtual void UpdateIndices();
       virtual void UpdateControllableEntities() = 0;
       virtual void UpdatePhysics() = 0;
-      
-      void UpdateMediumEntities();
+      virtual void UpdateMedia() = 0;
 
       void Distribute(TConfigurationNode& t_tree);
 
       void AddBoxStrip(TConfigurationNode& t_tree);
 
-      bool GetClosestEmbodiedEntityIntersectedByRaySpaceHash(SEntityIntersectionItem<CEmbodiedEntity>& s_data,
-                                                             const CRay3& c_ray,
-                                                             const TEmbodiedEntitySet& set_ignored_entities);
-
-      bool GetClosestEmbodiedEntityIntersectedByRayEntitySweep(SEntityIntersectionItem<CEmbodiedEntity>& s_data,
-                                                               const CRay3& c_ray,
-                                                               const TEmbodiedEntitySet& set_ignored_entities);
-
    protected:
 
       friend class CSpaceOperationAddControllableEntity;
       friend class CSpaceOperationRemoveControllableEntity;
-      friend class CSpaceOperationAddMediumEntity;
-      friend class CSpaceOperationRemoveMediumEntity;
       friend class CSpaceOperationAddEmbodiedEntity;
 
    protected:
 
       /** The current simulation clock */
       UInt32 m_unSimulationClock;
+
+      /** Arena center */
+      CVector3 m_cArenaCenter;
 
       /** Arena size */
       CVector3 m_cArenaSize;
@@ -499,32 +421,21 @@ namespace argos {
           The second-level maps are indexed by entity id */
       TMapPerTypePerId m_mapEntitiesPerTypePerId;
 
-      /** The space hash of embodied entities */
-      CSpaceHash<CEmbodiedEntity, CEmbodiedEntitySpaceHashUpdater>* m_pcEmbodiedEntitiesSpaceHash;
-
-      /** The space hash of LED entities */
-      CSpaceHash<CLEDEntity, CLEDEntitySpaceHashUpdater>* m_pcLEDEntitiesSpaceHash;
-
-      /** The space hash of RAB equipped entities */
-      CSpaceHash<CRABEquippedEntity, CRABEquippedEntitySpaceHashUpdater>* m_pcRABEquippedEntitiesSpaceHash;
-
       /** A vector of controllable entities */
       CControllableEntity::TVector m_vecControllableEntities;
 
-      /** A vector of medium entities */
-      CMediumEntity::TVector m_vecMediumEntities;
+      /** A positional index for embodied entities */
+      CPositionalIndex<CEmbodiedEntity>* m_pcEmbodiedEntityIndex;
+      CPositionalIndex<CEmbodiedEntity>::COperation* m_pcEmbodiedEntityGridUpdateOperation;
 
       /** The floor entity */
       CFloorEntity* m_pcFloorEntity;
 
-      /** True if the space hash should be used */
-      bool m_bUseSpaceHash;
-
-      /** Method to calculate the ray-embodied entity intersection */
-      CRayEmbodiedEntityIntersectionMethod* m_pcRayEmbodiedEntityIntersectionMethod;
-
       /** A reference to the list of physics engines */
       CPhysicsEngine::TVector* m_ptPhysicsEngines;
+
+      /** A reference to the list of media */
+      CMedium::TVector* m_ptMedia;
    };
 
    /****************************************/
@@ -584,21 +495,5 @@ namespace argos {
 #define REGISTER_STANDARD_SPACE_OPERATIONS_ON_ENTITY(ENTITY) \
    REGISTER_STANDARD_SPACE_OPERATION_ADD_ENTITY(ENTITY)      \
    REGISTER_STANDARD_SPACE_OPERATION_REMOVE_ENTITY(ENTITY)
-
-#define REGISTER_STANDARD_SPACE_OPERATION_ADD_COMPOSABLE(ENTITY)        \
-   SPACE_OPERATION_ADD_COMPOSABLE_ENTITY(ENTITY)                        \
-   REGISTER_SPACE_OPERATION(CSpaceOperationAddEntity,                   \
-                            CSpaceOperationAdd ## ENTITY,               \
-                            ENTITY);
-
-#define REGISTER_STANDARD_SPACE_OPERATION_REMOVE_COMPOSABLE(ENTITY)        \
-   SPACE_OPERATION_REMOVE_COMPOSABLE_ENTITY(ENTITY)                        \
-   REGISTER_SPACE_OPERATION(CSpaceOperationRemoveEntity,                   \
-                            CSpaceOperationRemove ## ENTITY,               \
-                            ENTITY);
-
-#define REGISTER_STANDARD_SPACE_OPERATIONS_ON_COMPOSABLE(ENTITY)  \
-   REGISTER_STANDARD_SPACE_OPERATION_ADD_COMPOSABLE(ENTITY)       \
-   REGISTER_STANDARD_SPACE_OPERATION_REMOVE_COMPOSABLE(ENTITY)
 
 #endif

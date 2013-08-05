@@ -6,6 +6,7 @@
  */
 #include "test_loop_functions.h"
 #include <argos3/plugins/robots/foot-bot/simulator/footbot_entity.h>
+#include <argos3/plugins/simulator/entities/led_entity.h>
 
 /****************************************/
 /****************************************/

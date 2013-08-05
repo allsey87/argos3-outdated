@@ -6,6 +6,7 @@
 
 #include "led_entity.h"
 #include <argos3/core/simulator/space/space.h>
+#include <argos3/plugins/simulator/media/led_medium.h>
 
 namespace argos {
 
@@ -52,6 +53,30 @@ namespace argos {
    /****************************************/
    /****************************************/
 
+   void CLEDEntity::SetEnabled(bool b_enabled) {
+      CEntity::SetEnabled(b_enabled);
+      if(IsEnabled()) {
+         m_cColor = CColor::BLACK;
+      }
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CLEDEntity::AddToMedium(CLEDMedium& c_medium) {
+      c_medium.AddEntity(*this);
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CLEDEntity::RemoveFromMedium(CLEDMedium& c_medium) {
+      c_medium.RemoveEntity(*this);
+   }
+
+   /****************************************/
+   /****************************************/
+
    void CLEDEntitySpaceHashUpdater::operator()(CAbstractSpaceHash<CLEDEntity>& c_space_hash,
                                                CLEDEntity& c_element) {
       /* Discard LEDs switched off */
@@ -66,13 +91,31 @@ namespace argos {
    /****************************************/
    /****************************************/
 
+   CLEDEntityGridUpdater::CLEDEntityGridUpdater(CGrid<CLEDEntity>& c_grid) :
+      m_cGrid(c_grid) {}
+
+   /****************************************/
+   /****************************************/
+
+   bool CLEDEntityGridUpdater::operator()(CLEDEntity& c_entity) {
+      /* Discard LEDs switched off */
+      if(c_entity.GetColor() != CColor::BLACK) {
+         /* Calculate the position of the LED in the space hash */
+         m_cGrid.PositionToCell(m_nI, m_nJ, m_nK, c_entity.GetPosition());
+         /* Update the corresponding cell */
+         m_cGrid.UpdateCell(m_nI, m_nJ, m_nK, c_entity);
+      }
+      /* Continue with the other entities */
+      return true;
+   }
+
+   /****************************************/
+   /****************************************/
+
    class CSpaceOperationAddLEDEntity : public CSpaceOperationAddEntity {
    public:
       void ApplyTo(CSpace& c_space, CLEDEntity& c_entity) {
          c_space.AddEntity(c_entity);
-         if(c_space.IsUsingSpaceHash()) {
-            c_space.GetLEDEntitiesSpaceHash().AddElement(c_entity);
-         }
       }
    };
    REGISTER_SPACE_OPERATION(CSpaceOperationAddEntity, CSpaceOperationAddLEDEntity, CLEDEntity);
@@ -80,9 +123,6 @@ namespace argos {
    class CSpaceOperationRemoveLEDEntity : public CSpaceOperationRemoveEntity {
    public:
       void ApplyTo(CSpace& c_space, CLEDEntity& c_entity) {
-         if(c_space.IsUsingSpaceHash()) {
-            c_space.GetLEDEntitiesSpaceHash().RemoveElement(c_entity);
-         }
          c_space.RemoveEntity(c_entity);
       }
    };

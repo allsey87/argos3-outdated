@@ -158,9 +158,20 @@ namespace argos {
       inline CVector3& FromSphericalCoords(Real f_length,
                                            const CRadians& c_inclination,
                                            const CRadians& c_azimuth) {
-         m_fX = f_length * Sin(c_inclination) * Cos(c_azimuth);
-         m_fY = f_length * Sin(c_inclination) * Sin(c_azimuth);
-         m_fZ = f_length * Cos(c_inclination);
+         Real fInclinationSin, fInclinationCos;
+         Real fAzimuthSin, fAzimuthCos;
+#ifdef ARGOS_SINCOS
+         SinCos(c_inclination, fInclinationSin, fInclinationCos);
+         SinCos(c_azimuth, fAzimuthSin, fAzimuthCos);
+#else
+         fInclinationSin = Sin(c_inclination);
+         fInclinationCos = Cos(c_inclination);
+         fAzimuthSin = Sin(c_azimuth);
+         fAzimuthCos = Cos(c_azimuth);
+#endif
+         m_fX = f_length * fInclinationSin * fAzimuthCos;
+         m_fY = f_length * fInclinationSin * fAzimuthSin;
+         m_fZ = f_length * fInclinationCos;
          return *this;
       }
 
@@ -212,8 +223,13 @@ namespace argos {
        * @return A reference to this vector.
        */
       inline CVector3& RotateX(const CRadians& c_angle) {
-         Real fCos = Cos(c_angle);
-         Real fSin = Sin(c_angle);
+         Real fSin, fCos;
+#ifdef ARGOS_SINCOS
+         SinCos(c_angle, fSin, fCos);
+#else
+         fSin = Sin(c_angle);
+         fCos = Cos(c_angle);
+#endif
          Real fNewY = m_fY * fCos - m_fZ * fSin;
          Real fNewZ = m_fY * fSin + m_fZ * fCos;
          m_fY = fNewY;
@@ -227,8 +243,13 @@ namespace argos {
        * @return A reference to this vector.
        */
       inline CVector3& RotateY(const CRadians& c_angle) {
-         Real fCos = Cos(c_angle);
-         Real fSin = Sin(c_angle);
+         Real fSin, fCos;
+#ifdef ARGOS_SINCOS
+         SinCos(c_angle, fSin, fCos);
+#else
+         fSin = Sin(c_angle);
+         fCos = Cos(c_angle);
+#endif
          Real fNewX = m_fX * fCos + m_fZ * fSin;
          Real fNewZ = m_fZ * fCos - m_fX * fSin;
          m_fX = fNewX;
@@ -242,8 +263,13 @@ namespace argos {
        * @return A reference to this vector.
        */
       inline CVector3& RotateZ(const CRadians& c_angle) {
-         Real fCos = Cos(c_angle);
-         Real fSin = Sin(c_angle);
+         Real fSin, fCos;
+#ifdef ARGOS_SINCOS
+         SinCos(c_angle, fSin, fCos);
+#else
+         fSin = Sin(c_angle);
+         fCos = Cos(c_angle);
+#endif
          Real fNewX = m_fX * fCos - m_fY * fSin;
          Real fNewY = m_fX * fSin + m_fY * fCos;
          m_fX = fNewX;

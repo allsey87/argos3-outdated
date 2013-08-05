@@ -59,7 +59,7 @@
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->
-  <arena size="10, 10, 1">
+  <arena size="10, 10, 1" positional_index="grid" positional_grid_size="25,25,1">
     <!-- floor id="f" source="loop_functions" pixels_per_meter="100" / -->
 
     <box id="bn" size="0.1, 5, 0.2" movable="false" mass="1">
@@ -76,7 +76,7 @@
     </box>
 
     <robot id="robotic-arm" position="-1,-1,0" orientation="0,0,0">
-       <controller controller="joint_luacontroller"/>
+       <controller config="joint_luacontroller"/>
        <bodies reference_body="body_0">
          <body id="body_0" geometry="cylinder" radius="0.15" height="0.05" mass="10">
             <coordinates/>
@@ -324,6 +324,13 @@
     </sphere-->
     
   </arena>
+  
+  <!-- ********* -->
+  <!-- * Media * -->
+  <!-- ********* -->
+  <media>
+    <range_and_bearing id="rab" index="grid" grid_size="3,3,3" />
+  </media>
   
   <!-- ******************* -->
   <!-- * Physics engines * -->

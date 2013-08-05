@@ -1,23 +1,17 @@
+include(ARGoSCheckQTOpenGL)
+
 add_executable(test-range unit/test-range.cpp)
 target_link_libraries(test-range argos3core_${ARGOS_BUILD_FOR})
 
 add_executable(test-list unit/test-list.cpp)
 
+add_executable(test-grid
+  unit/test-grid.cpp)
+target_link_libraries(test-grid
+  argos3core_${ARGOS_BUILD_FOR})
+
 # add_executable(test-reset unit/test-reset.cpp)
 # target_link_libraries(test-reset argos3core_${ARGOS_BUILD_FOR})
-
-add_library(test_footbot_controller MODULE
-  experiment/test_footbot_controller.h
-  experiment/test_footbot_controller.cpp)
-target_link_libraries(test_footbot_controller
-  argos3plugin_${ARGOS_BUILD_FOR}_footbot)
-
-add_library(test_loop_functions MODULE
-  experiment/test_loop_functions.h
-  experiment/test_loop_functions.cpp)
-target_link_libraries(test_loop_functions
-  argos3core_${ARGOS_BUILD_FOR}
-  argos3plugin_${ARGOS_BUILD_FOR}_footbot)
 
 add_library(dyn3d_testbench_loop_functions MODULE
   dyn3d_testbench/dyn3d_testbench_loop_functions.h
@@ -35,8 +29,29 @@ add_library(robot_joints_controller MODULE
 target_link_libraries(robot_joints_controller
   argos3plugin_${ARGOS_BUILD_FOR}_robot)
 
+if(ARGOS_BUILD_FOR_SIMULATOR OR ARGOS_BUILD_FOR STREQUAL "foot-bot")
+  add_library(test_footbot_controller MODULE
+    experiment/test_footbot_controller.h
+    experiment/test_footbot_controller.cpp)
+  target_link_libraries(test_footbot_controller
+    argos3plugin_${ARGOS_BUILD_FOR}_footbot)
+  if(ARGOS_COMPILE_QTOPENGL)
+    add_library(test_loop_functions MODULE
+      experiment/test_loop_functions.h
+      experiment/test_loop_functions.cpp
+      experiment/test_user_functions.h
+      experiment/test_user_functions.cpp)
+  else(ARGOS_COMPILE_QTOPENGL)
+    add_library(test_loop_functions MODULE
+      experiment/test_loop_functions.h
+      experiment/test_loop_functions.cpp)
+  endif(ARGOS_COMPILE_QTOPENGL)
+  target_link_libraries(test_loop_functions
+    argos3core_${ARGOS_BUILD_FOR}
+    argos3plugin_${ARGOS_BUILD_FOR}_footbot)
+endif(ARGOS_BUILD_FOR_SIMULATOR OR ARGOS_BUILD_FOR STREQUAL "foot-bot")
 
-if(GOOGLEPERFTOOLS_FOUND)
+if(ARGOS_BUILD_FOR_SIMULATOR AND GOOGLEPERFTOOLS_FOUND)
   add_executable(argos3_prof
     ${CMAKE_SOURCE_DIR}/core/simulator/query_plugins.cpp
     ${CMAKE_SOURCE_DIR}/core/simulator/main.cpp)
@@ -52,4 +67,4 @@ if(GOOGLEPERFTOOLS_FOUND)
     argos3plugin_simulator_dynamics2d
     argos3plugin_simulator_dynamics3d
     argos3plugin_simulator_actuators)
-endif(GOOGLEPERFTOOLS_FOUND)
+endif(ARGOS_BUILD_FOR_SIMULATOR AND GOOGLEPERFTOOLS_FOUND)

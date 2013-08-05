@@ -321,6 +321,31 @@ namespace argos {
    /****************************************/
    /****************************************/
 
+   CEmbodiedEntityGridUpdater::CEmbodiedEntityGridUpdater(CGrid<CEmbodiedEntity>& c_grid) :
+      m_cGrid(c_grid) {}
+
+   bool CEmbodiedEntityGridUpdater::operator()(CEmbodiedEntity& c_entity) {
+      /* Get cell of bb min corner, clamping it if is out of bounds */
+      m_cGrid.PositionToCell(m_nMinI, m_nMinJ, m_nMinK, c_entity.GetBoundingBox().MinCorner);
+      m_cGrid.ClampCoordinates(m_nMinI, m_nMinJ, m_nMinK);
+      /* Get cell of bb max corner, clamping it if is out of bounds */
+      m_cGrid.PositionToCell(m_nMaxI, m_nMaxJ, m_nMaxK, c_entity.GetBoundingBox().MaxCorner);
+      m_cGrid.ClampCoordinates(m_nMaxI, m_nMaxJ, m_nMaxK);
+      /* Go through cells */
+      for(SInt32 m_nK = m_nMinK; m_nK <= m_nMaxK; ++m_nK) {
+         for(SInt32 m_nJ = m_nMinJ; m_nJ <= m_nMaxJ; ++m_nJ) {
+            for(SInt32 m_nI = m_nMinI; m_nI <= m_nMaxI; ++m_nI) {
+               m_cGrid.UpdateCell(m_nI, m_nJ, m_nK, c_entity);
+            }
+         }
+      }
+      /* Continue with the other entities */
+      return true;
+   }
+
+   /****************************************/
+   /****************************************/
+
    /**
     * @cond HIDDEN_SYMBOLS
     */
@@ -329,9 +354,7 @@ namespace argos {
       void ApplyTo(CSpace& c_space, CEmbodiedEntity& c_entity) {
          /* Add entity to space */
          c_space.AddEntity(c_entity);
-         if(c_space.IsUsingSpaceHash()) {
-            c_space.GetEmbodiedEntitiesSpaceHash().AddElement(c_entity);
-         }
+         c_space.GetEmbodiedEntityIndex().AddEntity(c_entity);
          /* Try to add entity to physics engine(s) */
          c_space.AddEntityToPhysicsEngine(c_entity);
       }
@@ -351,9 +374,7 @@ namespace argos {
             c_entity.GetPhysicsModel(0).GetEngine().RemoveEntity(*pcRoot);
          }
          /* Remove entity from space */
-         if(c_space.IsUsingSpaceHash()) {
-            c_space.GetEmbodiedEntitiesSpaceHash().RemoveElement(c_entity);
-         }
+         c_space.GetEmbodiedEntityIndex().RemoveEntity(c_entity);
          c_space.RemoveEntity(c_entity);
       }
    };
@@ -361,6 +382,100 @@ namespace argos {
    /**
     * @endcond
     */
+
+   /****************************************/
+   /****************************************/
+
+   class CCheckEmbodiedEntitiesForIntersection : public CPositionalIndex<CEmbodiedEntity>::COperation {
+
+   public:
+
+      CCheckEmbodiedEntitiesForIntersection(const CRay3& c_ray) :
+         m_fCurTOnRay(2.0f),
+         m_fMinTOnRay(2.0f),
+         m_cRay(c_ray),
+         m_pcClosestEmbodiedEntity(NULL) {}
+
+      Real GetTOnRay() const {
+         return m_fMinTOnRay;
+      }
+
+      CEmbodiedEntity* GetClosestEmbodiedEntity() {
+         return m_pcClosestEmbodiedEntity;
+      }
+
+      virtual bool operator()(CEmbodiedEntity& c_entity) {
+         if(c_entity.CheckIntersectionWithRay(m_fCurTOnRay, m_cRay) &&
+            (m_fCurTOnRay < m_fMinTOnRay)) {
+            m_fMinTOnRay = m_fCurTOnRay;
+            m_pcClosestEmbodiedEntity = &c_entity;
+         }
+         /* Continue with the other matches */
+         return true;
+      }
+
+   protected:
+
+      Real m_fCurTOnRay;
+      Real m_fMinTOnRay;
+      CRay3 m_cRay;
+      CEmbodiedEntity* m_pcClosestEmbodiedEntity;
+   };
+
+   /****************************************/
+   /****************************************/
+
+   class CCheckEmbodiedEntitiesForIntersectionWIgnore : public CCheckEmbodiedEntitiesForIntersection {
+
+   public:
+
+      CCheckEmbodiedEntitiesForIntersectionWIgnore(const CRay3& c_ray,
+                                                   CEmbodiedEntity& c_entity) :
+         CCheckEmbodiedEntitiesForIntersection(c_ray),
+         m_pcIgnoredEmbodiedEntity(&c_entity) {}
+
+      virtual bool operator()(CEmbodiedEntity& c_entity) {
+         if((&c_entity != m_pcIgnoredEmbodiedEntity) &&
+            c_entity.CheckIntersectionWithRay(m_fCurTOnRay, m_cRay) &&
+            (m_fCurTOnRay < m_fMinTOnRay)) {
+            m_fMinTOnRay = m_fCurTOnRay;
+            m_pcClosestEmbodiedEntity = &c_entity;
+         }
+         /* Continue with the other matches */
+         return true;
+      }
+
+   protected:
+
+      CEmbodiedEntity* m_pcIgnoredEmbodiedEntity;
+   };
+
+   /****************************************/
+   /****************************************/
+
+   bool GetClosestEmbodiedEntityIntersectedByRay(SEmbodiedEntityIntersectionItem& s_item,
+                                                 CPositionalIndex<CEmbodiedEntity>& c_pos_index,
+                                                 const CRay3& c_ray) {
+      CCheckEmbodiedEntitiesForIntersection cOp(c_ray);
+      c_pos_index.ForEntitiesAlongRay(c_ray, cOp, false);
+      s_item.IntersectedEntity = cOp.GetClosestEmbodiedEntity();
+      s_item.TOnRay = cOp.GetTOnRay();
+      return (s_item.IntersectedEntity != NULL);
+   }
+
+   /****************************************/
+   /****************************************/
+
+   bool GetClosestEmbodiedEntityIntersectedByRay(SEmbodiedEntityIntersectionItem& s_item,
+                                                 CPositionalIndex<CEmbodiedEntity>& c_pos_index,
+                                                 const CRay3& c_ray,
+                                                 CEmbodiedEntity& c_entity) {
+      CCheckEmbodiedEntitiesForIntersectionWIgnore cOp(c_ray, c_entity);
+      c_pos_index.ForEntitiesAlongRay(c_ray, cOp, false);
+      s_item.IntersectedEntity = cOp.GetClosestEmbodiedEntity();
+      s_item.TOnRay = cOp.GetTOnRay();
+      return (s_item.IntersectedEntity != NULL);
+   }
 
    /****************************************/
    /****************************************/

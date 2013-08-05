@@ -3,24 +3,26 @@
 #
 # argos3/plugins/simulator/sensors
 set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_SENSORS
+  colored_blob_omnidirectional_camera_rotzonly_sensor.h
   differential_steering_default_sensor.h
   ground_rotzonly_sensor.h
   light_default_sensor.h
   positioning_default_sensor.h
   proximity_default_sensor.h
-  range_and_bearing_default_sensor.h)
+  range_and_bearing_medium_sensor.h)
 
 #
 # Source files
 #
 set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_SENSORS
   ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_SENSORS}
+  colored_blob_omnidirectional_camera_rotzonly_sensor.cpp
   differential_steering_default_sensor.cpp
   ground_rotzonly_sensor.cpp
   light_default_sensor.cpp
   positioning_default_sensor.cpp
   proximity_default_sensor.cpp
-  range_and_bearing_default_sensor.cpp)
+  range_and_bearing_medium_sensor.cpp)
 
 #
 # Create entity plugin library
@@ -28,7 +30,8 @@ set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_SENSORS
 add_library(argos3plugin_${ARGOS_BUILD_FOR}_sensors SHARED ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_SENSORS})
 target_link_libraries(argos3plugin_${ARGOS_BUILD_FOR}_sensors
   argos3plugin_${ARGOS_BUILD_FOR}_entities
-  argos3plugin_${ARGOS_BUILD_FOR}_genericrobot)
+  argos3plugin_${ARGOS_BUILD_FOR}_genericrobot
+  argos3plugin_${ARGOS_BUILD_FOR}_media)
 
 #
 # Core library installation

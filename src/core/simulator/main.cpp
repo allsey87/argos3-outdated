@@ -44,6 +44,9 @@ int main(int n_argc, char** ppch_argv) {
          case CARGoSCommandLineArgParser::ACTION_SHOW_HELP:
             cACLAP.PrintUsage(LOG);
             break;
+         case CARGoSCommandLineArgParser::ACTION_SHOW_VERSION:
+            cACLAP.PrintVersion();
+            break;
          case CARGoSCommandLineArgParser::ACTION_UNKNOWN:
             /* Should never get here */
             break;
@@ -54,12 +57,16 @@ int main(int n_argc, char** ppch_argv) {
    catch(std::exception& ex) {
       /* A fatal error occurred: dispose of data, print error and exit */
       LOGERR << ex.what() << std::endl;
+#ifdef ARGOS_THREADSAFE_LOG
       LOG.Flush();
       LOGERR.Flush();
+#endif
       cSimulator.Destroy();
       LOGERR << std::endl;
+#ifdef ARGOS_THREADSAFE_LOG
       LOG.Flush();
       LOGERR.Flush();
+#endif
       return 1;
    }
    /* Everything's ok, exit */

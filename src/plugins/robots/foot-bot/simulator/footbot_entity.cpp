@@ -10,11 +10,12 @@
 #include <argos3/core/simulator/space/space.h>
 #include <argos3/core/simulator/entity/controllable_entity.h>
 #include <argos3/core/simulator/entity/embodied_entity.h>
-#include <argos3/core/simulator/entity/rab_equipped_entity.h>
+#include <argos3/plugins/simulator/entities/rab_equipped_entity.h>
 #include <argos3/plugins/simulator/entities/gripper_equipped_entity.h>
 #include <argos3/plugins/simulator/entities/ground_sensor_equipped_entity.h>
 #include <argos3/plugins/simulator/entities/led_equipped_entity.h>
 #include <argos3/plugins/simulator/entities/light_sensor_equipped_entity.h>
+#include <argos3/plugins/simulator/entities/omnidirectional_camera_equipped_entity.h>
 #include <argos3/plugins/simulator/entities/proximity_sensor_equipped_entity.h>
 #include <argos3/plugins/simulator/entities/wifi_equipped_entity.h>
 #include "footbot_distance_scanner_equipped_entity.h"
@@ -40,12 +41,15 @@ namespace argos {
    static const Real PROXIMITY_SENSOR_RING_RANGE           = 0.1f;
 
    static const Real LED_RING_ELEVATION         = 0.085f;
+   static const Real RAB_ELEVATION              = 0.1f;
    static const Real BEACON_ELEVATION           = 0.174249733f;
 
    static const Real GRIPPER_ELEVATION          = LED_RING_ELEVATION;
 
    static const CRadians LED_ANGLE_SLICE        = CRadians(ARGOS_PI / 6.0);
    static const CRadians HALF_LED_ANGLE_SLICE   = LED_ANGLE_SLICE * 0.5f;
+
+   static const Real OMNIDIRECTIONAL_CAMERA_ELEVATION = 0.288699733f;
 
    /****************************************/
    /****************************************/
@@ -165,8 +169,17 @@ namespace argos {
                                                         "rab",
                                                         10,
                                                         fRange,
-                                                        *m_pcEmbodiedEntity);
+                                                        *m_pcEmbodiedEntity,
+                                                        CVector3(0.0f, 0.0f, RAB_ELEVATION));
          AddComponent(*m_pcRABEquippedEntity);
+         /* Omnidirectional camera equipped entity */
+         CDegrees cAperture(70.0f);
+         GetNodeAttributeOrDefault(t_tree, "omnidirectional_camera_aperture", cAperture, cAperture);
+         m_pcOmnidirectionalCameraEquippedEntity = new COmnidirectionalCameraEquippedEntity(this,
+                                                                                            "omnidirectional_camera",
+                                                                                            ToRadians(cAperture),
+                                                                                            CVector3(0.0f, 0.0f, OMNIDIRECTIONAL_CAMERA_ELEVATION));
+         AddComponent(*m_pcOmnidirectionalCameraEquippedEntity);         
          /* Turret equipped entity */
          m_pcTurretEntity = new CFootBotTurretEntity(this, "turret");
          AddComponent(*m_pcTurretEntity);
@@ -219,13 +232,13 @@ namespace argos {
    /****************************************/
    /****************************************/
    
-#define SET_RING_LED_POSITION(IDX)                                              \
-   cLEDPosition.Set(LED_RING_RADIUS, 0.0f, LED_RING_ELEVATION); \
-   cLEDAngle = cLEDAnglePhase;                                                 \
+#define SET_RING_LED_POSITION(IDX)                                      \
+   cLEDPosition.Set(LED_RING_RADIUS, 0.0f, LED_RING_ELEVATION);         \
+   cLEDAngle = cLEDAnglePhase;                                          \
    cLEDAngle += LED_ANGLE_SLICE * IDX;                                  \
-   cLEDPosition.RotateZ(cLEDAngle);                                             \
-   cLEDPosition.Rotate(m_pcEmbodiedEntity->GetOrientation());                   \
-   cLEDPosition += cEntityPosition;                                             \
+   cLEDPosition.RotateZ(cLEDAngle);                                     \
+   cLEDPosition.Rotate(m_pcEmbodiedEntity->GetOrientation());           \
+   cLEDPosition += cEntityPosition;                                     \
    m_pcLEDEquippedEntity->SetLEDPosition(IDX, cLEDPosition);
    
    void CFootBotEntity::SetLEDPosition() {
@@ -258,8 +271,8 @@ namespace argos {
 
    REGISTER_ENTITY(CFootBotEntity,
                    "foot-bot",
-                   "1.0",
                    "Carlo Pinciroli [ilpincy@gmail.com]",
+                   "1.0",
                    "The foot-bot robot, developed in the Swarmanoid project.",
                    "The foot-bot is a wheeled robot developed in the Swarmanoid Project. It is a\n"
                    "modular robot with a rich set of sensors and actuators. For more information,\n"
@@ -268,32 +281,56 @@ namespace argos {
                    "REQUIRED XML CONFIGURATION\n\n"
                    "  <arena ...>\n"
                    "    ...\n"
-                   "    <foot-bot id=\"fb0\"\n"
-                   "              position=\"0.4,2.3,0.25\"\n"
-                   "              orientation=\"45,90,0\"\n"
-                   "              controller=\"mycntrl\" />\n"
+                   "    <foot-bot id=\"fb0\">\n"
+                   "      <body position=\"0.4,2.3,0.25\" orientation=\"45,0,0\" />\n"
+                   "      <controller config=\"mycntrl\" />\n"
+                   "    </foot-bot>\n"
                    "    ...\n"
                    "  </arena>\n\n"
                    "The 'id' attribute is necessary and must be unique among the entities. If two\n"
                    "entities share the same id, initialization aborts.\n"
-                   "The 'position' attribute specifies the position of the bottom point of the\n"
+                   "The 'body/position' attribute specifies the position of the bottom point of the\n"
                    "foot-bot in the arena. When the robot is untranslated and unrotated, the\n"
                    "bottom point is in the origin and it is defined as the middle point between\n"
                    "the two wheels on the XY plane and the lowest point of the robot on the Z\n"
                    "axis, that is the point where the wheels touch the floor. The attribute values\n"
                    "are in the X,Y,Z order.\n"
-                   "The 'orientation' attribute specifies the orientation of the foot-bot. All\n"
+                   "The 'body/orientation' attribute specifies the orientation of the foot-bot. All\n"
                    "rotations are performed with respect to the bottom point. The order of the\n"
                    "angles is Z,Y,X, which means that the first number corresponds to the rotation\n"
                    "around the Z axis, the second around Y and the last around X. This reflects\n"
                    "the internal convention used in ARGoS, in which rotations are performed in\n"
                    "that order. Angles are expressed in degrees. When the robot is unrotated, it\n"
                    "is oriented along the X axis.\n"
-                   "The 'controller' attribute is used to assign a controller to the foot-bot. The\n"
-                   "value of the attribute must be set to the id of a previously defined\n"
-                   "controller. Controllers are defined in the <controllers> XML subtree.\n\n"
+                   "The 'controller/config' attribute is used to assign a controller to the\n"
+                   "foot-bot. The value of the attribute must be set to the id of a previously\n"
+                   "defined controller. Controllers are defined in the <controllers> XML subtree.\n\n"
                    "OPTIONAL XML CONFIGURATION\n\n"
-                   "None for the time being.\n",
+                   "You can set the emission range of the range-and-bearing system. By default, a\n"
+                   "message sent by a foot-bot can be received up to 3m. By using the 'rab_range'\n"
+                   "attribute, you can change it to, i.e., 4m as follows:\n\n"
+                   "  <arena ...>\n"
+                   "    ...\n"
+                   "    <foot-bot id=\"fb0\" rab_range=\"4\">\n"
+                   "      <body position=\"0.4,2.3,0.25\" orientation=\"45,0,0\" />\n"
+                   "      <controller config=\"mycntrl\" />\n"
+                   "    </foot-bot>\n"
+                   "    ...\n"
+                   "  </arena>\n\n"
+                   "You can also change the aperture of the omnidirectional camera. The aperture is\n"
+                   "set to 70 degrees by default. The tip of the omnidirectional camera is placed on\n"
+                   "top of the robot (h=0.289), and with an aperture of 70 degrees the range on the\n"
+                   "ground is r=h*tan(aperture)=0.289*tan(70)=0.794m. To change the aperture to 80\n"
+                   "degrees, use the 'omnidirectional_camera_aperture' as follows:\n\n"
+                   "  <arena ...>\n"
+                   "    ...\n"
+                   "    <foot-bot id=\"fb0\" omnidirectional_camera_aperture=\"80\">\n"
+                   "      <body position=\"0.4,2.3,0.25\" orientation=\"45,0,0\" />\n"
+                   "      <controller config=\"mycntrl\" />\n"
+                   "    </foot-bot>\n"
+                   "    ...\n"
+                   "  </arena>\n\n"
+                   ,
                    "Under development"
       );
 

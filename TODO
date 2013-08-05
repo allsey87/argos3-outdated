@@ -1,5 +1,5 @@
 [CORE]
-- The distribute XML method should honor the random seed, which is not the case now. This prevents repeatability!
+- The distribute method should honor the random seed, which is not the case now. This prevents repeatability!
 - Move to
   - The logic of undoing a move should stay in the CEmbodiedEntity, and in the CPhysicsModel::MoveTo() should just move an object and say whether this create a collision.
   - Call UpdateEntityStatus from CEmbodiedEntity::MoveTo()
@@ -7,3 +7,7 @@
 [MAC]
 - The configuration file is stored in $HOME/Library/Preferences/be.ac.ulb.Iridia.ARGoS3.plist.
 
+[LUA]
+- Multifile editing is broken; when an error occurs, the line that is displayed in the editor is correct, but not the file
+- When the Lua script has an error, and the editor is not displayed, there's no error displayed
+- See test_objectoriented.lua; when you have self-references, the lua state model gets into an infinite recursion and the everything blows up.

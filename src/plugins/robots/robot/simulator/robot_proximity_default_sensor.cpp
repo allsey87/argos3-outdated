@@ -28,7 +28,7 @@ namespace argos {
          m_pcEmbodiedEntity = &(m_pcRobot->GetComponent<CEmbodiedEntity>("body"));
          m_pcControllableEntity = &(m_pcRobot->GetComponent<CControllableEntity>("controller"));
          /* Ignore the sensing robot when checking for occlusions */
-         m_tIgnoreMe.insert(m_pcEmbodiedEntity);
+         //m_tIgnoreMe.insert(m_pcEmbodiedEntity);
       }
 
       virtual void Init(TConfigurationNode& t_tree) {
@@ -50,7 +50,7 @@ namespace argos {
          CRay3 cScanningRay;
          CVector3 cRayStart, cRayEnd;
          /* Buffers to contain data about the intersection */
-         CSpace::SEntityIntersectionItem<CEmbodiedEntity> sIntersection;
+         SEmbodiedEntityIntersectionItem sIntersection;
          /* Go through the sensors */
          for(UInt32 i = 0; i < m_tReadings.size(); ++i) {
             /* Compute ray for sensor i */
@@ -64,9 +64,10 @@ namespace argos {
             cScanningRay.Set(cRayStart,cRayEnd);
             /* Compute reading */
             /* Get the closest intersection */
-            if(m_cSpace.GetClosestEmbodiedEntityIntersectedByRay(sIntersection,
-                                                                 cScanningRay,
-                                                                 m_tIgnoreMe)) {
+            if(GetClosestEmbodiedEntityIntersectedByRay(sIntersection,
+                                                        m_cEmbodiedEntityIndex,
+                                                        cScanningRay,
+                                                        *m_pcEmbodiedEntity)) {
                /* There is an intersection */
                if(m_bShowRays) {
                   m_pcControllableEntity->AddIntersectionPoint(cScanningRay,

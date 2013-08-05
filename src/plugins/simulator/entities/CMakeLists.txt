@@ -7,13 +7,15 @@ set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_ENTITIES
   cylinder_entity.h
   gripper_equipped_entity.h
   ground_sensor_equipped_entity.h
+  led_entity.h
   led_equipped_entity.h
   light_entity.h
   light_sensor_equipped_entity.h
+  omnidirectional_camera_equipped_entity.h
   proximity_sensor_equipped_entity.h
+  rab_equipped_entity.h
   wheeled_entity.h
-  wifi_equipped_entity.h
-  wifi_medium_entity.h)
+  wifi_equipped_entity.h)
 
 #
 # Source files
@@ -24,18 +26,21 @@ set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_ENTITIES
   cylinder_entity.cpp
   gripper_equipped_entity.cpp
   ground_sensor_equipped_entity.cpp
+  led_entity.cpp
   led_equipped_entity.cpp
   light_entity.cpp
   light_sensor_equipped_entity.cpp
+  omnidirectional_camera_equipped_entity.cpp
   proximity_sensor_equipped_entity.cpp
+  rab_equipped_entity.cpp
   wheeled_entity.cpp
-  wifi_equipped_entity.cpp
-  wifi_medium_entity.cpp)
+  wifi_equipped_entity.cpp)
 
 #
 # Create entity plugin library
 #
 add_library(argos3plugin_${ARGOS_BUILD_FOR}_entities SHARED ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_ENTITIES})
+target_link_libraries(argos3plugin_${ARGOS_BUILD_FOR}_entities argos3plugin_${ARGOS_BUILD_FOR}_media)
 
 #
 # Core library installation

@@ -46,7 +46,7 @@ namespace argos {
 
    void CComposableEntity::SetEnabled(bool b_enabled) {
       CEntity::SetEnabled(b_enabled);
-      for(CEntity::TMap::iterator it = m_mapComponents.begin();
+      for(CEntity::TMultiMap::iterator it = m_mapComponents.begin();
           it != m_mapComponents.end();
           ++it) {
          it->second->SetEnabled(b_enabled);
@@ -57,7 +57,7 @@ namespace argos {
    /****************************************/
 
    void CComposableEntity::UpdateComponents() {
-      for(CEntity::TMap::iterator it = m_mapComponents.begin();
+      for(CEntity::TMultiMap::iterator it = m_mapComponents.begin();
           it != m_mapComponents.end();
           ++it) {
          if(it->second->IsEnabled()) {
@@ -96,22 +96,22 @@ namespace argos {
 
    CEntity& CComposableEntity::GetComponent(const std::string& str_path) {
       try {
-         /* search for the path seperator character and take the first path segement */
-         size_t unFirstSeperatorIdx = str_path.find(".");
-         std::string strFrontIdentifier = str_path.substr(0, unFirstSeperatorIdx);
-         /* try to find the relevant component in this context */
+         /* Search for the path separator character and take the first path segment */
+         size_t unFirstSeparatorIdx = str_path.find(".");
+         std::string strFrontIdentifier = str_path.substr(0, unFirstSeparatorIdx);
+         /* Try to find the relevant component in this context */
          CEntity::TMultiMap::iterator itComponent = FindComponent(strFrontIdentifier);
          if(itComponent != m_mapComponents.end()) {
-            /* path seperator not found, found component in the current context is the one we want */
-            if(unFirstSeperatorIdx == std::string::npos) {
+            if(unFirstSeparatorIdx == std::string::npos) {
+               /* Path separator not found, found component in the current context is the one we want */
                return *(itComponent->second);
             }
-            /* path seperator found, try to cast the found component to a composable entity */
+            /* Path separator found, try to cast the found component to a composable entity */
             else {
                CComposableEntity* pcComposableEntity = dynamic_cast<CComposableEntity*>(itComponent->second);
                if(pcComposableEntity != NULL) {
-                  /* Dynamic cast of component to composable entity was sucessful, re-execute this function in the new context */
-                  return pcComposableEntity->GetComponent(str_path.substr(unFirstSeperatorIdx + 1, std::string::npos));
+                  /* Dynamic cast of component to composable entity was successful, re-execute this function in the new context */
+                  return pcComposableEntity->GetComponent(str_path.substr(unFirstSeparatorIdx + 1, std::string::npos));
                }
                else {
                   /* Dynamic cast failed, user is requesting an entity from an entity which is not composable -> error */
@@ -133,36 +133,32 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   /*   bool CComposableEntity::HasComponent(const std::string& str_component) {
-      return m_mapComponents.count(str_component) > 0;
-      }*/
-
    bool CComposableEntity::HasComponent(const std::string& str_path) {
-      /* search for the path seperator character and take the first path segement */
-      size_t unFirstSeperatorIdx = str_path.find(".");
-      std::string strFrontIdentifier = str_path.substr(0, unFirstSeperatorIdx);
-      /* try to find the relevant component in this context */
+      /* Search for the path separator character and take the first path segement */
+      size_t unFirstSeparatorIdx = str_path.find(".");
+      std::string strFrontIdentifier = str_path.substr(0, unFirstSeparatorIdx);
+      /* Try to find the relevant component in this context */
       CEntity::TMultiMap::iterator itComponent = FindComponent(strFrontIdentifier);
       if(itComponent != m_mapComponents.end()) {
-         if(unFirstSeperatorIdx == std::string::npos) {
-            /* path seperator not found, found component in the current context is the one we want */
+         if(unFirstSeparatorIdx == std::string::npos) {
+            /* Path separator not found, found component in the current context is the one we want */
             return true;
          }
          else {
-            /* path seperator found, try to cast the found component to a composable entity */
+            /* Path separator found, try to cast the found component to a composable entity */
             CComposableEntity* pcComposableEntity = dynamic_cast<CComposableEntity*>(itComponent->second);
             if(pcComposableEntity != NULL) {
                /* Dynamic cast of component to composable entity was sucessful, re-execute this function in the new context */
-               return pcComposableEntity->HasComponent(str_path.substr(unFirstSeperatorIdx + 1, std::string::npos));
+               return pcComposableEntity->HasComponent(str_path.substr(unFirstSeparatorIdx + 1, std::string::npos));
             }
             else {
-               /* could not cast to a composable entity, the queried component cannot exist in the specified context */
+               /* Could not cast to a composable entity, the queried component cannot exist in the specified context */
                return false;
             }
          }
       }
       else {
-         /* could not find the queried component in this context */
+         /* Could not find the queried component in this context */
          return false;
       }
    }
@@ -180,29 +176,24 @@ namespace argos {
             unIdentifierEnd > unIdentifierStart) {
             /* Use the string between [ and ] as an index and whatever comes before as base id */
             /* Count how many components there are for the base type */
-            std::string strBaseType = str_component.substr(0,unIdentifierStart);
-            size_t unCount = m_mapComponents.count(strBaseType);
-            if(unCount == 0) {
+            std::string strBaseType = str_component.substr(0, unIdentifierStart);
+            if(m_mapComponents.count(strBaseType) == 0) {
                /* No components of this base type, return an iterator to the end of the collection */
                return m_mapComponents.end();
             }
             else {
                /* Components of base type found - extract the uid and search for it */
                std::string strComponentId = str_component.substr(unIdentifierStart + 1, unIdentifierEnd - unIdentifierStart - 1);
-               /* create an pair of iterators which mark the beginning and the end of the components that match the base type */
+               /* Create a pair of iterators which mark the beginning and the end of the components that match the base type */
                std::pair<CEntity::TMultiMap::iterator,
                          CEntity::TMultiMap::iterator> cRange = m_mapComponents.equal_range(strBaseType);
-               /* create an iterator to hold the component we are trying to locate */
+               /* Create an iterator to hold the component we are trying to locate */
                CEntity::TMultiMap::iterator itComponent;
-               /* search through components of base type and try find a match for the specified Id */
+               /* Search through components of base type and try find a match for the specified Id */
                for(itComponent = cRange.first;
-                   itComponent != cRange.second;
-                   ++itComponent) {
-                  if(itComponent->second->GetId() == strComponentId) {
-                     break;
-                  }
-               }
-               /* if the iterator itComponent is not equal to cRange.second, then we have found our component */
+                   (itComponent != cRange.second) && (itComponent->second->GetId() != strComponentId);
+                   ++itComponent);
+               /* If the iterator itComponent is not equal to cRange.second, then we have found our component */
                if(itComponent != cRange.second) {
                   return itComponent;
                }

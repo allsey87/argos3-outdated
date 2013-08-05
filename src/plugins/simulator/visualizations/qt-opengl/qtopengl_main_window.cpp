@@ -9,6 +9,7 @@
 #include "qtopengl_user_functions.h"
 #include "qtopengl_main_window.h"
 
+#include <argos3/core/config.h>
 #include <argos3/core/utility/plugins/dynamic_loading.h>
 #include <argos3/core/utility/logging/argos_log.h>
 #include <argos3/core/simulator/simulator.h>
@@ -128,7 +129,7 @@ namespace argos {
       m_pcUserFunctions(NULL) {
       /* Main window settings */
       std::string strTitle;
-      GetNodeAttributeOrDefault<std::string>(t_tree, "title", strTitle, "ARGoS v3.0");
+      GetNodeAttributeOrDefault<std::string>(t_tree, "title", strTitle, "ARGoS v" ARGOS_VERSION "-" ARGOS_RELEASE);
       setWindowTitle(tr(strTitle.c_str()));
       /* Restore settings, if any */
       ReadSettingsPreCreation();
@@ -571,10 +572,12 @@ namespace argos {
          TConfigurationNode tNode = GetNode(t_tree, "user_functions");
          std::string strLabel, strLibrary;
          GetNodeAttribute(tNode, "label", strLabel);
-         GetNodeAttribute(tNode, "library", strLibrary);
+         GetNodeAttributeOrDefault(tNode, "library", strLibrary, strLibrary);
          try {
-            /* Load the library taking care of the $ARGOSINSTALLDIR variable */
-            CDynamicLoading::LoadLibrary(strLibrary);
+            /* Load the library */
+            if(strLibrary != "") {
+               CDynamicLoading::LoadLibrary(strLibrary);
+            }
             /* Create the user functions */
             return CFactory<CQTOpenGLUserFunctions>::New(strLabel);
          }
@@ -647,6 +650,8 @@ namespace argos {
       m_pcFastForwardAction->setEnabled(true);
       m_pcCaptureAction->setEnabled(true);
       m_pcCurrentStepLCD->display(0);
+      m_pcDockLogBuffer->setHtml("<b>[t=0]</b> Log restarted.");
+      m_pcDockLogErrBuffer->setHtml("<b>[t=0]</b> LogErr restarted.");
       emit SimulationReset();
    }
 

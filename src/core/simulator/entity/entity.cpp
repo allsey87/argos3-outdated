@@ -37,11 +37,16 @@ namespace argos {
 
    void CEntity::Init(TConfigurationNode& t_tree) {
       try {
-         /* Set the id of the entity from XML or type description */
+         /*
+          * Set the id of the entity from XML or type description
+          */
+         /* Was an id specified explicitly? */
          if(NodeAttributeExists(t_tree, "id")) {
+            /* Yes, use that */
             GetNodeAttribute(t_tree, "id", m_strId);
          }
          else {
+            /* No, derive it from the parent */
             if(m_pcParent != NULL) {
                UInt32 unIdCount = 0;
                while(GetParent().HasComponent(GetTypeDescription() +
@@ -65,7 +70,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   const std::string CEntity::GetContext() const {
+   std::string CEntity::GetContext() const {
       if(m_pcParent != NULL) {
          return GetParent().GetContext() + GetParent().GetId() + ".";
       }

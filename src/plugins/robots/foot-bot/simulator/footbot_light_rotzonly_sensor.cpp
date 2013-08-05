@@ -57,7 +57,7 @@ namespace argos {
       m_pcRNG(NULL),
       m_bAddNoise(false),
       m_cSpace(CSimulator::GetInstance().GetSpace()),
-      m_cEmbodiedSpaceHash(m_cSpace.GetEmbodiedEntitiesSpaceHash()) {}
+      m_cEmbodiedEntityIndex(m_cSpace.GetEmbodiedEntityIndex()) {}
 
    /****************************************/
    /****************************************/
@@ -68,8 +68,6 @@ namespace argos {
       m_pcLightEntity = &(c_entity.GetComponent<CLightSensorEquippedEntity>("light_sensors"));
       m_pcLightEntity->SetCanBeEnabledIfDisabled(true);
       m_pcLightEntity->Enable();
-      /* Ignore the sensing robot when checking for occlusions */
-      m_tIgnoreMe.insert(m_pcEmbodiedEntity);
    }
 
    /****************************************/
@@ -115,7 +113,7 @@ namespace argos {
       /* Buffer for the angle of the light wrt to the foot-bot */
       CRadians cAngleLightWrtFootbot;
       /* Buffers to contain data about the intersection */
-      CSpace::SEntityIntersectionItem<CEmbodiedEntity> sIntersection;
+      SEmbodiedEntityIntersectionItem sIntersection;
       /* List of light entities */
       CSpace::TMapPerType& mapLights = m_cSpace.GetEntitiesByType("light");
       /*
@@ -135,9 +133,10 @@ namespace argos {
             /* Set the ray end */
             cOcclusionCheckRay.SetEnd(cLight.GetPosition());
             /* Check occlusion between the foot-bot and the light */
-            if( ! m_cSpace.GetClosestEmbodiedEntityIntersectedByRay(sIntersection,
-                                                                    cOcclusionCheckRay,
-                                                                    m_tIgnoreMe)) {
+            if(! GetClosestEmbodiedEntityIntersectedByRay(sIntersection,
+                                                          m_cEmbodiedEntityIndex,
+                                                          cOcclusionCheckRay,
+                                                          *m_pcEmbodiedEntity)) {
                /* The light is not occluded */
                if(m_bShowRays) {
                   m_pcControllableEntity->AddCheckedRay(false, cOcclusionCheckRay);

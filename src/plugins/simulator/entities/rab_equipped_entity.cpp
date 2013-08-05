@@ -29,7 +29,7 @@ namespace argos {
                                           const std::string& str_id,
                                           size_t un_msg_size,
                                           Real f_range,
-                                          const CPositionalEntity& c_reference,
+                                          CEmbodiedEntity& c_reference,
                                           const CVector3& c_pos_offset,
                                           const CQuaternion& c_rot_offset) :
       CPositionalEntity(pc_parent,
@@ -60,7 +60,7 @@ namespace argos {
          /* Get reference entity */
          std::string strReference;
          GetNodeAttribute(t_tree, "reference", strReference);
-         m_pcReference = dynamic_cast<CPositionalEntity*>(&CSimulator::GetInstance().GetSpace().GetEntity(strReference));
+         m_pcReference = dynamic_cast<CEmbodiedEntity*>(&CSimulator::GetInstance().GetSpace().GetEntity(strReference));
          if(m_pcReference == NULL) {
             THROW_ARGOSEXCEPTION("Entity \"" << strReference << "\" can't be used as a reference for range and bearing entity \"" << GetId() << "\"");
          }
@@ -286,9 +286,6 @@ namespace argos {
    public:
       void ApplyTo(CSpace& c_space, CRABEquippedEntity& c_entity) {
          c_space.AddEntity(c_entity);
-         if(c_space.IsUsingSpaceHash()) {
-            c_space.GetRABEquippedEntitiesSpaceHash().AddElement(c_entity);
-         }
       }
    };
    REGISTER_SPACE_OPERATION(CSpaceOperationAddEntity, CSpaceOperationAddRABEquippedEntity, CRABEquippedEntity);
@@ -296,13 +293,45 @@ namespace argos {
    class CSpaceOperationRemoveRABEquippedEntity : public CSpaceOperationRemoveEntity {
    public:
       void ApplyTo(CSpace& c_space, CRABEquippedEntity& c_entity) {
-         if(c_space.IsUsingSpaceHash()) {
-            c_space.GetRABEquippedEntitiesSpaceHash().RemoveElement(c_entity);
-         }
          c_space.RemoveEntity(c_entity);
       }
    };
    REGISTER_SPACE_OPERATION(CSpaceOperationRemoveEntity, CSpaceOperationRemoveRABEquippedEntity, CRABEquippedEntity);
+
+   /****************************************/
+   /****************************************/
+   
+   CRABEquippedEntityGridCellUpdater::CRABEquippedEntityGridCellUpdater(CGrid<CRABEquippedEntity>& c_grid) :
+      m_cGrid(c_grid) {}
+   
+   bool CRABEquippedEntityGridCellUpdater::operator()(SInt32 n_i,
+                                                      SInt32 n_j,
+                                                      SInt32 n_k,
+                                                      CGrid<CRABEquippedEntity>::SCell& s_cell) {
+      /* Update cell */
+      m_cGrid.UpdateCell(n_i, n_j, n_k, *m_pcEntity);
+      /* Continue with other cells */
+      return true;
+   }
+   
+   void CRABEquippedEntityGridCellUpdater::SetEntity(CRABEquippedEntity& c_entity) {
+      m_pcEntity = &c_entity;
+   }
+
+   CRABEquippedEntityGridEntityUpdater::CRABEquippedEntityGridEntityUpdater(CGrid<CRABEquippedEntity>& c_grid) :
+      m_cGrid(c_grid),
+      m_cCellUpdater(c_grid) {}
+
+   bool CRABEquippedEntityGridEntityUpdater::operator()(CRABEquippedEntity& c_entity) {
+      m_cCellUpdater.SetEntity(c_entity);
+      m_cGrid.ForCellsInBoxRange(c_entity.GetPosition(),
+                                 CVector3(c_entity.GetRange(),
+                                          c_entity.GetRange(),
+                                          c_entity.GetRange()),
+                                 m_cCellUpdater);
+      /* Continue with the other entities */
+      return true;
+   }
 
    /****************************************/
    /****************************************/
