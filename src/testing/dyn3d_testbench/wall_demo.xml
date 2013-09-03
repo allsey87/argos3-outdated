@@ -1,0 +1,383 @@
+<?xml version="1.0" ?>
+<argos-configuration>
+
+  <!-- ************************* -->
+  <!-- * General configuration * -->
+  <!-- ************************* -->
+  <framework>
+    <!--experiment threads="2" length="0" ticks_per_second="100" /-->
+    <experiment threads="2" length="0" ticks_per_second="100" />
+  </framework>
+
+   <!--loop_functions label="dyn3d_testbench_loop_functions" /-->
+
+  <!-- *************** -->
+  <!-- * Controllers * -->
+  <!-- *************** -->
+  <controllers>
+  
+  <lua_controller id="bebot_luacontroller">
+      <actuators>
+        <joints implementation="default" />
+      </actuators>
+      <sensors>
+         <joints implementation="default" />
+         <robot_proximity implementation="default" target="bodies.body[upper-chassis].proximity_sensors" show_rays="true"/>
+         <!--robot_proximity implementation="default" target="bodies.body[body_1].proximity_sensors" show_rays="true"/-->
+      </sensors>   
+      <params/>
+    </lua_controller>
+  </controllers>
+   
+  <!-- *********************** -->
+  <!-- * Arena configuration * -->
+  <!-- *********************** -->
+  <arena size="10, 10, 1" positional_index="grid" positional_grid_size="25,25,1">
+    <!-- floor id="f" source="loop_functions" pixels_per_meter="100" / -->
+
+    <box id="bn" size="0.1, 5, 0.2" movable="false" mass="1">
+      <body position="2.5,0,0"  orientation="0,0,0"/>
+    </box>
+    <box id="bs" size="0.1, 5, 0.2" movable="false" mass="1">
+      <body position="-2.5,0,0" orientation="0,0,0"/>
+    </box>
+    <box id="be" size="5, 0.1, 0.2" movable="false" mass="1">
+      <body position="0,-2.5,0" orientation="0,0,0"/>
+    </box>
+    <box id="bw" size="5, 0.1, 0.2" movable="false" mass="1">
+      <body position="0,2.5,0"  orientation="0,0,0"/>
+    </box>
+    
+    
+    <!-- Wall demo -->
+    <distribute>
+      <position method="grid" center="0,0,0.08" distances="0.08,0.08,0.08" layout="30,2,2" />
+      <orientation method="constant" values="0,0,0"/>
+      <entity quantity="120" max_trials="100" base_num="100">
+      <robot id="smartblock">
+          <bodies reference_body="base">
+            <body id="base" geometry="box" size="0.07, 0.07, 0.07" mass="0.5">
+               <coordinates/>
+               <offset/>
+            </body>
+          </bodies>
+          <devices>
+            <leds body="base">
+               <!-- top face (z+)-->
+               <led position="0.02,0.02,0.0675" color="yellow"/>
+               <led position="-0.02,0.02,0.0675" color="yellow"/>
+               <led position="-0.02,-0.02,0.0675" color="yellow"/>
+               <led position="0.02,-0.02,0.0675" color="yellow"/>
+               <!-- north face (+x) -->
+               <led position="0.035,0.02,0.0525" color="yellow"/>
+               <led position="0.035,-0.02,0.0525" color="yellow"/>
+               <led position="0.035,-0.02,0.0125" color="yellow"/>
+               <led position="0.035,0.02,0.0125" color="yellow"/>
+               <!-- south face (-x) -->
+               <led position="-0.035,0.02,0.0525" color="yellow"/>
+               <led position="-0.035,-0.02,0.0525" color="yellow"/>
+               <led position="-0.035,-0.02,0.0125" color="yellow"/>
+               <led position="-0.035,0.02,0.0125" color="yellow"/>
+               <!-- west face (+y) -->
+               <led position="0.02,0.035,0.0525" color="yellow"/>
+               <led position="-0.02,0.035,0.0525" color="yellow"/>
+               <led position="-0.02,0.035,0.0125" color="yellow"/>
+               <led position="0.02,0.035,0.0125" color="yellow"/>
+               <!-- east face (-y) -->
+               <led position="0.02,-0.035,0.0525" color="yellow"/>
+               <led position="-0.02,-0.035,0.0525" color="yellow"/>
+               <led position="-0.02,-0.035,0.0125" color="yellow"/>
+               <led position="0.02,-0.035,0.0125" color="yellow"/>
+               <!-- bottom face (-z) -->
+               <led position="0.02,0.02,-0.0025" color="yellow"/>
+               <led position="-0.02,0.02,-0.0025" color="yellow"/>
+               <led position="-0.02,-0.02,-0.0025" color="yellow"/>
+               <led position="0.02,-0.02,-0.0025" color="yellow"/>
+            </leds>
+          </devices>
+      </robot>
+      </entity>
+    </distribute>
+ 
+    
+    <distribute>
+      <position method="uniform" min="-2,-2,0" max="2,2,0" />
+      <orientation method="uniform" min="0,0,0" max="360,0,0" />
+      <entity quantity="20" max_trials="100" base_num="400">
+      <robot id="smartblock">
+          <bodies reference_body="base">
+            <body id="base" geometry="box" size="0.07, 0.07, 0.07" mass="0.5">
+               <coordinates/>
+               <offset/>
+            </body>
+          </bodies>
+          <devices>
+            <leds body="base">
+               <!-- top face (z+)-->
+               <led position="0.02,0.02,0.0675" color="yellow"/>
+               <led position="-0.02,0.02,0.0675" color="yellow"/>
+               <led position="-0.02,-0.02,0.0675" color="yellow"/>
+               <led position="0.02,-0.02,0.0675" color="yellow"/>
+               <!-- north face (+x) -->
+               <led position="0.035,0.02,0.0525" color="yellow"/>
+               <led position="0.035,-0.02,0.0525" color="yellow"/>
+               <led position="0.035,-0.02,0.0125" color="yellow"/>
+               <led position="0.035,0.02,0.0125" color="yellow"/>
+               <!-- south face (-x) -->
+               <led position="-0.035,0.02,0.0525" color="yellow"/>
+               <led position="-0.035,-0.02,0.0525" color="yellow"/>
+               <led position="-0.035,-0.02,0.0125" color="yellow"/>
+               <led position="-0.035,0.02,0.0125" color="yellow"/>
+               <!-- west face (+y) -->
+               <led position="0.02,0.035,0.0525" color="yellow"/>
+               <led position="-0.02,0.035,0.0525" color="yellow"/>
+               <led position="-0.02,0.035,0.0125" color="yellow"/>
+               <led position="0.02,0.035,0.0125" color="yellow"/>
+               <!-- east face (-y) -->
+               <led position="0.02,-0.035,0.0525" color="yellow"/>
+               <led position="-0.02,-0.035,0.0525" color="yellow"/>
+               <led position="-0.02,-0.035,0.0125" color="yellow"/>
+               <led position="0.02,-0.035,0.0125" color="yellow"/>
+               <!-- bottom face (-z) -->
+               <led position="0.02,0.02,-0.0025" color="yellow"/>
+               <led position="-0.02,0.02,-0.0025" color="yellow"/>
+               <led position="-0.02,-0.02,-0.0025" color="yellow"/>
+               <led position="0.02,-0.02,-0.0025" color="yellow"/>
+            </leds>
+          </devices>
+      </robot>
+      </entity>
+    </distribute>
+    
+    
+    <distribute>
+      <position method="uniform" min="-2,-2,0" max="2,2,0" />
+      <orientation method="uniform" min="0,0,0" max="360,0,0" />
+      <entity quantity="20" max_trials="100" base_num="0">
+      <robot id="bebot">
+         <controller config="bebot_luacontroller"/>
+         <bodies reference_body="lower-chassis">
+            <body id="lower-chassis" geometry="box" size="0.08951, 0.05700, 0.03000" mass="1.0">
+               <coordinates/>
+               <offset position="0.000000, 0.00000, 0.00575"/>
+            </body>
+            <body id="upper-chassis" geometry="box" size="0.08951, 0.08750, 0.03450" mass="0.25">
+               <coordinates/>
+               <offset position="0.000000, 0.00000, 0.03575"/>
+            </body>
+            <body id="wheel-front-left" geometry="cylinder" radius="0.01575" height="0.01400" mass="0.1">
+               <coordinates/>
+               <offset position="0.031750, 0.02850, 0.01575" orientation="0,0,-90"/>
+            </body>
+            <body id="wheel-front-right" geometry="cylinder" radius="0.01575" height="0.01400" mass="0.1">
+               <coordinates/>
+               <offset position="0.031750, -0.02850, 0.01575" orientation="0,0,90"/>
+            </body>
+            <body id="wheel-rear-left" geometry="cylinder" radius="0.01575" height="0.01400" mass="0.1">
+               <coordinates/>
+               <offset position="-0.031750, 0.02850, 0.01575" orientation="0,0,-90"/>
+            </body>
+            <body id="wheel-rear-right" geometry="cylinder" radius="0.01575" height="0.01400" mass="0.1">
+               <coordinates/>
+               <offset position="-0.031750, -0.02850, 0.01575" orientation="0,0,90"/>
+            </body>
+            
+            <body id="lift-frame" geometry="box" size="0.01, 0.06, 0.15" mass="0.01">
+               <coordinates/>
+               <offset position="0.049755, 0.00000, 0.03575" orientation="0,0,0"/>
+            </body>
+            
+            <body id="lift-platform" geometry="box" size="0.075, 0.06, 0.01" mass="0.01">
+               <coordinates/>
+               <offset position="0.092255, 0.00000, 0.03575" orientation="0,0,0"/>
+            </body>
+            
+            
+         </bodies>
+         <joints>
+         
+            <joint id="upper-chassis:lower-chassis" disable_collisions="true">
+               <frames>
+                  <frame body="upper-chassis" position="0,0,0" orientation="0,0,0"/>
+                  <frame body="lower-chassis" position="0,0,0.03000" orientation="0,0,0"/>
+               </frames>
+            </joint>
+            
+            <joint id="axle-front-left" disable_collisions="true">
+               <frames>
+                  <frame body="wheel-front-left" position="0,0,0" orientation="0,0,90"/>
+                  <frame body="lower-chassis" position="0.031750, 0.02850, 0.01000" orientation="0,0,0"/>
+               </frames>
+               <axes>
+                  <axis direction="y" mode="angular" range="unconstrained">
+                      <actuator enabled="true" force="15" target_velocity="-5"/>
+                  </axis>
+               </axes>
+            </joint>
+            
+            <joint id="axle-front-right" disable_collisions="true">
+               <frames>
+                  <frame body="wheel-front-right" position="0,0,0" orientation="0,0,-90"/>
+                  <frame body="lower-chassis" position="0.031750, -0.02850, 0.01000" orientation="0,0,0"/>
+               </frames>
+               <axes>
+                  <axis direction="y" mode="angular" range="unconstrained"/>
+               </axes>
+            </joint>
+            <joint id="axle-rear-left" disable_collisions="true">
+               <frames>
+                  <frame body="wheel-rear-left" position="0,0,0" orientation="0,0,90"/>
+                  <frame body="lower-chassis" position="-0.031750, 0.02850, 0.01000" orientation="0,0,0"/>
+               </frames>
+               <axes>
+                  <axis direction="y" mode="angular" range="unconstrained"/>
+               </axes>
+            </joint>
+            <joint id="axle-rear-right" disable_collisions="true">
+               <frames>
+                  <frame body="wheel-rear-right" position="0,0,0" orientation="0,0,-90"/>
+                  <frame body="lower-chassis" position="-0.031750, -0.02850, 0.01000" orientation="0,0,0"/>
+               </frames>
+               <axes>
+                  <axis direction="y" mode="angular" range="unconstrained">
+                      <actuator enabled="true" force="15" target_velocity="-5"/>
+                  </axis>
+               </axes>
+
+            </joint>
+            
+            <joint id="upper-chassis:lift-frame" disable_collisions="true">
+               <frames>
+                  <frame body="upper-chassis" position="0.049755,0,0" orientation="0,0,0"/>
+                  <frame body="lift-frame" position="0,0,0" orientation="0,0,0"/>
+               </frames>
+            </joint>
+            
+            <joint id="lift-frame:lift-platform" disable_collisions="true">
+               <frames>
+                  <frame body="lift-frame" position="0.0425,0,0" orientation="0,0,0"/>
+                  <frame body="lift-platform" position="0,0,0" orientation="0,0,0"/>
+               </frames>
+               <axes>
+                  <axis direction="z" mode="linear" range="0:0.1">
+                     <actuator enabled="true" force="15" target_velocity="-0.2"/>
+                  </axis>
+               </axes>
+            </joint>
+            
+            <!-- the following are virtual joints (i.e. constraints) that keep simulate the track between the wheels -->
+
+            <!--joint id="left-track" disable_collisions="false">
+               <frames>               
+                  <frame body="wheel-front-left" position="0,0,0" orientation="0,0,0"/>
+                  <frame body="wheel-rear-left" position="0.0635,0,0" orientation="0,0,0"/>
+               </frames>
+               <axes>
+                  <axis direction="x" mode="angular" range="unconstrained"/>
+               </axes>
+
+            </joint>
+            <joint id="right_track" disable_collisions="false">
+               <frames>
+                  <frame body="wheel-front-right" position="-0.031750,0,0" orientation="0,0,-90"/>
+                  <frame body="wheel-rear-right" position="0.031750,0,0" orientation="0,0,-90"/>
+               </frames>
+               <axes>
+                  <axis direction="y" mode="angular" range="unconstrained"/>
+               </axes>
+            </joint-->
+         </joints>
+         <devices>
+            <proximity_sensors body="upper-chassis">
+               <!-- front -->
+               <sensor offset="0.044755,0.015,0.01" direction="1,0,0" range="0.1" />
+               <sensor offset="0.044755,0.04375,0.01" direction="0.707,0.707,0" range="0.1" />            
+               
+               <sensor offset="0.015,0.04375,0.01" direction="0,1,0" range="0.1" />
+               <sensor offset="-0.015,0.04375,0.01" direction="0,1,0" range="0.1" />
+               <sensor offset="-0.044755,0.04375,0.01" direction="-0.707,0.707,0" range="0.1" />
+              
+               <sensor offset="-0.044755,0.015,0.01" direction="-1,0,0" range="0.1" />
+               <sensor offset="-0.044755,-0.015,0.01" direction="-1,0,0" range="0.1" />
+               <sensor offset="-0.044755,-0.04375,0.01" direction="-0.707,-0.707,0" range="0.1" />
+
+               <sensor offset="-0.0150,-0.04375,0.01" direction="0,-1,0" range="0.1" />
+               <sensor offset="0.0150,-0.04375,0.01" direction="0,-1,0" range="0.1" />
+               <sensor offset="0.044755,-0.04375,0.01" direction="0.707,-0.707,0" range="0.1" />
+                           
+               <sensor offset="0.044755,-0.015,0.01" direction="1,0,0" range="0.1" />
+            </proximity_sensors>
+            <leds body="upper-chassis">
+               <led position="0.04,-0.02,0.03450" orientation="0,0,0" color="blue"/>
+               <led position="0.04,0.00,0.03450" orientation="0,0,0" color="blue"/>
+               <led position="0.04,0.02,0.03450" orientation="0,0,0" color="blue"/>
+                           
+               <led position="-0.02,0.04,0.03450" orientation="0,0,0" color="blue"/>
+               <led position="0,0.04,0.03450" orientation="0,0,0" color="blue"/>
+               <led position="0.02,0.04,0.03450" orientation="0,0,0" color="blue"/>
+               
+               <led position="-0.04,-0.02,0.03450" orientation="0,0,0" color="blue"/>
+               <led position="-0.04,0.00,0.03450" orientation="0,0,0" color="blue"/>
+               <led position="-0.04,0.02,0.03450" orientation="0,0,0" color="blue"/>
+
+               <led position="-0.02,-0.04,0.03450" orientation="0,0,0" color="blue"/>
+               <led position="0,-0.04,0.03450" orientation="0,0,0" color="blue"/>
+               <led position="0.02,-0.04,0.03450" orientation="0,0,0" color="blue"/>
+            </leds>
+         </devices>
+         
+      </robot>
+      </entity>
+    </distribute>
+    
+    
+    
+   
+  </arena>
+  
+  <!-- ********* -->
+  <!-- * Media * -->
+  <!-- ********* -->
+  <media>
+    <!--range_and_bearing id="rab" index="grid" grid_size="3,3,3" /-->
+  </media>
+  
+  <!-- ******************* -->
+  <!-- * Physics engines * -->
+  <!-- ******************* -->
+  <physics_engines>
+    <!--dynamics3d id="dyn3d" iterations="25"-->
+    <dynamics3d id="dyn3d" iterations="25">
+      <floor/>
+      <plugins>
+         <!--antigravity force="0,0,10"/-->
+         <!--magnetism/-->
+      </plugins>
+    </dynamics3d>
+  </physics_engines>
+
+  <!-- ****************** -->
+  <!-- * Visualization * -->
+  <!-- ****************** -->
+  <visualization>
+
+    <!-- ************************************************************************ -->
+    <!-- * To activate the Lua editor, just use the 'lua_editor' flag attribute * -->
+    <!-- ************************************************************************ -->
+    <qt-opengl lua_editor="false">
+      <camera>
+         <placement idx="0" position="0.0486554,0.291097,0.0896921" look_at="0.0545253,-0.701599,-0.0308057" lens_focal_length="20" />
+        <!--placement idx="0" position=" 0,-4, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" /-->
+        <placement idx="1" position=" 4,-4, 1.5" look_at="2,-2,1" lens_focal_length="30" />
+        <placement idx="2" position=" 4, 0, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" />
+        <placement idx="3" position=" 4, 4, 1.5" look_at="2,2,1" lens_focal_length="30" />
+        <placement idx="4" position=" 0, 4, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" />
+        <placement idx="5" position="-4, 4, 1.5" look_at="-2,2,1" lens_focal_length="30" />
+        <placement idx="6" position="-4, 0, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" />
+        <placement idx="7" position="-4,-4, 1.5" look_at="-2,-2,1" lens_focal_length="30" />
+      </camera>
+    </qt-opengl>
+
+  </visualization>
+
+</argos-configuration>

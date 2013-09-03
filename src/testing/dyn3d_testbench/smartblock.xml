@@ -1,0 +1,142 @@
+<?xml version="1.0" ?>
+<argos-configuration>
+
+  <!-- ************************* -->
+  <!-- * General configuration * -->
+  <!-- ************************* -->
+  <framework>
+    <!--experiment threads="2" length="0" ticks_per_second="100" /-->
+    <experiment threads="2" length="0" ticks_per_second="100" />
+  </framework>
+
+   <!--loop_functions label="dyn3d_testbench_loop_functions" /-->
+
+  <!-- *************** -->
+  <!-- * Controllers * -->
+  <!-- *************** -->
+  <controllers>
+  
+  <lua_controller id="bebot_luacontroller">
+      <actuators>
+        <joints implementation="default" />
+      </actuators>
+      <sensors>
+         <joints implementation="default" />
+         <robot_proximity implementation="default" target="bodies.body[upper-chassis].proximity_sensors" show_rays="true"/>
+         <!--robot_proximity implementation="default" target="bodies.body[body_1].proximity_sensors" show_rays="true"/-->
+      </sensors>   
+      <params/>
+    </lua_controller>
+  </controllers>
+   
+  <!-- *********************** -->
+  <!-- * Arena configuration * -->
+  <!-- *********************** -->
+  <arena size="10, 10, 1" positional_index="grid" positional_grid_size="25,25,1">
+    <!-- floor id="f" source="loop_functions" pixels_per_meter="100" / -->
+
+    <box id="bn" size="0.1, 5, 0.2" movable="false" mass="1">
+      <body position="2.5,0,0"  orientation="0,0,0"/>
+    </box>
+    <box id="bs" size="0.1, 5, 0.2" movable="false" mass="1">
+      <body position="-2.5,0,0" orientation="0,0,0"/>
+    </box>
+    <box id="be" size="5, 0.1, 0.2" movable="false" mass="1">
+      <body position="0,-2.5,0" orientation="0,0,0"/>
+    </box>
+    <box id="bw" size="5, 0.1, 0.2" movable="false" mass="1">
+      <body position="0,2.5,0"  orientation="0,0,0"/>
+    </box>
+    
+    <!-- smartblock definition -->
+    <robot id="smartblock">
+       <body/>
+       <bodies reference_body="base">
+         <body id="base" geometry="box" size="0.07, 0.07, 0.07" mass="0.5">
+            <coordinates/>
+            <offset/>
+         </body>
+       </bodies>
+       <devices>
+         <leds body="base">
+            <!-- top face (z+)-->
+            <led position="0.02,0.02,0.0675" color="yellow"/>
+            <led position="-0.02,0.02,0.0675" color="yellow"/>
+            <led position="-0.02,-0.02,0.0675" color="yellow"/>
+            <led position="0.02,-0.02,0.0675" color="yellow"/>
+            <!-- north face (+x) -->
+            <led position="0.035,0.02,0.0525" color="yellow"/>
+            <led position="0.035,-0.02,0.0525" color="yellow"/>
+            <led position="0.035,-0.02,0.0125" color="yellow"/>
+            <led position="0.035,0.02,0.0125" color="yellow"/>
+            <!-- south face (-x) -->
+            <led position="-0.035,0.02,0.0525" color="yellow"/>
+            <led position="-0.035,-0.02,0.0525" color="yellow"/>
+            <led position="-0.035,-0.02,0.0125" color="yellow"/>
+            <led position="-0.035,0.02,0.0125" color="yellow"/>
+            <!-- west face (+y) -->
+            <led position="0.02,0.035,0.0525" color="yellow"/>
+            <led position="-0.02,0.035,0.0525" color="yellow"/>
+            <led position="-0.02,0.035,0.0125" color="yellow"/>
+            <led position="0.02,0.035,0.0125" color="yellow"/>
+            <!-- east face (-y) -->
+            <led position="0.02,-0.035,0.0525" color="yellow"/>
+            <led position="-0.02,-0.035,0.0525" color="yellow"/>
+            <led position="-0.02,-0.035,0.0125" color="yellow"/>
+            <led position="0.02,-0.035,0.0125" color="yellow"/>
+            <!-- bottom face (-z) -->
+            <led position="0.02,0.02,-0.0025" color="yellow"/>
+            <led position="-0.02,0.02,-0.0025" color="yellow"/>
+            <led position="-0.02,-0.02,-0.0025" color="yellow"/>
+            <led position="0.02,-0.02,-0.0025" color="yellow"/>
+         </leds>
+       </devices>
+   </robot>
+  </arena>
+  
+  <!-- ********* -->
+  <!-- * Media * -->
+  <!-- ********* -->
+  <media>
+    <!--range_and_bearing id="rab" index="grid" grid_size="3,3,3" /-->
+  </media>
+  
+  <!-- ******************* -->
+  <!-- * Physics engines * -->
+  <!-- ******************* -->
+  <physics_engines>
+    <!--dynamics3d id="dyn3d" iterations="25"-->
+    <dynamics3d id="dyn3d" iterations="25">
+      <floor/>
+      <plugins>
+         <!--antigravity force="0,0,10"/-->
+         <!--magnetism/-->
+      </plugins>
+    </dynamics3d>
+  </physics_engines>
+
+  <!-- ****************** -->
+  <!-- * Visualization * -->
+  <!-- ****************** -->
+  <visualization>
+
+    <!-- ************************************************************************ -->
+    <!-- * To activate the Lua editor, just use the 'lua_editor' flag attribute * -->
+    <!-- ************************************************************************ -->
+    <qt-opengl lua_editor="false">
+      <camera>
+         <placement idx="0" position="0.0486554,0.291097,0.0896921" look_at="0.0545253,-0.701599,-0.0308057" lens_focal_length="20" />
+        <!--placement idx="0" position=" 0,-4, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" /-->
+        <placement idx="1" position=" 4,-4, 1.5" look_at="2,-2,1" lens_focal_length="30" />
+        <placement idx="2" position=" 4, 0, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" />
+        <placement idx="3" position=" 4, 4, 1.5" look_at="2,2,1" lens_focal_length="30" />
+        <placement idx="4" position=" 0, 4, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" />
+        <placement idx="5" position="-4, 4, 1.5" look_at="-2,2,1" lens_focal_length="30" />
+        <placement idx="6" position="-4, 0, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" />
+        <placement idx="7" position="-4,-4, 1.5" look_at="-2,-2,1" lens_focal_length="30" />
+      </camera>
+    </qt-opengl>
+
+  </visualization>
+
+</argos-configuration>

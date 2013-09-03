@@ -75,7 +75,8 @@
       <body position="0,2.5,0"  orientation="0,0,0"/>
     </box>
 
-    <robot id="robotic-arm" position="-1,-1,0" orientation="0,0,0">
+    <robot id="robotic-arm">
+       <body position="-1,-1,0" orientation="0,0,0" />
        <controller config="joint_luacontroller"/>
        <bodies reference_body="body_0">
          <body id="body_0" geometry="cylinder" radius="0.15" height="0.05" mass="10">
@@ -123,14 +124,14 @@
             </frames>
          </joint-->
       </joints>
-      <sensors>
-         <proximity body="body_2">
+      <devices>
+         <proximity_sensors body="body_2">
             <sensor offset="0,0,0.3" direction="1,0,0" range="0.35" />
-         </proximity>
-         <proximity body="body_1">
+         </proximity_sensors>
+         <proximity_sensors body="body_1">
             <sensor offset="0,0,0.3" direction="1,0,0" range="0.35" />
-         </proximity>
-      </sensors>
+         </proximity_sensors>
+      </devices>
     </robot>
     
     <!--robot id="table" position="-1.5,-1.5,0" orientation="0,0,0" controller="r_lua">
@@ -184,7 +185,8 @@
       </joints>
     </robot-->
     
-    <robot id="magnet" position="-1.5,-1.5,0" orientation="0,0,0" controller="r_lua">
+    <robot id="magnet">
+      <body position="-1.5,-1.5,0" orientation="0,0,0"/>
       <bodies reference_body="body">
          <body id="body" geometry="sphere" radius="0.05" mass="0.5">
             <coordinates/>
@@ -197,8 +199,8 @@
        </bodies>
     </robot>
     
-    <cylinder id="test_cylinder_1" radius="0.035" height="0.15" movable="true" mass="0.5">
-      <body position="-1.5,-1.55,0.3"  orientation="0,30,0"/>
+    <cylinder id="test_cylinder_1" radius="0.07" height="0.3" movable="true" mass="0.5">
+      <body position="-1.5,-1.55,0"  orientation="0,0,0"/>
     </cylinder>
     
     <!--box id="test_box2" size="0.05, 0.05, 0.05" movable="true" mass="5">
@@ -215,7 +217,8 @@
     </robot-->
     
     <!--robot id="bebot1" position="0,0,0.07025" orientation="0,0,180"-->
-    <robot id="bebot1" position="0,0,0.07025" orientation="0,0,0">
+    <robot id="bebot1">
+      <body position="0,0,0.07025" orientation="0,0,0"/>
       <bodies reference_body="lower-chassis">
          <body id="lower-chassis" geometry="box" size="0.08951, 0.05700, 0.03000" mass="1.0">
             <coordinates/>
