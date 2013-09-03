@@ -10,6 +10,7 @@
 #include <argos3/plugins/robots/robot/simulator/joint_equipped_entity.h>
 
 #include <argos3/plugins/simulator/entities/proximity_sensor_equipped_entity.h>
+#include <argos3/plugins/simulator/entities/led_equipped_entity.h>
 
 #include <argos3/core/simulator/space/space.h>
 //#include <argos3/core/simulator/entity/controllable_entity.h>
@@ -44,7 +45,7 @@ namespace argos {
          /* Embodied entity */
          m_pcEmbodiedEntity = new CEmbodiedEntity(this);
          AddComponent(*m_pcEmbodiedEntity);
-         m_pcEmbodiedEntity->Init(t_tree);
+         m_pcEmbodiedEntity->Init(GetNode(t_tree, "body"));
 
          m_pcBodyEquippedEntity = new CBodyEquippedEntity(this);
          AddComponent(*m_pcBodyEquippedEntity);
@@ -58,24 +59,31 @@ namespace argos {
             m_pcJointEquippedEntity->Init(GetNode(t_tree, "joints"));
          }
 
-         if(NodeExists(t_tree, "sensors")) {
-            TConfigurationNodeIterator itSensor;
-            for(itSensor = itSensor.begin(&GetNode(t_tree, "sensors"));
-                itSensor != itSensor.end();
-                ++itSensor) {
+         if(NodeExists(t_tree, "devices")) {
+            TConfigurationNodeIterator itDevice;
+            for(itDevice = itDevice.begin(&GetNode(t_tree, "devices"));
+                itDevice != itDevice.end();
+                ++itDevice) {
                
                std::string strTargetBody;
-               GetNodeAttribute(*itSensor, "body", strTargetBody);
-               CBodyEntity& cSensorBody = GetComponent<CBodyEntity>("bodies.body[" + strTargetBody + "]");
+               GetNodeAttribute(*itDevice, "body", strTargetBody);
+               CBodyEntity& cDeviceBody = GetComponent<CBodyEntity>("bodies.body[" + strTargetBody + "]");
 
-               if(itSensor->Value() == "proximity") {
-                  CProximitySensorEquippedEntity* m_pcSensorEquippedEntity = 
-                     new CProximitySensorEquippedEntity(&cSensorBody);
-                  m_pcSensorEquippedEntity->Init(*itSensor);
-                  cSensorBody.AddComponent(*m_pcSensorEquippedEntity);
+               if(itDevice->Value() == "proximity_sensors") {
+                  CProximitySensorEquippedEntity* m_pcAnEquippedEntity = 
+                     new CProximitySensorEquippedEntity(&cDeviceBody);
+                  m_pcAnEquippedEntity->Init(*itDevice);
+                  cDeviceBody.AddComponent(*m_pcAnEquippedEntity);
+               }
+               else if(itDevice->Value() == "leds" ){
+                  CLEDEquippedEntity* m_pcAnEquippedEntity =
+                     new CLEDEquippedEntity(&cDeviceBody,
+                                            &cDeviceBody.GetPositionalEntity());
+                  m_pcAnEquippedEntity->Init(*itDevice);
+                  cDeviceBody.AddComponent(*m_pcAnEquippedEntity);
                }
                else {
-THROW_ARGOSEXCEPTION("Attempt to add unimplemented sensor type \"" << itSensor->Value() << "\".");
+THROW_ARGOSEXCEPTION("Attempt to add unimplemented device type \"" << itDevice->Value() << "\".");
                }
             }
          }

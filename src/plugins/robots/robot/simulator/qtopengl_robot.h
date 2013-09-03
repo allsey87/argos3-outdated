@@ -29,12 +29,14 @@ namespace argos {
       virtual ~CQTOpenGLRobot();
 
       virtual void DrawBodies(CRobotEntity& c_entity);
+      virtual void DrawDevices(CRobotEntity& c_entity);
 
    private:
 
       void MakeBox();
       void MakeCylinder();
       void MakeSphere();
+      void MakeLED();
 
    private:
       GLuint m_unBaseList;
