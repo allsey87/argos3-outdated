@@ -37,7 +37,7 @@
   <!-- * Arena configuration * -->
   <!-- *********************** -->
   <arena size="10, 10, 1" positional_index="grid" positional_grid_size="25,25,1">
-    <box id="bn" size="0.1, 5, 0.2" movable="false" mass="1">
+    <!--box id="bn" size="0.1, 5, 0.2" movable="false" mass="1">
       <body position="2.5,0,0"  orientation="0,0,0"/>
     </box>
     <box id="bs" size="0.1, 5, 0.2" movable="false" mass="1">
@@ -48,7 +48,7 @@
     </box>
     <box id="bw" size="5, 0.1, 0.2" movable="false" mass="1">
        <body position="0,2.5,0"  orientation="0,0,0"/>
-    </box>
+    </box-->
     
     <!--distribute>
       <position method="uniform" min="-5,-5,0" max="5,5,0" />
@@ -59,8 +59,7 @@
         </foot-bot>
       </entity>
     </distribute-->
-    
-    
+        
     <!--distribute>
       <position method="uniform" min="-1.5,-1.5,0.0" max="1.5,1.5,12.0" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,360,360" />
@@ -69,23 +68,20 @@
       </entity>
     </distribute-->
     
-    <distribute>
+    <cylinder id="cylinder" height="0.15" radius="0.05" movable="true" mass="0.05">
+      <body position="1,2,0" orientation="0,0,0"/>
+    </cylinder>
+      
+       
+    <!--distribute>
       <position method="uniform" min="-1.5,-1.5,0.0" max="1.5,1.5,12.0" />
       <orientation method="gaussian" mean="0,0,0" std_dev="360,360,360" />
-      <entity quantity="150" max_trials="100" base_num="100">
+      <entity quantity="1" max_trials="100" base_num="100">
         <cylinder id="cylinder" height="0.15" radius="0.05" movable="true" mass="0.05" />
       </entity>
-    </distribute>
+    </distribute-->
     
-    <!--box id="box_p" position="0,0.5,0" orientation="0,0,0" size="0.1, 0.1, 0.1" movable="true" mass="1" />
-    <box id="box_n" position="0,0,0.1" orientation="0,0,180" size="0.1, 0.1, 0.1" movable="true" mass="1"/-->
-    
-    <!--cylinder id="cylinder" position="1,2,0.05" orientation="0,0,45" height="0.3" radius="0.05" movable="true" mass="0.05" /-->
-    <!--cylinder id="dylinder" position="0,0,0.15" orientation="0,0,90" height="0.1" radius="0.05" movable="true" mass="0.05" /-->
-
-    <!--foot-bot id="fb1" position="2.325,-1.325,0" orientation="270,0,0" controller="fb_lua"/-->
-    <!--foot-bot id="fb2" position="2,-1.0,0" orientation="-90,0,0" controller="lua"/-->
-    <!--foot-bot id="fb3" position="1,1,0.2" orientation="0,0,0" controller="lua"/-->
+    <!--foot-bot id="fb1" position="2.325,-1.325,0" orientation="270,0,0" controller="lua"/-->
 
   </arena>
   
@@ -109,7 +105,7 @@
   <!-- * Visualization * -->
   <!-- ****************** -->
   <visualization>
-    <qt-opengl lua_editor="false">
+    <!--qt-opengl lua_editor="false">
        <camera>
            <placement idx="0" position=" 0,-4, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" />
            <placement idx="1" position=" 4,-4, 1.5" look_at="2,-2,1" lens_focal_length="30" />
@@ -120,7 +116,7 @@
            <placement idx="6" position="-4, 0, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" />
            <placement idx="7" position="-4,-4, 1.5" look_at="-2,-2,1" lens_focal_length="30" />
        </camera>
-    </qt-opengl>
+    </qt-opengl-->
   </visualization>
 
 </argos-configuration>

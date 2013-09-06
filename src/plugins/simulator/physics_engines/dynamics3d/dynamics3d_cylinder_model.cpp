@@ -31,8 +31,14 @@ namespace argos {
                                                      cCylinderGeometricOffset,
                                                      fMass));
       /* move the model to the specified coordinates */
-      SetModelCoordinates(btTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
-                                      ARGoSToBullet(GetEmbodiedEntity().GetInitPosition())));
+
+      const CQuaternion& cAQuat = GetEmbodiedEntity().GetInitOrientation();
+      const CVector3& cAVec = GetEmbodiedEntity().GetInitPosition();
+
+      btVector3 cBtVec = ARGoSToBullet(cAVec);
+      btQuaternion cBtQuat = ARGoSToBullet(cAQuat);
+
+      SetModelCoordinates(btTransform(cBtQuat, cBtVec));
    }
    
    /****************************************/

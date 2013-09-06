@@ -26,11 +26,34 @@ namespace argos {
    /****************************************/
    
    inline CVector3 BulletToARGoS(const btVector3& c_bt_vector) {
-      return CVector3(c_bt_vector.getX(), -c_bt_vector.getZ(), c_bt_vector.getY());
+      Real c_bt_vector_x = c_bt_vector.getX();
+      Real c_bt_vector_y = c_bt_vector.getY();
+      Real c_bt_vector_z = c_bt_vector.getZ();
+
+      CVector3 c_a_vector(c_bt_vector_x, -c_bt_vector_z, c_bt_vector_y);
+
+      Real c_a_vector_x = c_a_vector.GetX();
+      Real c_a_vector_y = c_a_vector.GetY();
+      Real c_a_vector_z = c_a_vector.GetZ();
+
+      return c_a_vector;
+
+      //return CVector3(c_bt_vector.getX(), -c_bt_vector.getZ(), c_bt_vector.getY());
    }
    
    inline btVector3 ARGoSToBullet(const CVector3& c_a_vector) {
-      return btVector3(c_a_vector.GetX(), c_a_vector.GetZ(), -c_a_vector.GetY());
+      Real c_a_vector_x = c_a_vector.GetX();
+      Real c_a_vector_y = c_a_vector.GetY();
+      Real c_a_vector_z = c_a_vector.GetZ();
+      
+      btVector3 c_bt_vector(c_a_vector_x, c_a_vector_z, -c_a_vector_y);
+
+      Real c_bt_vector_x = c_bt_vector.getX();
+      Real c_bt_vector_y = c_bt_vector.getY();
+      Real c_bt_vector_z = c_bt_vector.getZ();
+
+      return c_bt_vector;
+      //return btVector3(c_a_vector.GetX(), c_a_vector.GetZ(), -c_a_vector.GetY());
    }
    
    inline CQuaternion BulletToARGoS(const btQuaternion& c_bt_quaternion) {

@@ -23,6 +23,21 @@ namespace argos {
    /****************************************/
    /****************************************/
 
+   btVector3 ARGoSToBullet(const CVector3& c_a_vector) {
+      Real c_a_vector_x = c_a_vector.GetX();
+      Real c_a_vector_y = c_a_vector.GetY();
+      Real c_a_vector_z = c_a_vector.GetZ();
+      
+      btVector3 c_bt_vector(c_a_vector_x, c_a_vector_z, -c_a_vector_y);
+
+      Real c_bt_vector_x = c_bt_vector.getX();
+      Real c_bt_vector_y = c_bt_vector.getY();
+      Real c_bt_vector_z = c_bt_vector.getZ();
+
+      return c_bt_vector;
+      //return btVector3(c_a_vector.GetX(), c_a_vector.GetZ(), -c_a_vector.GetY());
+   }
+
    CDynamics3DModel::~CDynamics3DModel() {
        for(CDynamics3DJoint::TVector::iterator itJoint = m_vecLocalJoints.begin();
           itJoint != m_vecLocalJoints.end();
