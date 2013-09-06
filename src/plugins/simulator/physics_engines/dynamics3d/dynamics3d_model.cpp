@@ -44,18 +44,18 @@ namespace argos {
                                  const CQuaternion& c_orientation,
                                  bool b_check_only) {
 
-      const btTransform& cCurrentCoordinates = GetModelCoordinates();
+      //const btTransform& cCurrentCoordinates = GetModelCoordinates();
       const btTransform& cMoveToCoordinates  = btTransform(ARGoSToBullet(c_orientation),
                                                            ARGoSToBullet(c_position));           
       
       SetModelCoordinates(cMoveToCoordinates);
 
       bool bModelHasCollision = m_cEngine.IsModelCollidingWithSomething(*this);    
-      
-      // Check if we are performing the move operation or not
-      //if(bModelHasCollision == true || b_check_only == true) {
-      //   SetModelCoordinates(cCurrentCoordinates);
-      //}
+
+      // If this object wasn't a check, resync the model with the entity
+      if(bModelHasCollision == false || b_check_only == false) {
+         UpdateEntityStatus();
+      }
 
       // return whether the MoveTo was or would have been sucessful
       return !bModelHasCollision;
@@ -81,6 +81,7 @@ namespace argos {
                                        ARGoSToBullet(GetEmbodiedEntity().GetInitPosition()));
 
       SetModelCoordinates(cModelResetTransform);
+      UpdateEntityStatus();
    }
 
    /****************************************/
