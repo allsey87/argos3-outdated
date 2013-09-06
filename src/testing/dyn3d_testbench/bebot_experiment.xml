@@ -52,8 +52,9 @@
       <body position="0.0900,0,0.0450"  orientation="0,0,0"/>
     </box>
     
-    <robot id="bebot1" position="0,0,0" orientation="0,0,0">
+    <robot id="bebot1">
     <!--robot id="bebot1" position="0,0,0.07025" orientation="0,0,0"-->
+      <body position="0,2,0" orientation="0,0,0" />
       <controller config="bebot_luacontroller"/>
       <bodies reference_body="lower-chassis">
          <body id="lower-chassis" geometry="box" size="0.08951, 0.05700, 0.03000" mass="1.0">
