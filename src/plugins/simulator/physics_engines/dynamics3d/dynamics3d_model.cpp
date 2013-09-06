@@ -53,9 +53,9 @@ namespace argos {
       bool bModelHasCollision = m_cEngine.IsModelCollidingWithSomething(*this);    
       
       // Check if we are performing the move operation or not
-      if(bModelHasCollision == true || b_check_only == true) {
-         SetModelCoordinates(cCurrentCoordinates);
-      }
+      //if(bModelHasCollision == true || b_check_only == true) {
+      //   SetModelCoordinates(cCurrentCoordinates);
+      //}
 
       // return whether the MoveTo was or would have been sucessful
       return !bModelHasCollision;
