@@ -66,7 +66,6 @@ namespace argos {
                           const CQuaternion& c_orientation,
                           bool b_check_only = false);
 
-      //@todo promote reset to children, make pure virtual?
       virtual void Reset();
       
       virtual void UpdateEntityStatus() = 0;
@@ -84,14 +83,12 @@ namespace argos {
          return m_vecLocalBodies;
       }
       
-
       inline CDynamics3DJoint::TVector& GetJoints() {
          return m_vecLocalJoints;
       }
       inline const CDynamics3DJoint::TVector& GetJoints() const {
          return m_vecLocalJoints;
       }
-
 
       virtual void CalculateBoundingBox();
 
