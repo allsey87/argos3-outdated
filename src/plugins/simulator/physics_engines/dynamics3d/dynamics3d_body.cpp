@@ -152,6 +152,21 @@ namespace argos {
       m_pcRigidBody->activate();
    }
 
+
+   /****************************************/
+   /****************************************/
+
+   bool CDynamics3DBody::IsRigidBodyActive() {
+      return m_pcRigidBody->isActive();
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CDynamics3DBody::ApplyTorque(const btVector3& c_torque) {
+      m_pcRigidBody->applyTorque(c_torque);      
+   }
+
    /****************************************/
    /****************************************/
 

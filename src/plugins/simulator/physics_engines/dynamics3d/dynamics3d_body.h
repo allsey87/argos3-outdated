@@ -69,6 +69,10 @@ namespace argos {
 
       void ActivateRigidBody();
 
+      bool IsRigidBodyActive();
+
+      void ApplyTorque(const btVector3& c_torque);
+
       void ApplyForce(const btVector3& c_force, const btVector3& c_offset = btVector3(0.0f, 0.0f, 0.0f));
 
       const btVector3& GetTotalForce() const;
