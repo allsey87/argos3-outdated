@@ -45,15 +45,13 @@ namespace argos {
       /* Init parent */
       CPhysicsEngine::Init(t_tree);
       /* create the random number generator */
-      CRandom::CRNG* m_pcRNG = CRandom::CreateRNG("argos");      
+      m_pcRNG = CRandom::CreateRNG("argos");      
       /* Parse the XML */
       GetNodeAttributeOrDefault(t_tree, "iterations", m_unIterations, m_unIterations);
       m_fDeltaT = m_fSimulationClockTick / (Real)m_unIterations;
       /* Select the default broadphase, collision configuration, dispatcher and solver */
       m_pcBroadphaseInterface = new btDbvtBroadphase;
       m_pcCollisionConfiguration = new btDefaultCollisionConfiguration;
-      //better stablity for small objects
-      //m_pcCollisionConfiguration->setConvexConvexMultipointIterations(3);
       m_pcCollisionDispatcher = new btCollisionDispatcher(m_pcCollisionConfiguration);
       m_pcSolver = new btSequentialImpulseConstraintSolver;
       /* Create the physics world */
@@ -160,9 +158,7 @@ namespace argos {
       m_pcWorld->clearForces();
       /* reset the solvers and dispatchers */
       m_pcBroadphaseInterface->resetPool(m_pcCollisionDispatcher);
-      //@todo: use the later once the RNG segfault on reset bug is removed
-      m_pcSolver->setRandSeed(100ul);
-      //m_pcSolver->setRandSeed(m_pcRNG->Uniform(m_cRandomSeedRange));
+      m_pcSolver->setRandSeed(m_pcRNG->Uniform(m_cRandomSeedRange));
       /* Add elements back to the engine
        * by iterating over the vector, we ensure that the entities are added in the same order
        * as they were added during initisation, this is important for repeatability between resets
