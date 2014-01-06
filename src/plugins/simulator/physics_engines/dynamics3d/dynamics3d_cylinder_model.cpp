@@ -18,6 +18,7 @@ namespace argos {
       CDynamics3DModel(c_engine, c_cylinder.GetEmbodiedEntity(), c_cylinder.GetId()),
       m_cCylinderEntity(c_cylinder) {
       /* When defining size of objects we must manually swap the Z and Y components */
+
       m_pcCylinderCollisionShape = m_cCylinderShapeManager.RequestCylinderShape(btVector3(c_cylinder.GetRadius(),
                                                                                           c_cylinder.GetHeight() * 0.5f,
                                                                                           c_cylinder.GetRadius()));

@@ -2,6 +2,7 @@
 #define BT_DEFAULT_MOTION_STATE_H
 
 #include "btMotionState.h"
+#include <cstdio>
 
 ///The btDefaultMotionState provides a common implementation to synchronize world transforms with offsets.
 ATTRIBUTE_ALIGNED16(struct)	btDefaultMotionState : public btMotionState
@@ -26,6 +27,8 @@ ATTRIBUTE_ALIGNED16(struct)	btDefaultMotionState : public btMotionState
 	virtual void	getWorldTransform(btTransform& centerOfMassWorldTrans ) const 
 	{
 			centerOfMassWorldTrans = m_graphicsWorldTrans * m_centerOfMassOffset.inverse();
+			fprintf(stderr, "Reading motionstate via getWorldTransform centerOfMassWorldTrans = [%f %f %f]\n", centerOfMassWorldTrans.getOrigin().getX(), centerOfMassWorldTrans.getOrigin().getY(), centerOfMassWorldTrans.getOrigin().getZ());
+			
 	}
 
 	///synchronizes world transform from physics to user
@@ -33,11 +36,14 @@ ATTRIBUTE_ALIGNED16(struct)	btDefaultMotionState : public btMotionState
 	virtual void	setWorldTransform(const btTransform& centerOfMassWorldTrans)
 	{
 			m_graphicsWorldTrans = centerOfMassWorldTrans * m_centerOfMassOffset ;
+						fprintf(stderr, "Writing motionstate via setWorldTransform m_graphicsWorldTrans = [%f %f %f]\n", m_graphicsWorldTrans.getOrigin().getX(), m_graphicsWorldTrans.getOrigin().getY(), m_graphicsWorldTrans.getOrigin().getZ());
+			
 	}
 	
 	virtual void reset()
 	{
-	      m_graphicsWorldTrans = m_startWorldTrans;
+	     fprintf(stderr, "reseting motion state\n");
+	     m_graphicsWorldTrans = m_startWorldTrans;
 	}
 
 	

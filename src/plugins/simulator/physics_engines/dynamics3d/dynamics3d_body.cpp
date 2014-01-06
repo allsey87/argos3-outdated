@@ -128,6 +128,11 @@ namespace argos {
    /****************************************/
    
    const btTransform& CDynamics3DBody::GetMotionStateTransform() const {
+
+
+      //fprintf(stderr, "Body::UpdateTransform position = [%f, %f, %f]\n", m_pcMotionState->m_graphicsWorldTrans.getOrigin().getX(), m_pcMotionState->m_graphicsWorldTrans.getOrigin().getY(), m_pcMotionState->m_graphicsWorldTrans.getOrigin().getZ());
+
+
       return m_pcMotionState->m_graphicsWorldTrans;
    }
 

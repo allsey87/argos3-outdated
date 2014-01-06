@@ -49,6 +49,8 @@ namespace argos {
    void CDynamics3DBoxModel::UpdateEntityStatus() {
       if(m_cBoxEntity.GetEmbodiedEntity().IsMovable()) {      
          const btTransform& cUpdateTransform = GetModelCoordinates();
+         //fprintf(stderr, "Box::UpdateTransform position = [%f, %f, %f]\n", cUpdateTransform.getOrigin().getX(), cUpdateTransform.getOrigin().getY(), cUpdateTransform.getOrigin().getZ());
+
          GetEmbodiedEntity().SetPosition(BulletToARGoS(cUpdateTransform.getOrigin()));
          GetEmbodiedEntity().SetOrientation(BulletToARGoS(cUpdateTransform.getRotation()));
          m_cBoxEntity.UpdateComponents();

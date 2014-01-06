@@ -6,6 +6,8 @@ execute_process(
   COMMAND tr -d '\n'
   OUTPUT_VARIABLE ARGOS_PROCESSOR_ARCH)
 
+add_definitions(-malign-double)
+
 #
 # General compilation flags
 #
