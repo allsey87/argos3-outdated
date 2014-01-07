@@ -18,7 +18,6 @@ namespace argos {
    /****************************************/
 
    CDynamics2DEngine::CDynamics2DEngine() :
-      m_nIterations(10),
       m_fStaticHashCellSize(0.1f),
       m_fActiveHashCellSize(2.0f * 0.085036758f),
       m_nStaticHashCells(1000),
@@ -36,7 +35,6 @@ namespace argos {
       /* Init parent */
       CPhysicsEngine::Init(t_tree);
       /* Parse XML */
-      GetNodeAttributeOrDefault(t_tree, "iterations",       m_nIterations,         m_nIterations);
       GetNodeAttributeOrDefault(t_tree, "static_cell_size", m_fStaticHashCellSize, m_fStaticHashCellSize);
       GetNodeAttributeOrDefault(t_tree, "active_cell_size", m_fActiveHashCellSize, m_fActiveHashCellSize);
       GetNodeAttributeOrDefault(t_tree, "static_cells",     m_nStaticHashCells,    m_nStaticHashCells);
@@ -99,7 +97,7 @@ namespace argos {
       /* Subiterations to solve constraints.
          The more, the better for precision but the worse for speed
       */
-      m_ptSpace->iterations = m_nIterations;
+      m_ptSpace->iterations = GetIterations();
       /* Resize the space hash.
          This has dramatic effects on performance.
          TODO: - find optimal parameters automatically (average entity size)
@@ -163,7 +161,7 @@ namespace argos {
          it->second->UpdateFromEntityStatus();
       }
       /* Perform the step */
-      cpSpaceStep(m_ptSpace, m_fSimulationClockTick);
+      cpSpaceStep(m_ptSpace, GetSimulationClockTick());
       /* Update the simulated space */
       for(CDynamics2DModel::TMap::iterator it = m_tPhysicsModels.begin();
           it != m_tPhysicsModels.end(); ++it) {
@@ -250,6 +248,43 @@ namespace argos {
 
    /****************************************/
    /****************************************/
+   
+   CEmbodiedEntity* CDynamics2DEngine::CheckIntersectionWithRay(Real& f_t_on_ray,
+                                                                const CRay3& c_ray) const {
+      /* Structure to store the query data */
+      cpSegmentQueryInfo tInfo;
+      /* Query the first hit along the ray */
+      cpShape* ptHit = cpSpaceSegmentQueryFirst(
+         m_ptSpace,
+         cpv(c_ray.GetStart().GetX(), c_ray.GetStart().GetY()),
+         cpv(c_ray.GetEnd().GetX()  , c_ray.GetEnd().GetY()  ),
+         CP_ALL_LAYERS,
+         CP_NO_GROUP,
+         &tInfo);
+      /* Check whether we have a hit */
+      if(ptHit) {
+         /* Hit found, is it within the limits? */
+         CDynamics2DModel& cModel = *reinterpret_cast<CDynamics2DModel*>(ptHit->body->data);
+      	 CVector3 cIntersectionPoint;
+      	 c_ray.GetPoint(cIntersectionPoint, tInfo.t);
+      	 if((cIntersectionPoint.GetZ() >= cModel.GetBoundingBox().MinCorner.GetZ()) &&
+      			(cIntersectionPoint.GetZ() <= cModel.GetBoundingBox().MaxCorner.GetZ()) ) {
+            /* Yes, a real hit */
+            f_t_on_ray = tInfo.t;
+            return &cModel.GetEmbodiedEntity();
+      	 }
+      	 else {
+            return NULL;
+      	 }
+      }
+      else {
+         /* Hit not found */
+         return NULL;
+      }
+   }
+
+   /****************************************/
+   /****************************************/
 
    bool CDynamics2DEngine::CalculateTransfer(Real f_x, Real f_y,
                                              std::string& str_engine_id) {
@@ -322,7 +357,7 @@ namespace argos {
                            "dynamics2d",
                            "Carlo Pinciroli [ilpincy@gmail.com]",
                            "1.0",
-                           "A 2D dynamics physics engine",
+                           "A 2D dynamics physics engine.",
                            "This physics engine is a 2D dynamics engine based on the Chipmunk library\n"
                            "(http://code.google.com/p/chipmunk-physics).\n\n"
                            "REQUIRED XML CONFIGURATION\n\n"

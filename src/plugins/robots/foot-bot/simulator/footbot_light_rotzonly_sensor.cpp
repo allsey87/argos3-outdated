@@ -56,18 +56,22 @@ namespace argos {
       m_bShowRays(false),
       m_pcRNG(NULL),
       m_bAddNoise(false),
-      m_cSpace(CSimulator::GetInstance().GetSpace()),
-      m_cEmbodiedEntityIndex(m_cSpace.GetEmbodiedEntityIndex()) {}
+      m_cSpace(CSimulator::GetInstance().GetSpace()) {}
 
    /****************************************/
    /****************************************/
 
    void CFootBotLightRotZOnlySensor::SetRobot(CComposableEntity& c_entity) {
-      m_pcEmbodiedEntity = &(c_entity.GetComponent<CEmbodiedEntity>("body"));
-      m_pcControllableEntity = &(c_entity.GetComponent<CControllableEntity>("controller"));
-      m_pcLightEntity = &(c_entity.GetComponent<CLightSensorEquippedEntity>("light_sensors"));
-      m_pcLightEntity->SetCanBeEnabledIfDisabled(true);
-      m_pcLightEntity->Enable();
+      try {
+         m_pcEmbodiedEntity = &(c_entity.GetComponent<CEmbodiedEntity>("body"));
+         m_pcControllableEntity = &(c_entity.GetComponent<CControllableEntity>("controller"));
+         m_pcLightEntity = &(c_entity.GetComponent<CLightSensorEquippedEntity>("light_sensors"));
+         m_pcLightEntity->SetCanBeEnabledIfDisabled(true);
+         m_pcLightEntity->Enable();
+      }
+      catch(CARGoSException& ex) {
+         THROW_ARGOSEXCEPTION_NESTED("Can't set robot for the foot-bot light default sensor", ex);
+      }
    }
 
    /****************************************/
@@ -134,7 +138,6 @@ namespace argos {
             cOcclusionCheckRay.SetEnd(cLight.GetPosition());
             /* Check occlusion between the foot-bot and the light */
             if(! GetClosestEmbodiedEntityIntersectedByRay(sIntersection,
-                                                          m_cEmbodiedEntityIndex,
                                                           cOcclusionCheckRay,
                                                           *m_pcEmbodiedEntity)) {
                /* The light is not occluded */
@@ -214,7 +217,7 @@ namespace argos {
                    "footbot_light", "rot_z_only",
                    "Carlo Pinciroli [ilpincy@gmail.com]",
                    "1.0",
-                   "A generic light sensor",
+                   "The foot-bot light sensor (optimized for 2D).",
                    "This sensor accesses a set of light sensors. The sensors all return a value\n"
                    "between 0 and 1, where 0 means nothing within range and 1 means the perceived\n"
                    "light saturates the sensor. Values between 0 and 1 depend on the distance of\n"

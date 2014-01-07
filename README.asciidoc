@@ -2,7 +2,7 @@ ARGoS README
 =============
 :Author: Carlo Pinciroli
 :Email:  ilpincy@gmail.com
-:Date:   April 1st, 2013
+:Date:   October 18th, 2013
 
 What is ARGoS?
 ---------------
@@ -24,18 +24,22 @@ Downloading ARGoS
 ------------------
 
 You can download a binary package of ARGoS from
-http://iridia.ulb.ac.be/argos/download.php. Alternatively, you can download the
-development sources through git:
+http://bohr.ulb.ac.be/~pincy/argos/download.php. Alternatively, you
+can download the development sources through git:
 
  $ git clone https://github.com/ilpincy/argos3.git argos3
 
 Compiling ARGoS
 ----------------
 
+Requirements
+~~~~~~~~~~~~
+
 If you downloaded the sources of ARGoS and want to compile its code, you need:
 
 * A UNIX system (Linux or MacOSX; Microsoft Windows is not supported)
-* _g++_ >= 4.2
+* _g++_ >= 4.3 (on Linux)
+* _clang_ >= 3.1 (on MacOSX)
 * _cmake_ >= 2.6
 
 If you want to compile the simulator, you need:
@@ -48,6 +52,12 @@ libraries are found:
 
 * _Qt_ >= 4.6
 * _freeglut_ >= 2.6.0
+* _libxi-dev_ (on Ubuntu and other Debian-based systems)
+* _libxmu-dev_ (on Ubuntu and other Debian-based systems)
+
+If you want to create the Lua wrapper you need:
+
+* _lua_ == 5.1
 
 If you want to create the documentation you need:
 
@@ -57,9 +67,41 @@ If you want to create the documentation you need:
 * To create the HTML version of this README:
 ** _asciidoc_ >= 8.6.2
 
-If you want to create the Lua wrapper you need:
+Debian
+^^^^^^
 
-* _lua_ == 5.1
+On Debian, you can install all of the necessary requirements
+with the following command:
+
+ $ sudo apt-get install libgsl0-dev libfreeimage-dev libqt4-dev \
+   freeglut3-dev libxi-dev libxmu-dev liblua5.1-dev doxygen \
+   graphviz-dev asciidoc
+
+OpenSuse
+^^^^^^^^
+
+On openSUSE 12.3, you can install all of the necessary requirements
+with the following commands:
+
+ $ sudo zypper ar -n openSUSE-12.3-Graphics \
+   http://download.opensuse.org/repositories/graphics/openSUSE_12.3/ \
+   graphics
+
+ $ sudo zypper refresh
+
+ $ sudo zypper install git cmake gcc gcc-c++ gsl-devel freeimage-devel \
+   doxygen graphviz asciidoc lua51-devel libqt4-devel freeglut-devel \
+   rpmbuild
+
+Mac OSX
+^^^^^^^
+
+On Mac, you can install all of the necessary requirements using
+http://http://brew.sh/[HomeBrew]. On the command line, type the
+following command:
+
+ $ brew install pkg-config cmake gsl libpng freeimage lua qt \
+   docbook asciidoc graphviz doxygen
 
 Compiling the code
 ~~~~~~~~~~~~~~~~~~
@@ -97,12 +139,15 @@ Compiling the documentation
 ARGoS sources under Eclipse
 +++++++++++++++++++++++++++
 
-To use Eclipse with the ARGoS sources, you must have the CDT installed
-(http://www.eclipse.org/cdt/). Optionally, you can also install CMakeEd
-(http://cmakeed.sourceforge.net/) to modify the +CMakeLists.txt+ files
-comfortably within Eclipse.   
+To use Eclipse with the ARGoS sources, you must have the
+http://www.eclipse.org/cdt/[CDT] installed. Optionally, you can also
+install http://cmakeed.sourceforge.net/[CMakeEd] to modify the
++CMakeLists.txt+ files comfortably within Eclipse.   
 
-To configure the ARGoS sources for Eclipse, execute CMake as follows:  
+To configure the ARGoS sources for Eclipse, it is better to avoid
+compiling the code in a separate build directory (for more details, see
+http://www.vtk.org/Wiki/Eclipse_CDT4_Generator#Out-Of-Source_Builds[here]).
+Thus, execute CMake as follows:  
 
  $ cd argos3
  $ cmake -G "Eclipse CDT4 - Unix Makefiles" src/
@@ -123,6 +168,7 @@ The compilation of ARGoS can be configured through a set of CMake options:
 | +CMAKE_BUILD_TYPE+          | _STRING_  | Build type (+Debug+, +Release+, etc.) [empty]
 | +CMAKE_INSTALL_PREFIX+      | _STRING_  | Install prefix (+/usr+, +/usr/local+, etc.) [+/usr/local+]
 | +ARGOS_BUILD_FOR+           | _STRING_  | Target of compilation (+simulator+ or robot name) [+simulator+]
+| +ARGOS_BUILD_NATIVE+        | _BOOLEAN_ | Whether to use platform-specific instructions [+OFF+]
 | +ARGOS_THREADSAFE_LOG+      | _BOOLEAN_ | Use or not the thread-safe version of +LOG+/+LOGERR+. [+ON+]
 | +ARGOS_DYNAMIC_LOADING+     | _BOOLEAN_ | Compile (and use) dynamic loading facilities [+ON+]
 | +ARGOS_USE_DOUBLE+          | _BOOLEAN_ | Use +double+ (+ON+) or +float+ (+OFF+) [+ON+]
@@ -136,6 +182,7 @@ wanted to set explictly all the default values, you would write:
  $ cmake -DCMAKE_BUILD_TYPE=Debug \
          -DCMAKE_INSTALL_PREFIX=/usr/local \
          -DARGOS_BUILD_FOR=simulator \
+         -DARGOS_BUILD_NATIVE=OFF \
          -DARGOS_THREADSAFE_LOG=ON \
          -DARGOS_DYNAMIC_LOADING=ON \
          -DARGOS_USE_DOUBLE=ON \
@@ -150,8 +197,19 @@ TIP: For production environments, it is recommended to compile ARGoS with
      recommended to set +CMAKE_BUILD_TYPE+ to +Debug+. The other standard
      settings (empty and +RelWithDebInfo+) are supported but should be avoided.
 
+TIP: If you want to squeeze maximum performance from ARGoS, along with compiling
+     with +CMAKE_BUILD_TYPE+ set to +Release+, you can also set +ARGOS_BUILD_NATIVE+
+     to +ON+. This setting instructs the compiler to use the compiler flags
+     +-march=native+ and +-mtune=native+. The code will run faster because you
+     use the entire instruction set of your processor, but the generated binaries
+     won't be portable to computers with different processors.
+
 Using the ARGoS simulator from the source tree
 ----------------------------------------------
+
+IMPORTANT: You can't install ARGoS system-wide and run the source version at the same time.
+           If you intend to run ARGoS from the sources, you must uninstall it from the
+           system.
 
 Running the ARGoS simulator
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -182,10 +240,6 @@ the file +$HOME/.config/Iridia-ULB/ARGoS.conf+ as follows:
  # more stuff
  #
 
-IMPORTANT: You can't install ARGoS system-wide and run the source version at the same time.
-           If you intend to run ARGoS from the sources, you must uninstall it from the
-           system.
-
 Debugging the ARGoS simulator
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -211,15 +265,17 @@ Alternatively, one can create a package. To build all the packages supported by
 your system, run these commands:
 
  $ cd argos3
- $ cd build_simulator       # or 'cd build_myrobot'
- $ make doc                 # documentation is required!
  $ git tag -a X.Y.Z-release # give the package a unique version
                             # the format must be as shown
                             # X       = version major
                             # Y       = version minor
                             # Z       = version patch
                             # release = a textual label
- $ sudo make package
+ $ cd build_simulator       # or 'cd build_myrobot'
+ $ cmake .                  # let CMake read the newly set tag
+ $ make doc                 # documentation is required!
+ $ make                     # compile the code
+ $ sudo make package        # make the package
 
 This typically creates a self-extracting .tar.gz archive, a .tar.bz2 archive,
 a .zip archive, and a platform-specific archive (.deb, .rpm, or a MacOSX
@@ -231,4 +287,4 @@ IMPORTANT: the creation of source packages through the command
            +make package_source+ is not supported.
 
 An easier option is to install ARGoS from a package distributed at
-http://iridia.ulb.ac.be/argos/download.php.
+http://bohr.ulb.ac.be/~pincy/argos/download.php.

@@ -282,25 +282,11 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   class CSpaceOperationAddRABEquippedEntity : public CSpaceOperationAddEntity {
-   public:
-      void ApplyTo(CSpace& c_space, CRABEquippedEntity& c_entity) {
-         c_space.AddEntity(c_entity);
-      }
-   };
-   REGISTER_SPACE_OPERATION(CSpaceOperationAddEntity, CSpaceOperationAddRABEquippedEntity, CRABEquippedEntity);
-   
-   class CSpaceOperationRemoveRABEquippedEntity : public CSpaceOperationRemoveEntity {
-   public:
-      void ApplyTo(CSpace& c_space, CRABEquippedEntity& c_entity) {
-         c_space.RemoveEntity(c_entity);
-      }
-   };
-   REGISTER_SPACE_OPERATION(CSpaceOperationRemoveEntity, CSpaceOperationRemoveRABEquippedEntity, CRABEquippedEntity);
+   REGISTER_STANDARD_SPACE_OPERATIONS_ON_ENTITY(CRABEquippedEntity);
 
    /****************************************/
    /****************************************/
-   
+
    CRABEquippedEntityGridCellUpdater::CRABEquippedEntityGridCellUpdater(CGrid<CRABEquippedEntity>& c_grid) :
       m_cGrid(c_grid) {}
    
@@ -323,14 +309,19 @@ namespace argos {
       m_cCellUpdater(c_grid) {}
 
    bool CRABEquippedEntityGridEntityUpdater::operator()(CRABEquippedEntity& c_entity) {
-      m_cCellUpdater.SetEntity(c_entity);
-      m_cGrid.ForCellsInBoxRange(c_entity.GetPosition(),
-                                 CVector3(c_entity.GetRange(),
-                                          c_entity.GetRange(),
-                                          c_entity.GetRange()),
-                                 m_cCellUpdater);
-      /* Continue with the other entities */
-      return true;
+      try {
+         m_cCellUpdater.SetEntity(c_entity);
+         m_cGrid.ForCellsInBoxRange(c_entity.GetPosition(),
+                                    CVector3(c_entity.GetRange(),
+                                             c_entity.GetRange(),
+                                             c_entity.GetRange()),
+                                    m_cCellUpdater);
+         /* Continue with the other entities */
+         return true;
+      }
+      catch(CARGoSException& ex) {
+         THROW_ARGOSEXCEPTION_NESTED("While updating the RAB entity grid for RAB entity \"" << c_entity.GetContext() << c_entity.GetId() << "\"", ex);
+      }
    }
 
    /****************************************/

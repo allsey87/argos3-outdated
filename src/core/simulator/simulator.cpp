@@ -235,6 +235,7 @@ namespace argos {
       CFactory<CSimulatedSensor>::Destroy();
       CFactory<CCI_Controller>::Destroy();
       CFactory<CEntity>::Destroy();
+      CFactory<CLoopFunctions>::Destroy();
       /* Stop profiling and flush the data */
       if(IsProfiling()) {
          m_pcProfiler->Stop();
@@ -569,7 +570,6 @@ namespace argos {
                std::ostringstream ossMsg;
                ossMsg << "Error executing post-space initialization of medium \"" << cMedium.GetId() << "\"";
                cMedium.Destroy();
-               delete &cMedium;
                THROW_ARGOSEXCEPTION_NESTED(ossMsg.str(), ex);
             }
          }

@@ -123,6 +123,8 @@ namespace argos {
          m_vecStreams.push_back(new std::stringstream);
          pthread_mutex_unlock(&m_tMutex);
       }
+#else
+      void Flush() {}
 #endif
       
       inline CARGoSLog& operator<<(std::ostream& (*c_stream)(std::ostream&)) {
@@ -130,24 +132,6 @@ namespace argos {
          *(m_vecStreams[m_mapStreamOrder.find(pthread_self())->second]) << c_stream;
 #else
          m_cStream << c_stream;
-#endif
-         return *this;
-      }
-
-      inline CARGoSLog& operator<<(const std::_Setw& t_msg) {
-#ifdef ARGOS_THREADSAFE_LOG
-         *(m_vecStreams[m_mapStreamOrder.find(pthread_self())->second]) << t_msg;
-#else
-         m_cStream << t_msg;
-#endif
-         return *this;
-      }
-
-      inline CARGoSLog& operator<<(const std::_Setiosflags& t_msg) {
-#ifdef ARGOS_THREADSAFE_LOG
-         *(m_vecStreams[m_mapStreamOrder.find(pthread_self())->second]) << t_msg;
-#else
-         m_cStream << t_msg;
 #endif
          return *this;
       }

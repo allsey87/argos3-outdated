@@ -56,7 +56,7 @@ namespace argos {
    void CLEDEntity::SetEnabled(bool b_enabled) {
       CEntity::SetEnabled(b_enabled);
       if(IsEnabled()) {
-         m_cColor = CColor::BLACK;
+         m_cColor = m_cInitColor;
       }
    }
 
@@ -100,10 +100,15 @@ namespace argos {
    bool CLEDEntityGridUpdater::operator()(CLEDEntity& c_entity) {
       /* Discard LEDs switched off */
       if(c_entity.GetColor() != CColor::BLACK) {
-         /* Calculate the position of the LED in the space hash */
-         m_cGrid.PositionToCell(m_nI, m_nJ, m_nK, c_entity.GetPosition());
-         /* Update the corresponding cell */
-         m_cGrid.UpdateCell(m_nI, m_nJ, m_nK, c_entity);
+         try {
+            /* Calculate the position of the LED in the space hash */
+            m_cGrid.PositionToCell(m_nI, m_nJ, m_nK, c_entity.GetPosition());
+            /* Update the corresponding cell */
+            m_cGrid.UpdateCell(m_nI, m_nJ, m_nK, c_entity);
+         }
+         catch(CARGoSException& ex) {
+            THROW_ARGOSEXCEPTION_NESTED("While updating the LED grid for LED \"" << c_entity.GetContext() << c_entity.GetId() << "\"", ex);
+         }
       }
       /* Continue with the other entities */
       return true;
@@ -112,21 +117,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   class CSpaceOperationAddLEDEntity : public CSpaceOperationAddEntity {
-   public:
-      void ApplyTo(CSpace& c_space, CLEDEntity& c_entity) {
-         c_space.AddEntity(c_entity);
-      }
-   };
-   REGISTER_SPACE_OPERATION(CSpaceOperationAddEntity, CSpaceOperationAddLEDEntity, CLEDEntity);
-   
-   class CSpaceOperationRemoveLEDEntity : public CSpaceOperationRemoveEntity {
-   public:
-      void ApplyTo(CSpace& c_space, CLEDEntity& c_entity) {
-         c_space.RemoveEntity(c_entity);
-      }
-   };
-   REGISTER_SPACE_OPERATION(CSpaceOperationRemoveEntity, CSpaceOperationRemoveLEDEntity, CLEDEntity);
+   REGISTER_STANDARD_SPACE_OPERATIONS_ON_ENTITY(CLEDEntity);
 
    /****************************************/
    /****************************************/
