@@ -26,13 +26,14 @@ namespace argos {
          btQuaternion(0.0f, 0.0f, 0.0f, 1.0f), 
          btVector3(0.0f, -c_cylinder.GetHeight() * 0.5f, 0.0f));
       Real fMass = c_cylinder.GetEmbodiedEntity().IsMovable() ? c_cylinder.GetMass() : 0.0f;
-      m_vecLocalBodies.push_back(new CDynamics3DBody("cylinder",
+      m_vecLocalBodies.push_back(new CDynamics3DBody(this,
+                                                     "cylinder",
                                                      m_pcCylinderCollisionShape,
                                                      btTransform::getIdentity(),
                                                      cCylinderGeometricOffset,
                                                      fMass));
-      /* move the model to the specified coordinates */
 
+      /* move the model to the specified coordinates */
       const CQuaternion& cAQuat = GetEmbodiedEntity().GetInitOrientation();
       const CVector3& cAVec = GetEmbodiedEntity().GetInitPosition();
 

@@ -63,8 +63,10 @@ namespace argos {
       virtual void Reset();
       virtual void Destroy();
       virtual void Update();
-
+      virtual CEmbodiedEntity* CheckIntersectionWithRay(Real& f_t_on_ray,
+                                                        const CRay3& c_ray) const;
       virtual UInt32 GetNumPhysicsEngineEntities();
+
       virtual void AddEntity(CEntity& c_entity);
       virtual void RemoveEntity(CEntity& c_entity);
 

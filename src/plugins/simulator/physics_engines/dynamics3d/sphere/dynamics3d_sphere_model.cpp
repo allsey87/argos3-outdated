@@ -24,7 +24,8 @@ namespace argos {
          btQuaternion(0.0f, 0.0f, 0.0f, 1.0f), 
          btVector3(0.0f, -c_sphere.GetRadius(), 0.0f));
       Real fMass = c_sphere.GetEmbodiedEntity().IsMovable() ? c_sphere.GetMass() : 0.0f;
-      m_vecLocalBodies.push_back(new CDynamics3DBody("sphere",
+      m_vecLocalBodies.push_back(new CDynamics3DBody(this,
+                                                     "Sphere",
                                                      m_pcSphereCollisionShape,
                                                      btTransform::getIdentity(),
                                                      cSphereGeometricOffset,

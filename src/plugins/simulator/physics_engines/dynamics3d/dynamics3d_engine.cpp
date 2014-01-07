@@ -4,10 +4,6 @@
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-
-#define STR(x) #x
-#define SHOW_DEFINE(x) fprintf(stderr, "%s = %s\n", #x, STR(x))
-
 #include "dynamics3d_engine.h"
 
 #include <argos3/core/simulator/simulator.h>
@@ -46,88 +42,13 @@ namespace argos {
    /****************************************/
 
    void CDynamics3DEngine::Init(TConfigurationNode& t_tree) {
-   #ifdef BT_BULLET_VERSION
-      fprintf(stderr, "Bullet Version %i\n", BT_BULLET_VERSION);
-   #else
-      fprintf(stderr, "Bullet Version not defined\n");
-   #endif
-   
-   #ifdef BT_USE_DOUBLE_PRECISION
-      fprintf(stderr, "BT_USE_DOUBLE_PRECISION defined\n");
-   #else
-      fprintf(stderr, "BT_USE_DOUBLE_PRECISION undefined\n");
-   #endif
-
-   #ifdef BT_USE_SSE
-      fprintf(stderr, "BT_USE_SSE defined\n");
-   #else
-      fprintf(stderr, "BT_USE_SSE undefined\n");
-   #endif
-   
-   #ifdef BT_USE_SSE_IN_API
-      fprintf(stderr, "BT_USE_SSE_IN_API defined\n");
-   #else
-      fprintf(stderr, "BT_USE_SSE_IN_API undefined\n");
-   #endif
-      
-   #ifdef BT_USE_NEON
-      fprintf(stderr, "BT_USE_NEON defined\n");
-   #else
-      fprintf(stderr, "BT_USE_NEON undefined\n");
-   #endif
-   
-   #ifdef __APPLE__
-      fprintf(stderr, "__APPLE__ defined\n");
-   #else
-      fprintf(stderr, "__APPLE__ undefined\n");
-   #endif
-   
-   #ifdef __x86_64__
-      fprintf(stderr, "__x86_64__ defined\n");
-   #else
-      fprintf(stderr, "__x86_64__ undefined\n");
-   #endif
-   
-   #ifdef __APPLE__
-      fprintf(stderr, "__i386__ defined\n");
-   #else
-      fprintf(stderr, "__i386__ undefined\n");
-   #endif
-   
-   #ifdef defined(DEBUG) || defined (_DEBUG)
-      fprintf(stderr, "DEBUG or _DEBUG defined\n");
-   #else
-      fprintf(stderr, "both DEBUG and _DEBUG undefined\n");
-   #endif
-   
-   #ifdef SIMD_FORCE_INLINE
-      SHOW_DEFINE(SIMD_FORCE_INLINE);
-   #else
-      fprintf(stderr, "SIMD_FORCE_INLINE undefined\n");
-   #endif
-   
-   #ifdef BT_LARGE_FLOAT
-      SHOW_DEFINE(BT_LARGE_FLOAT);
-   #else
-      fprintf(stderr, "BT_LARGE_FLOAT undefined\n");
-   #endif
-   
-   fprintf(stderr, "sizeof(btScalar) is %lu\n", sizeof(btScalar));
-
-   fprintf(stderr, "sizeof(btVector3) is %lu\n", sizeof(btVector3));
-
-   fprintf(stderr, "sizeof(btTransform) is %lu\n", sizeof(btTransform));
-
-   fprintf(stderr, "sizeof(btQuaternion) is %lu\n", sizeof(btQuaternion));
-
-
       /* Init parent */
       CPhysicsEngine::Init(t_tree);
       /* create the random number generator */
       m_pcRNG = CRandom::CreateRNG("argos");      
       /* Parse the XML */
       GetNodeAttributeOrDefault(t_tree, "iterations", m_unIterations, m_unIterations);
-      m_fDeltaT = m_fSimulationClockTick / (Real)m_unIterations;
+      m_fDeltaT = GetPhysicsClockTick() / (Real)m_unIterations;
       /* Select the default broadphase, collision configuration, dispatcher and solver */
       m_pcBroadphaseInterface = new btDbvtBroadphase;
       m_pcCollisionConfiguration = new btDefaultCollisionConfiguration;
@@ -150,7 +71,7 @@ namespace argos {
       m_pcSolver->setRandSeed(m_pcRNG->Uniform(m_cRandomSeedRange));
       /* Add a static plane as the experiment floor on request */
       if(NodeExists(t_tree, "floor")) {
-         m_pcGround = new CDynamics3DBody("floor", &m_cGroundCollisionShape);
+         m_pcGround = new CDynamics3DBody(NULL, "floor", &m_cGroundCollisionShape);
          m_pcGround->AddBodyToWorld(m_pcWorld);
       }
       /* load the plugins */
@@ -295,7 +216,7 @@ namespace argos {
          (*itPlugin)->Update(*this);
       }
       /* Step the simuation forwards */
-      m_pcWorld->stepSimulation(m_fSimulationClockTick, m_unIterations, m_fDeltaT);
+      m_pcWorld->stepSimulation(GetPhysicsClockTick(), m_unIterations, m_fDeltaT);
       /////
       //fprintf(stderr, "m_fSimulationClockTick = %.8f, m_unIterations = %d, m_fDeltaT = %.8f\n", m_fSimulationClockTick, m_unIterations, m_fDeltaT);
       /*
@@ -316,6 +237,29 @@ namespace argos {
       }
    }
    
+   /****************************************/
+   /****************************************/
+   
+   CEmbodiedEntity* CDynamics3DEngine::CheckIntersectionWithRay(Real& f_t_on_ray,
+                                                                const CRay3& c_ray) const {
+      btVector3 cRayStart(ARGoSToBullet(c_ray.GetStart()));
+      btVector3 cRayEnd(ARGoSToBullet(c_ray.GetEnd()));
+
+      btCollisionWorld::ClosestRayResultCallback cResult(cRayStart, cRayEnd);
+   
+      m_pcWorld->rayTest(cRayStart, cRayEnd, cResult);
+
+      if (cResult.hasHit()) {
+         f_t_on_ray = (cResult.m_hitPointWorld - cRayStart).length() / c_ray.GetLength();
+         CDynamics3DBody* pcBody = static_cast<CDynamics3DBody*>(cResult.m_collisionObject->getUserPointer());
+         return &(pcBody->GetParentModel().GetEmbodiedEntity());
+      }
+
+      f_t_on_ray = 0.0f;
+      return NULL;
+   }
+
+
    /****************************************/
    /****************************************/
    

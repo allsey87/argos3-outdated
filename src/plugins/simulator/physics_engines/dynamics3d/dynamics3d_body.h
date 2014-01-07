@@ -8,7 +8,7 @@
 #define DYNAMICS3D_BODY_H
 
 namespace argos {
-
+   class CDynamics3DModel;
 }
 
 #include <vector>
@@ -16,7 +16,9 @@ namespace argos {
 #include <map>
 
 #include <argos3/plugins/simulator/physics_engines/dynamics3d/bullet/btBulletDynamicsCommon.h>
+//#include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_model.h>
 #include <argos3/core/utility/datatypes/datatypes.h>
+
 
 namespace argos {
 
@@ -32,7 +34,8 @@ namespace argos {
 
    public:
 
-      CDynamics3DBody(const std::string& str_id,
+      CDynamics3DBody(CDynamics3DModel* pc_parent_model,
+                      const std::string& str_id,
                       btCollisionShape* pc_collision_shape = NULL,
                       const btTransform& c_positional_offset = btTransform::getIdentity(),
                       const btTransform& c_geometric_offset = btTransform::getIdentity(),
@@ -45,6 +48,10 @@ namespace argos {
 
       const std::string& GetId() const {
          return m_strId;
+      }
+
+      CDynamics3DModel& GetParentModel() {
+         return *m_pcParentModel;
       }
 
       const std::string& GetAttribute(const std::string& str_key) const;
@@ -81,6 +88,7 @@ namespace argos {
       void RemoveBodyFromWorld(btDynamicsWorld * pc_dynamics_world);
 
    private:
+      CDynamics3DModel* m_pcParentModel;
       std::string m_strId;
 
       btCollisionShape* m_pcCollisionShape;
