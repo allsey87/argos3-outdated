@@ -82,7 +82,7 @@
     </distribute-->
     
     <foot-bot id="fb1">
-       <body position="2.325,-1.325,1" orientation="270,30,30"/>
+       <body position="2.325,-1.325,0.25" orientation="270,0,0"/>
        <controller config="lua"/>
     </foot-bot>
   </arena>

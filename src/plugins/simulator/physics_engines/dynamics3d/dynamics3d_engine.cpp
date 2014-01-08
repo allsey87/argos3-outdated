@@ -33,7 +33,6 @@ namespace argos {
       m_pcCollisionDispatcher(NULL),
       m_pcSolver(NULL),
       m_pcWorld(NULL),
-      m_pcGhostPairCallback(NULL),
       m_pcGround(NULL),
       m_unIterations(10),
       m_bEntityTransferActive(false) {}
@@ -61,9 +60,6 @@ namespace argos {
                                               m_pcCollisionConfiguration);
       /* Set the gravity in the world */
       m_pcWorld->setGravity(btVector3(0.0f, -9.8f, 0.0f));
-      /* Enable ghost objects (used by CDynamics3DEngine::IsLocationOccupied) */
-      m_pcGhostPairCallback = new btGhostPairCallback();
-      m_pcWorld->getPairCache()->setInternalGhostPairCallback(m_pcGhostPairCallback);
       /* clear the forces in the world (shouldn't  be required as there are no bodies in the world) */
       m_pcWorld->clearForces();
       /* reset the solvers and dispatchers */
@@ -192,7 +188,6 @@ namespace argos {
       }      
       /* delete the dynamics world */
       delete m_pcWorld;
-      delete m_pcGhostPairCallback;
       delete m_pcSolver;
       delete m_pcCollisionDispatcher;
       delete m_pcCollisionConfiguration;

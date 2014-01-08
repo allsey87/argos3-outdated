@@ -119,7 +119,6 @@ namespace argos {
       btCollisionDispatcher*                 m_pcCollisionDispatcher;
       btSequentialImpulseConstraintSolver*   m_pcSolver;
       btDiscreteDynamicsWorld*               m_pcWorld;
-      btGhostPairCallback*                   m_pcGhostPairCallback;
       
       /* Dynamics 3D Ground */
       static btStaticPlaneShape              m_cGroundCollisionShape;
