@@ -12,12 +12,14 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   CDynamics3DBody::CDynamics3DBody(const std::string& str_id,
+   CDynamics3DBody::CDynamics3DBody(CDynamics3DModel* pc_parent_model,
+                                    const std::string& str_id,
                                     btCollisionShape* pc_collision_shape,
                                     const btTransform& c_positional_offset,
                                     const btTransform& c_geometric_offset,
                                     Real f_mass,
                                     const std::map<std::string, std::string>& map_attributes) :
+      m_pcParentModel(pc_parent_model),
       m_strId(str_id),
       m_pcCollisionShape(pc_collision_shape),
       m_pcMotionState(NULL),
@@ -40,6 +42,8 @@ namespace argos {
                                                                                m_cInertia));
       /* Clone the provided map of attributes */
       m_mapAttributes.insert(map_attributes.begin(), map_attributes.end());
+
+      m_pcRigidBody->setUserPointer(this);
    }
 
    /****************************************/
@@ -63,6 +67,7 @@ namespace argos {
                                                                                m_pcMotionState,
                                                                                m_pcCollisionShape,
                                                                                m_cInertia));
+      m_pcRigidBody->setUserPointer(this);
    }
 
    /****************************************/

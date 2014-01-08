@@ -34,8 +34,7 @@ namespace argos {
       m_pcRNG(NULL),
       m_bAddNoise(false),
       m_cSpace(CSimulator::GetInstance().GetSpace()),
-      m_bShowRays(false),
-      m_cEmbodiedEntityIndex(m_cSpace.GetEmbodiedEntityIndex()) {}
+      m_bShowRays(false) {}
 
    /****************************************/
    /****************************************/
@@ -200,7 +199,6 @@ namespace argos {
       /* Get the closest intersection */
       SEmbodiedEntityIntersectionItem sIntersection;
       if(GetClosestEmbodiedEntityIntersectedByRay(sIntersection,
-                                                  m_cEmbodiedEntityIndex,
                                                   c_ray,
                                                   *m_pcEmbodiedEntity)) {
          if(m_bShowRays) m_pcControllableEntity->AddIntersectionPoint(c_ray, sIntersection.TOnRay);
@@ -330,7 +328,7 @@ namespace argos {
                    "footbot_distance_scanner", "rot_z_only",
                    "Carlo Pinciroli [ilpincy@gmail.com]",
                    "1.0",
-                   "The foot-bot distance scanner sensor (optimized for 2D)",
+                   "The foot-bot distance scanner sensor (optimized for 2D).",
                    "This sensor accesses the foot-bot distance scanner sensor. For a complete\n"
                    "description of its usage, refer to the common interface.\n"
                    "In this implementation, the readings are calculated under the assumption that\n"

@@ -73,10 +73,11 @@ namespace argos {
 
    private:
 
-      CEmbodiedEntity*      m_pcEmbodiedEntity;
-      CLEDEquippedEntity*   m_pcLEDEquippedEntity;
-      CVector3              m_cSize;
-      Real                  m_fMass;
+      CEmbodiedEntity*    m_pcEmbodiedEntity;
+      CLEDEquippedEntity* m_pcLEDEquippedEntity;
+      CVector3            m_cSize;
+      Real                m_fMass;
+      CLEDMedium*         m_pcLEDMedium;
 
    };
 

@@ -198,7 +198,7 @@ namespace argos {
           ++itEntities) {
          glPushMatrix();
          CallEntityOperation<CQTOpenGLOperationDrawNormal, CQTOpenGLWidget, void>(*this, **itEntities);
-         //@todo m_cUserFunctions.Draw(**itEntities);
+         m_cUserFunctions.Call(**itEntities);
          glPopMatrix();
          glPushMatrix();
          CallEntityOperation<CQTOpenGLOperationDrawSelected, CQTOpenGLWidget, void>(*this, **itEntities);

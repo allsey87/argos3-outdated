@@ -140,31 +140,36 @@ namespace argos {
       }
 
       /* create the bodies */
-      m_vecLocalBodies.push_back(new CDynamics3DBody("chassis", 
+      m_vecLocalBodies.push_back(new CDynamics3DBody(this,
+                                                     "chassis", 
                                                      &m_cChassisCollisionShape,
                                                      m_cChassisPositionalOffset,
                                                      m_cChassisGeometricOffset,
                                                      FOOTBOT_CHASSIS_MASS));
 
-      m_vecLocalBodies.push_back(new CDynamics3DBody("left-wheel", 
+      m_vecLocalBodies.push_back(new CDynamics3DBody(this,
+                                                     "left-wheel", 
                                                      &m_cWheelCollisionShape,
                                                      m_cLeftWheelPositionalOffset,
                                                      m_cWheelGeometricOffset,
                                                      FOOTBOT_WHEEL_MASS));
 
-      m_vecLocalBodies.push_back(new CDynamics3DBody("right-wheel",
+      m_vecLocalBodies.push_back(new CDynamics3DBody(this,
+                                                     "right-wheel",
                                                      &m_cWheelCollisionShape,
                                                      m_cRightWheelPositionalOffset,
                                                      m_cWheelGeometricOffset,
                                                      FOOTBOT_WHEEL_MASS));
 
-      m_vecLocalBodies.push_back(new CDynamics3DBody("front-pivot",
+      m_vecLocalBodies.push_back(new CDynamics3DBody(this,
+                                                     "front-pivot",
                                                      &m_cPivotCollisionShape,
                                                      m_cFrontPivotPositionalOffset,
                                                      m_cPivotGeometricOffset,
                                                      FOOTBOT_PIVOT_MASS));
  
-      m_vecLocalBodies.push_back(new CDynamics3DBody("rear-pivot",
+      m_vecLocalBodies.push_back(new CDynamics3DBody(this,
+                                                     "rear-pivot",
                                                      &m_cPivotCollisionShape,
                                                      m_cRearPivotPositionalOffset,
                                                      m_cPivotGeometricOffset,

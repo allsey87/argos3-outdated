@@ -33,7 +33,6 @@ namespace argos {
       m_pcCollisionDispatcher(NULL),
       m_pcSolver(NULL),
       m_pcWorld(NULL),
-      m_pcGhostPairCallback(NULL),
       m_pcGround(NULL),
       m_unIterations(10),
       m_bEntityTransferActive(false) {}
@@ -48,7 +47,7 @@ namespace argos {
       m_pcRNG = CRandom::CreateRNG("argos");      
       /* Parse the XML */
       GetNodeAttributeOrDefault(t_tree, "iterations", m_unIterations, m_unIterations);
-      m_fDeltaT = m_fSimulationClockTick / (Real)m_unIterations;
+      m_fDeltaT = GetPhysicsClockTick() / (Real)m_unIterations;
       /* Select the default broadphase, collision configuration, dispatcher and solver */
       m_pcBroadphaseInterface = new btDbvtBroadphase;
       m_pcCollisionConfiguration = new btDefaultCollisionConfiguration;
@@ -61,9 +60,6 @@ namespace argos {
                                               m_pcCollisionConfiguration);
       /* Set the gravity in the world */
       m_pcWorld->setGravity(btVector3(0.0f, -9.8f, 0.0f));
-      /* Enable ghost objects (used by CDynamics3DEngine::IsLocationOccupied) */
-      m_pcGhostPairCallback = new btGhostPairCallback();
-      m_pcWorld->getPairCache()->setInternalGhostPairCallback(m_pcGhostPairCallback);
       /* clear the forces in the world (shouldn't  be required as there are no bodies in the world) */
       m_pcWorld->clearForces();
       /* reset the solvers and dispatchers */
@@ -71,7 +67,7 @@ namespace argos {
       m_pcSolver->setRandSeed(m_pcRNG->Uniform(m_cRandomSeedRange));
       /* Add a static plane as the experiment floor on request */
       if(NodeExists(t_tree, "floor")) {
-         m_pcGround = new CDynamics3DBody("floor", &m_cGroundCollisionShape);
+         m_pcGround = new CDynamics3DBody(NULL, "floor", &m_cGroundCollisionShape);
          m_pcGround->AddBodyToWorld(m_pcWorld);
       }
       /* load the plugins */
@@ -192,7 +188,6 @@ namespace argos {
       }      
       /* delete the dynamics world */
       delete m_pcWorld;
-      delete m_pcGhostPairCallback;
       delete m_pcSolver;
       delete m_pcCollisionDispatcher;
       delete m_pcCollisionConfiguration;
@@ -216,7 +211,7 @@ namespace argos {
          (*itPlugin)->Update(*this);
       }
       /* Step the simuation forwards */
-      m_pcWorld->stepSimulation(m_fSimulationClockTick, m_unIterations, m_fDeltaT);
+      m_pcWorld->stepSimulation(GetPhysicsClockTick(), m_unIterations, m_fDeltaT);
       /////
       //fprintf(stderr, "m_fSimulationClockTick = %.8f, m_unIterations = %d, m_fDeltaT = %.8f\n", m_fSimulationClockTick, m_unIterations, m_fDeltaT);
       /*
@@ -237,6 +232,29 @@ namespace argos {
       }
    }
    
+   /****************************************/
+   /****************************************/
+   
+   CEmbodiedEntity* CDynamics3DEngine::CheckIntersectionWithRay(Real& f_t_on_ray,
+                                                                const CRay3& c_ray) const {
+      btVector3 cRayStart(ARGoSToBullet(c_ray.GetStart()));
+      btVector3 cRayEnd(ARGoSToBullet(c_ray.GetEnd()));
+
+      btCollisionWorld::ClosestRayResultCallback cResult(cRayStart, cRayEnd);
+   
+      m_pcWorld->rayTest(cRayStart, cRayEnd, cResult);
+
+      if (cResult.hasHit()) {
+         f_t_on_ray = (cResult.m_hitPointWorld - cRayStart).length() / c_ray.GetLength();
+         CDynamics3DBody* pcBody = static_cast<CDynamics3DBody*>(cResult.m_collisionObject->getUserPointer());
+         return &(pcBody->GetParentModel().GetEmbodiedEntity());
+      }
+
+      f_t_on_ray = 0.0f;
+      return NULL;
+   }
+
+
    /****************************************/
    /****************************************/
    

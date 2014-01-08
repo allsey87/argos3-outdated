@@ -26,18 +26,22 @@ namespace argos {
       m_bShowRays(false),
       m_pcRNG(NULL),
       m_bAddNoise(false),
-      m_cSpace(CSimulator::GetInstance().GetSpace()),
-      m_cEmbodiedEntityIndex(m_cSpace.GetEmbodiedEntityIndex()) {}
+      m_cSpace(CSimulator::GetInstance().GetSpace()) {}
 
    /****************************************/
    /****************************************/
 
    void CProximityDefaultSensor::SetRobot(CComposableEntity& c_entity) {
-      m_pcEmbodiedEntity = &(c_entity.GetComponent<CEmbodiedEntity>("body"));
-      m_pcControllableEntity = &(c_entity.GetComponent<CControllableEntity>("controller"));
-      m_pcProximityEntity = &(c_entity.GetComponent<CProximitySensorEquippedEntity>("proximity_sensors"));
-      m_pcProximityEntity->SetCanBeEnabledIfDisabled(true);
-      m_pcProximityEntity->Enable();
+      try {
+         m_pcEmbodiedEntity = &(c_entity.GetComponent<CEmbodiedEntity>("body"));
+         m_pcControllableEntity = &(c_entity.GetComponent<CControllableEntity>("controller"));
+         m_pcProximityEntity = &(c_entity.GetComponent<CProximitySensorEquippedEntity>("proximity_sensors"));
+         m_pcProximityEntity->SetCanBeEnabledIfDisabled(true);
+         m_pcProximityEntity->Enable();
+      }
+      catch(CARGoSException& ex) {
+         THROW_ARGOSEXCEPTION_NESTED("Can't set robot for the proximity default sensor", ex);
+      }
    }
 
    /****************************************/
@@ -89,7 +93,6 @@ namespace argos {
          /* Compute reading */
          /* Get the closest intersection */
          if(GetClosestEmbodiedEntityIntersectedByRay(sIntersection,
-                                                     m_cEmbodiedEntityIndex,
                                                      cScanningRay,
                                                      *m_pcEmbodiedEntity)) {
             /* There is an intersection */
@@ -139,7 +142,7 @@ namespace argos {
                    "proximity", "default",
                    "Carlo Pinciroli [ilpincy@gmail.com]",
                    "1.0",
-                   "A generic proximity sensor",
+                   "A generic proximity sensor.",
                    "This sensor accesses a set of proximity sensors. The sensors all return a value\n"
                    "between 0 and 1, where 0 means nothing within range and 1 means an external\n"
                    "object is touching the sensor. Values between 0 and 1 depend on the distance of\n"

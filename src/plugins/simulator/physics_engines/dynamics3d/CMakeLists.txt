@@ -7,7 +7,8 @@
 #
 # Headers for the bullet physics engine
 if(ARGOS_USE_DOUBLE)
-# add_definitions(-DBT_USE_DOUBLE_PRECISION)
+#  add_definitions(-DBT_USE_DOUBLE_PRECISION)
+#  set( BULLET_DOUBLE_DEF "-DBT_USE_DOUBLE_PRECISION")
 endif(ARGOS_USE_DOUBLE)
 
 

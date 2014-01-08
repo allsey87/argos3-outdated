@@ -136,50 +136,6 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   bool CDynamics3DModel::CheckIntersectionWithRay(Real& f_t_on_ray, const CRay3& c_ray) const {
-      btTransform cRayStartTransform(btQuaternion::getIdentity(), ARGoSToBullet(c_ray.GetStart()));
-      btTransform cRayEndTransform(btQuaternion::getIdentity(), ARGoSToBullet(c_ray.GetEnd()));
-      btCollisionObject cTempCollisionObject;         
-      bool bIntersectionOccured = false;         
-      Real fModelIntersectDist;
-      Real fBodyIntersectDist; 
-         
-      //@todo use SbodyComponent backed via a std::vector to increase speed (reduced cache misses)
-      for(CDynamics3DBody::TVector::const_iterator itBody = m_vecLocalBodies.begin();
-          itBody != m_vecLocalBodies.end();
-          ++itBody) {
-
-         // This object cannot be used twice or reinitialised, we must construct it on every iteration
-         btCollisionWorld::ClosestRayResultCallback cResult(cRayStartTransform.getOrigin(),
-                                                            cRayEndTransform.getOrigin());
-
-         // test for a collision against the current body
-         btCollisionWorld::rayTestSingle(cRayStartTransform,
-                                         cRayEndTransform,
-                                         &cTempCollisionObject,
-                                         &(*itBody)->GetCollisionShape(),
-                                         (*itBody)->GetRigidBodyTransform(),
-                                         cResult);
-
-         // if this body intersected the ray, we compute whether or not this has been the closest intersection
-         if (cResult.hasHit()) {
-            fBodyIntersectDist = (cResult.m_hitPointWorld - cRayStartTransform.getOrigin()).length();
-            if(bIntersectionOccured == false) {
-               fModelIntersectDist = fBodyIntersectDist;
-               bIntersectionOccured = true;
-            }
-            else {
-               fModelIntersectDist = (fModelIntersectDist > fBodyIntersectDist) ? fBodyIntersectDist : fModelIntersectDist;
-            }
-         }
-      }
-      f_t_on_ray = fModelIntersectDist / c_ray.GetLength();
-      return bIntersectionOccured;
-   }
-
-   /****************************************/
-   /****************************************/
-
    void CDynamics3DModel::SetModelCoordinates(const btTransform& c_coordinates) {
 
       // Calculate the position and orientation of the entity using the reference body

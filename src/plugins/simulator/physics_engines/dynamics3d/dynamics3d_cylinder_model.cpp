@@ -18,6 +18,7 @@ namespace argos {
       CDynamics3DModel(c_engine, c_cylinder.GetEmbodiedEntity(), c_cylinder.GetId()),
       m_cCylinderEntity(c_cylinder) {
       /* When defining size of objects we must manually swap the Z and Y components */
+
       m_pcCylinderCollisionShape = m_cCylinderShapeManager.RequestCylinderShape(btVector3(c_cylinder.GetRadius(),
                                                                                           c_cylinder.GetHeight() * 0.5f,
                                                                                           c_cylinder.GetRadius()));
@@ -25,14 +26,21 @@ namespace argos {
          btQuaternion(0.0f, 0.0f, 0.0f, 1.0f), 
          btVector3(0.0f, -c_cylinder.GetHeight() * 0.5f, 0.0f));
       Real fMass = c_cylinder.GetEmbodiedEntity().IsMovable() ? c_cylinder.GetMass() : 0.0f;
-      m_vecLocalBodies.push_back(new CDynamics3DBody("cylinder",
+      m_vecLocalBodies.push_back(new CDynamics3DBody(this,
+                                                     "cylinder",
                                                      m_pcCylinderCollisionShape,
                                                      btTransform::getIdentity(),
                                                      cCylinderGeometricOffset,
                                                      fMass));
+
       /* move the model to the specified coordinates */
-      SetModelCoordinates(btTransform(ARGoSToBullet(GetEmbodiedEntity().GetInitOrientation()),
-                                      ARGoSToBullet(GetEmbodiedEntity().GetInitPosition())));
+      const CQuaternion& cAQuat = GetEmbodiedEntity().GetInitOrientation();
+      const CVector3& cAVec = GetEmbodiedEntity().GetInitPosition();
+
+      btVector3 cBtVec = ARGoSToBullet(cAVec);
+      btQuaternion cBtQuat = ARGoSToBullet(cAQuat);
+
+      SetModelCoordinates(btTransform(cBtQuat, cBtVec));
    }
    
    /****************************************/

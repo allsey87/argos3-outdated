@@ -7,6 +7,8 @@
 #include "cylinder_entity.h"
 #include <argos3/core/utility/math/matrix/rotationmatrix3.h>
 #include <argos3/core/simulator/space/space.h>
+#include <argos3/core/simulator/simulator.h>
+#include <argos3/plugins/simulator/media/led_medium.h>
 
 namespace argos {
 
@@ -17,7 +19,8 @@ namespace argos {
       CComposableEntity(NULL),
       m_pcEmbodiedEntity(NULL),
       m_pcLEDEquippedEntity(NULL),
-      m_fMass(1.0f) {
+      m_fMass(1.0f),
+      m_pcLEDMedium(NULL) {
    }
 
    /****************************************/
@@ -33,14 +36,16 @@ namespace argos {
       CComposableEntity(NULL, str_id),
       m_pcEmbodiedEntity(
          new CEmbodiedEntity(this,
-                             str_id,
+                             "body_0",
                              c_position,
                              c_orientation,
                              b_movable)),
       m_pcLEDEquippedEntity(
          new CLEDEquippedEntity(this,
-                                str_id,
+                                "leds_0",
                                 m_pcEmbodiedEntity)),
+      m_fRadius(f_radius),
+      m_fHeight(f_height),
       m_fMass(f_mass) {
       AddComponent(*m_pcEmbodiedEntity);
       AddComponent(*m_pcLEDEquippedEntity);
@@ -74,11 +79,23 @@ namespace argos {
          m_pcEmbodiedEntity->SetMovable(bMovable);
          /* Init LED equipped entity component */
          m_pcLEDEquippedEntity = new CLEDEquippedEntity(this,
-                                                        GetId() + ".leds",
                                                         m_pcEmbodiedEntity);
          AddComponent(*m_pcLEDEquippedEntity);
          if(NodeExists(t_tree, "leds")) {
+            /* Create LED equipped entity
+             * NOTE: the LEDs are not added to the medium yet
+             */
             m_pcLEDEquippedEntity->Init(GetNode(t_tree, "leds"));
+            /* Add the LEDs to the medium */
+            std::string strMedium;
+            GetNodeAttribute(GetNode(t_tree, "leds"), "medium", strMedium);
+            m_pcLEDMedium = &CSimulator::GetInstance().GetMedium<CLEDMedium>(strMedium);
+            m_pcLEDEquippedEntity->AddToMedium(*m_pcLEDMedium);
+         }
+         else {
+            /* No LEDs added, no need to update this entity */
+            m_pcLEDEquippedEntity->Disable();
+            m_pcLEDEquippedEntity->SetCanBeEnabledIfDisabled(false);
          }
          UpdateComponents();
       }

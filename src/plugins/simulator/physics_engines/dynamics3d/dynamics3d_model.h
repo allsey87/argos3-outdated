@@ -94,9 +94,6 @@ namespace argos {
 
       virtual bool IsCollidingWithSomething() const;
 
-      virtual bool CheckIntersectionWithRay(Real& f_t_on_ray,
-                                            const CRay3& c_ray) const;
-
    protected:
 
       virtual btTransform GetModelCoordinates() const = 0;

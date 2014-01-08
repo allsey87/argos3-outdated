@@ -75,13 +75,14 @@ namespace argos {
          return "cylinder";
       }
 
-   private:
+ private:
 
-      CEmbodiedEntity*      m_pcEmbodiedEntity;
-      CLEDEquippedEntity*   m_pcLEDEquippedEntity;
-      Real                  m_fRadius;
-      Real                  m_fHeight;
-      Real                  m_fMass;
+      CEmbodiedEntity*    m_pcEmbodiedEntity;
+      CLEDEquippedEntity* m_pcLEDEquippedEntity;
+      Real                m_fRadius;
+      Real                m_fHeight;
+      Real                m_fMass;
+      CLEDMedium*         m_pcLEDMedium;
 
    };
 

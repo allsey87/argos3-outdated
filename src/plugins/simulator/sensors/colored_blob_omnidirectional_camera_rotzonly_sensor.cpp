@@ -28,7 +28,12 @@ namespace argos {
          m_bShowRays(b_show_rays) {
          m_pcRootSensingEntity = &m_cEmbodiedEntity.GetParent();
       }
-      virtual ~CLEDCheckOperation() {}
+      virtual ~CLEDCheckOperation() {
+         while(! m_tBlobs.empty()) {
+            delete m_tBlobs.back();
+            m_tBlobs.pop_back();
+         }
+      }
 
       virtual bool operator()(CLEDEntity& c_led) {
          /* Process this LED only if it's lit */
@@ -51,7 +56,6 @@ namespace argos {
                Abs(m_cLEDRelativePos.GetY()) < m_fGroundHalfRange &&
                m_cLEDRelativePos.GetZ() < m_cCameraPos.GetZ() &&
                !GetClosestEmbodiedEntityIntersectedByRay(m_sIntersectionItem,
-                                                         CSimulator::GetInstance().GetSpace().GetEmbodiedEntityIndex(),
                                                          m_cOcclusionCheckRay,
                                                          m_cEmbodiedEntity)) {
                m_tBlobs.push_back(new CCI_ColoredBlobOmnidirectionalCameraSensor::SBlob(c_led.GetColor(),
@@ -66,7 +70,10 @@ namespace argos {
       }
 
       void Setup(Real f_ground_half_range) {
-         m_tBlobs.clear();
+         while(! m_tBlobs.empty()) {
+            delete m_tBlobs.back();
+            m_tBlobs.pop_back();
+         }
          m_fGroundHalfRange = f_ground_half_range;
          m_cEmbodiedEntity.GetOrientation().ToEulerAngles(m_cCameraOrient, m_cTmp1, m_cTmp2);
          m_cCameraPos = m_cEmbodiedEntity.GetPosition();
@@ -124,8 +131,6 @@ namespace argos {
       m_pcControllableEntity = &(c_entity.GetComponent<CControllableEntity>("controller"));
       /* Get embodied entity */
       m_pcEmbodiedEntity = &(c_entity.GetComponent<CEmbodiedEntity>("body"));
-      /* Get embodied entity index */
-      m_pcEmbodiedIndex = &(CSimulator::GetInstance().GetSpace().GetEmbodiedEntityIndex());
    }
 
    /****************************************/
@@ -219,7 +224,7 @@ namespace argos {
                    "colored_blob_omnidirectional_camera", "rot_z_only",
                    "Carlo Pinciroli [ilpincy@gmail.com]",
                    "1.0",
-                   "A generic omnidirectional camera sensor to detect colored blobs",
+                   "A generic omnidirectional camera sensor to detect colored blobs.",
                    "TODO\n\n",
                    "Usable"
 		  );
