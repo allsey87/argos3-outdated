@@ -25,11 +25,11 @@ add_library(dyn3d_testbench_repeatability_loop_functions MODULE
   dyn3d_testbench/dyn3d_testbench_repeatability_loop_functions.cpp)
 target_link_libraries(argos3core_${ARGOS_BUILD_FOR})
 
-add_library(robot_joints_controller MODULE
-  dyn3d_testbench/robot_joints_controller.h
-  dyn3d_testbench/robot_joints_controller.cpp)
-target_link_libraries(robot_joints_controller
-  argos3plugin_${ARGOS_BUILD_FOR}_robot)
+add_library(prototype_joints_controller MODULE
+  dyn3d_testbench/prototype_joints_controller.h
+  dyn3d_testbench/prototype_joints_controller.cpp)
+target_link_libraries(prototype_joints_controller
+  argos3plugin_${ARGOS_BUILD_FOR}_prototype)
 
 if(ARGOS_BUILD_FOR_SIMULATOR OR ARGOS_BUILD_FOR STREQUAL "foot-bot")
   add_library(test_footbot_controller MODULE
@@ -62,7 +62,7 @@ if(ARGOS_BUILD_FOR_SIMULATOR AND GOOGLEPERFTOOLS_FOUND)
     argos3core_simulator
     argos3plugin_simulator_footbot
     argos3plugin_simulator_genericrobot
-    argos3plugin_simulator_robot
+    argos3plugin_simulator_prototype
     argos3plugin_simulator_qtopengl
     argos3plugin_simulator_sensors
     argos3plugin_simulator_entities

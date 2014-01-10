@@ -15,7 +15,7 @@
   <!-- *************** -->
   <controllers>
    
-    <robot_joints_controller id="joint_cppcontroller">
+    <proximity_joints_controller id="joint_cppcontroller">
       <actuators>
         <joints implementation="default" />
       </actuators>
@@ -23,7 +23,7 @@
          <joints implementation="default" />
       </sensors>   
       <params />
-    </robot_joints_controller>
+    </proximity_joints_controller>
 
     <lua_controller id="joint_luacontroller">
       <actuators>
@@ -31,7 +31,7 @@
       </actuators>
       <sensors>
          <joints implementation="default" />
-         <robot_proximity implementation="default" target="bodies.body[body_2].proximity_sensors" show_rays="true"/>
+         <prototype_proximity implementation="default" target="bodies.body[body_2].proximity_sensors" show_rays="true"/>
          <!--robot_proximity implementation="default" target="bodies.body[body_1].proximity_sensors" show_rays="true"/-->
       </sensors>   
       <params/>
@@ -75,7 +75,7 @@
       <body position="0,2.5,0"  orientation="0,0,0"/>
     </box>
 
-    <robot id="robotic-arm">
+    <prototype id="robotic-arm">
        <body position="-1,-1,0" orientation="0,0,0" />
        <controller config="joint_luacontroller"/>
        <bodies reference_body="body_0">
@@ -132,7 +132,7 @@
             <sensor offset="0,0,0.3" direction="1,0,0" range="0.35" />
          </proximity_sensors>
       </devices>
-    </robot>
+    </prototype>
     
     <!--robot id="table" position="-1.5,-1.5,0" orientation="0,0,0" controller="r_lua">
       <bodies reference_body="table_top">
@@ -185,7 +185,7 @@
       </joints>
     </robot-->
     
-    <robot id="magnet">
+    <prototype id="magnet">
       <body position="-1.5,-1.5,0" orientation="0,0,0"/>
       <bodies reference_body="body">
          <body id="body" geometry="sphere" radius="0.05" mass="0.5">
@@ -197,7 +197,7 @@
             </attributes>
          </body>
        </bodies>
-    </robot>
+    </prototype>
     
     <cylinder id="test_cylinder_1" radius="0.07" height="0.3" movable="true" mass="0.5">
       <body position="-1.5,-1.55,0"  orientation="0,0,0"/>
@@ -217,7 +217,7 @@
     </robot-->
     
     <!--robot id="bebot1" position="0,0,0.07025" orientation="0,0,180"-->
-    <robot id="bebot1">
+    <prototype id="bebot1">
       <body position="0,0,0.07025" orientation="0,0,0"/>
       <bodies reference_body="lower-chassis">
          <body id="lower-chassis" geometry="box" size="0.08951, 0.05700, 0.03000" mass="1.0">
@@ -316,7 +316,7 @@
             </dof>
          </joint-->
       </joints>
-    </robot>
+    </prototype>
    
     <!--box id="test_box" size="0.1, 0.1, 0.1" movable="true" mass="5">
       <body position="0.01,-0.01,1"  orientation="0,0,0"/>
@@ -343,7 +343,7 @@
       <floor/>
       <plugins>
          <!--antigravity force="0,0,10"/-->
-         <magnetism/>
+         <!--magnetism/-->
       </plugins>
     </dynamics3d>
   </physics_engines>
@@ -372,4 +372,4 @@
 
   </visualization>
 
-</argos-configuration>allsey87
+</argos-configuration>

@@ -15,9 +15,9 @@
 /****************************************/
 
 void CDyn3DTestbenchLoopFunctions::Init(TConfigurationNode& t_tree) {
-   pcFb = &(dynamic_cast<CComposableEntity&>(m_cSpace.GetEntity("fb1")));
-   pcTable = &(dynamic_cast<CComposableEntity&>(m_cSpace.GetEntity("table")));
-   pcRoboticArm = &(dynamic_cast<CComposableEntity&>(m_cSpace.GetEntity("robotic-arm")));
+   pcFb = &(dynamic_cast<CComposableEntity&>(GetSpace().GetEntity("fb1")));
+   pcTable = &(dynamic_cast<CComposableEntity&>(GetSpace().GetEntity("table")));
+   pcRoboticArm = &(dynamic_cast<CComposableEntity&>(GetSpace().GetEntity("robotic-arm")));
 
    pcRoboticArmBody = &(pcRoboticArm->GetComponent<CEmbodiedEntity>("body"));
    pcTableBody = &(pcTable->GetComponent<CEmbodiedEntity>("body"));
@@ -28,7 +28,7 @@ void CDyn3DTestbenchLoopFunctions::Init(TConfigurationNode& t_tree) {
 void CDyn3DTestbenchLoopFunctions::PreStep() {
    
 
-   switch(m_cSpace.GetSimulationClock()) {
+   switch(GetSpace().GetSimulationClock()) {
    case 50:
       // Take the foot-bot off the table and place it on the ground
       pcFbBody->MoveTo(CVector3(1.5,1.5,0), CQuaternion(CRadians::ZERO,CVector3::Z));

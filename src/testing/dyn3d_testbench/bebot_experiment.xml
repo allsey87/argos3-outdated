@@ -22,7 +22,7 @@
       </actuators>
       <sensors>
          <joints implementation="default" />
-         <robot_proximity implementation="default" target="bodies.body[upper-chassis].proximity_sensors" show_rays="true"/>
+         <prototype_proximity implementation="default" target="bodies.body[upper-chassis].proximity_sensors" show_rays="true"/>
          <!--robot_proximity implementation="default" target="bodies.body[body_1].proximity_sensors" show_rays="true"/-->
       </sensors>   
       <params/>
@@ -52,7 +52,7 @@
       <body position="0.0900,0,0.0450"  orientation="0,0,0"/>
     </box>
     
-    <robot id="bebot1">
+    <prototype id="bebot1">
     <!--robot id="bebot1" position="0,0,0.07025" orientation="0,0,0"-->
       <body position="0,2,0" orientation="0,0,0" />
       <controller config="bebot_luacontroller"/>
@@ -226,7 +226,7 @@
          </leds>
       </devices>
       
-    </robot>
+    </prototype>
    
   </arena>
   

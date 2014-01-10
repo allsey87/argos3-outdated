@@ -16,8 +16,8 @@
 /****************************************/
 
 void CDyn3DTestbenchRepeatabilityLoopFunctions::Init(TConfigurationNode& t_tree) {
-   pcTestBox = &(dynamic_cast<CComposableEntity&>(m_cSpace.GetEntity("test_box")));
-   pcTestCylinder = &(dynamic_cast<CComposableEntity&>(m_cSpace.GetEntity("test_cylinder")));
+   pcTestBox = &(dynamic_cast<CComposableEntity&>(GetSpace().GetEntity("test_box")));
+   pcTestCylinder = &(dynamic_cast<CComposableEntity&>(GetSpace().GetEntity("test_cylinder")));
 
    pcTestBoxBody = &(pcTestBox->GetComponent<CEmbodiedEntity>("body"));
    pcTestCylinderBody = &(pcTestCylinder->GetComponent<CEmbodiedEntity>("body"));

@@ -1,11 +1,14 @@
 add_subdirectory(generic)
-add_subdirectory(robot)
+
+if(ARGOS_BUILD_FOR_SIMULATOR)
+  add_subdirectory(prototype)
+endif(ARGOS_BUILD_FOR_SIMULATOR)
 
 if(ARGOS_BUILD_FOR_SIMULATOR OR ARGOS_BUILD_FOR STREQUAL "foot-bot")
   add_subdirectory(foot-bot)
 endif(ARGOS_BUILD_FOR_SIMULATOR OR ARGOS_BUILD_FOR STREQUAL "foot-bot")
 
-if(ARGOS_BUILD_FOR_SIMULATOR OR ARGOS_BUILD_FOR STREQUAL "e-puck")
-  add_subdirectory(e-puck)
-endif(ARGOS_BUILD_FOR_SIMULATOR OR ARGOS_BUILD_FOR STREQUAL "e-puck")
+# if(ARGOS_BUILD_FOR_SIMULATOR OR ARGOS_BUILD_FOR STREQUAL "e-puck")
+#   add_subdirectory(e-puck)
+# endif(ARGOS_BUILD_FOR_SIMULATOR OR ARGOS_BUILD_FOR STREQUAL "e-puck")
 
