@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <argos-configuration>
-
+  
   <!-- ************************* -->
   <!-- * General configuration * -->
   <!-- ************************* -->
@@ -8,31 +8,31 @@
     <experiment threads="2" length="0" ticks_per_second="100" />
   </framework>
 
-   <!--loop_functions label="dyn3d_testbench_loop_functions" /-->
+  <!--loop_functions label="dyn3d_testbench_loop_functions" /-->
 
   <!-- *************** -->
   <!-- * Controllers * -->
   <!-- *************** -->
   <controllers>
-   
+    
     <proximity_joints_controller id="joint_cppcontroller">
       <actuators>
         <joints implementation="default" />
       </actuators>
       <sensors>
-         <joints implementation="default" />
+        <joints implementation="default" />
       </sensors>   
       <params />
     </proximity_joints_controller>
-
+    
     <lua_controller id="joint_luacontroller">
       <actuators>
         <joints implementation="default" />
       </actuators>
       <sensors>
-         <joints implementation="default" />
-         <prototype_proximity implementation="default" target="bodies.body[body_2].proximity_sensors" show_rays="true"/>
-         <!--robot_proximity implementation="default" target="bodies.body[body_1].proximity_sensors" show_rays="true"/-->
+        <joints implementation="default" />
+        <prototype_proximity implementation="default" target="bodies.body[body_2].proximity_sensors" show_rays="true"/>
+        <!--robot_proximity implementation="default" target="bodies.body[body_1].proximity_sensors" show_rays="true"/-->
       </sensors>   
       <params/>
     </lua_controller>
@@ -55,13 +55,13 @@
   
   
   
-
+  
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->
   <arena size="10, 10, 1" positional_index="grid" positional_grid_size="25,25,1">
     <!-- floor id="f" source="loop_functions" pixels_per_meter="100" / -->
-
+    
     <box id="bn" size="0.1, 5, 0.2" movable="false" mass="1">
       <body position="2.5,0,0"  orientation="0,0,0"/>
     </box>
@@ -75,132 +75,138 @@
       <body position="0,2.5,0"  orientation="0,0,0"/>
     </box>
 
-    <prototype id="robotic-arm">
-       <body position="-1,-1,0" orientation="0,0,0" />
-       <controller config="joint_luacontroller"/>
-       <bodies reference_body="body_0">
-         <body id="body_0" geometry="cylinder" radius="0.15" height="0.05" mass="10">
-            <coordinates/>
-            <offset position="0,0,0" orientation="0,0,0"/>
-         </body>
-         <body id="body_1" geometry="cylinder" radius="0.025" height="0.4" mass="1">
-            <coordinates/>
-            <offset position="0,0,0.05" orientation="0,0,0"/>
-         </body>
-         <body id="body_2" geometry="cylinder" radius="0.025" height="0.3" mass="1">
-            <coordinates/>
-            <offset position="0,0,0.45" orientation="0,0,0"/>
-         </body>
-         <!--body id="body_3" geometry="sphere" radius="0.025" mass="1">
-            <coordinates/>
-            <offset position="0,0,0.85" orientation="0,0,0"/>
-         </body-->
+    <prototype id="robot">
+      <body position="-1,-1,0" orientation="0,0,0" />
+      <controller config="joint_luacontroller"/>
+      <bodies reference_body="base">
+        <body id="base" geometry="cylinder" radius="0.15" height="0.05" mass="10">
+          <coordinates/>
+          <offset position="0,0,0" orientation="0,0,0"/>
+        </body>
+        <body id="link_0" geometry="cylinder" radius="0.025" height="0.4" mass="0.5">
+          <coordinates/>
+          <offset position="0,0,0.05" orientation="0,0,0"/>
+        </body>
+        <body id="link_1" geometry="cylinder" radius="0.025" height="0.2" mass="0.5">
+          <coordinates/>
+          <offset position="0.05,0,0.4" orientation="0,0,0"/>
+        </body>
+        <body id="link_2" geometry="cylinder" radius="0.025" height="0.2" mass="0.5">
+          <coordinates/>
+          <offset position="-0.05,0,0.4" orientation="0,0,0"/>
+        </body>
       </bodies>
       <joints>
-         <joint id="joint_0" disable_collisions="false" sensor="enabled" actuator="enabled">
-            <frames>
-               <frame body="body_0" position="0,0, 0.05" orientation="0,0,0"/>
-               <frame body="body_1" position="0,0,0" orientation="0,0,0"/>
-            </frames>
-         </joint>
-         <joint id="joint_1" disable_collisions="true" sensor="enabled" actuator="enabled">
-            <frames>
-               <frame body="body_1" position="0,0,0.4" orientation="0,0,0"/>
-               <frame body="body_2" position="0,0,0" orientation="0,0,0"/>
-            </frames>
-            <axes>
-               <axis direction="x" mode="angular" range="unconstrained">
-                   <actuator enabled="true" force="15" target_velocity="5"/>
-               </axis>
-               <axis direction="z" mode="linear" range="0:1">
-                   <actuator enabled="true" force="2" target_velocity="1"/>
-               </axis>
-            </axes>
-         </joint>
-         <!--joint id="joint_2" disable_collisions="true" sensor="enabled" actuator="enabled">
-            <frames>
-               <frame body="body_2" position="0,0,0.4" orientation="0,0,0"/>
-               <frame body="body_3" position="0,0,0" orientation="0,0,0"/>
-            </frames>
-         </joint-->
+        <joint id="joint_0" disable_collisions="false" sensor="enabled" actuator="enabled">
+          <frames>
+            <frame body="base" position="0,0, 0.05" orientation="0,0,0"/>
+            <frame body="link_0" position="0,0,0" orientation="0,0,0"/>
+          </frames>
+        </joint>
+        <joint id="joint_1" disable_collisions="true" sensor="enabled" actuator="enabled">
+          <frames>
+            <frame body="link_0" position="0.05,0,0.35" orientation="0,0,0"/>
+            <frame body="link_1" position="0,0,0" orientation="0,0,0"/>
+          </frames>
+          <axes>
+            <axis direction="x" mode="angular" range="unconstrained">
+              <actuator enabled="true" force="5" target_velocity="0"/>
+            </axis>
+          </axes>
+        </joint>
+        <joint id="joint_2" disable_collisions="true" sensor="enabled" actuator="enabled">
+          <frames>
+            <frame body="link_0" position="-0.05,0,0.35" orientation="0,0,0"/>
+            <frame body="link_2" position="0,0,0" orientation="0,0,0"/>
+          </frames>
+          <axes>
+            <axis direction="x" mode="angular" range="unconstrained">
+              <actuator enabled="true" force="5" target_velocity="0"/>
+            </axis>
+          </axes>
+        </joint>
       </joints>
       <devices>
-         <proximity_sensors body="body_2">
-            <sensor offset="0,0,0.3" direction="1,0,0" range="0.35" />
-         </proximity_sensors>
-         <proximity_sensors body="body_1">
-            <sensor offset="0,0,0.3" direction="1,0,0" range="0.35" />
-         </proximity_sensors>
+        <proximity_sensors>
+          <sensor body="link_1" offset="0,0,0.2" direction="1,0,0" range="0.35" />
+          <sensor body="link_2" offset="0,0,0.2" direction="1,0,0" range="0.35" />
+        </proximity_sensors>
+        <!--joint_actuators/>
+        <joint_sensors/>
+        <blob_camera_sensors/>
+        <apriltag_camera_sensors/>
+        <nfc_sensors/>
+        <nfc_actuators/-->
       </devices>
     </prototype>
     
-    <!--robot id="table" position="-1.5,-1.5,0" orientation="0,0,0" controller="r_lua">
+    <!--prototype id="table" position="-1.5,-1.5,0" orientation="0,0,0" controller="r_lua">
       <bodies reference_body="table_top">
-         <body id="table_leg_0" geometry="box" size="0.05,0.05,0.2" mass="1">
-            <coordinates/>
-            <offset position="0.2,0.2,0" orientation="0,0,0"/>
-         </body>
-         <body id="table_leg_1" geometry="box" size="0.05,0.05,0.2" mass="1">
-            <coordinates/>
-            <offset position="-0.2,0.2,0" orientation="0,0,0"/>
-         </body>
-         <body id="table_leg_2" geometry="box" size="0.05,0.05,0.2" mass="1">
-            <coordinates/>
-            <offset position="0.2,-0.2,0" orientation="0,0,0"/>
-         </body>
-         <body id="table_leg_3" geometry="box" size="0.05,0.05,0.2" mass="1">
-            <coordinates/>
-            <offset position="-0.2,-0.2,0" orientation="0,0,0"/>
-         </body>
-         <body id="table_top" geometry="box" size="0.6,0.6,0.05" mass="1">
-            <coordinates/>
-            <offset position="0,0,0.2" orientation="0,0,0"/>
-         </body>
+        <body id="table_leg_0" geometry="box" size="0.05,0.05,0.2" mass="1">
+          <coordinates/>
+          <offset position="0.2,0.2,0" orientation="0,0,0"/>
+        </body>
+        <body id="table_leg_1" geometry="box" size="0.05,0.05,0.2" mass="1">
+          <coordinates/>
+          <offset position="-0.2,0.2,0" orientation="0,0,0"/>
+        </body>
+        <body id="table_leg_2" geometry="box" size="0.05,0.05,0.2" mass="1">
+          <coordinates/>
+          <offset position="0.2,-0.2,0" orientation="0,0,0"/>
+        </body>
+        <body id="table_leg_3" geometry="box" size="0.05,0.05,0.2" mass="1">
+          <coordinates/>
+          <offset position="-0.2,-0.2,0" orientation="0,0,0"/>
+        </body>
+        <body id="table_top" geometry="box" size="0.6,0.6,0.05" mass="1">
+          <coordinates/>
+          <offset position="0,0,0.2" orientation="0,0,0"/>
+        </body>
       </bodies>
       <joints>
-         <joint id="table_leg_0_to_table_top" disable_collisions="false" sensor="enabled" actuator="enabled">
-            <frames>
-               <frame body="table_leg_0" position="0,0,0.2" orientation="0,0,0"/>
+        <joint id="table_leg_0_to_table_top" disable_collisions="false" sensor="enabled" actuator="enabled">
+          <frames>
+            <frame body="table_leg_0" position="0,0,0.2" orientation="0,0,0"/>
                <frame body="table_top" position="0.2,0.2,0" orientation="0,0,0"/>
-            </frames>
-         </joint>
-         <joint id="table_leg_1_to_table_top" disable_collisions="false" sensor="enabled" actuator="enabled">
+          </frames>
+        </joint>
+        <joint id="table_leg_1_to_table_top" disable_collisions="false" sensor="enabled" actuator="enabled">
             <frames>
-               <frame body="table_leg_1" position="0,0,0.2" orientation="0,0,0"/>
-               <frame body="table_top" position="-0.2,0.2,0" orientation="0,0,0"/>
+              <frame body="table_leg_1" position="0,0,0.2" orientation="0,0,0"/>
+              <frame body="table_top" position="-0.2,0.2,0" orientation="0,0,0"/>
             </frames>
-         </joint>
-         <joint id="table_leg_2_to_table_top" disable_collisions="false" sensor="enabled" actuator="enabled">
-            <frames>
-               <frame body="table_leg_2" position="0,0,0.2" orientation="0,0,0"/>
-               <frame body="table_top" position="0.2,-0.2,0" orientation="0,0,0"/>
-            </frames>
-         </joint>
+        </joint>
+        <joint id="table_leg_2_to_table_top" disable_collisions="false" sensor="enabled" actuator="enabled">
+          <frames>
+            <frame body="table_leg_2" position="0,0,0.2" orientation="0,0,0"/>
+            <frame body="table_top" position="0.2,-0.2,0" orientation="0,0,0"/>
+          </frames>
+        </joint>
          <joint id="table_leg_3_to_table_top" disable_collisions="false" sensor="enabled" actuator="enabled">
-            <frames>
-               <frame body="table_leg_3" position="0,0,0.2" orientation="0,0,0"/>
-               <frame body="table_top" position="-0.2,-0.2,0" orientation="0,0,0"/>
-            </frames>
+           <frames>
+             <frame body="table_leg_3" position="0,0,0.2" orientation="0,0,0"/>
+             <frame body="table_top" position="-0.2,-0.2,0" orientation="0,0,0"/>
+           </frames>
          </joint>
       </joints>
-    </robot-->
+    </prototype>
     
     <prototype id="magnet">
       <body position="-1.5,-1.5,0" orientation="0,0,0"/>
       <bodies reference_body="body">
-         <body id="body" geometry="sphere" radius="0.05" mass="0.5">
-            <coordinates/>
-            <offset position="0,0,0" orientation="0,0,0"/>
-            <attributes>
-               <attribute key="magnetic" value="true"/>
-               <attribute key="magnetic_field" value="1,1,1"/>
-            </attributes>
-         </body>
-       </bodies>
-    </prototype>
+        <body id="body" geometry="sphere" radius="0.05" mass="0.5">
+          <coordinates/>
+          <offset position="0,0,0" orientation="0,0,0"/>
+          <attributes>
+            <attribute key="magnetic" value="true"/>
+            <attribute key="magnetic_field" value="1,1,1"/>
+          </attributes>
+        </body>
+      </bodies>
+    </prototype-->
     
     <cylinder id="test_cylinder_1" radius="0.07" height="0.3" movable="true" mass="0.5">
-      <body position="-1.5,-1.55,0"  orientation="0,0,0"/>
+      <body position="-0.75,-1,0"  orientation="0,0,0"/>
     </cylinder>
     
     <!--box id="test_box2" size="0.05, 0.05, 0.05" movable="true" mass="5">
@@ -216,108 +222,6 @@
       </bodies>
     </robot-->
     
-    <!--robot id="bebot1" position="0,0,0.07025" orientation="0,0,180"-->
-    <prototype id="bebot1">
-      <body position="0,0,0.07025" orientation="0,0,0"/>
-      <bodies reference_body="lower-chassis">
-         <body id="lower-chassis" geometry="box" size="0.08951, 0.05700, 0.03000" mass="1.0">
-            <coordinates/>
-            <offset position="0.000000, 0.00000, 0.00575"/>
-         </body>
-         <body id="upper-chassis" geometry="box" size="0.08951, 0.08750, 0.03450" mass="0.45">
-            <coordinates/>
-            <offset position="0.000000, 0.00000, 0.03575"/>
-         </body>
-         <body id="wheel-front-left" geometry="cylinder" radius="0.01575" height="0.01400" mass="0.1">
-            <coordinates/>
-            <offset position="0.031750, 0.02850, 0.01575" orientation="0,0,-90"/>
-         </body>
-         <body id="wheel-front-right" geometry="cylinder" radius="0.01575" height="0.01400" mass="0.1">
-            <coordinates/>
-            <offset position="0.031750, -0.02850, 0.01575" orientation="0,0,90"/>
-         </body>
-         <body id="wheel-rear-left" geometry="cylinder" radius="0.01575" height="0.01400" mass="0.1">
-            <coordinates/>
-            <offset position="-0.031750, 0.02850, 0.01575" orientation="0,0,-90"/>
-         </body>
-         <body id="wheel-rear-right" geometry="cylinder" radius="0.01575" height="0.01400" mass="0.1">
-            <coordinates/>
-            <offset position="-0.031750, -0.02850, 0.01575" orientation="0,0,90"/>
-         </body>
-      </bodies>
-      <joints>
-      
-         <joint id="upper-chassis:lower-chassis" disable_collisions="true">
-            <frames>
-               <frame body="upper-chassis" position="0,0,0" orientation="0,0,0"/>
-               <frame body="lower-chassis" position="0,0,0.03000" orientation="0,0,0"/>
-            </frames>
-         </joint>
-         
-         <joint id="axle-front-left" disable_collisions="true">
-            <frames>
-               <frame body="wheel-front-left" position="0,0,0" orientation="0,0,90"/>
-               <frame body="lower-chassis" position="0.031750, 0.02850, 0.01000" orientation="0,0,0"/>
-            </frames>
-            <axes>
-               <axis direction="y" mode="angular" range="unconstrained">
-                   <actuator enabled="true" force="15" target_velocity="5"/>
-               </axis>
-            </axes>
-         </joint>
-         
-         <joint id="axle-front-right" disable_collisions="true">
-            <frames>
-               <frame body="wheel-front-right" position="0,0,0" orientation="0,0,-90"/>
-               <frame body="lower-chassis" position="0.031750, -0.02850, 0.01000" orientation="0,0,0"/>
-            </frames>
-            <axes>
-               <axis direction="y" mode="angular" range="unconstrained"/>
-            </axes>
-         </joint>
-         <joint id="axle-rear-left" disable_collisions="true">
-            <frames>
-               <frame body="wheel-rear-left" position="0,0,0" orientation="0,0,90"/>
-               <frame body="lower-chassis" position="-0.031750, 0.02850, 0.01000" orientation="0,0,0"/>
-            </frames>
-            <axes>
-               <axis direction="y" mode="angular" range="unconstrained"/>
-            </axes>
-         </joint>
-         <joint id="axle-rear-right" disable_collisions="true">
-            <frames>
-               <frame body="wheel-rear-right" position="0,0,0" orientation="0,0,-90"/>
-               <frame body="lower-chassis" position="-0.031750, -0.02850, 0.01000" orientation="0,0,0"/>
-            </frames>
-            <axes>
-               <axis direction="y" mode="angular" range="unconstrained">
-                   <actuator enabled="true" force="15" target_velocity="5"/>
-               </axis>
-            </axes>
-
-         </joint>
-         <!-- the following are virtual joints (i.e. constraints) that keep simulate the track between the wheels -->
-         <!--joint id="left_track" disable_collisions="false">
-            <frames>
-               <frame body="wheel-front-left" position="-0.031750,0,0" orientation="0,0,90"/>
-               <frame body="wheel-rear-left" position="0.031750,0,0" orientation="0,0,90"/>
-            </frames>
-            <dof>
-               <angular y="free"/>
-            </dof>
-         </joint>
-         <joint id="right_track" disable_collisions="false">
-            <frames>
-               <frame body="wheel-front-right" position="-0.031750,0,0" orientation="0,0,-90"/>
-               <frame body="wheel-rear-right" position="0.031750,0,0" orientation="0,0,-90"/>
-            </frames>
-            <dof>
-               <angular y="free"/>
-            </dof>
-         </joint-->
-      </joints>
-    </prototype>
-   
     <!--box id="test_box" size="0.1, 0.1, 0.1" movable="true" mass="5">
       <body position="0.01,-0.01,1"  orientation="0,0,0"/>
     </box-->
