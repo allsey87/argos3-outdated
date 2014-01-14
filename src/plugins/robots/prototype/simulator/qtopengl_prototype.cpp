@@ -9,7 +9,7 @@
 #include <argos3/core/simulator/entity/embodied_entity.h>
 #include <argos3/plugins/robots/prototype/simulator/prototype_entity.h>
 #include <argos3/plugins/simulator/visualizations/qt-opengl/qtopengl_widget.h>
-#include <argos3/plugins/simulator/entities/led_equipped_entity.h>
+#include <argos3/plugins/robots/prototype/simulator/prototype_led_equipped_entity.h>
 
 namespace argos {
 
@@ -144,28 +144,10 @@ namespace argos {
    }
 
    void CQTOpenGLPrototype::DrawDevices(CPrototypeEntity& c_entity) {
-      for(CBodyEntity::TList::iterator itBody = c_entity.GetBodyEquippedEntity().GetAllBodies().begin();
-          itBody != c_entity.GetBodyEquippedEntity().GetAllBodies().end();
-          ++itBody) {
-
-         glPushMatrix();
-         /* Get the position of the body */
-         const CVector3& cBodyPosition = (*itBody)->GetPositionalEntity().GetPosition();
-         /* Get the orientation of the body */
-         const CQuaternion& cBodyOrientation = (*itBody)->GetPositionalEntity().GetOrientation();
-         CRadians cBodyZAngle, cBodyYAngle, cBodyXAngle;
-         cBodyOrientation.ToEulerAngles(cBodyZAngle, cBodyYAngle, cBodyXAngle);
-         glTranslatef(cBodyPosition.GetX(), cBodyPosition.GetY(), cBodyPosition.GetZ());
-         glRotatef(ToDegrees(cBodyXAngle).GetValue(), 1.0f, 0.0f, 0.0f);
-         glRotatef(ToDegrees(cBodyYAngle).GetValue(), 0.0f, 1.0f, 0.0f);
-         glRotatef(ToDegrees(cBodyZAngle).GetValue(), 0.0f, 0.0f, 1.0f);
-
-         if((*itBody)->HasComponent("leds")) {
-            CLEDEquippedEntity& cLEDEquippedEntity = (*itBody)->GetComponent<CLEDEquippedEntity>("leds");
-            
+         if(c_entity.HasComponent("leds")) {
+            CPrototypeLEDEquippedEntity& cLEDEquippedEntity = c_entity.GetComponent<CPrototypeLEDEquippedEntity>("leds");            
             for(UInt32 i = 0; i < cLEDEquippedEntity.GetAllLEDs().size(); ++i) {
                glPushMatrix();
-
                GLfloat pfColor[]           = {   0.0f, 0.0f, 0.0f, 1.0f };
                const GLfloat pfSpecular[]  = {   0.0f, 0.0f, 0.0f, 1.0f };
                const GLfloat pfShininess[] = { 100.0f                   };
@@ -173,27 +155,21 @@ namespace argos {
                glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, pfSpecular);
                glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, pfShininess);
                glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, pfEmission);
-
                /* Set the material */
                const CColor& cColor = cLEDEquippedEntity.GetLED(i).GetColor();
                pfColor[0] = cColor.GetRed();
                pfColor[1] = cColor.GetGreen();
                pfColor[2] = cColor.GetBlue();
                glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, pfColor);
-
                /* Get the orientation of the LED */
                const CVector3& cPosition = cLEDEquippedEntity.GetLED(i).GetPosition();
                glTranslatef(cPosition.GetX(), cPosition.GetY(), cPosition.GetZ());
-
                /* Draw the LED */
                glScalef(LED_RADIUS,LED_RADIUS,LED_RADIUS);
-               
                glCallList(m_unSphereList);
                glPopMatrix();
             }
          }
-         glPopMatrix();
-      }
    }
 
    /****************************************/

@@ -22,6 +22,8 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     simulator/prototype_entity.h
     simulator/prototype_proximity_default_sensor.h
     simulator/prototype_proximity_sensor_equipped_entity.h
+    simulator/prototype_leds_default_actuator.h
+    simulator/prototype_led_equipped_entity.h
     simulator/geometry3.h
     simulator/box_geometry3.h
     simulator/cylinder_geometry3.h
@@ -53,7 +55,9 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     simulator/joint_equipped_entity.cpp
     simulator/prototype_entity.cpp
     simulator/prototype_proximity_default_sensor.cpp
-    simulator/prototype_proximity_sensor_equipped_entity.cpp)
+    simulator/prototype_proximity_sensor_equipped_entity.cpp
+    simulator/prototype_leds_default_actuator.cpp
+    simulator/prototype_led_equipped_entity.cpp)
   # Compile the graphical visualization only if the necessary libraries have been found
   include(ARGoSCheckQTOpenGL)
   if(ARGOS_COMPILE_QTOPENGL)

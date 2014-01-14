@@ -10,8 +10,7 @@
 #include <argos3/plugins/robots/prototype/simulator/joint_equipped_entity.h>
 
 #include <argos3/plugins/robots/prototype/simulator/prototype_proximity_sensor_equipped_entity.h>
-
-#include <argos3/plugins/simulator/entities/led_equipped_entity.h>
+#include <argos3/plugins/robots/prototype/simulator/prototype_led_equipped_entity.h>
 
 #include <argos3/core/simulator/space/space.h>
 //#include <argos3/core/simulator/entity/controllable_entity.h>
@@ -72,15 +71,12 @@ namespace argos {
                   m_pcEquippedEntity->Init(*itDevice);
                   AddComponent(*m_pcEquippedEntity);
                }
-               /*
                else if(itDevice->Value() == "led_actuators" ){
-                  CLEDEquippedEntity* m_pcAnEquippedEntity =
-                     new CLEDEquippedEntity(&cDeviceBody,
-                                            &cDeviceBody.GetPositionalEntity());
-                  m_pcAnEquippedEntity->Init(*itDevice);
-                  cDeviceBody.AddComponent(*m_pcAnEquippedEntity);
+                  CPrototypeLEDEquippedEntity* m_pcEquippedEntity =
+                     new CPrototypeLEDEquippedEntity(this);
+                  m_pcEquippedEntity->Init(*itDevice);
+                  AddComponent(*m_pcEquippedEntity);
                }
-               */
                else {
 THROW_ARGOSEXCEPTION("Attempt to add unimplemented device type \"" << itDevice->Value() << "\".");
                }
@@ -123,7 +119,7 @@ THROW_ARGOSEXCEPTION("Attempt to add unimplemented device type \"" << itDevice->
    /****************************************/
 
    void CPrototypeEntity::UpdateComponents() {
-      m_pcEmbodiedEntity->Update();
+      CComposableEntity::UpdateComponents();
    }
 
 

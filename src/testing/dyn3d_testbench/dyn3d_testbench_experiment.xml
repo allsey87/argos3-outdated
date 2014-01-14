@@ -15,40 +15,29 @@
   <!-- *************** -->
   <controllers>
     
-    <proximity_joints_controller id="joint_cppcontroller">
-      <actuators>
-        <joints implementation="default" />
-      </actuators>
-      <sensors>
-        <joints implementation="default" />
-      </sensors>   
-      <params />
-    </proximity_joints_controller>
-    
     <lua_controller id="joint_luacontroller">
       <actuators>
         <joints implementation="default" />
+        <pleds implementation="default" medium="leds"/>
       </actuators>
       <sensors>
         <joints implementation="default" />
-        <prototype_proximity implementation="default" target="bodies.body[body_2].proximity_sensors" show_rays="true"/>
-        <!--robot_proximity implementation="default" target="bodies.body[body_1].proximity_sensors" show_rays="true"/-->
+        <prototype_proximity implementation="default" show_rays="false"/>
       </sensors>   
       <params/>
     </lua_controller>
     
     <lua_controller id="fb_lua">
-      <!-- Normal actuator/sensor configuration follows -->
       <actuators>
         <differential_steering implementation="default" />
-        <leds implementation="default" />
+        <leds implementation="default" medium="leds"/>
       </actuators>
       <sensors>
-        <footbot_proximity implementation="default" show_rays="true" />
+        <footbot_proximity implementation="default" show_rays="false" />
+        <colored_blob_omnidirectional_camera implementation="rot_z_only" show_rays="true" medium="leds" />
       </sensors>
-      <!--params script="../../src/testing/experiment/test_script.lua" /-->
-      <params script="src/testing/experiment/test_script.lua" />
-      <!--params/-->
+      <!--params script="src/testing/experiment/test_script.lua" /-->
+      <params/>
     </lua_controller>
     
   </controllers>
@@ -59,7 +48,7 @@
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->
-  <arena size="10, 10, 1" positional_index="grid" positional_grid_size="25,25,1">
+  <arena size="10, 10, 5" positional_index="grid" positional_grid_size="25,25,10">
     <!-- floor id="f" source="loop_functions" pixels_per_meter="100" / -->
     
     <box id="bn" size="0.1, 5, 0.2" movable="false" mass="1">
@@ -73,6 +62,9 @@
     </box>
     <box id="bw" size="5, 0.1, 0.2" movable="false" mass="1">
       <body position="0,2.5,0"  orientation="0,0,0"/>
+      <!--leds medium="leds">
+         <led position="0,-0.075,0.2" color="blue"/>
+      </leds-->
     </box>
 
     <prototype id="robot">
@@ -131,6 +123,19 @@
           <sensor body="link_1" offset="0,0,0.2" direction="1,0,0" range="0.35" />
           <sensor body="link_2" offset="0,0,0.2" direction="1,0,0" range="0.35" />
         </proximity_sensors>
+        <led_actuators medium="leds">
+          <!--led body="base" position="0,0.1,0.055" color="red"/-->
+          <!--led body="base" position="0,-0.1,0.055" color="red"/-->
+          <!--led body="base" position="0.1,0,0.055" color="red"/-->
+          <!--led body="base" position="-0.1,0,0.055" color="red"/-->
+          
+          <led body="link_1" position="-0.0275,0,0.05" color="red"/>
+          <led body="link_1" position="-0.0275,0,0.10" color="red"/>
+          <led body="link_1" position="-0.0275,0,0.15" color="red"/>
+          <led body="link_2" position="-0.0275,0,0.05" color="red"/>
+          <led body="link_2" position="-0.0275,0,0.10" color="red"/>
+          <led body="link_2" position="-0.0275,0,0.15" color="red"/>
+        </led_actuators>
         <!--joint_actuators/>
         <joint_sensors/>
         <blob_camera_sensors/>
@@ -140,6 +145,11 @@
       </devices>
     </prototype>
     
+    <foot-bot id="fb1">
+      <body position="0,2,0" orientation="0,0,0"/>
+      <controller config="fb_lua"/>
+    </foot-bot>
+   
     <!--prototype id="table" position="-1.5,-1.5,0" orientation="0,0,0" controller="r_lua">
       <bodies reference_body="table_top">
         <body id="table_leg_0" geometry="box" size="0.05,0.05,0.2" mass="1">
@@ -237,6 +247,7 @@
   <!-- ********* -->
   <media>
     <range_and_bearing id="rab" index="grid" grid_size="3,3,3" />
+    <led id="leds" index="grid" grid_size="3,3,3" />
   </media>
   
   <!-- ******************* -->
