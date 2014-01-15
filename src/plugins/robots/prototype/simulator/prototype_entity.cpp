@@ -11,6 +11,7 @@
 
 #include <argos3/plugins/robots/prototype/simulator/prototype_proximity_sensor_equipped_entity.h>
 #include <argos3/plugins/robots/prototype/simulator/prototype_led_equipped_entity.h>
+#include <argos3/plugins/robots/prototype/simulator/prototype_forwards_camera_equipped_entity.h>
 
 #include <argos3/core/simulator/space/space.h>
 //#include <argos3/core/simulator/entity/controllable_entity.h>
@@ -76,6 +77,15 @@ namespace argos {
                      new CPrototypeLEDEquippedEntity(this);
                   m_pcEquippedEntity->Init(*itDevice);
                   AddComponent(*m_pcEquippedEntity);
+               }
+               else if(itDevice->Value() == "forwards_camera_sensors" ) {
+                  CDegrees cAperture(70.0f);
+                  Real ELEVATION = 0.288699733f;
+                  CPrototypeForwardsCameraEquippedEntity* m_pcEquippedEntity = 
+                     new CPrototypeForwardsCameraEquippedEntity(this,                                                                                                                     "forwards_camera",
+                                                       ToRadians(cAperture),
+                                                       CVector3(0.0f, 0.0f, ELEVATION));
+                  AddComponent(*m_pcEquippedEntity);         
                }
                else {
 THROW_ARGOSEXCEPTION("Attempt to add unimplemented device type \"" << itDevice->Value() << "\".");
