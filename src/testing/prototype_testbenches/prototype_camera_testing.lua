@@ -9,7 +9,7 @@ function init()
 	   robot.prototype_colored_blob_forwards_camera.enable();
       robot.joints.set_joint_velocity("joint_1", "ANGULAR_X", 10);
       robot.joints.set_joint_velocity("joint_2", "ANGULAR_X", -10);
-      robot.leds.set_all_colors("red");
+      robot.leds.set_all_colors("blue");
    end
 
 	if(robot.id == "ledwall") then

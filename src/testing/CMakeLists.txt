@@ -15,22 +15,6 @@ target_link_libraries(test-grid
 # add_executable(test-reset unit/test-reset.cpp)
 # target_link_libraries(test-reset argos3core_${ARGOS_BUILD_FOR})
 
-add_library(dyn3d_testbench_loop_functions MODULE
-  dyn3d_testbench/dyn3d_testbench_loop_functions.h
-  dyn3d_testbench/dyn3d_testbench_loop_functions.cpp)
-target_link_libraries(argos3core_${ARGOS_BUILD_FOR})
-
-add_library(dyn3d_testbench_repeatability_loop_functions MODULE
-  dyn3d_testbench/dyn3d_testbench_repeatability_loop_functions.h
-  dyn3d_testbench/dyn3d_testbench_repeatability_loop_functions.cpp)
-target_link_libraries(argos3core_${ARGOS_BUILD_FOR})
-
-add_library(prototype_joints_controller MODULE
-  dyn3d_testbench/prototype_joints_controller.h
-  dyn3d_testbench/prototype_joints_controller.cpp)
-target_link_libraries(prototype_joints_controller
-  argos3plugin_${ARGOS_BUILD_FOR}_prototype)
-
 if(ARGOS_BUILD_FOR_SIMULATOR OR ARGOS_BUILD_FOR STREQUAL "foot-bot")
   add_library(test_footbot_controller MODULE
     experiment/test_footbot_controller.h

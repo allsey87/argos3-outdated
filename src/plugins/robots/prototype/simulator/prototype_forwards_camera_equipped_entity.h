@@ -14,6 +14,7 @@ namespace argos {
 }
 
 #include <argos3/core/simulator/entity/entity.h>
+#include <argos3/core/simulator/entity/positional_entity.h>
 #include <argos3/core/utility/math/vector3.h>
 #include <argos3/core/utility/math/quaternion.h>
 
@@ -44,10 +45,12 @@ namespace argos {
        * @param c_aperture The aperture of the visibility cone
        * @param c_offset The positional offset of this omnidirectionalcamera with respect to the robot reference point.
        */
-      CPrototypeForwardsCameraEquippedEntity(CComposableEntity* pc_parent,
-                                           const std::string& str_id,
-                                           const CRadians& c_aperture,
-                                           const CVector3& c_offset);
+      /*CPrototypeForwardsCameraEquippedEntity(CComposableEntity* pc_parent,
+                                             CPositionalEntity* pc_positional,
+                                             const std::string& str_id,
+                                             const CQuaternion& c_offset_orientation,
+                                             const CVector3&    c_offset_position);
+      */
 
       /**
        * Initializes the state of the entity from the XML configuration tree.
@@ -55,49 +58,53 @@ namespace argos {
        */
       virtual void Init(TConfigurationNode& t_tree);
 
-      /**
-       * Returns the offset of the omnidirectional camera with respect to the reference point.
-       * @return The offset of the omnidirectional camera with respect to the reference point.
-       */
-      inline const CVector3& GetOffset() const {
-         return m_cOffset;
-      }
-
-      /**
-       * Sets the offset of the omnidirectionalcamera with respect to the reference point.
-       * @param c_offset The offset of the omnidirectionalcamera with respect to the reference point.
-       */
-      inline void SetOffset(const CVector3& c_offset) {
-         m_cOffset = c_offset;
-      }
-
-      /**
-       * Returns the aperture of the visibility cone of the omnidirectional camera.
-       * @return The aperture of the visibility cone of the omnidirectional camera.
-       */
-      inline const CRadians& GetAperture() const {
-         return m_cAperture;
-      }
-
-      /**
-       * Sets the aperture of the visibility cone of the omnidirectional camera.
-       * @param c_aperture The aperture of the visibility cone of the omnidirectional camera.
-       */
-      inline void SetAperture(const CRadians& c_aperture) {
-         m_cAperture = c_aperture;
-      }
-
       virtual std::string GetTypeDescription() const {
          return "prototype_forwards_camera";
       }
 
+      const CQuaternion& GetOffsetOrientation() const {
+         return m_cOffsetOrientation;
+      }
+
+      const CVector3& GetOffsetPosition() const {
+         return m_cOffsetPosition;
+      }
+
+      const CRadians& GetFieldOfView() const {
+         return m_cFieldOfView;
+      }
+
+      Real GetRange() const {
+         return m_fRange;
+      }
+
+      const CVector2& GetSensorResolution() const {
+         return m_cSensorResolution;
+      }
+
+      //make const
+      CPositionalEntity* GetPositionalEntity() {
+         return m_pcPositionalEntity;
+      }
+
+      /* TEMP / TESTING */
+      CVector3 SphereCenter;
+      Real SphereRadius;
+
+
    private:
 
-      /** The aperture of the visibility cone */
-      CRadians m_cAperture;
-
       /** The positional offset of this omnidirectionalcamera with respect to the robot reference point */
-      CVector3 m_cOffset;
+      CVector3 m_cOffsetPosition;
+      CQuaternion m_cOffsetOrientation; /* to vectors of struct <quat, vec, positional?> */
+      CRadians m_cFieldOfView;
+      Real m_fRange;
+      CVector2 m_cSensorResolution;
+      
+      /* we should ever read from this pointer, make it const */
+      CPositionalEntity* m_pcPositionalEntity;
+
+
 
    };
 }

@@ -11,6 +11,9 @@
 #include <argos3/plugins/simulator/visualizations/qt-opengl/qtopengl_widget.h>
 #include <argos3/plugins/robots/prototype/simulator/prototype_led_equipped_entity.h>
 
+/*TESTING*/
+#include <argos3/plugins/robots/prototype/simulator/prototype_forwards_camera_equipped_entity.h>
+
 namespace argos {
 
    /****************************************/
@@ -144,34 +147,53 @@ namespace argos {
    }
 
    void CQTOpenGLPrototype::DrawDevices(CPrototypeEntity& c_entity) {
-         if(c_entity.HasComponent("leds")) {
-            CPrototypeLEDEquippedEntity& cLEDEquippedEntity = c_entity.GetComponent<CPrototypeLEDEquippedEntity>("leds");            
-            for(UInt32 i = 0; i < cLEDEquippedEntity.GetAllLEDs().size(); ++i) {
-               glPushMatrix();
-               GLfloat pfColor[]           = {   0.0f, 0.0f, 0.0f, 1.0f };
-               const GLfloat pfSpecular[]  = {   0.0f, 0.0f, 0.0f, 1.0f };
-               const GLfloat pfShininess[] = { 100.0f                   };
-               const GLfloat pfEmission[]  = {   0.0f, 0.0f, 0.0f, 1.0f };
-               glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, pfSpecular);
-               glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, pfShininess);
-               glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, pfEmission);
-               /* Set the material */
-               const CColor& cColor = cLEDEquippedEntity.GetLED(i).GetColor();
-               pfColor[0] = cColor.GetRed();
-               pfColor[1] = cColor.GetGreen();
-               pfColor[2] = cColor.GetBlue();
-               glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, pfColor);
-               /* Get the orientation of the LED */
-               const CVector3& cPosition = cLEDEquippedEntity.GetLED(i).GetPosition();
-               glTranslatef(cPosition.GetX(), cPosition.GetY(), cPosition.GetZ());
-               /* Draw the LED */
-               glScalef(LED_RADIUS,LED_RADIUS,LED_RADIUS);
-               glCallList(m_unSphereList);
-               glPopMatrix();
-            }
+      if(c_entity.HasComponent("leds")) {
+         CPrototypeLEDEquippedEntity& cLEDEquippedEntity = c_entity.GetComponent<CPrototypeLEDEquippedEntity>("leds");            
+         for(UInt32 i = 0; i < cLEDEquippedEntity.GetAllLEDs().size(); ++i) {
+            glPushMatrix();
+            GLfloat pfColor[]           = {   0.0f, 0.0f, 0.0f, 1.0f };
+            const GLfloat pfSpecular[]  = {   0.0f, 0.0f, 0.0f, 1.0f };
+            const GLfloat pfShininess[] = { 100.0f                   };
+            const GLfloat pfEmission[]  = {   0.0f, 0.0f, 0.0f, 1.0f };
+            glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, pfSpecular);
+            glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, pfShininess);
+            glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, pfEmission);
+            /* Set the material */
+            const CColor& cColor = cLEDEquippedEntity.GetLED(i).GetColor();
+            pfColor[0] = cColor.GetRed();
+            pfColor[1] = cColor.GetGreen();
+            pfColor[2] = cColor.GetBlue();
+            glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, pfColor);
+            /* Get the orientation of the LED */
+            const CVector3& cPosition = cLEDEquippedEntity.GetLED(i).GetPosition();
+            glTranslatef(cPosition.GetX(), cPosition.GetY(), cPosition.GetZ());
+            /* Draw the LED */
+            glScalef(LED_RADIUS,LED_RADIUS,LED_RADIUS);
+            glCallList(m_unSphereList);
+            glPopMatrix();
          }
+      }
+      
+      /* Testing */
+      if(c_entity.HasComponent("prototype_forwards_camera")) {
+         CPrototypeForwardsCameraEquippedEntity& cForwardsCamEquippedEntity =
+            c_entity.GetComponent<CPrototypeForwardsCameraEquippedEntity>("prototype_forwards_camera");
+         glPushMatrix();
+         glPolygonMode(GL_FRONT, GL_LINE);
+         glPolygonMode(GL_BACK, GL_LINE);
+         glTranslatef(cForwardsCamEquippedEntity.SphereCenter.GetX(),
+                      cForwardsCamEquippedEntity.SphereCenter.GetY(),
+                      cForwardsCamEquippedEntity.SphereCenter.GetZ() - cForwardsCamEquippedEntity.SphereRadius);
+         glScalef(cForwardsCamEquippedEntity.SphereRadius * 2.0f,
+                  cForwardsCamEquippedEntity.SphereRadius * 2.0f,
+                  cForwardsCamEquippedEntity.SphereRadius * 2.0f);
+         glCallList(m_unSphereList);
+         glPolygonMode(GL_FRONT, GL_FILL);
+         glPolygonMode(GL_BACK, GL_FILL);
+         glPopMatrix();
+      }
    }
-
+   
    /****************************************/
    /****************************************/
    

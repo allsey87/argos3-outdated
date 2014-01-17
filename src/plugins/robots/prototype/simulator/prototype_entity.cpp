@@ -79,12 +79,9 @@ namespace argos {
                   AddComponent(*m_pcEquippedEntity);
                }
                else if(itDevice->Value() == "forwards_camera_sensors" ) {
-                  CDegrees cAperture(70.0f);
-                  Real ELEVATION = 0.288699733f;
                   CPrototypeForwardsCameraEquippedEntity* m_pcEquippedEntity = 
-                     new CPrototypeForwardsCameraEquippedEntity(this,                                                                                                                     "forwards_camera",
-                                                       ToRadians(cAperture),
-                                                       CVector3(0.0f, 0.0f, ELEVATION));
+                     new CPrototypeForwardsCameraEquippedEntity(this);
+                  m_pcEquippedEntity->Init(*itDevice);
                   AddComponent(*m_pcEquippedEntity);         
                }
                else {

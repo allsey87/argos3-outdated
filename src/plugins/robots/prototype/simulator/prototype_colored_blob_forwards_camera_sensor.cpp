@@ -33,7 +33,6 @@ namespace argos {
          m_cEmbodiedEntity(c_embodied_entity),
          m_cControllableEntity(c_controllable_entity),
          m_bShowRays(b_show_rays) {
-         m_pcRootSensingEntity = &m_cEmbodiedEntity.GetParent();
       }
       virtual ~CLEDCheckOperation() {
          while(! m_tBlobs.empty()) {
@@ -44,48 +43,52 @@ namespace argos {
 
       virtual bool operator()(CLEDEntity& c_led) {
          /* Process this LED only if it's lit */
+         /*
+         fprintf(stderr,
+                 "\tchecking LED %s at [%.3f, %.3f, %.3f]\n",
+                 (c_led.GetContext() + c_led.GetId()).c_str(),
+                 c_led.GetPosition().GetX(),
+                 c_led.GetPosition().GetY(),
+                 c_led.GetPosition().GetZ());
+         */
          if(c_led.GetColor() != CColor::BLACK) {
-            if(c_led.HasParent()) {
-               /* Filter out the LEDs belonging to the sensing entity by checking if they share the same parent entity */
-               m_pcRootOfLEDEntity = &c_led.GetParent();
-               while(m_pcRootOfLEDEntity->HasParent()) m_pcRootOfLEDEntity = &m_pcRootOfLEDEntity->GetParent();
-               if(m_pcRootSensingEntity == m_pcRootOfLEDEntity) {
-                  return true;
+            if((c_led.GetPosition() - m_cViewingSpherePos).Length() < m_fViewingSphereRadius) {
+               m_cOcclusionCheckRay.SetEnd(c_led.GetPosition());         
+               if(!GetClosestEmbodiedEntityIntersectedByRay(m_sIntersectionItem,
+                                                            m_cOcclusionCheckRay,
+                                                            m_cEmbodiedEntity)) {
+                  //fprintf(stderr, "\tprocessed!\n");
+                  m_tBlobs.push_back(new CCI_PrototypeColoredBlobForwardsCameraSensor::SBlob(c_led.GetColor(),
+                                                                                             CRadians::ZERO,
+                                                                                             0.0f));
+                  if(m_bShowRays) {
+                     m_cControllableEntity.AddCheckedRay(false, CRay3(m_cCameraPos, c_led.GetPosition()));
+                  }
                }
-            }
-            /* If we are here, it's because the LED must be processed */
-            m_cOcclusionCheckRay.SetEnd(c_led.GetPosition());
-            m_cLEDRelativePos = c_led.GetPosition();
-            m_cLEDRelativePos -= m_cCameraPos;
-            m_cLEDRelativePosXY.Set(m_cLEDRelativePos.GetX(),
-                                    m_cLEDRelativePos.GetY());
-            if(Abs(m_cLEDRelativePos.GetX()) < m_fGroundHalfRange &&
-               Abs(m_cLEDRelativePos.GetY()) < m_fGroundHalfRange &&
-               m_cLEDRelativePos.GetZ() < m_cCameraPos.GetZ() &&
-               !GetClosestEmbodiedEntityIntersectedByRay(m_sIntersectionItem,
-                                                         m_cOcclusionCheckRay,
-                                                         m_cEmbodiedEntity)) {
-               m_tBlobs.push_back(new CCI_PrototypeColoredBlobForwardsCameraSensor::SBlob(c_led.GetColor(),
-                                                                                          m_cLEDRelativePosXY.Angle() - m_cCameraOrient,
-                                                                                          m_cLEDRelativePosXY.Length() * 100.0f));
-               if(m_bShowRays) {
-                  m_cControllableEntity.AddCheckedRay(false, CRay3(m_cCameraPos, c_led.GetPosition()));
-               }
-            }
+            }   
          }
          return true;
       }
 
-      void Setup(Real f_ground_half_range) {
+      void Setup(const CVector3& c_camera_pos,
+                 const CVector3& c_viewing_sphere_pos,
+                 Real f_viewing_sphere_radius) {
          while(! m_tBlobs.empty()) {
             delete m_tBlobs.back();
             m_tBlobs.pop_back();
          }
-         m_fGroundHalfRange = f_ground_half_range;
-         m_cEmbodiedEntity.GetOrientation().ToEulerAngles(m_cCameraOrient, m_cTmp1, m_cTmp2);
-         m_cCameraPos = m_cEmbodiedEntity.GetPosition();
-         m_cCameraPos += m_cForwardsCamEntity.GetOffset();
+         
+         m_cCameraPos = c_camera_pos;
+         m_cViewingSpherePos = c_viewing_sphere_pos;
+         m_fViewingSphereRadius = f_viewing_sphere_radius;
          m_cOcclusionCheckRay.SetStart(m_cCameraPos);
+         /*
+         fprintf(stderr,
+                 "Setup of camera complete! Rays start at [%.3f, %.3f, %.3f]\n",
+                 m_cOcclusionCheckRay.GetStart().GetX(),
+                 m_cOcclusionCheckRay.GetStart().GetY(),
+                 m_cOcclusionCheckRay.GetStart().GetZ());
+         */
       }
       
    private:
@@ -94,15 +97,14 @@ namespace argos {
       CPrototypeForwardsCameraEquippedEntity& m_cForwardsCamEntity;
       CEmbodiedEntity& m_cEmbodiedEntity;
       CControllableEntity& m_cControllableEntity;
-      Real m_fGroundHalfRange;
       bool m_bShowRays;
-      CEntity* m_pcRootSensingEntity;
-      CEntity* m_pcRootOfLEDEntity;
       CVector3 m_cCameraPos;
-      CRadians m_cCameraOrient;
-      CRadians m_cTmp1, m_cTmp2;
-      CVector3 m_cLEDRelativePos;
-      CVector2 m_cLEDRelativePosXY;
+      CVector3 m_cViewingSpherePos;
+      Real m_fViewingSphereRadius;
+      //   CRadians m_cCameraOrient;
+      //   CRadians m_cTmp1, m_cTmp2;
+      //      CVector3 m_cLEDRelativePos;
+      //      CVector2 m_cLEDRelativePosXY;
       SEmbodiedEntityIntersectionItem m_sIntersectionItem;
       CRay3 m_cOcclusionCheckRay;
    };
@@ -177,19 +179,59 @@ namespace argos {
       if(m_bEnabled) {
          /* Increase data counter */
          ++m_sReadings.Counter;
-         /* Calculate range on the ground */
-         CVector3 cCameraPos = m_pcForwardsCamEntity->GetOffset();
-         cCameraPos += m_pcEmbodiedEntity->GetPosition();
-         Real fGroundHalfRange = cCameraPos.GetZ() * Tan(m_pcForwardsCamEntity->GetAperture());
+         
+         const Real fRange = m_pcForwardsCamEntity->GetRange(); 
+         const CRadians& cFieldOfView = m_pcForwardsCamEntity->GetFieldOfView(); 
+
+         Real fSinHalfFieldOfView = Sin(cFieldOfView * 0.5f);
+         Real fViewingSphereRadius = (fRange * fSinHalfFieldOfView) / (fSinHalfFieldOfView + 1.0f);
+         CVector3 cViewingSphereOffset(0.0f, 0.0f, fRange - fViewingSphereRadius);
+
+         /* Calculate the viewing sphere position */
+         CVector3 cViewingSpherePos = cViewingSphereOffset;
+         cViewingSpherePos.Rotate(m_pcForwardsCamEntity->GetOffsetOrientation());
+         cViewingSpherePos += m_pcForwardsCamEntity->GetOffsetPosition();
+         cViewingSpherePos.Rotate(m_pcForwardsCamEntity->GetPositionalEntity()->GetOrientation());
+         cViewingSpherePos += m_pcForwardsCamEntity->GetPositionalEntity()->GetPosition();
+
+         CVector3 cCameraPos = m_pcForwardsCamEntity->GetOffsetPosition();
+         cCameraPos.Rotate(m_pcForwardsCamEntity->GetPositionalEntity()->GetOrientation());
+         cCameraPos += m_pcForwardsCamEntity->GetPositionalEntity()->GetPosition();
+
+
+         /* use the orientation to aim the camera, i.e rotate the sphere wrt front of the camera */
+         /*
+         fprintf(stderr, "Updating CPrototypeColoredBlobForwardsCameraSensor\n");
+         fprintf(stderr, 
+                 "\tAttached to: %s at [%.3f, %.3f, %.3f]\n", 
+                 (m_pcForwardsCamEntity->GetPositionalEntity()->GetContext() + 
+                  m_pcForwardsCamEntity->GetPositionalEntity()->GetId()).c_str(),
+                 m_pcForwardsCamEntity->GetPositionalEntity()->GetPosition().GetX(),
+                 m_pcForwardsCamEntity->GetPositionalEntity()->GetPosition().GetY(),
+                 m_pcForwardsCamEntity->GetPositionalEntity()->GetPosition().GetZ());
+         fprintf(stderr, 
+                 "\tCamera is at [%.3f, %.3f, %.3f]\n",
+                 cCameraPos.GetX(),
+                 cCameraPos.GetY(),
+                 cCameraPos.GetZ());
+         */
          /* Prepare the operation */
-         m_pcOperation->Setup(fGroundHalfRange);
+         m_pcOperation->Setup(cCameraPos, cViewingSpherePos, fViewingSphereRadius);
          /* Go through LED entities in box range */
-         m_pcLEDIndex->ForEntitiesInBoxRange(
-            CVector3(cCameraPos.GetX(),
-                     cCameraPos.GetY(),
-                     cCameraPos.GetZ() * 0.5f),
-            CVector3(fGroundHalfRange, fGroundHalfRange, cCameraPos.GetZ() * 0.5f),
+         
+
+         //fprintf(stderr, "Checking LEDs\n");
+         //m_pcLEDIndex->ForAllEntities(*m_pcOperation);
+         m_pcForwardsCamEntity->SphereCenter = cViewingSpherePos;
+         m_pcForwardsCamEntity->SphereRadius = fViewingSphereRadius;
+         
+         m_pcLEDIndex->ForEntitiesInSphereRange(
+            CVector3(cViewingSpherePos.GetX(),
+                     cViewingSpherePos.GetY(),
+                     cViewingSpherePos.GetZ()),
+            fViewingSphereRadius,
             *m_pcOperation);
+            
       }
    }
 
