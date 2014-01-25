@@ -103,7 +103,7 @@
         <led_actuators/>
         <forwards_camera_sensors>
           <!--camera id="front_camera" body="link_0" position="0,0,0.4" orientation="0,-90,0" field_of_view="90" range="1" resolution="1280,960" enabled="true"/-->
-          <camera id="front_camera" body="link_0" position="-0.0251,0,0.30" orientation="0,-90,0" field_of_view="54.774215005" range="0.73" resolution="1280,960" enabled="true"/>
+          <camera id="front_camera" body="link_0" position="-0.0251,0,0.40" orientation="0,-90,0" field_of_view="54.774215005" range="0.73" resolution="640,480" enabled="true"/>
           <!--camera id="rear_camera" body="link_0" position="0.0275,0,0.15" orientation="0,90,0" field_of_view="90" range="0.5" resolution="640,480" enabled="true"/-->
         </forwards_camera_sensors>
       </devices>
@@ -131,17 +131,17 @@
           <led id="led_32" body="base" position="0.0051, -0.000, 0.600" color="red"/>
           <led id="led_33" body="base" position="0.0051,  0.150, 0.600" color="red"/>
           <!-- intentionally out of range leds -->
-          <led id="led_00" body="base" position="0.0051, -0.175269119, 0.274730881" color="red"/>
+          <!--led id="led_00" body="base" position="0.0051, -0.175269119, 0.274730881" color="red"/>
           <led id="led_04" body="base" position="0.0051,  0.175269119, 0.274730881" color="red"/>
           <led id="led_40" body="base" position="0.0051, -0.175269119, 0.625269119" color="red"/>
-          <led id="led_44" body="base" position="0.0051,  0.175269119, 0.625269119" color="red"/>
+          <led id="led_44" body="base" position="0.0051,  0.175269119, 0.625269119" color="red"/-->
         </led_actuators>
       </devices>
     </prototype>
     
-    <box id="intheway" size="0.01,1,1" mass="10" movable="true">
+    <!--box id="intheway" size="0.01,1,1" mass="10" movable="true">
        <body position="-0.25,0,0" orientation="0,0,0" />
-    </box>
+    </box-->
     
     
   </arena>
@@ -176,6 +176,7 @@
     <!-- * To activate the Lua editor, just use the 'lua_editor' flag attribute * -->
     <!-- ************************************************************************ -->
     <qt-opengl lua_editor="true">
+      <user_functions label="prototype_camera_user_functions" library="build/testing/prototype_testbenches/qt_camera_visualisation/libprototype_camera_loop_functions.so"/>
       <camera>
         <!--placement idx="0" position="-2.3768,-1.7586,0.423095" look_at="-1.45605,-1.7563,0.0329456" lens_focal_length="20" /-->
         <placement idx="0" position=" 0, 0, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" />

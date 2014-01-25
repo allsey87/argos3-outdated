@@ -41,8 +41,6 @@ namespace argos {
 
       virtual void Destroy();
 
-      virtual size_t GetNumberForwardsCameras();
-
       virtual void Enable();
 
       virtual void Disable();

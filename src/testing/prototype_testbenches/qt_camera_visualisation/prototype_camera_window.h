@@ -1,10 +1,13 @@
 #ifndef PROTOTYPE_CAMERA_WINDOW_H
 #define PROTOTYPE_CAMERA_WINDOW_H
 
+class QVBoxLayout;
+class QGraphicsScene;
+class QGraphicsView;
+
 #include <argos3/plugins/robots/prototype/control_interface/ci_prototype_forwards_camera_sensor.h>
 
 #include <QDialog>
-
 
 using namespace argos;
 
@@ -34,6 +37,12 @@ private:
 
    CCI_PrototypeForwardsCameraSensor* m_pcCamera;
    UInt32 m_unCameraIndex;
+
+   /* Qt UI Objects */
+   QVBoxLayout* m_pcLayout;
+   QGraphicsScene* m_pcScene;
+   QGraphicsView* m_pcViewport;
+   
    
 };
 

@@ -81,7 +81,9 @@ void CPrototypeCameraUserFunctions::EntityDeselected(size_t un_index) {
 /********************************************************************************/
 
 void CPrototypeCameraUserFunctions::UpdateCameras(int n_step) {
-   
+   for(UInt32 i = 0; i < m_tWindows.size(); i++) {
+      m_tWindows[i]->Update();
+   }
 }
 
 /********************************************************************************/
