@@ -1,15 +1,15 @@
 /**
- * @file <argos3/plugins/robot/prototype/simulator/prototype_colored_blob_forwards_camera_sensor.h>
+ * @file <argos3/plugins/robot/prototype/simulator/prototype_forwards_camera_sensor.h>
  *
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-#ifndef PROTOTYPE_COLORED_BLOB_FORWARDS_CAMERA_SENSOR_H
-#define PROTOTYPE_COLORED_BLOB_FORWARDS_CAMERA_SENSOR_H
+#ifndef PROTOTYPE_FORWARDS_CAMERA_SENSOR_H
+#define PROTOTYPE_FORWARDS_CAMERA_SENSOR_H
 
 namespace argos {
-   class CPrototypeColoredBlobForwardsCameraSensor;
-   class CPrototypeForwardsCameraEquippedEntity;
+   class CPrototypeForwardsCameraSensor;
+   class CForwardsCameraEquippedEntity;
    class CLEDEntity;
    class CControllableEntity;
    class CLEDCheckOperation;
@@ -18,18 +18,18 @@ namespace argos {
 #include <argos3/core/utility/math/rng.h>
 #include <argos3/core/simulator/space/space.h>
 #include <argos3/core/simulator/sensor.h>
-#include <argos3/plugins/robots/prototype/control_interface/ci_prototype_colored_blob_forwards_camera_sensor.h>
+#include <argos3/plugins/robots/prototype/control_interface/ci_prototype_forwards_camera_sensor.h>
 
 namespace argos {
 
-   class CPrototypeColoredBlobForwardsCameraSensor : public CSimulatedSensor,
-                                                     public CCI_PrototypeColoredBlobForwardsCameraSensor {
+   class CPrototypeForwardsCameraSensor : public CSimulatedSensor,
+                                          public CCI_PrototypeForwardsCameraSensor {
 
    public:
 
-      CPrototypeColoredBlobForwardsCameraSensor();
+      CPrototypeForwardsCameraSensor();
 
-      virtual ~CPrototypeColoredBlobForwardsCameraSensor();
+      virtual ~CPrototypeForwardsCameraSensor();
 
       virtual void SetRobot(CComposableEntity& c_entity);
 
@@ -41,6 +41,8 @@ namespace argos {
 
       virtual void Destroy();
 
+      virtual size_t GetNumberForwardsCameras();
+
       virtual void Enable();
 
       virtual void Disable();
@@ -48,7 +50,7 @@ namespace argos {
    protected:
 
       bool                                    m_bEnabled;
-      CPrototypeForwardsCameraEquippedEntity* m_pcForwardsCamEntity;
+      CForwardsCameraEquippedEntity*          m_pcForwardsCamerasEntity;
       CControllableEntity*                    m_pcControllableEntity;
       CEmbodiedEntity*                        m_pcEmbodiedEntity;
       CPositionalIndex<CLEDEntity>*           m_pcLEDIndex;

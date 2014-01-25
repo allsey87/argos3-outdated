@@ -12,7 +12,7 @@
 #include <argos3/plugins/robots/prototype/simulator/prototype_led_equipped_entity.h>
 
 /*TESTING*/
-#include <argos3/plugins/robots/prototype/simulator/prototype_forwards_camera_equipped_entity.h>
+#include <argos3/plugins/robots/prototype/simulator/forwards_camera_equipped_entity.h>
 
 namespace argos {
 
@@ -166,7 +166,7 @@ namespace argos {
             glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, pfColor);
             /* Get the orientation of the LED */
             const CVector3& cPosition = cLEDEquippedEntity.GetLED(i).GetPosition();
-            glTranslatef(cPosition.GetX(), cPosition.GetY(), cPosition.GetZ());
+            glTranslatef(cPosition.GetX(), cPosition.GetY(), cPosition.GetZ() - LED_RADIUS/2);
             /* Draw the LED */
             glScalef(LED_RADIUS,LED_RADIUS,LED_RADIUS);
             glCallList(m_unSphereList);
@@ -175,22 +175,26 @@ namespace argos {
       }
       
       /* Testing */
-      if(c_entity.HasComponent("prototype_forwards_camera")) {
-         CPrototypeForwardsCameraEquippedEntity& cForwardsCamEquippedEntity =
-            c_entity.GetComponent<CPrototypeForwardsCameraEquippedEntity>("prototype_forwards_camera");
-         glPushMatrix();
-         glPolygonMode(GL_FRONT, GL_LINE);
-         glPolygonMode(GL_BACK, GL_LINE);
-         glTranslatef(cForwardsCamEquippedEntity.SphereCenter.GetX(),
-                      cForwardsCamEquippedEntity.SphereCenter.GetY(),
-                      cForwardsCamEquippedEntity.SphereCenter.GetZ() - cForwardsCamEquippedEntity.SphereRadius);
-         glScalef(cForwardsCamEquippedEntity.SphereRadius * 2.0f,
-                  cForwardsCamEquippedEntity.SphereRadius * 2.0f,
-                  cForwardsCamEquippedEntity.SphereRadius * 2.0f);
-         glCallList(m_unSphereList);
-         glPolygonMode(GL_FRONT, GL_FILL);
-         glPolygonMode(GL_BACK, GL_FILL);
-         glPopMatrix();
+      if(c_entity.HasComponent("forwards_camera_container")) {
+         CForwardsCameraEquippedEntity& cForwardsCamEquippedEntity =
+            c_entity.GetComponent<CForwardsCameraEquippedEntity>("forwards_camera_container");
+         for(size_t i = 0; i < cForwardsCamEquippedEntity.GetAllForwardsCameras().size(); ++i) {
+            
+            glPushMatrix();
+            glPolygonMode(GL_FRONT, GL_LINE);
+            glPolygonMode(GL_BACK, GL_LINE);
+            glTranslatef(cForwardsCamEquippedEntity.GetForwardsCamera(i).SphereCenter.GetX(),
+                         cForwardsCamEquippedEntity.GetForwardsCamera(i).SphereCenter.GetY(),
+                         cForwardsCamEquippedEntity.GetForwardsCamera(i).SphereCenter.GetZ() -
+                         cForwardsCamEquippedEntity.GetForwardsCamera(i).SphereRadius);
+            glScalef(cForwardsCamEquippedEntity.GetForwardsCamera(i).SphereRadius * 2.0f,
+                     cForwardsCamEquippedEntity.GetForwardsCamera(i).SphereRadius * 2.0f,
+                     cForwardsCamEquippedEntity.GetForwardsCamera(i).SphereRadius * 2.0f);
+            glCallList(m_unSphereList);
+            glPolygonMode(GL_FRONT, GL_FILL);
+            glPolygonMode(GL_BACK, GL_FILL);
+            glPopMatrix();
+         }
       }
    }
    

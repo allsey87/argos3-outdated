@@ -7,12 +7,10 @@
 function init()
    	if(robot.id == "robot") then
 	   --robot.prototype_forwards_camera.enable();
-      robot.joints.set_joint_velocity("joint_1", "ANGULAR_X", 10);
-      robot.joints.set_joint_velocity("joint_2", "ANGULAR_X", -10);
       robot.leds.set_all_colors("blue");
    end
 
-	if(robot.id == "led-test-wall-right" or robot.id == "led-test-wall-left") then
+	if(robot.id == "test-pattern") then
 		robot.leds.set_all_colors("red");
 	end
 end
@@ -20,9 +18,7 @@ end
 --[[ This function is executed at each time step
      It must contain the logic of your controller ]]
 function step()
-   if(robot.id == "robot") then
-     	log(robot.joints["joint_1"].rotation_x);
-   end
+
 end
 
 

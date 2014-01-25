@@ -35,8 +35,6 @@ namespace argos {
          /* Init parent */
          CComposableEntity::Init(t_tree);
          /* Go through the led entries */
-         CVector3 cPosition;
-         CColor cColor;
          TConfigurationNodeIterator itLED("led");
          for(itLED = itLED.begin(&t_tree);
              itLED != itLED.end();

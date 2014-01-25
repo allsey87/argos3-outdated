@@ -7,7 +7,7 @@ set(ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_CONTROLINTERFACE
   control_interface/ci_prototype_joints_sensor.h
   control_interface/ci_prototype_joints_actuator.h
   control_interface/ci_prototype_proximity_sensor.h
-  control_interface/ci_prototype_colored_blob_forwards_camera_sensor.h)
+  control_interface/ci_prototype_forwards_camera_sensor.h)
 
 if(ARGOS_BUILD_FOR_SIMULATOR)
   set(ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR
@@ -20,13 +20,14 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     simulator/frame_equipped_entity.h
     simulator/joint_entity.h
     simulator/joint_equipped_entity.h
+    simulator/forwards_camera_entity.h
+    simulator/forwards_camera_equipped_entity.h
     simulator/prototype_entity.h
     simulator/prototype_proximity_default_sensor.h
     simulator/prototype_proximity_sensor_equipped_entity.h
     simulator/prototype_leds_default_actuator.h
     simulator/prototype_led_equipped_entity.h
-    simulator/prototype_forwards_camera_equipped_entity.h
-    simulator/prototype_colored_blob_forwards_camera_sensor.h
+    simulator/prototype_forwards_camera_sensor.h
     simulator/geometry3.h
     simulator/box_geometry3.h
     simulator/cylinder_geometry3.h
@@ -41,7 +42,7 @@ set(ARGOS3_SOURCES_PLUGINS_ROBOTS_PROTOTYPE
     control_interface/ci_prototype_joints_sensor.cpp
     control_interface/ci_prototype_joints_actuator.cpp
     control_interface/ci_prototype_proximity_sensor.cpp
-    control_interface/ci_prototype_colored_blob_forwards_camera_sensor.cpp)
+    control_interface/ci_prototype_forwards_camera_sensor.cpp)
 
 if(ARGOS_BUILD_FOR_SIMULATOR)
   set(ARGOS3_SOURCES_PLUGINS_ROBOTS_PROTOTYPE
@@ -57,13 +58,14 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     simulator/frame_equipped_entity.cpp
     simulator/joint_entity.cpp
     simulator/joint_equipped_entity.cpp
+    simulator/forwards_camera_entity.cpp
+    simulator/forwards_camera_equipped_entity.cpp
     simulator/prototype_entity.cpp
     simulator/prototype_proximity_default_sensor.cpp
     simulator/prototype_proximity_sensor_equipped_entity.cpp
     simulator/prototype_leds_default_actuator.cpp
     simulator/prototype_led_equipped_entity.cpp
-    simulator/prototype_forwards_camera_equipped_entity.cpp
-    simulator/prototype_colored_blob_forwards_camera_sensor.cpp)
+    simulator/prototype_forwards_camera_sensor.cpp)
   # Compile the graphical visualization only if the necessary libraries have been found
   include(ARGoSCheckQTOpenGL)
   if(ARGOS_COMPILE_QTOPENGL)
