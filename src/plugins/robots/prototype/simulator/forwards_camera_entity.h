@@ -47,6 +47,10 @@ namespace argos {
          return m_cFieldOfView;
       }
 
+      const CRadians& GetRoll() const {
+         return m_cRoll;
+      }
+
       Real GetRange() const {
          return m_fRange;
       }
@@ -70,6 +74,7 @@ namespace argos {
    protected:
 
       CRadians m_cFieldOfView;
+      CRadians m_cRoll;
       Real m_fRange;
       UInt32 m_unHorizontalResolution;
       UInt32 m_unVerticalResolution;

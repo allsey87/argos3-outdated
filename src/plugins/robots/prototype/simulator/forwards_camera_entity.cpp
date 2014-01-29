@@ -48,6 +48,9 @@ namespace argos {
          bool bEnabled = false;
          GetNodeAttributeOrDefault(t_tree, "enabled", bEnabled, bEnabled);
          SetEnabled(bEnabled);
+         CDegrees cRoll;
+         GetNodeAttribute(t_tree, "roll", cRoll);
+         m_cRoll = ToRadians(cRoll);
          CDegrees cFieldOfView;
          GetNodeAttribute(t_tree, "field_of_view", cFieldOfView);
          m_cFieldOfView = ToRadians(cFieldOfView);

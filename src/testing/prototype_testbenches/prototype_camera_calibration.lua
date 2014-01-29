@@ -7,11 +7,20 @@
 function init()
    	if(robot.id == "robot") then
 	   --robot.prototype_forwards_camera.enable();
-      robot.leds.set_all_colors("blue");
+      --robot.leds.set_all_colors("blue");
+      robot.joints.set_joint_velocity("joint_0", "ANGULAR_Z", 5)
    end
 
 	if(robot.id == "test-pattern") then
-		robot.leds.set_all_colors("red");
+		robot.leds.set_single_color(1, "red");
+		robot.leds.set_single_color(2, "green");
+		robot.leds.set_single_color(3, "blue");
+		robot.leds.set_single_color(4, "green");
+		robot.leds.set_single_color(5, "blue");
+		robot.leds.set_single_color(6, "red");
+		robot.leds.set_single_color(7, "blue");
+		robot.leds.set_single_color(8, "red");
+		robot.leds.set_single_color(9, "green");
 	end
 end
 
@@ -29,7 +38,7 @@ end
      called. The state of sensors and actuators is reset
      automatically by ARGoS. ]]
 function reset()
-   -- put your code here
+   init();
 end
 
 

@@ -97,13 +97,26 @@
             <frame body="base" position="0,0, 0.05" orientation="0,0,0"/>
             <frame body="link_0" position="0,0,0" orientation="0,0,0"/>
           </frames>
+          <axes>
+            <axis direction="z" mode="angular" range="unconstrained">
+              <actuator enabled="true" force="5" target_velocity="0"/>
+            </axis>
+          </axes>
         </joint>
       </joints>
       <devices>
         <led_actuators/>
         <forwards_camera_sensors>
           <!--camera id="front_camera" body="link_0" position="0,0,0.4" orientation="0,-90,0" field_of_view="90" range="1" resolution="1280,960" enabled="true"/-->
-          <camera id="front_camera" body="link_0" position="-0.0251,0,0.40" orientation="0,-90,0" field_of_view="54.774215005" range="0.73" resolution="640,480" enabled="true"/>
+          <camera id="front_camera"
+                  body="link_0"
+                  position="-0.0251,0,0.40"
+                  orientation="0,-90,0"
+                  roll="-90"
+                  field_of_view="54.774215005"
+                  range="0.73"
+                  resolution="640,480"
+                  enabled="true"/>
           <!--camera id="rear_camera" body="link_0" position="0.0275,0,0.15" orientation="0,90,0" field_of_view="90" range="0.5" resolution="640,480" enabled="true"/-->
         </forwards_camera_sensors>
       </devices>

@@ -54,24 +54,70 @@ namespace argos {
                                                             //, m_cEmbodiedEntity)) {
                                                             )) {
                   
-                  CVector3 cLedPositionOnSensor = c_led.GetPosition();
-                  cLedPositionOnSensor -= m_cCameraPos;
-                  cLedPositionOnSensor.Rotate(m_cCameraOrientation); //.Inverse());
+                  /* Camera and sphere rotations
+            CVector3 cViewingSpherePos = cViewingSphereOffset;
+            cViewingSpherePos.Rotate(cForwardsCameraOrientationOffset);
+            cViewingSpherePos += cForwardsCameraPositionOffset;
+            cViewingSpherePos.Rotate(cForwardsCameraAttachedBodyOrientation);
+            cViewingSpherePos += cForwardsCameraAttachedBodyPosition;
 
-                  UInt32 cLedHorizontalIndex = 0.5f * m_unHorizontalResolution * cLedPositionOnSensor.GetX();
-                  UInt32 cLedVerticalIndex =  0.5f * m_unVerticalResolution * cLedPositionOnSensor.GetY();
+            CVector3 cCameraPos = cForwardsCameraPositionOffset;
+            cCameraPos.Rotate(cForwardsCameraAttachedBodyOrientation);
+            cCameraPos += cForwardsCameraAttachedBodyPosition;
+                   */
+               
+                  
+                  CVector3 cLedPositionOnSensorA = c_led.GetPosition();
+                  CVector3 cLedPositionOnSensorB = c_led.GetPosition();
+                  
+                  /* ATTEMPT A */
+                  cLedPositionOnSensorA -= m_cCameraPos;
+                  cLedPositionOnSensorA.Rotate(m_cCameraOrientation.Inverse()); //.Inverse());
+                  
 
-                  fprintf(stderr, "%s\n", (c_led.GetContext() + c_led.GetId()).c_str());
+                  /* ATTEMPT B */
+                  cLedPositionOnSensorB -= m_cForwardsCameraAttachedBodyPosition;
+                  cLedPositionOnSensorB.Rotate(m_cForwardsCameraAttachedBodyOrientation.Inverse());
+                  cLedPositionOnSensorB -= m_cForwardsCameraPositionOffset;
+                  cLedPositionOnSensorB.Rotate(m_cForwardsCameraOrientationOffset.Inverse());
+                  cLedPositionOnSensorB.Rotate(CQuaternion(m_cForwardsCameraRoll, CVector3::Z) );
+
+                  fprintf(stderr,
+                          "cLedPositionOnSensorA = [%.3f, %.3f, %.3f]\n",
+                          cLedPositionOnSensorA.GetX(),
+                          cLedPositionOnSensorA.GetY(),
+                          cLedPositionOnSensorA.GetZ());
+                  fprintf(stderr,
+                          "cLedPositionOnSensorB = [%.3f, %.3f, %.3f]\n",
+                          cLedPositionOnSensorB.GetX(),
+                          cLedPositionOnSensorB.GetY(),
+                          cLedPositionOnSensorB.GetZ());
+                          
+
+
+
+                  CVector3 cLedPositionOnSensor = cLedPositionOnSensorB;
+                  UInt32 cLedHorizontalIndex = m_unHorizontalResolution * (cLedPositionOnSensor.GetX() + m_fViewingSphereRadius) / (2.0f * m_fViewingSphereRadius);
+                  UInt32 cLedVerticalIndex = m_unVerticalResolution * (cLedPositionOnSensor.GetY() + m_fViewingSphereRadius) / (2.0f * m_fViewingSphereRadius);
+
+                  
+                  
+
+                  std::ostringstream color;
+                  color << c_led.GetColor();
+                  fprintf(stderr, "%s - %s\n", (c_led.GetContext() + c_led.GetId()).c_str(), color.str().c_str());
                   fprintf(stderr,
                           "\tled position = [%.3f, %.3f, %.3f]\n",
                           c_led.GetPosition().GetX(),
                           c_led.GetPosition().GetY(),
                           c_led.GetPosition().GetZ());
                   fprintf(stderr,
-                          "\tled position on sensor = [%.3f, %.3f, %.3f]\n",
+                          "\tled transformed position = [%.3f, %.3f, %.3f]\n",
                           cLedPositionOnSensor.GetX(),
                           cLedPositionOnSensor.GetY(),
                           cLedPositionOnSensor.GetZ());
+                  fprintf(stderr,
+                          "\tled position on sensor = [%u, %u]\n", cLedHorizontalIndex, cLedVerticalIndex);
       
                   
                   //end
@@ -96,7 +142,12 @@ namespace argos {
                  UInt32 un_vertical_resolution,
                  const CVector3& c_viewing_sphere_pos,
                  Real f_viewing_sphere_radius,
-                 CCI_PrototypeForwardsCameraSensor::SReading& s_results) {
+                 CCI_PrototypeForwardsCameraSensor::SReading& s_results,
+                 const CVector3& c_forwards_camera_attached_body_position,
+                 const CQuaternion& c_forwards_camera_attached_body_orientation,
+                 const CVector3& c_forwards_camera_position_offset,
+                 const CQuaternion& c_forwards_camera_orientation_offset,
+                 const CRadians& c_forwards_camera_roll) {
 
          m_pcResults = &s_results;
 
@@ -104,16 +155,24 @@ namespace argos {
          m_pcResults->ObservationList.clear();
 
          
-         m_cCameraPos = c_camera_pos;
-         m_cCameraOrientation = c_camera_orientation;
          m_unHorizontalResolution = un_horizontal_resolution;
          m_unVerticalResolution = un_vertical_resolution;
          m_cViewingSpherePos = c_viewing_sphere_pos;
          m_fViewingSphereRadius = f_viewing_sphere_radius;
          m_cOcclusionCheckRay.SetStart(m_cCameraPos);
 
+         //A
+         m_cCameraPos = c_camera_pos;
+         m_cCameraOrientation = c_camera_orientation;
+
+         //B
+         m_cForwardsCameraAttachedBodyPosition = c_forwards_camera_attached_body_position;
+         m_cForwardsCameraAttachedBodyOrientation = c_forwards_camera_attached_body_orientation;
+         m_cForwardsCameraPositionOffset = c_forwards_camera_position_offset;
+         m_cForwardsCameraOrientationOffset = c_forwards_camera_orientation_offset;
+         m_cForwardsCameraRoll = c_forwards_camera_roll;
          // Add a ray from the camera to the sphere centre for debugging
-         m_cControllableEntity.AddCheckedRay(true, CRay3(m_cCameraPos, c_viewing_sphere_pos));
+         //m_cControllableEntity.AddCheckedRay(true, CRay3(m_cCameraPos, c_viewing_sphere_pos));
 
 
 
@@ -125,14 +184,27 @@ namespace argos {
       //CEmbodiedEntity& m_cEmbodiedEntity;
       CControllableEntity& m_cControllableEntity;
       bool m_bShowRays;
-      CVector3 m_cCameraPos;
-      CQuaternion m_cCameraOrientation;
       UInt32 m_unHorizontalResolution;
       UInt32 m_unVerticalResolution;
-      CVector3 m_cViewingSpherePos;
-      Real m_fViewingSphereRadius;
       SEmbodiedEntityIntersectionItem m_sIntersectionItem;
       CRay3 m_cOcclusionCheckRay;
+
+
+      //A
+      CVector3 m_cCameraPos;
+      CQuaternion m_cCameraOrientation;
+
+      //B
+      CVector3 m_cForwardsCameraAttachedBodyPosition;
+      CQuaternion m_cForwardsCameraAttachedBodyOrientation;
+      CVector3 m_cForwardsCameraPositionOffset;
+      CQuaternion m_cForwardsCameraOrientationOffset;
+      CRadians m_cForwardsCameraRoll;
+
+
+      CVector3 m_cViewingSpherePos;
+      Real m_fViewingSphereRadius;
+
    };
 
    /****************************************/
@@ -220,13 +292,13 @@ namespace argos {
             m_pcForwardsCamerasEntity->GetForwardsCamera(i);
 
          if(cForwardsCamera.IsEnabled()) {
-            const CQuaternion& cFowardsCameraOrientationOffset =
+            const CQuaternion& cForwardsCameraOrientationOffset =
                m_pcForwardsCamerasEntity->GetOffsetOrientation(i);
-            const CVector3& cFowardsCameraPositionOffset =
+            const CVector3& cForwardsCameraPositionOffset =
                m_pcForwardsCamerasEntity->GetOffsetPosition(i);
-            const CQuaternion& cFowardsCameraAttachedBodyOrientation =
+            const CQuaternion& cForwardsCameraAttachedBodyOrientation =
                m_pcForwardsCamerasEntity->GetPositionalEntity(i).GetOrientation();
-            const CVector3& cFowardsCameraAttachedBodyPosition =
+            const CVector3& cForwardsCameraAttachedBodyPosition =
                m_pcForwardsCamerasEntity->GetPositionalEntity(i).GetPosition();
             const CRadians& cFieldOfView = cForwardsCamera.GetFieldOfView(); 
             Real fRange = cForwardsCamera.GetRange();
@@ -238,17 +310,19 @@ namespace argos {
             
             /* Calculate the viewing sphere position */
             CVector3 cViewingSpherePos = cViewingSphereOffset;
-            cViewingSpherePos.Rotate(cFowardsCameraOrientationOffset);
-            cViewingSpherePos += cFowardsCameraPositionOffset;
-            cViewingSpherePos.Rotate(cFowardsCameraAttachedBodyOrientation);
-            cViewingSpherePos += cFowardsCameraAttachedBodyPosition;
+            cViewingSpherePos.Rotate(cForwardsCameraOrientationOffset);
+            cViewingSpherePos += cForwardsCameraPositionOffset;
+            cViewingSpherePos.Rotate(cForwardsCameraAttachedBodyOrientation);
+            cViewingSpherePos += cForwardsCameraAttachedBodyPosition;
 
             /* Calculate camera position */
-            CVector3 cCameraPos = cFowardsCameraPositionOffset;
-            cCameraPos.Rotate(cFowardsCameraAttachedBodyOrientation);
-            cCameraPos += cFowardsCameraAttachedBodyPosition;
+            CVector3 cCameraPos = cForwardsCameraPositionOffset;
+            cCameraPos.Rotate(cForwardsCameraAttachedBodyOrientation);
+            cCameraPos += cForwardsCameraAttachedBodyPosition;
 
-            CQuaternion cCameraOrientation = cFowardsCameraOrientationOffset.Inverse() * cFowardsCameraAttachedBodyOrientation.Inverse();
+            //CQuaternion cInvRoll = CQuaternion(cForwardsCamera.GetRoll(), CVector3::Z).Inverse();
+            CQuaternion cRoll = CQuaternion(cForwardsCamera.GetRoll(), cViewingSpherePos - cCameraPos);
+            CQuaternion cCameraOrientation = cForwardsCameraAttachedBodyOrientation * cForwardsCameraOrientationOffset * cRoll;
 
             /* Setup up the operation for camera i */
             m_pcOperation->Setup(cCameraPos,
@@ -257,7 +331,13 @@ namespace argos {
                                  cForwardsCamera.GetVerticalResolution(),                                 
                                  cViewingSpherePos,
                                  fViewingSphereRadius,
-                                 m_tReadings[i]);
+                                 m_tReadings[i],
+                                 cForwardsCameraAttachedBodyPosition,
+                                 cForwardsCameraAttachedBodyOrientation,
+                                 cForwardsCameraPositionOffset,
+                                 cForwardsCameraOrientationOffset,
+                                 cForwardsCamera.GetRoll());
+                                
 
             /* Update the viewing sphere for debug purposes */
             /* Should this be a permanently enabled feature? Implement at the entity level?? */
