@@ -23,9 +23,9 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CDynamics3DAntigravityPlugin::Update(CDynamics3DEngine& c_engine) {
-      for(CDynamics3DModel::TVector::iterator itModel = c_engine.GetModels().begin();
-          itModel != c_engine.GetModels().end();
+   void CDynamics3DAntigravityPlugin::Update() {
+      for(CDynamics3DModel::TVector::iterator itModel = m_pcEngine->GetModels().begin();
+          itModel != m_pcEngine->GetModels().end();
           ++itModel) {
          for(CDynamics3DBody::TVector::iterator itBody = (*itModel)->GetBodies().begin();
              itBody != (*itModel)->GetBodies().end();

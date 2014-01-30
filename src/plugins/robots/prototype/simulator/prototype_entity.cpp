@@ -12,6 +12,7 @@
 #include <argos3/plugins/robots/prototype/simulator/prototype_proximity_sensor_equipped_entity.h>
 #include <argos3/plugins/robots/prototype/simulator/prototype_led_equipped_entity.h>
 #include <argos3/plugins/robots/prototype/simulator/forwards_camera_equipped_entity.h>
+#include <argos3/plugins/robots/prototype/simulator/electromagnet_equipped_entity.h>
 
 #include <argos3/core/simulator/space/space.h>
 //#include <argos3/core/simulator/entity/controllable_entity.h>
@@ -72,15 +73,21 @@ namespace argos {
                   m_pcEquippedEntity->Init(*itDevice);
                   AddComponent(*m_pcEquippedEntity);
                }
-               else if(itDevice->Value() == "led_actuators" ) {
+               else if(itDevice->Value() == "leds" ) {
                   CPrototypeLEDEquippedEntity* m_pcEquippedEntity =
                      new CPrototypeLEDEquippedEntity(this);
                   m_pcEquippedEntity->Init(*itDevice);
                   AddComponent(*m_pcEquippedEntity);
                }
-               else if(itDevice->Value() == "forwards_camera_sensors" ) {
+               else if(itDevice->Value() == "forwards_cameras" ) {
                   CForwardsCameraEquippedEntity* m_pcEquippedEntity = 
                      new CForwardsCameraEquippedEntity(this);
+                  m_pcEquippedEntity->Init(*itDevice);
+                  AddComponent(*m_pcEquippedEntity);         
+               }
+               else if(itDevice->Value() == "electromagnets" ) {
+                  CElectromagnetEquippedEntity* m_pcEquippedEntity = 
+                     new CElectromagnetEquippedEntity(this);
                   m_pcEquippedEntity->Init(*itDevice);
                   AddComponent(*m_pcEquippedEntity);         
                }

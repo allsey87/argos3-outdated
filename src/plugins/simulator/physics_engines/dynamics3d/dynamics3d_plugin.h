@@ -11,13 +11,11 @@ namespace argos {
 
 }
 
-#include <vector>
-#include <string>
-
-#include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_engine.h>
-//#include <argos3/plugins/simulator/physics_engines/dynamics3d/bullet/btBulletDynamicsCommon.h>
 #include <argos3/core/utility/datatypes/datatypes.h>
 #include <argos3/core/utility/plugins/factory.h>
+#include <argos3/core/simulator/simulator.h>
+
+#include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_engine.h>
 
 namespace argos {
 
@@ -35,19 +33,29 @@ namespace argos {
       CDynamics3DPlugin() {}
 
       ~CDynamics3DPlugin() {}
-
+      
       virtual void Init(TConfigurationNode& t_tree) {}
       virtual void Reset() {}
       virtual void Destroy() {}
 
-      virtual void Update(CDynamics3DEngine& c_engine) = 0;
+      virtual void SetEngine(CDynamics3DEngine& c_engine) {
+         m_pcEngine = &c_engine;
+      }
+
+      virtual void RegisterModel(CDynamics3DModel& c_model) = 0;
+      virtual void UnregisterModel(CDynamics3DModel& c_model) = 0;
+
+      virtual void Update() = 0;
 
       const std::string& GetId() const {
          return m_strId;
       }
 
    protected:
+      CDynamics3DEngine* m_pcEngine;
+      
       std::string m_strId;
+      
    };
 
    /****************************************/

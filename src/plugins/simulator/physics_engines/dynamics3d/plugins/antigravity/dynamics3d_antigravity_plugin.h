@@ -38,7 +38,10 @@ namespace argos {
       virtual void Reset() {}
       virtual void Destroy() {}
 
-      virtual void Update(CDynamics3DEngine& c_engine);
+      virtual void RegisterModel(CDynamics3DModel& c_model) {}
+      virtual void UnregisterModel(CDynamics3DModel& c_model) {}
+
+      virtual void Update();
 
    private:
 
