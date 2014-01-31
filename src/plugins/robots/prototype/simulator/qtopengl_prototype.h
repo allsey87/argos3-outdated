@@ -37,6 +37,7 @@ namespace argos {
       void MakeCylinder();
       void MakeSphere();
       void MakeLED();
+      void MakePoles();
 
    private:
       GLuint m_unBaseList;
@@ -44,6 +45,7 @@ namespace argos {
       GLuint m_unCylinderList;
       GLuint m_unSphereList;
       GLuint m_unLEDList;
+      GLuint m_unPoleList;
       GLuint m_unVertices;
 
    };

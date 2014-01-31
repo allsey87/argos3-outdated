@@ -51,7 +51,15 @@ namespace argos {
          return *m_pcPositionalEntity;
       }
 
+      const CPositionalEntity& GetPositionalEntity() const {
+         return *m_pcPositionalEntity;
+      }
+      
       CPositionalEntity& GetOffsetPositionalEntity() {
+         return *m_pcOffsetPositionalEntity;
+      }
+      
+      const CPositionalEntity& GetOffsetPositionalEntity() const {
          return *m_pcOffsetPositionalEntity;
       } 
 

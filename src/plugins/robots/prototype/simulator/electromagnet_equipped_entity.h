@@ -80,7 +80,7 @@ namespace argos {
        * @param un_index The index of the relative electromagnet.
        * @returns A reference to the body entity for the relevant electromagnet
        */
-      CBodyEntity& GetElectromagnetBody(UInt32 un_index);
+      CBodyEntity& GetElectromagneticBody(UInt32 un_index);
 
       /**
        * Returns the vector of bodies associated with the vector of electromagnets.
@@ -96,7 +96,7 @@ namespace argos {
        * @param c_field The field of the electromagnet.
        */
       void SetElectromagnetField(UInt32 un_index,
-                          const CVector3& c_field);
+                                 const CVector3& c_field);
 
       /**
        * Sets the field of all the electromagnets to the same value.

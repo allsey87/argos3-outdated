@@ -20,13 +20,44 @@ namespace argos {
    /****************************************/
 
    void CPrototypeElectromagnetsDefaultActuator::Init(TConfigurationNode& t_tree) {
-      std::string strTarget;
-      GetNodeAttribute(t_tree, "target", strTarget);
-      Tokenize(strTarget, m_vecElectromagneticBodyIds, ",");
+      std::string strTargets;
+      std::vector<std::string> vecTargetIds;
+      GetNodeAttribute(t_tree, "target", strTargets);
+      Tokenize(strTargets, vecTargetIds, ",");
       GetNodeAttributeOrDefault(t_tree, "show_poles", m_bShowPoles, m_bShowPoles);
+      /* Get references to the bodies and magnets */
+      CBodyEntity::TList& tElectromagneticBodies = m_pcElectromagnetEquippedEntity->GetAllElectromagneticBodies();
+      CElectromagnetEntity::TList& tElectromagnets = m_pcElectromagnetEquippedEntity->GetAllElectromagnets();
+      /* Attempt to locate each electromagnet specified for actuation and populate the relevant data structures*/
+      for(std::vector<std::string>::iterator itTargetId = vecTargetIds.begin();
+          itTargetId != vecTargetIds.end();
+          ++itTargetId) {
+         UInt32 unElectromagnetIndex = 0;
+         for(unElectromagnetIndex = 0; 
+             unElectromagnetIndex < tElectromagneticBodies.size(); 
+             ++unElectromagnetIndex) {
+            if(tElectromagneticBodies[unElectromagnetIndex]->GetId() == *itTargetId) break;
+         }
+         if(unElectromagnetIndex < tElectromagneticBodies.size()) {
+            m_vecElectromagnetIndices.push_back(unElectromagnetIndex);
+            m_tDescriptors.push_back(SDescriptor(*itTargetId,
+                                                 tElectromagnets[unElectromagnetIndex]->GetPassiveField(),
+                                                 tElectromagnets[unElectromagnetIndex]->GetActiveField(),
+                                                 true));
+            m_tConfigurations.push_back(SConfiguration(0.0f));
+         }
+         else {
+            THROW_ARGOSEXCEPTION("A electromagnetic body with Id=\"" <<
+                                 *itTargetId << 
+                                 "\" could not be found in \"" <<
+                                 m_pcElectromagnetEquippedEntity->GetContext() + 
+                                 m_pcElectromagnetEquippedEntity->GetId() <<
+                                 "\".");
+         }
+      }   
    }
    
-
+   
    /****************************************/
    /****************************************/
 
@@ -36,35 +67,6 @@ namespace argos {
          m_pcElectromagnetEquippedEntity = &(c_entity.GetComponent<CElectromagnetEquippedEntity>("electromagnets"));
          m_pcElectromagnetEquippedEntity->SetCanBeEnabledIfDisabled(true);
          m_pcElectromagnetEquippedEntity->Enable();
-         /* Get references to the lists of magnets and their associated bodies */
-         CBodyEntity::TList& tElectromagneticBodies = m_pcElectromagnetEquippedEntity->GetAllElectromagneticBodies();
-         CElectromagnetEntity::TList& tElectromagnets = m_pcElectromagnetEquippedEntity->GetAllElectromagnets();
-         /* Attempt to locate each electromagnet specified for actuation and populate the relevant data structures*/
-         for(std::vector<std::string>::iterator itElectromagneticBodyId = m_vecElectromagneticBodyIds.begin();
-             itElectromagneticBodyId != m_vecElectromagneticBodyIds.end();
-             ++itElectromagneticBodyId) {
-            UInt32 unElectromagnetIndex = 0;
-            for(unElectromagnetIndex = 0; 
-                unElectromagnetIndex < tElectromagneticBodies.size(); 
-                ++unElectromagnetIndex) {
-               if(tElectromagneticBodies[unElectromagnetIndex]->GetId() == *itElectromagneticBodyId) break;
-            }
-            if(unElectromagnetIndex < tElectromagneticBodies.size()) {
-               m_vecElectromagnetIndices.push_back(unElectromagnetIndex);
-               m_tDescriptors.push_back(SDescriptor(*itElectromagneticBodyId,
-                                                    tElectromagnets[unElectromagnetIndex]->GetActiveField(),
-                                                    tElectromagnets[unElectromagnetIndex]->GetPassiveField(),
-                                                    true));
-               m_tConfigurations.push_back(SConfiguration(0.0f));
-            }
-            else {
-               THROW_ARGOSEXCEPTION("A electromagnetic body with Id=\"" <<
-                                    *itElectromagneticBodyId << 
-                                    "\" could not be found in robot \"" <<
-                                    c_entity.GetId() <<
-                                    "\".");
-            }
-         }
       }
       catch(CARGoSException& ex) {
          THROW_ARGOSEXCEPTION_NESTED("Can't set robot for the electromagnets default actuator", ex);

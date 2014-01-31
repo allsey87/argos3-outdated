@@ -32,7 +32,8 @@ include_directories(
    ${CMAKE_SOURCE_DIR}/plugins/simulator/physics_engines/dynamics3d/bullet/LinearMath)
 add_library(argos3plugin_${ARGOS_BUILD_FOR}_dyn3dplugin_magnetism SHARED ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_PLUGINS_MAGNETISM})
 target_link_libraries(argos3plugin_${ARGOS_BUILD_FOR}_dyn3dplugin_magnetism
-                      argos3plugin_${ARGOS_BUILD_FOR}_dynamics3d)
+                      argos3plugin_${ARGOS_BUILD_FOR}_dynamics3d
+                      argos3plugin_${ARGOS_BUILD_FOR}_prototype)
 
 install(FILES ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_PLUGINS_MAGNETISM} DESTINATION include/argos3/plugins/physics_engines/dynamics3d/plugins/magnetism)
 

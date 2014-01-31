@@ -18,36 +18,49 @@ namespace argos {
       GetNodeAttributeOrDefault(t_tree, "force_constant", m_fForceConstant, 7.0500949e-13);
    } 
    
-   void CDynamics3DMagnetismPlugin::InitDataStructures() {
-      
-      for(CDynamics3DModel::TVector::iterator itModel = m_pcEngine->GetModels().begin();
-          itModel != m_pcEngine->GetModels().end();
-          ++itModel) {			  
-         for(CDynamics3DBody::TVector::iterator itBody = (*itModel)->GetBodies().begin();
-             itBody != (*itModel)->GetBodies().end();
-             ++itBody) {
-            
-            if((*itBody)->HasAttribute("magnetic"))   
-               {
-                  CDynamics3DMagnetismPlugin::SMagneticBody sBody;
-                  CVector3 cBodyField;
-                  std::istringstream streamField((*itBody)->GetAttribute("magnetic_field")); 
-                  streamField >> cBodyField;    
-                  sBody.Body = (*itBody);
-                  sBody.Field = ARGoSToBullet(cBodyField);
-                  m_vecMagneticBodies.push_back(sBody);
+   /****************************************/
+   /****************************************/
+
+   void CDynamics3DMagnetismPlugin::RegisterModel(CDynamics3DModel& c_model) {
+      CComposableEntity& cComposable = c_model.GetEmbodiedEntity().GetParent();
+      if(cComposable.HasComponent("electromagnets")) {
+         CElectromagnetEquippedEntity& cElectromagnets = cComposable.GetComponent<CElectromagnetEquippedEntity>("electromagnets");
+         m_tModels.push_back(SModel(&c_model, &cElectromagnets));
+         
+         UInt32 unBodyIdx, unElectromagnetIdx;
+         
+         for(unBodyIdx = 0;
+             unBodyIdx < c_model.GetBodies().size();
+             ++unBodyIdx) {
+            for(unElectromagnetIdx = 0;
+                unElectromagnetIdx < cElectromagnets.GetAllElectromagneticBodies().size();
+                ++unElectromagnetIdx) {
+               if(cElectromagnets.GetElectromagneticBody(unElectromagnetIdx).GetId() == c_model.GetBodies()[unBodyIdx]->GetId()) {
+                  m_tModels.back().BodyIndices.push_back(unBodyIdx);
+                  m_tModels.back().ElectromagnetIndices.push_back(unElectromagnetIdx);
                }
+            }
+         }  
+      }
+   }
+   
+   /****************************************/
+   /****************************************/
+
+   void CDynamics3DMagnetismPlugin::UnregisterModel(CDynamics3DModel& c_model) {
+      for(SModel::TList::iterator itModel = m_tModels.begin(); itModel != m_tModels.end(); ++itModel) {
+         if(itModel->Model == &c_model) {
+            m_tModels.erase(itModel);
          }
       }
-   }   
+   }
+   
    /****************************************/
    /****************************************/
    
    void CDynamics3DMagnetismPlugin::Update() {
-      if(m_bDataStructureInitRequired) {
-         InitDataStructures();
-         m_bDataStructureInitRequired = false;
-      }
+      /*
+
       SMagneticBody MainBody;
       SMagneticBody SubBody;
       CVector3 cMainBodyField;
@@ -94,6 +107,13 @@ namespace argos {
             itMainBody->Body->ApplyForce(btVector3(cComponentsForceMain.getX(), 
                                                    cComponentsForceMain.getY(), 
                                                    cComponentsForceMain.getZ()));
+
+      */
+
+
+
+      /*
+
             itMainBody->Body->ApplyTorque(btVector3(cComponentsTorqueMain.getX(),
                                                     cComponentsTorqueMain.getY(), 
                                                     cComponentsTorqueMain.getZ()));            
@@ -190,9 +210,9 @@ namespace argos {
                (cCrossProduct2*cDotProduct3).getZ(),
              (cCrossProduct4*cDotProduct1).getX(),
              (cCrossProduct4*cDotProduct1).getY(),
-             (cCrossProduct4*cDotProduct1).getZ());  */
+             (cCrossProduct4*cDotProduct1).getZ()); 
          }
-      }
+         }*/
    }
    /****************************************/
    /****************************************/

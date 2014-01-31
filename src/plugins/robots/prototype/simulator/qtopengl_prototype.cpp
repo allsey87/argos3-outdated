@@ -10,6 +10,7 @@
 #include <argos3/plugins/robots/prototype/simulator/prototype_entity.h>
 #include <argos3/plugins/simulator/visualizations/qt-opengl/qtopengl_widget.h>
 #include <argos3/plugins/robots/prototype/simulator/prototype_led_equipped_entity.h>
+#include <argos3/plugins/robots/prototype/simulator/electromagnet_equipped_entity.h>
 
 /*TESTING*/
 #include <argos3/plugins/robots/prototype/simulator/forwards_camera_equipped_entity.h>
@@ -32,12 +33,13 @@ namespace argos {
       m_unVertices(20) {
       
       /* Reserve the needed display lists */
-      m_unBaseList = glGenLists(4);
+      m_unBaseList = glGenLists(5);
       /* References to the display lists */
       m_unBoxList      = m_unBaseList;
       m_unCylinderList = m_unBaseList + 1;
       m_unSphereList   = m_unBaseList + 2;
       m_unLEDList      = m_unBaseList + 3;
+      m_unPoleList     = m_unBaseList + 4;
       
       /* Make box list */
       glNewList(m_unBoxList, GL_COMPILE);
@@ -58,13 +60,18 @@ namespace argos {
       glNewList(m_unLEDList, GL_COMPILE);
       MakeLED();
       glEndList();
+
+      /* Make Poles list */
+      glNewList(m_unPoleList, GL_COMPILE);
+      MakePoles();
+      glEndList();
    }
 
    /****************************************/
    /****************************************/
 
    CQTOpenGLPrototype::~CQTOpenGLPrototype() {
-      glDeleteLists(m_unBaseList, 4);
+      glDeleteLists(m_unBaseList, 5);
    }
    
    /****************************************/
@@ -112,7 +119,10 @@ namespace argos {
           itBody != c_entity.GetBodyEquippedEntity().GetAllBodies().end();
           ++itBody) {
          /* Configure the body material */
-         glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, BODY_COLOR);
+         //glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, BODY_COLOR);
+         glPolygonMode(GL_FRONT, GL_LINE);
+         glPolygonMode(GL_BACK, GL_LINE);
+
          /* Get the position of the body */
          const CVector3& cPosition = (*itBody)->GetPositionalEntity().GetPosition();
          /* Get the orientation of the body */
@@ -142,6 +152,8 @@ namespace argos {
             glCallList(m_unSphereList);
             break;
          }
+         glPolygonMode(GL_FRONT, GL_FILL);
+         glPolygonMode(GL_BACK, GL_FILL);
          glPopMatrix();
       }
    }
@@ -174,11 +186,52 @@ namespace argos {
          }
       }
       
+      if(c_entity.HasComponent("electromagnets")) {
+         CElectromagnetEquippedEntity& cElectromagnetEquippedEntity = c_entity.GetComponent<CElectromagnetEquippedEntity>("electromagnets");
+         for(UInt32 i = 0; i < cElectromagnetEquippedEntity.GetAllElectromagneticBodies().size(); ++i) {
+            glPushMatrix();
+
+            const CBodyEntity& cBody = cElectromagnetEquippedEntity.GetElectromagneticBody(i);
+
+            /* TODO remove this code */
+            fprintf(stderr,
+                    "drawing magnetic body [%s] poles. Field = [%.3f, %.3f, %.3f]\n",
+                    (cBody.GetContext() + cBody.GetId()).c_str(),
+                    cElectromagnetEquippedEntity.GetElectromagnet(i).GetField().GetX(),
+                    cElectromagnetEquippedEntity.GetElectromagnet(i).GetField().GetY(),
+                    cElectromagnetEquippedEntity.GetElectromagnet(i).GetField().GetZ());
+                    
+                              
+            const CVector3& cBodyPosition = cBody.GetPositionalEntity().GetPosition();
+            /* Get the orientation of the body */
+            const CQuaternion& cBodyOrientation = cBody.GetPositionalEntity().GetOrientation();
+            CRadians cBodyZAngle, cBodyYAngle, cBodyXAngle;                 
+            cBodyOrientation.ToEulerAngles(cBodyZAngle, cBodyYAngle, cBodyXAngle);       
+            const CVector3& cBodyField = cElectromagnetEquippedEntity.GetElectromagnet(i).GetField();     
+            CQuaternion cFieldOrientation(CVector3::Z, cBodyField);              
+            CRadians cFieldZAngle, cFieldYAngle, cFieldXAngle;                             
+            cFieldOrientation.ToEulerAngles(cFieldZAngle, cFieldYAngle, cFieldXAngle);
+            glTranslatef(cBodyPosition.GetX(), cBodyPosition.GetY(),cBodyPosition.GetZ());                              
+            glRotatef(ToDegrees(cBodyXAngle).GetValue(), 1.0f, 0.0f, 0.0f);
+            glRotatef(ToDegrees(cBodyYAngle).GetValue(), 0.0f, 1.0f, 0.0f);
+            glRotatef(ToDegrees(cBodyZAngle).GetValue(), 0.0f, 0.0f, 1.0f);
+            glTranslatef(0,0, cBody.GetGeometry().GetExtents().GetZ()/2);               
+            glRotatef(ToDegrees(cFieldXAngle).GetValue(), 1.0f, 0.0f, 0.0f);
+            glRotatef(ToDegrees(cFieldYAngle).GetValue(), 0.0f, 1.0f, 0.0f); 
+            glRotatef(ToDegrees(cFieldZAngle).GetValue(), 0.0f, 0.0f, 1.0f);
+            glScalef(cBody.GetGeometry().GetExtents().GetX(),
+                     cBody.GetGeometry().GetExtents().GetY(),
+                     cBody.GetGeometry().GetExtents().GetZ());                             
+            glCallList(m_unPoleList);
+            glPopMatrix();                              
+         }
+      }
+      
       /* Testing */
       if(c_entity.HasComponent("forwards_camera_container")) {
          CForwardsCameraEquippedEntity& cForwardsCamEquippedEntity =
             c_entity.GetComponent<CForwardsCameraEquippedEntity>("forwards_camera_container");
-         for(size_t i = 0; i < cForwardsCamEquippedEntity.GetAllForwardsCameras().size(); ++i) {
+         for(UInt32 i = 0; i < cForwardsCamEquippedEntity.GetAllForwardsCameras().size(); ++i) {
             
             glPushMatrix();
             glPolygonMode(GL_FRONT, GL_LINE);
@@ -347,36 +400,30 @@ namespace argos {
       }
       glEnd();
       
-      /* TESTING
-      
-         glDisable(GL_LIGHTING);
-         glLineWidth(4.0f);
-         glBegin(GL_LINES);
-         
-         // south pole
-         glColor3f(1.0, 0.0, 0.0);
-         glVertex3f(0.0f, 0.0f, 0.5f);
-         glVertex3f(0.0f, 0.0f, 1.5f);
-         
-   
-         // north pole
-         glColor3f(0.0, 0.0, 1.0);
-         glVertex3f(0.0f, 0.0f, 0.5f);
-         glVertex3f(0.0f, 0.0f, -0.5f);
-         
-         glEnd();
-         glLineWidth(1.0f);
-         glEnable(GL_LIGHTING);
-      
-      */
-      
       /* We don't need it anymore */
       glDisable(GL_NORMALIZE);
-      
-      
-      
    }
 
+
+   void CQTOpenGLPrototype::MakePoles() {
+      glEnable(GL_NORMALIZE);	
+      glDisable(GL_LIGHTING);
+      glLineWidth(4.0f);
+      glBegin(GL_LINES);
+      // south pole
+      glColor3f(1.0, 0.0, 0.0);
+      glVertex3f(0.0f, 0.0f, 0.0f);
+      glVertex3f(0.0f, 0.0f, 1.0f);
+      // north pole
+      glColor3f(0.0, 0.0, 1.0);	
+      glVertex3f(0.0f, 0.0f, 0.0f);
+      glVertex3f(0.0f, 0.0f, -1.0f);
+      glEnd();
+      glLineWidth(1.0f);
+      glEnable(GL_LIGHTING);
+	glDisable(GL_NORMALIZE);
+   }
+   
    /****************************************/
    /****************************************/
 

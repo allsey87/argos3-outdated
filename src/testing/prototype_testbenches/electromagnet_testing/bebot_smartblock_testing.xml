@@ -26,7 +26,8 @@
         <prototype_proximity implementation="default" show_rays="true"/>
         <!--prototype_forwards_camera implementation="default" show_rays="true" medium="leds" /-->
       </sensors>
-      <params script="src/testing/prototype_testbenches/prototype_camera_calibration.lua"/>
+      <params/>
+      <!--params script="src/testing/prototype_testbenches/prototype_camera_calibration.lua"/-->
       <!--params script="../../src/testing/prototype_testbenches/prototype_camera_testing.lua"/-->
     </lua_controller>
     
@@ -98,35 +99,19 @@
 	<body id="magnet-nw" geometry="sphere" radius="0.003" mass="0.1">
           <coordinates/>
           <offset position="-0.12130, -0.02510, 0.06535"/>
-	  <attributes>
-            <attribute key="magnetic" value="true"/>
-            <attribute key="magnetic_field" value="0,0,350"/>
-          </attributes>
-        </body>
+	</body>
 	<body id="magnet-ne" geometry="sphere" radius="0.003" mass="0.1">
           <coordinates/>
           <offset position="-0.12130, 0.02510, 0.06535"/>
-	  <attributes>
-            <attribute key="magnetic" value="true"/>
-            <attribute key="magnetic_field" value="0,0,350"/>
-          </attributes>
-        </body>
+	</body>
 	<body id="magnet-sw" geometry="sphere" radius="0.003" mass="0.1">
           <coordinates/>
           <offset position="-0.07130, -0.02510, 0.06535"/>
-	  <attributes>
-            <attribute key="magnetic" value="true"/>
-            <attribute key="magnetic_field" value="0,0,350"/>
-          </attributes>
         </body>
 	<body id="magnet-se" geometry="sphere" radius="0.003" mass="0.1">
           <coordinates/>
           <offset position="-0.07130, 0.02510, 0.06535"/>
-	  <attributes>
-            <attribute key="magnetic" value="true"/>
-            <attribute key="magnetic_field" value="0,0,350"/>
-          </attributes>
-        </body>
+	</body>
         <body id="wheel-front-left" geometry="cylinder" radius="0.01575" height="0.01400" mass="0.1">
           <coordinates/>
           <offset position="0.031750, 0.02850, 0.01575" orientation="0,0,-90"/>
@@ -284,10 +269,10 @@
             <sensor body="upper-chassis" offset="0.0448,0.0438,0.01" direction="1,0,0" range="0.1" />
         </proximity_sensors>
         <electromagnets>
-          <electromagnet body="magnet-ne" passive_field="0,0,0" active_field="0,0,0"/>
-          <electromagnet body="magnet-nw" passive_field="0,0,0" active_field="0,0,0"/>
-          <electromagnet body="magnet-se" passive_field="0,0,0" active_field="0,0,0"/>
-          <electromagnet body="magnet-sw" passive_field="0,0,0" active_field="0,0,0"/>
+          <electromagnet body="magnet-ne" passive_field="0,0,-1" active_field="0,0,1"/>
+          <electromagnet body="magnet-nw" passive_field="0,0,-1" active_field="0,0,1"/>
+          <electromagnet body="magnet-se" passive_field="0,0,-1" active_field="0,0,1"/>
+          <electromagnet body="magnet-sw" passive_field="0,0,-1" active_field="0,0,1"/>
         </electromagnets>
       </devices>
     </prototype>
@@ -325,7 +310,7 @@
     <!-- * To activate the Lua editor, just use the 'lua_editor' flag attribute * -->
     <!-- ************************************************************************ -->
     <qt-opengl lua_editor="true">
-      <user_functions label="prototype_camera_user_functions" library="build/testing/prototype_testbenches/qt_camera_visualisation/libprototype_camera_loop_functions.so"/>
+      <!--user_functions label="prototype_camera_user_functions" library="build/testing/prototype_testbenches/qt_camera_visualisation/libprototype_camera_loop_functions.so"/-->
       <camera>
         <!--placement idx="0" position="-2.3768,-1.7586,0.423095" look_at="-1.45605,-1.7563,0.0329456" lens_focal_length="20" /-->
         <placement idx="0" position=" 0, 0, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" />

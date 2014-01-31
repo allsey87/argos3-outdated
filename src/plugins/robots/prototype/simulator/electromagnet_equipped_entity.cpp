@@ -82,14 +82,14 @@ namespace argos {
    /****************************************/
    /****************************************/
     
-   CBodyEntity& CElectromagnetEquippedEntity::GetElectromagnetBody(UInt32 un_index) {
-      ARGOS_ASSERT(un_index < m_tElectromagnetBodies.size(),
-                   "CElectromagnetEquippedEntity::GetElectromagnetBody(), id=\"" <<
+   CBodyEntity& CElectromagnetEquippedEntity::GetElectromagneticBody(UInt32 un_index) {
+      ARGOS_ASSERT(un_index < m_tElectromagneticBodies.size(),
+                   "CElectromagnetEquippedEntity::GetElectromagneticBody(), id=\"" <<
                    GetId() <<
                    "\": index out of bounds: un_index = " <<
                    un_index <<
-                   ", m_tElectromagnetBodies.size() = " <<
-                   m_tElectromagnetBodies.size());
+                   ", m_tElectromagneticBodies.size() = " <<
+                   m_tElectromagneticBodies.size());
       return *m_tElectromagneticBodies[un_index];
    
    }
