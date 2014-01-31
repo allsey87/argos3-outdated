@@ -190,18 +190,7 @@ namespace argos {
          CElectromagnetEquippedEntity& cElectromagnetEquippedEntity = c_entity.GetComponent<CElectromagnetEquippedEntity>("electromagnets");
          for(UInt32 i = 0; i < cElectromagnetEquippedEntity.GetAllElectromagneticBodies().size(); ++i) {
             glPushMatrix();
-
-            const CBodyEntity& cBody = cElectromagnetEquippedEntity.GetElectromagneticBody(i);
-
-            /* TODO remove this code */
-            fprintf(stderr,
-                    "drawing magnetic body [%s] poles. Field = [%.3f, %.3f, %.3f]\n",
-                    (cBody.GetContext() + cBody.GetId()).c_str(),
-                    cElectromagnetEquippedEntity.GetElectromagnet(i).GetField().GetX(),
-                    cElectromagnetEquippedEntity.GetElectromagnet(i).GetField().GetY(),
-                    cElectromagnetEquippedEntity.GetElectromagnet(i).GetField().GetZ());
-                    
-                              
+            const CBodyEntity& cBody = cElectromagnetEquippedEntity.GetElectromagneticBody(i);          
             const CVector3& cBodyPosition = cBody.GetPositionalEntity().GetPosition();
             /* Get the orientation of the body */
             const CQuaternion& cBodyOrientation = cBody.GetPositionalEntity().GetOrientation();
