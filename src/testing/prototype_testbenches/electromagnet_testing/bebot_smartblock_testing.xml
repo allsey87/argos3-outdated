@@ -5,7 +5,7 @@
   <!-- * General configuration * -->
   <!-- ************************* -->
   <framework>
-    <experiment threads="2" length="0" ticks_per_second="100" />
+    <experiment threads="2" length="0" ticks_per_second="20" />
   </framework>
 
   <!--loop_functions label="dyn3d_testbench_loop_functions" /-->
@@ -30,6 +30,20 @@
       <!--params script="src/testing/prototype_testbenches/prototype_camera_calibration.lua"/-->
       <!--params script="../../src/testing/prototype_testbenches/prototype_camera_testing.lua"/-->
     </lua_controller>
+
+    <lua_controller id="smartblock_prototype_lua">
+      <actuators>
+        <pleds implementation="default" medium="leds"/>
+      </actuators>
+      <sensors/>
+      <params/>
+      <!--params script="src/testing/prototype_testbenches/prototype_camera_calibration.lua"/-->
+      <!--params script="../../src/testing/prototype_testbenches/prototype_camera_testing.lua"/-->
+    </lua_controller>
+
+
+
+
     
   </controllers>
   
@@ -277,6 +291,53 @@
       </devices>
     </prototype>
     
+    <prototype id="smartblock">
+      <controller config="smartblock_prototype_lua"/>
+      <body position="1,0,0.5" orientation="0,0,0"/>
+      <bodies reference_body="block">
+        <body id="block" geometry="box" size="0.07, 0.07, 0.07" mass="0.3">
+          <coordinates/>
+          <offset/>
+        </body>
+      </bodies>
+      <devices>
+        <barcodes>
+          <barcode id="top"    body="block" localizable="true" position=" 0.000, 0.000, 0.071" orientation="0,0,0"   payload="" side_length="0.035"/>
+          <barcode id="north"  body="block" localizable="true" position=" 0.036, 0.000, 0.035" orientation="0,90,0"  payload="" side_length="0.035"/>
+          <barcode id="east"   body="block" localizable="true" position=" 0.000,-0.036, 0.035" orientation="0,0,90"  payload="" side_length="0.035"/>
+          <barcode id="south"  body="block" localizable="true" position="-0.036, 0.000, 0.035" orientation="0,-90,0" payload="" side_length="0.035"/>
+          <barcode id="west"   body="block" localizable="true" position=" 0.000, 0.036, 0.035" orientation="0,0,-90" payload="" side_length="0.035"/>
+          <barcode id="bottom" body="block" localizable="true" position=" 0.000, 0.000,-0.001" orientation="0,0,180" payload="" side_length="0.035"/>
+        </barcodes>
+        <leds>
+          <led id="top_a"    body="block" position=" 0.000, 0.025, 0.071" color="blue"/>
+          <led id="top_b"    body="block" position=" 0.025, 0.000, 0.071" color="blue"/>
+          <led id="top_c"    body="block" position=" 0.000,-0.025, 0.071" color="blue"/>
+          <led id="top_d"    body="block" position="-0.025, 0.000, 0.071" color="blue"/>
+          <led id="north_a"  body="block" position=" 0.036, 0.000, 0.060" color="red"/>
+          <led id="north_b"  body="block" position=" 0.036, 0.025, 0.035" color="red"/>
+          <led id="north_c"  body="block" position=" 0.036, 0.000, 0.010" color="red"/>
+          <led id="north_d"  body="block" position=" 0.036,-0.025, 0.035" color="red"/>
+          <led id="east_a"   body="block" position=" 0.000,-0.036, 0.060" color="blue"/>
+          <led id="east_b"   body="block" position=" 0.025,-0.036, 0.035" color="blue"/>
+          <led id="east_c"   body="block" position=" 0.000,-0.036, 0.010" color="blue"/>
+          <led id="east_d"   body="block" position="-0.025,-0.036, 0.035" color="blue"/>
+          <led id="south_a"  body="block" position="-0.036, 0.000, 0.060" color="red"/>
+          <led id="south_b"  body="block" position="-0.036,-0.025, 0.035" color="red"/>
+          <led id="south_c"  body="block" position="-0.036, 0.000, 0.010" color="red"/>
+          <led id="south_d"  body="block" position="-0.036, 0.025, 0.035" color="red"/>
+          <led id="west_a"   body="block" position=" 0.000, 0.036, 0.060" color="blue"/>
+          <led id="west_b"   body="block" position="-0.025, 0.036, 0.035" color="blue"/>
+          <led id="west_c"   body="block" position=" 0.000, 0.036, 0.010" color="blue"/>
+          <led id="west_d"   body="block" position=" 0.025, 0.036, 0.035" color="blue"/>
+          <led id="bottom_a" body="block" position=" 0.000, 0.025,-0.001" color="red"/>
+          <led id="bottom_b" body="block" position=" 0.025, 0.000,-0.001" color="red"/>
+          <led id="bottom_c" body="block" position=" 0.000,-0.025,-0.001" color="red"/>
+          <led id="bottom_d" body="block" position="-0.025, 0.000,-0.001" color="red"/>
+        </leds>
+      </devices>
+    </prototype>
+    
     
   </arena>
   
@@ -284,7 +345,7 @@
   <!-- * Media * -->
   <!-- ********* -->
   <media>
-    <range_and_bearing id="rab" index="grid" grid_size="3,3,3" />
+    <!--range_and_bearing id="rab" index="grid" grid_size="3,3,3" /-->
     <led id="leds" index="grid" grid_size="20,20,20" />
   </media>
   

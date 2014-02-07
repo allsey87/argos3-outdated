@@ -13,6 +13,7 @@
 #include <argos3/plugins/robots/prototype/simulator/prototype_led_equipped_entity.h>
 #include <argos3/plugins/robots/prototype/simulator/forwards_camera_equipped_entity.h>
 #include <argos3/plugins/robots/prototype/simulator/electromagnet_equipped_entity.h>
+#include <argos3/plugins/robots/prototype/simulator/barcode2_equipped_entity.h>
 
 #include <argos3/core/simulator/space/space.h>
 //#include <argos3/core/simulator/entity/controllable_entity.h>
@@ -88,6 +89,12 @@ namespace argos {
                else if(itDevice->Value() == "electromagnets" ) {
                   CElectromagnetEquippedEntity* m_pcEquippedEntity = 
                      new CElectromagnetEquippedEntity(this);
+                  m_pcEquippedEntity->Init(*itDevice);
+                  AddComponent(*m_pcEquippedEntity);         
+               }
+               else if(itDevice->Value() == "barcodes" ) {
+                  CBarcode2EquippedEntity* m_pcEquippedEntity = 
+                     new CBarcode2EquippedEntity(this);
                   m_pcEquippedEntity->Init(*itDevice);
                   AddComponent(*m_pcEquippedEntity);         
                }

@@ -13,6 +13,9 @@ set(ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_CONTROLINTERFACE
 if(ARGOS_BUILD_FOR_SIMULATOR)
   set(ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR
     simulator/dynamics3d_prototype_model.h
+    simulator/barcode2_entity.h
+    simulator/barcode2_equipped_entity.h
+    simulator/barcode2_medium.h
     simulator/prototype_joints_default_sensor.h
     simulator/prototype_joints_default_actuator.h
     simulator/body_entity.h
@@ -55,6 +58,9 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     ${ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR}
 
     simulator/dynamics3d_prototype_model.cpp
+    simulator/barcode2_entity.cpp
+    simulator/barcode2_equipped_entity.cpp
+    simulator/barcode2_medium.cpp
     simulator/prototype_joints_default_sensor.cpp
     simulator/prototype_joints_default_actuator.cpp
     simulator/body_entity.cpp

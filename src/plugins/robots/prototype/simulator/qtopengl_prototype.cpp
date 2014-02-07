@@ -11,11 +11,15 @@
 #include <argos3/plugins/simulator/visualizations/qt-opengl/qtopengl_widget.h>
 #include <argos3/plugins/robots/prototype/simulator/prototype_led_equipped_entity.h>
 #include <argos3/plugins/robots/prototype/simulator/electromagnet_equipped_entity.h>
+#include <argos3/plugins/robots/prototype/simulator/barcode2_equipped_entity.h>
+
+#include <argos3/plugins/robots/prototype/simulator/argos_website_url.tex>
 
 /*TESTING*/
 #include <argos3/plugins/robots/prototype/simulator/forwards_camera_equipped_entity.h>
 
 namespace argos {
+
 
    /****************************************/
    /****************************************/
@@ -33,13 +37,14 @@ namespace argos {
       m_unVertices(20) {
       
       /* Reserve the needed display lists */
-      m_unBaseList = glGenLists(5);
+      m_unBaseList = glGenLists(6);
       /* References to the display lists */
       m_unBoxList      = m_unBaseList;
       m_unCylinderList = m_unBaseList + 1;
       m_unSphereList   = m_unBaseList + 2;
       m_unLEDList      = m_unBaseList + 3;
       m_unPoleList     = m_unBaseList + 4;
+      m_unBarcodeList  = m_unBaseList + 5;
       
       /* Make box list */
       glNewList(m_unBoxList, GL_COMPILE);
@@ -64,6 +69,12 @@ namespace argos {
       /* Make Poles list */
       glNewList(m_unPoleList, GL_COMPILE);
       MakePoles();
+      glEndList();
+
+      /* Make Barcode list */
+      MakeBarcodeTexture();
+      glNewList(m_unBarcodeList, GL_COMPILE);
+      MakeBarcode();
       glEndList();
    }
 
@@ -119,9 +130,9 @@ namespace argos {
           itBody != c_entity.GetBodyEquippedEntity().GetAllBodies().end();
           ++itBody) {
          /* Configure the body material */
-         //glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, BODY_COLOR);
-         glPolygonMode(GL_FRONT, GL_LINE);
-         glPolygonMode(GL_BACK, GL_LINE);
+         glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, BODY_COLOR);
+         //glPolygonMode(GL_FRONT, GL_LINE);
+         //glPolygonMode(GL_BACK, GL_LINE);
 
          /* Get the position of the body */
          const CVector3& cPosition = (*itBody)->GetPositionalEntity().GetPosition();
@@ -152,8 +163,8 @@ namespace argos {
             glCallList(m_unSphereList);
             break;
          }
-         glPolygonMode(GL_FRONT, GL_FILL);
-         glPolygonMode(GL_BACK, GL_FILL);
+         //glPolygonMode(GL_FRONT, GL_FILL);
+         //glPolygonMode(GL_BACK, GL_FILL);
          glPopMatrix();
       }
    }
@@ -216,7 +227,7 @@ namespace argos {
          }
       }
       
-      /* Testing */
+      /* Camera Testing Begin */
       if(c_entity.HasComponent("forwards_camera_container")) {
          CForwardsCameraEquippedEntity& cForwardsCamEquippedEntity =
             c_entity.GetComponent<CForwardsCameraEquippedEntity>("forwards_camera_container");
@@ -235,6 +246,47 @@ namespace argos {
             glCallList(m_unSphereList);
             glPolygonMode(GL_FRONT, GL_FILL);
             glPolygonMode(GL_BACK, GL_FILL);
+            glPopMatrix();
+         }
+      }
+      /* Camera Testing End */
+
+      if(c_entity.HasComponent("barcode2_container")) {
+         CBarcode2EquippedEntity& cBarcode2EquippedEntity =
+            c_entity.GetComponent<CBarcode2EquippedEntity>("barcode2_container");
+         //fprintf(stderr, "\n\n");
+         for(UInt32 i = 0; i < cBarcode2EquippedEntity.GetAllBarcodes().size(); ++i) {
+            /*fprintf(stderr, 
+                    "drawing barcode %s with payload %s\n", 
+                    (cBarcode2EquippedEntity.GetBarcode(i).GetContext() + cBarcode2EquippedEntity.GetBarcode(i).GetId()).c_str(),
+                    cBarcode2EquippedEntity.GetBarcode(i).GetPayload().c_str());
+            */
+            const CVector3& cBarcodePosition = cBarcode2EquippedEntity.GetBarcode(i).GetPosition();
+            const CQuaternion& cBarcodeOrientation = cBarcode2EquippedEntity.GetBarcode(i).GetOrientation(); 
+            CRadians cZ, cY, cX;
+            cBarcodeOrientation.ToEulerAngles(cZ, cY, cX);
+            Real fScaling = cBarcode2EquippedEntity.GetBarcode(i).GetSideLength();
+
+            /*            fprintf(stderr,
+                    "\tLocation = [%.3f, %.3f, %.3f]; Angles = [%.3f, %.3f, %.3f]\n",
+                    cBarcodePosition.GetX(),
+                    cBarcodePosition.GetY(),
+                    cBarcodePosition.GetZ(),
+                    ToDegrees(cZ).GetValue(),
+                    ToDegrees(cY).GetValue(),
+                    ToDegrees(cX).GetValue());
+            */
+
+            glPushMatrix();
+            
+            glTranslatef(cBarcodePosition.GetX(),
+                         cBarcodePosition.GetY(),
+                         cBarcodePosition.GetZ());
+            glRotatef(ToDegrees(cX).GetValue(), 1.0f, 0.0f, 0.0f);
+            glRotatef(ToDegrees(cY).GetValue(), 0.0f, 1.0f, 0.0f); 
+            glRotatef(ToDegrees(cZ).GetValue(), 0.0f, 0.0f, 1.0f);
+            glScalef(fScaling, fScaling, 1.0f);
+            glCallList(m_unBarcodeList);
             glPopMatrix();
          }
       }
@@ -391,6 +443,40 @@ namespace argos {
       
       /* We don't need it anymore */
       glDisable(GL_NORMALIZE);
+     
+   }
+
+
+   void CQTOpenGLPrototype::MakeBarcodeTexture() {
+      glGenTextures(1, &m_unBarcodeTex);
+      glBindTexture(GL_TEXTURE_2D, m_unBarcodeTex);
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 32, 32, 0, GL_RGB, GL_FLOAT, ARGOS_WEBSITE_URL);
+      
+      glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+      glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+      glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+      glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+
+   }
+
+   void CQTOpenGLPrototype::MakeBarcode() {
+      glEnable(GL_NORMALIZE);
+      glDisable(GL_LIGHTING);
+      glEnable(GL_TEXTURE_2D);
+      glBindTexture(GL_TEXTURE_2D, m_unBarcodeTex);
+     
+      glBegin(GL_QUADS);
+      // barcode
+      glNormal3f(0.0f, 0.0f, 1.0f);
+      glTexCoord2f(1.0f, 1.0f); glVertex2f( 0.5f,  0.5f);
+      glTexCoord2f(0.03f, 1.0f); glVertex2f(-0.5f,  0.5f);
+      glTexCoord2f(0.03f, 0.03f); glVertex2f(-0.5f, -0.5f);
+      glTexCoord2f(1.0f, 0.03f); glVertex2f( 0.5f, -0.5f);
+      
+      glEnd();
+      glDisable(GL_TEXTURE_2D);     
+      glEnable(GL_LIGHTING);
+      glDisable(GL_NORMALIZE);
    }
 
 
@@ -410,7 +496,7 @@ namespace argos {
       glEnd();
       glLineWidth(1.0f);
       glEnable(GL_LIGHTING);
-	glDisable(GL_NORMALIZE);
+      glDisable(GL_NORMALIZE);
    }
    
    /****************************************/
