@@ -13,6 +13,7 @@ namespace argos {
 
    CPrototypeElectromagnetsDefaultActuator::CPrototypeElectromagnetsDefaultActuator() :
       m_pcElectromagnetEquippedEntity(NULL),
+      m_pcControllableEntity(NULL),
       m_bShowPoles(false) {
    }
 

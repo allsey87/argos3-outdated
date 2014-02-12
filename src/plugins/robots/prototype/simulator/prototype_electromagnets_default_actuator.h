@@ -15,7 +15,7 @@ namespace argos {
    class CPrototypeElectromagnetsDefaultActuator;
 }
 
-#include <argos3/plugins/robots/prototype/control_interface/ci_prototype_electromagnet_actuator.h>
+#include <argos3/plugins/robots/prototype/control_interface/ci_prototype_electromagnets_actuator.h>
 #include <argos3/plugins/robots/prototype/simulator/prototype_entity.h>
 #include <argos3/plugins/robots/prototype/simulator/electromagnet_equipped_entity.h>
 #include <argos3/core/simulator/actuator.h>
@@ -23,7 +23,7 @@ namespace argos {
 namespace argos {
 
    class CPrototypeElectromagnetsDefaultActuator : public CSimulatedActuator,
-                                                   public CCI_PrototypeElectromagnetActuator {
+                                                   public CCI_PrototypeElectromagnetsActuator {
 
    public:
 

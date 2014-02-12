@@ -335,6 +335,9 @@
           <led id="bottom_c" body="block" position=" 0.000,-0.025,-0.001" color="red"/>
           <led id="bottom_d" body="block" position="-0.025, 0.000,-0.001" color="red"/>
         </leds>
+        <radios>
+          <radio id="top" body="block" position="0.000, 0.000, 0.070" range="1.2"/>
+        </radios>
       </devices>
     </prototype>
     

@@ -4,7 +4,7 @@
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-#include "ci_prototype_electromagnet_actuator.h"
+#include "ci_prototype_electromagnets_actuator.h"
 
 #ifdef ARGOS_WITH_LUA
 #include <argos3/core/wrappers/lua/lua_utility.h>
@@ -31,8 +31,8 @@ namespace argos {
       luaL_checktype(pt_lua_state, 2, LUA_TNUMBER);
       /* Get a reference to the specified electromagnet */
       std::string strElectromagnetId = lua_tostring(pt_lua_state, 1);
-      CCI_PrototypeElectromagnetActuator* pcTargetActuator =
-         CLuaUtility::GetDeviceInstance<CCI_PrototypeElectromagnetActuator>(pt_lua_state, "electromagnets");
+      CCI_PrototypeElectromagnetsActuator* pcTargetActuator =
+         CLuaUtility::GetDeviceInstance<CCI_PrototypeElectromagnetsActuator>(pt_lua_state, "electromagnets");
       UInt32 unElectromagnetIdx;
       for(unElectromagnetIdx = 0;
           unElectromagnetIdx < pcTargetActuator->GetDescriptors().size();
@@ -56,7 +56,7 @@ namespace argos {
    /****************************************/
 
 #ifdef ARGOS_WITH_LUA
-   void CCI_PrototypeElectromagnetActuator::CreateLuaState(lua_State* pt_lua_state) {
+   void CCI_PrototypeElectromagnetsActuator::CreateLuaState(lua_State* pt_lua_state) {
       CLuaUtility::StartTable(pt_lua_state, "electromagnets");
       CLuaUtility::AddToTable(pt_lua_state, "_instance", this);
       CLuaUtility::AddToTable(pt_lua_state, "set_current", &LuaSetElectromagnetCurrent);

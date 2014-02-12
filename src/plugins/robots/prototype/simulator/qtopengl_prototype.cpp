@@ -200,7 +200,7 @@ namespace argos {
       if(c_entity.HasComponent("electromagnets")) {
          CElectromagnetEquippedEntity& cElectromagnetEquippedEntity = c_entity.GetComponent<CElectromagnetEquippedEntity>("electromagnets");
          for(UInt32 i = 0; i < cElectromagnetEquippedEntity.GetAllElectromagneticBodies().size(); ++i) {
-            glPushMatrix();
+
             const CBodyEntity& cBody = cElectromagnetEquippedEntity.GetElectromagneticBody(i);          
             const CVector3& cBodyPosition = cBody.GetPositionalEntity().GetPosition();
             /* Get the orientation of the body */
@@ -211,7 +211,9 @@ namespace argos {
             CQuaternion cFieldOrientation(CVector3::Z, cBodyField);              
             CRadians cFieldZAngle, cFieldYAngle, cFieldXAngle;                             
             cFieldOrientation.ToEulerAngles(cFieldZAngle, cFieldYAngle, cFieldXAngle);
-            glTranslatef(cBodyPosition.GetX(), cBodyPosition.GetY(),cBodyPosition.GetZ());                              
+
+            glPushMatrix();
+            glTranslatef(cBodyPosition.GetX(), cBodyPosition.GetY(),cBodyPosition.GetZ());    
             glRotatef(ToDegrees(cBodyXAngle).GetValue(), 1.0f, 0.0f, 0.0f);
             glRotatef(ToDegrees(cBodyYAngle).GetValue(), 0.0f, 1.0f, 0.0f);
             glRotatef(ToDegrees(cBodyZAngle).GetValue(), 0.0f, 0.0f, 1.0f);
@@ -219,6 +221,9 @@ namespace argos {
             glRotatef(ToDegrees(cFieldXAngle).GetValue(), 1.0f, 0.0f, 0.0f);
             glRotatef(ToDegrees(cFieldYAngle).GetValue(), 0.0f, 1.0f, 0.0f); 
             glRotatef(ToDegrees(cFieldZAngle).GetValue(), 0.0f, 0.0f, 1.0f);
+            glScalef((Abs(cBodyField.GetX()) + 1.0f) * 0.01f,
+                     (Abs(cBodyField.GetY()) + 1.0f) * 0.01f,
+                     (Abs(cBodyField.GetZ()) + 1.0f) * 0.01f);
             glScalef(cBody.GetGeometry().GetExtents().GetX(),
                      cBody.GetGeometry().GetExtents().GetY(),
                      cBody.GetGeometry().GetExtents().GetZ());                             

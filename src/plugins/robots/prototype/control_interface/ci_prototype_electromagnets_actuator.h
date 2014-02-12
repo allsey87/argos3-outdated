@@ -10,7 +10,7 @@
 #define CCI_PROTOTYPE_ELECTROMAGNET_ACTUATOR_H
 
 namespace argos {
-   class CCI_PrototypeElectromagnetActuator;
+   class CCI_PrototypeElectromagnetsActuator;
 }
 
 #include <argos3/core/control_interface/ci_actuator.h>
@@ -18,7 +18,7 @@ namespace argos {
 
 namespace argos {
 
-   class CCI_PrototypeElectromagnetActuator : virtual public CCI_Actuator {
+   class CCI_PrototypeElectromagnetsActuator : virtual public CCI_Actuator {
 
    public:
 
@@ -82,12 +82,12 @@ namespace argos {
       /**
        * Constructor
        */
-      CCI_PrototypeElectromagnetActuator() {
+      CCI_PrototypeElectromagnetsActuator() {
       }
       /**
        * Destructor.
        */
-      virtual ~CCI_PrototypeElectromagnetActuator() {}
+      virtual ~CCI_PrototypeElectromagnetsActuator() {}
 
       /**
        * Returns a reference to the current electromagnet configurations.
