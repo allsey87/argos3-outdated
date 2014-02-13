@@ -3,7 +3,7 @@
 #include <argos3/core/simulator/space/space.h>
 #include <argos3/core/simulator/entity/composable_entity.h>
 
-#include <argos3/plugins/robots/prototype/control_interface/ci_prototype_forwards_camera_sensor.h>
+#include <argos3/plugins/robots/prototype/control_interface/ci_prototype_cameras_sensor.h>
 
 /********************************************************************************/
 /********************************************************************************/
@@ -57,8 +57,8 @@ void CPrototypeCameraUserFunctions::EntitySelected(size_t un_index) {
       if(pcComposableEntity->HasComponent("controller")) {
          CControllableEntity& cController = pcComposableEntity->GetComponent<CControllableEntity>("controller");
          
-         if(cController.GetController().HasSensor("prototype_forwards_camera")) {
-            m_pcSensor = cController.GetController().GetSensor<CCI_PrototypeForwardsCameraSensor>("prototype_forwards_camera");
+         if(cController.GetController().HasSensor("prototype_cameras")) {
+            m_pcSensor = cController.GetController().GetSensor<CCI_PrototypeCamerasSensor>("prototype_cameras");
             for(UInt32 i = 0; i < m_pcSensor->GetDescriptors().size(); ++i) {
                m_tWindows.push_back(new CPrototypeCameraWindow(&GetOpenGLWidget(),m_pcSensor, i));
             }

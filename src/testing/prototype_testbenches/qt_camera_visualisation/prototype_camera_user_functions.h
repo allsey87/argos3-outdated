@@ -30,7 +30,7 @@ private:
    CSpace& m_cSpace;
 
    bool m_bConnected;
-   CCI_PrototypeForwardsCameraSensor* m_pcSensor;
+   CCI_PrototypeCamerasSensor* m_pcSensor;
    CPrototypeCameraWindow::TList m_tWindows;
    
 };

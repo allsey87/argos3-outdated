@@ -11,7 +11,7 @@
 
 #include <argos3/plugins/robots/prototype/simulator/prototype_proximity_sensor_equipped_entity.h>
 #include <argos3/plugins/robots/prototype/simulator/prototype_led_equipped_entity.h>
-#include <argos3/plugins/robots/prototype/simulator/forwards_camera_equipped_entity.h>
+#include <argos3/plugins/robots/prototype/simulator/camera_equipped_entity.h>
 #include <argos3/plugins/robots/prototype/simulator/electromagnet_equipped_entity.h>
 #include <argos3/plugins/robots/prototype/simulator/barcode2_equipped_entity.h>
 #include <argos3/plugins/robots/prototype/simulator/radio_equipped_entity.h>
@@ -81,9 +81,9 @@ namespace argos {
                   m_pcEquippedEntity->Init(*itDevice);
                   AddComponent(*m_pcEquippedEntity);
                }
-               else if(itDevice->Value() == "forwards_cameras" ) {
-                  CForwardsCameraEquippedEntity* m_pcEquippedEntity = 
-                     new CForwardsCameraEquippedEntity(this);
+               else if(itDevice->Value() == "cameras" ) {
+                  CCameraEquippedEntity* m_pcEquippedEntity = 
+                     new CCameraEquippedEntity(this);
                   m_pcEquippedEntity->Init(*itDevice);
                   AddComponent(*m_pcEquippedEntity);         
                }

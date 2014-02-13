@@ -22,7 +22,7 @@
       </actuators>
       <sensors>
          <joints implementation="default" />
-         <prototype_forwards_camera implementation="default" show_rays="true" medium="leds" />
+         <prototype_cameras implementation="default" show_rays="true" medium="leds" />
       </sensors>
       <params script="src/testing/prototype_testbenches/prototype_camera_calibration.lua"/>
       <!--params script="../../src/testing/prototype_testbenches/prototype_camera_testing.lua"/-->
@@ -105,8 +105,8 @@
         </joint>
       </joints>
       <devices>
-        <led_actuators/>
-        <forwards_camera_sensors>
+        <leds/>
+        <cameras>
           <!--camera id="front_camera" body="link_0" position="0,0,0.4" orientation="0,-90,0" field_of_view="90" range="1" resolution="1280,960" enabled="true"/-->
           <camera id="front_camera"
                   body="link_0"
@@ -118,7 +118,7 @@
                   resolution="640,480"
                   enabled="true"/>
           <!--camera id="rear_camera" body="link_0" position="0.0275,0,0.15" orientation="0,90,0" field_of_view="90" range="0.5" resolution="640,480" enabled="true"/-->
-        </forwards_camera_sensors>
+        </cameras>
       </devices>
     </prototype>
 
@@ -133,7 +133,7 @@
       </bodies>
       <joints/>
       <devices>
-        <led_actuators>        
+        <leds>        
           <led id="led_11" body="base" position="0.0051, -0.150, 0.300" color="red"/>
           <led id="led_12" body="base" position="0.0051, -0.000, 0.300" color="red"/>
           <led id="led_13" body="base" position="0.0051,  0.150, 0.300" color="red"/>
@@ -148,7 +148,7 @@
           <led id="led_04" body="base" position="0.0051,  0.175269119, 0.274730881" color="red"/>
           <led id="led_40" body="base" position="0.0051, -0.175269119, 0.625269119" color="red"/>
           <led id="led_44" body="base" position="0.0051,  0.175269119, 0.625269119" color="red"/-->
-        </led_actuators>
+        </leds>
       </devices>
     </prototype>
     

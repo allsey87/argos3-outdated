@@ -5,7 +5,7 @@ class QVBoxLayout;
 class QGraphicsScene;
 class QGraphicsView;
 
-#include <argos3/plugins/robots/prototype/control_interface/ci_prototype_forwards_camera_sensor.h>
+#include <argos3/plugins/robots/prototype/control_interface/ci_prototype_cameras_sensor.h>
 
 #include <QDialog>
 
@@ -22,7 +22,7 @@ public:
 public:
 
    CPrototypeCameraWindow(QWidget * pc_parent,
-                          CCI_PrototypeForwardsCameraSensor* pc_camera,
+                          CCI_PrototypeCamerasSensor* pc_camera,
                           UInt32 un_index);
    ~CPrototypeCameraWindow();
 
@@ -35,7 +35,7 @@ public slots:
 
 private:
 
-   CCI_PrototypeForwardsCameraSensor* m_pcCamera;
+   CCI_PrototypeCamerasSensor* m_pcCamera;
    UInt32 m_unCameraIndex;
 
    /* Qt UI Objects */

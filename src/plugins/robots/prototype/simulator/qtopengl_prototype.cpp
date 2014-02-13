@@ -12,11 +12,10 @@
 #include <argos3/plugins/robots/prototype/simulator/prototype_led_equipped_entity.h>
 #include <argos3/plugins/robots/prototype/simulator/electromagnet_equipped_entity.h>
 #include <argos3/plugins/robots/prototype/simulator/barcode2_equipped_entity.h>
-
+#include <argos3/plugins/robots/prototype/simulator/camera_equipped_entity.h>
+#include <argos3/plugins/robots/prototype/simulator/prototype_cameras_sensor.h>
 #include <argos3/plugins/robots/prototype/simulator/argos_website_url.tex>
 
-/*TESTING*/
-#include <argos3/plugins/robots/prototype/simulator/forwards_camera_equipped_entity.h>
 
 namespace argos {
 
@@ -233,25 +232,28 @@ namespace argos {
       }
       
       /* Camera Testing Begin */
-      if(c_entity.HasComponent("forwards_camera_container")) {
-         CForwardsCameraEquippedEntity& cForwardsCamEquippedEntity =
-            c_entity.GetComponent<CForwardsCameraEquippedEntity>("forwards_camera_container");
-         for(UInt32 i = 0; i < cForwardsCamEquippedEntity.GetAllForwardsCameras().size(); ++i) {
-            
-            glPushMatrix();
-            glPolygonMode(GL_FRONT, GL_LINE);
-            glPolygonMode(GL_BACK, GL_LINE);
-            glTranslatef(cForwardsCamEquippedEntity.GetForwardsCamera(i).SphereCenter.GetX(),
-                         cForwardsCamEquippedEntity.GetForwardsCamera(i).SphereCenter.GetY(),
-                         cForwardsCamEquippedEntity.GetForwardsCamera(i).SphereCenter.GetZ() -
-                         cForwardsCamEquippedEntity.GetForwardsCamera(i).SphereRadius);
-            glScalef(cForwardsCamEquippedEntity.GetForwardsCamera(i).SphereRadius * 2.0f,
-                     cForwardsCamEquippedEntity.GetForwardsCamera(i).SphereRadius * 2.0f,
-                     cForwardsCamEquippedEntity.GetForwardsCamera(i).SphereRadius * 2.0f);
-            glCallList(m_unSphereList);
-            glPolygonMode(GL_FRONT, GL_FILL);
-            glPolygonMode(GL_BACK, GL_FILL);
-            glPopMatrix();
+      if(c_entity.HasComponent("controller")) {
+         CControllableEntity& cController = c_entity.GetComponent<CControllableEntity>("controller");
+         if(cController.GetController().HasSensor("prototype_cameras")) {
+            CPrototypeCamerasSensor* pcCameraSensor = cController.GetController().GetSensor<CPrototypeCamerasSensor>("prototype_cameras");
+            if(pcCameraSensor != NULL) {
+               for(size_t i = 0; i < pcCameraSensor->GetViewports().size(); ++i) {
+                  glPushMatrix();
+                  glPolygonMode(GL_FRONT, GL_LINE);
+                  glPolygonMode(GL_BACK, GL_LINE);
+                  glTranslatef(pcCameraSensor->GetViewports()[i].Position.GetX(),
+                               pcCameraSensor->GetViewports()[i].Position.GetY(),
+                               pcCameraSensor->GetViewports()[i].Position.GetZ() -
+                               pcCameraSensor->GetViewports()[i].HalfExtents[0]);
+                  glScalef(pcCameraSensor->GetViewports()[i].HalfExtents[0] * 2.0f,
+                           pcCameraSensor->GetViewports()[i].HalfExtents[0] * 2.0f,
+                           pcCameraSensor->GetViewports()[i].HalfExtents[0] * 2.0f);
+                  glCallList(m_unSphereList);
+                  glPolygonMode(GL_FRONT, GL_FILL);
+                  glPolygonMode(GL_BACK, GL_FILL);
+                  glPopMatrix();
+               }
+            }
          }
       }
       /* Camera Testing End */

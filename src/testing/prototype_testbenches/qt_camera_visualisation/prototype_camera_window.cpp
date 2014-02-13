@@ -8,7 +8,7 @@
 /********************************************************************************/
 
 CPrototypeCameraWindow::CPrototypeCameraWindow(QWidget* pc_parent,
-                                               CCI_PrototypeForwardsCameraSensor* pc_camera,
+                                               CCI_PrototypeCamerasSensor* pc_camera,
                                                UInt32 un_index) :
    QDialog(pc_parent),
    m_pcCamera(pc_camera),
@@ -46,7 +46,7 @@ void CPrototypeCameraWindow::Update() {
    m_pcScene->clear();
    m_pcViewport->setBackgroundBrush(QBrush(Qt::black, Qt::SolidPattern));
 
-   const CCI_PrototypeForwardsCameraSensor::SReading& sReading = 
+   const CCI_PrototypeCamerasSensor::SReading& sReading = 
       m_pcCamera->GetReadings()[m_unCameraIndex];
 
    for(UInt32 i = 0; i < sReading.ObservationList.size(); ++i) {
