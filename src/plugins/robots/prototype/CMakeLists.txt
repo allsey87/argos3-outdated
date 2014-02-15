@@ -4,59 +4,66 @@
 # argos3/plugins/robots/prototype/control_interface
 
 set(ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_CONTROLINTERFACE
+#  control_interface/ci_cameras_sensor.h
   control_interface/ci_prototype_joints_sensor.h
   control_interface/ci_prototype_joints_actuator.h
   control_interface/ci_prototype_proximity_sensor.h
-  control_interface/ci_prototype_cameras_sensor.h
   control_interface/ci_prototype_radios_actuator.h
   control_interface/ci_prototype_radios_sensor.h
   control_interface/ci_prototype_electromagnets_actuator.h)
+  
+set(ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_UTILITY
+  utility/geometry3.h
+  utility/box_geometry3.h
+  utility/cylinder_geometry3.h
+  utility/sphere_geometry3.h)
 
 if(ARGOS_BUILD_FOR_SIMULATOR)
-  set(ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR
-    simulator/dynamics3d_prototype_model.h
-    simulator/barcode2_entity.h
-    simulator/barcode2_equipped_entity.h
-    simulator/barcode2_medium.h
-    simulator/prototype_joints_default_sensor.h
-    simulator/prototype_joints_default_actuator.h
-    simulator/body_entity.h
-    simulator/body_equipped_entity.h
-    simulator/frame_entity.h
-    simulator/frame_equipped_entity.h
-    simulator/joint_entity.h
-    simulator/joint_equipped_entity.h
-    simulator/electromagnet_entity.h
-    simulator/electromagnet_equipped_entity.h
-    simulator/camera_entity.h
-    simulator/camera_equipped_entity.h
-    simulator/radio_entity.h
-    simulator/radio_equipped_entity.h
-    simulator/radio_medium.h
-    simulator/prototype_entity.h
-    simulator/prototype_proximity_default_sensor.h
-    simulator/prototype_proximity_sensor_equipped_entity.h
-    simulator/prototype_leds_default_actuator.h
-    simulator/prototype_led_equipped_entity.h
-    simulator/prototype_cameras_sensor.h
-    simulator/prototype_electromagnets_default_actuator.h
-    simulator/prototype_radios_default_sensor.h
-    simulator/prototype_radios_default_actuator.h
-    simulator/geometry3.h
-    simulator/box_geometry3.h
-    simulator/cylinder_geometry3.h
-    simulator/sphere_geometry3.h)
+  set(ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR_ACTUATORS
+    simulator/actuators/prototype_joints_default_actuator.h
+    simulator/actuators/prototype_leds_default_actuator.h
+    simulator/actuators/prototype_electromagnets_default_actuator.h
+    simulator/actuators/prototype_radios_default_actuator.h)
+  set(ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR_ENTITIES
+    simulator/entities/barcode2_entity.h
+    simulator/entities/barcode2_equipped_entity.h
+    simulator/entities/body_entity.h
+    simulator/entities/body_equipped_entity.h
+    simulator/entities/frame_entity.h
+    simulator/entities/frame_equipped_entity.h
+    simulator/entities/joint_entity.h
+    simulator/entities/joint_equipped_entity.h
+    simulator/entities/electromagnet_entity.h
+    simulator/entities/electromagnet_equipped_entity.h
+    simulator/entities/camera_entity.h
+    simulator/entities/camera_equipped_entity.h
+    simulator/entities/radio_entity.h
+    simulator/entities/radio_equipped_entity.h
+    simulator/entities/prototype_proximity_sensor_equipped_entity.h
+    simulator/entities/prototype_entity.h
+    simulator/entities/prototype_led_equipped_entity.h)
+  set(ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR_MEDIA
+    simulator/media/barcode2_medium.h
+    simulator/media/radio_medium.h)
+  set(ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR_PHYSICS_MODELS
+    simulator/physics_models/dynamics3d_prototype_model.h)
+  set(ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR_SENSORS
+#    simulator/sensors/cameras_default_sensor.h
+    simulator/sensors/prototype_joints_default_sensor.h
+    simulator/sensors/prototype_proximity_default_sensor.h
+    simulator/sensors/prototype_radios_default_sensor.h)
 endif(ARGOS_BUILD_FOR_SIMULATOR)
 
 #
 # Robot sources
 #
 set(ARGOS3_SOURCES_PLUGINS_ROBOTS_PROTOTYPE
+  ${ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_UTILITY}
   ${ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_CONTROLINTERFACE}
+#    control_interface/ci_cameras_sensor.cpp
     control_interface/ci_prototype_joints_sensor.cpp
     control_interface/ci_prototype_joints_actuator.cpp
     control_interface/ci_prototype_proximity_sensor.cpp
-    control_interface/ci_prototype_cameras_sensor.cpp
     control_interface/ci_prototype_radios_actuator.cpp
     control_interface/ci_prototype_radios_sensor.cpp
     control_interface/ci_prototype_electromagnets_actuator.cpp)
@@ -64,45 +71,49 @@ set(ARGOS3_SOURCES_PLUGINS_ROBOTS_PROTOTYPE
 if(ARGOS_BUILD_FOR_SIMULATOR)
   set(ARGOS3_SOURCES_PLUGINS_ROBOTS_PROTOTYPE
     ${ARGOS3_SOURCES_PLUGINS_ROBOTS_PROTOTYPE}
-    ${ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR}
+    ${ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR_ACTUATORS}
+    ${ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR_ENTITIES}
+    ${ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR_MEDIA}
+    ${ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR_PHYSICS_MODELS}
+    ${ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR_SENSORS}
+    simulator/actuators/prototype_joints_default_actuator.cpp
+    simulator/actuators/prototype_leds_default_actuator.cpp
+    simulator/actuators/prototype_electromagnets_default_actuator.cpp
+    simulator/actuators/prototype_radios_default_actuator.cpp    
+    simulator/entities/barcode2_entity.cpp
+    simulator/entities/barcode2_equipped_entity.cpp
+    simulator/entities/body_entity.cpp
+    simulator/entities/body_equipped_entity.cpp
+    simulator/entities/frame_entity.cpp
+    simulator/entities/frame_equipped_entity.cpp
+    simulator/entities/joint_entity.cpp
+    simulator/entities/joint_equipped_entity.cpp
+    simulator/entities/electromagnet_entity.cpp
+    simulator/entities/electromagnet_equipped_entity.cpp
+    simulator/entities/camera_entity.cpp
+    simulator/entities/camera_equipped_entity.cpp
+    simulator/entities/radio_entity.cpp
+    simulator/entities/radio_equipped_entity.cpp
+    simulator/entities/prototype_entity.cpp
+    simulator/entities/prototype_proximity_sensor_equipped_entity.cpp    
+    simulator/entities/prototype_led_equipped_entity.cpp
+    simulator/media/barcode2_medium.cpp
+    simulator/media/radio_medium.cpp
+    simulator/physics_models/dynamics3d_prototype_model.cpp
+#    simulator/sensors/cameras_default_sensor.cpp
+    simulator/sensors/prototype_joints_default_sensor.cpp    
+    simulator/sensors/prototype_proximity_default_sensor.cpp
+    simulator/sensors/prototype_radios_default_sensor.cpp)
 
-    simulator/dynamics3d_prototype_model.cpp
-    simulator/barcode2_entity.cpp
-    simulator/barcode2_equipped_entity.cpp
-    simulator/barcode2_medium.cpp
-    simulator/prototype_joints_default_sensor.cpp
-    simulator/prototype_joints_default_actuator.cpp
-    simulator/body_entity.cpp
-    simulator/body_equipped_entity.cpp
-    simulator/frame_entity.cpp
-    simulator/frame_equipped_entity.cpp
-    simulator/joint_entity.cpp
-    simulator/joint_equipped_entity.cpp
-    simulator/electromagnet_entity.cpp
-    simulator/electromagnet_equipped_entity.cpp
-    simulator/camera_entity.cpp
-    simulator/camera_equipped_entity.cpp
-    simulator/radio_entity.cpp
-    simulator/radio_equipped_entity.cpp
-    simulator/radio_medium.cpp
-    simulator/prototype_entity.cpp
-    simulator/prototype_proximity_default_sensor.cpp
-    simulator/prototype_proximity_sensor_equipped_entity.cpp
-    simulator/prototype_leds_default_actuator.cpp
-    simulator/prototype_led_equipped_entity.cpp
-    simulator/prototype_cameras_sensor.cpp
-    simulator/prototype_electromagnets_default_actuator.cpp
-    simulator/prototype_radios_default_sensor.cpp
-    simulator/prototype_radios_default_actuator.cpp)
   # Compile the graphical visualization only if the necessary libraries have been found
   include(ARGoSCheckQTOpenGL)
   if(ARGOS_COMPILE_QTOPENGL)
     set(ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR
       ${ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR}
-      simulator/qtopengl_prototype.h)
+      simulator/visualizations/qtopengl_prototype.h)
     set(ARGOS3_SOURCES_PLUGINS_ROBOTS_PROTOTYPE
       ${ARGOS3_SOURCES_PLUGINS_ROBOTS_PROTOTYPE}
-      simulator/qtopengl_prototype.cpp)
+      simulator/visualizations/qtopengl_prototype.cpp)
   endif(ARGOS_COMPILE_QTOPENGL)
 endif(ARGOS_BUILD_FOR_SIMULATOR)
 
@@ -134,7 +145,11 @@ endif(ARGOS_COMPILE_QTOPENGL)
 install(FILES ${ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_CONTROLINTERFACE} DESTINATION include/argos3/plugins/robots/prototype/control_interface)
 
 if(ARGOS_BUILD_FOR_SIMULATOR)
-  install(FILES ${ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR}      DESTINATION include/argos3/plugins/robots/prototype/simulator)
+  install(FILES ${ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR_ACTUATORS}      DESTINATION include/argos3/plugins/robots/prototype/simulator/actuators)
+  install(FILES ${ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR_ENTITIES}       DESTINATION include/argos3/plugins/robots/prototype/simulator/entities)
+  install(FILES ${ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR_MEDIA}          DESTINATION include/argos3/plugins/robots/prototype/simulator/media)
+  install(FILES ${ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR_PHYSICS_MODELS} DESTINATION include/argos3/plugins/robots/prototype/simulator/physics_models)
+  install(FILES ${ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR_SENSORS}        DESTINATION include/argos3/plugins/robots/prototype/simulator/sensors)
 endif(ARGOS_BUILD_FOR_SIMULATOR)
 
 install(TARGETS argos3plugin_${ARGOS_BUILD_FOR}_prototype

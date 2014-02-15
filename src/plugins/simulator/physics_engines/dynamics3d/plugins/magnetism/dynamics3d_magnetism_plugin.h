@@ -14,7 +14,7 @@ namespace argos {
 #include <vector>
 
 #include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_plugin.h>
-#include <argos3/plugins/robots/prototype/simulator/electromagnet_equipped_entity.h>
+#include <argos3/plugins/robots/prototype/simulator/entities/electromagnet_equipped_entity.h>
 #include <argos3/core/utility/datatypes/datatypes.h>
 
 namespace argos {
