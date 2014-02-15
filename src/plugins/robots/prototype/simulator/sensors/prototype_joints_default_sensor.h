@@ -4,7 +4,6 @@
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-
 #ifndef PROTOTYPE_JOINTS_DEFAULT_SENSOR_H
 #define PROTOTYPE_JOINTS_DEFAULT_SENSOR_H
 

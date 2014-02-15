@@ -4,7 +4,7 @@
 # argos3/plugins/robots/prototype/control_interface
 
 set(ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_CONTROLINTERFACE
-#  control_interface/ci_cameras_sensor.h
+  control_interface/ci_cameras_sensor.h
   control_interface/ci_prototype_joints_sensor.h
   control_interface/ci_prototype_joints_actuator.h
   control_interface/ci_prototype_proximity_sensor.h
@@ -48,7 +48,7 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
   set(ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR_PHYSICS_MODELS
     simulator/physics_models/dynamics3d_prototype_model.h)
   set(ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR_SENSORS
-#    simulator/sensors/cameras_default_sensor.h
+    simulator/sensors/cameras_default_sensor.h
     simulator/sensors/prototype_joints_default_sensor.h
     simulator/sensors/prototype_proximity_default_sensor.h
     simulator/sensors/prototype_radios_default_sensor.h)
@@ -60,7 +60,7 @@ endif(ARGOS_BUILD_FOR_SIMULATOR)
 set(ARGOS3_SOURCES_PLUGINS_ROBOTS_PROTOTYPE
   ${ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_UTILITY}
   ${ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_CONTROLINTERFACE}
-#    control_interface/ci_cameras_sensor.cpp
+    control_interface/ci_cameras_sensor.cpp
     control_interface/ci_prototype_joints_sensor.cpp
     control_interface/ci_prototype_joints_actuator.cpp
     control_interface/ci_prototype_proximity_sensor.cpp
@@ -100,7 +100,7 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     simulator/media/barcode2_medium.cpp
     simulator/media/radio_medium.cpp
     simulator/physics_models/dynamics3d_prototype_model.cpp
-#    simulator/sensors/cameras_default_sensor.cpp
+    simulator/sensors/cameras_default_sensor.cpp
     simulator/sensors/prototype_joints_default_sensor.cpp    
     simulator/sensors/prototype_proximity_default_sensor.cpp
     simulator/sensors/prototype_radios_default_sensor.cpp)
@@ -156,3 +156,8 @@ install(TARGETS argos3plugin_${ARGOS_BUILD_FOR}_prototype
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib/argos3
   ARCHIVE DESTINATION lib/argos3)
+  
+#
+# Compile the default camera sensor algorithms
+#
+add_subdirectory(simulator/sensors/cameras_default_sensor_algorithms)

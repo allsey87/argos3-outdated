@@ -53,7 +53,7 @@ namespace argos {
       virtual void Init(TConfigurationNode& t_tree);
 
       virtual std::string GetTypeDescription() const {
-         return "camera_container";
+         return "camera_equipped_entity";
       }
 
       const CCameraEntity::TList& GetAllCameras() const {

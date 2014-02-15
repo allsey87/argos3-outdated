@@ -22,13 +22,13 @@
       </actuators>
       <sensors>
          <joints implementation="default" />
-         <!--cameras implementation="default">
+         <cameras implementation="default">
             <algorithms>
                <led_detector medium="leds" camera="front_camera" show_rays="true"/>
-               <barcode_detector medium="barcodes2" camera="front_camera" show_rays="true"/>
-               <barcode_localizer medium="barcodes2" camera="front_camera" show_rays="true"/>
+               <!--barcode_detector medium="barcodes2" camera="front_camera" show_rays="true"/-->
+               <!--barcode_localizer medium="barcodes2" camera="front_camera" show_rays="true"/-->
             </algorithms>
-         </cameras-->
+         </cameras>
       </sensors>
       <params script="src/testing/prototype_testbenches/prototype_camera_calibration.lua"/>
       <!--params script="../../src/testing/prototype_testbenches/prototype_camera_testing.lua"/-->

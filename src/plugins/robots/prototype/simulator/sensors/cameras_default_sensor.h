@@ -9,8 +9,8 @@
 
 namespace argos {
    class CCamerasDefaultSensor;
+   class CCamerasDefaultSensorAlgorithm;
    class CCameraEquippedEntity;
-   class CControllableEntity;
 }
 
 #include <argos3/core/utility/math/rng.h>
@@ -18,16 +18,18 @@ namespace argos {
 #include <argos3/core/simulator/sensor.h>
 #include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor.h>
 
+//#include <argos3/plugins/robots/prototype/simulator/sensors/cameras_default_sensor_algorithm.h>
+
 namespace argos {
 
    class CCamerasDefaultSensor : public CSimulatedSensor,
-                          public CCI_CamerasSensor {
+                                 public CCI_CamerasSensor {
 
    public:
 
-      struct SResult : public CCI_CamerasSensor::SCI_Result {
-         // empty for the moment
-      };
+      // struct SResult : public CCI_CamerasSensor::SCI_Result {
+      //    // empty for the moment
+      // };
 
       CCamerasDefaultSensor();
 
@@ -47,7 +49,7 @@ namespace argos {
 
       virtual void Disable();
 
-   private:
+   public:
 
       struct SViewport {
          CVector3 CameraLocation;
@@ -64,12 +66,12 @@ namespace argos {
 
       bool                               m_bEnabled;
       CCameraEquippedEntity*             m_pcCameraEquippedEntity;
-      CControllableEntity*               m_pcControllableEntity;
+      // CControllableEntity*               m_pcControllableEntity;
       std::vector<SViewport>             m_vecViewports;
       
       /* A vector of maps for each camera, the map is populated with
          the algorithms that are associated loaded on that camera */
-      //std::vector<CCameraSensorAlgorithm::TList> m_vecAlgorithms;
+      std::vector<std::vector<CCamerasDefaultSensorAlgorithm*> > m_vecAlgorithms;
 
    };
 }
