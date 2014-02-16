@@ -5,6 +5,8 @@
 
 set(ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_CONTROLINTERFACE
   control_interface/ci_cameras_sensor.h
+  control_interface/ci_cameras_sensor_algorithm.h
+  control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_leddetector_algorithm.h
   control_interface/ci_prototype_joints_sensor.h
   control_interface/ci_prototype_joints_actuator.h
   control_interface/ci_prototype_proximity_sensor.h
@@ -61,6 +63,7 @@ set(ARGOS3_SOURCES_PLUGINS_ROBOTS_PROTOTYPE
   ${ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_UTILITY}
   ${ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_CONTROLINTERFACE}
     control_interface/ci_cameras_sensor.cpp
+    control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_leddetector_algorithm.cpp
     control_interface/ci_prototype_joints_sensor.cpp
     control_interface/ci_prototype_joints_actuator.cpp
     control_interface/ci_prototype_proximity_sensor.cpp

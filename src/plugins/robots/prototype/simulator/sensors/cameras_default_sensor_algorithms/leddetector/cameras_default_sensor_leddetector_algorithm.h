@@ -11,8 +11,9 @@ namespace argos {
 	class CCamerasDefaultSensorLEDDetectorAlgorithm;
 }
 
-#include <argos3/core/simulator/space/positional_indices/positional_index.h>
 #include <argos3/plugins/robots/prototype/simulator/sensors/cameras_default_sensor_algorithm.h>
+#include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_leddetector_algorithm.h>
+#include <argos3/core/simulator/space/positional_indices/positional_index.h>
 
 #include <argos3/core/utility/math/rng.h>
 #include <argos3/core/utility/math/ray3.h>
@@ -29,41 +30,11 @@ namespace argos {
     * acquired by the simulated or by the physical camera.
     */
    class CCamerasDefaultSensorLEDDetectorAlgorithm : public CCamerasDefaultSensorAlgorithm,
+                                                     public CCI_CamerasSensorLEDDetectorAlgorithm,
                                                      public CPositionalIndex<CLEDEntity>::COperation {
       
    public:
 
-      // struct SObservation {
-      //    /* Color */
-      //    CColor Color;
-      //    /* Coordinates in image */
-      //    UInt32 HorizontalIndex;
-      //    UInt32 VerticalIndex;
-      //    /**
-      //     * Constructor
-      //     */
-      //    SObservation() :
-      //       Color(CColor::BLACK),
-      //       HorizontalIndex(0),
-      //       VerticalIndex(0) {}
-      //    /**
-      //     * Constructor with parameters
-      //     * @param c_color Observation color
-      //     * @param un_horizontal_index horizontal index
-      //     * @param un_vertical_index vertical index
-      //     */
-      //    SObservation(const CColor& c_color,
-      //          UInt32 un_horizontal_index,
-      //          UInt32 un_vertical_index) :
-      //       Color(c_color),
-      //       HorizontalIndex(un_horizontal_index),
-      //       VerticalIndex(un_vertical_index) {}
-      //    /**
-      //     * Vector of observations.
-      //     */
-      //    typedef std::vector<SObservation> TList;
-      // };
-      
       CCamerasDefaultSensorLEDDetectorAlgorithm() {}
 
       virtual ~CCamerasDefaultSensorLEDDetectorAlgorithm() {}

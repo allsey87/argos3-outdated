@@ -15,6 +15,8 @@ namespace argos {
 #include <argos3/plugins/robots/prototype/simulator/entities/camera_equipped_entity.h>
 #include <argos3/plugins/robots/prototype/simulator/sensors/cameras_default_sensor.h>
 
+#include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor_algorithm.h>
+
 namespace argos {
    
    /**
@@ -24,7 +26,7 @@ namespace argos {
     */
 
    // class CCamerasDefaultSensorAlgorithm : public CBaseConfigurableResource
-   class CCamerasDefaultSensorAlgorithm {
+   class CCamerasDefaultSensorAlgorithm : public CCI_CamerasSensorAlgorithm {
       
    public:
       typedef std::vector<CCamerasDefaultSensorAlgorithm*> TList;
@@ -38,7 +40,7 @@ namespace argos {
       virtual void Reset() {}
 
       virtual void Destroy() {}
-      
+
       virtual void SetCamera(CCameraEquippedEntity& c_entity, UInt32 un_index) {}
 
       virtual void SetViewport(const CCamerasDefaultSensor::SViewport& s_viewport) {}

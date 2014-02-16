@@ -59,6 +59,9 @@ namespace argos {
       m_cCameraOrientationOffset = m_pcCameraEquippedEntity->GetOffsetOrientation(m_unCameraIndex);
       m_cCameraRoll = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetRoll();
 
+      // Clear the old readings
+      m_tReadings.clear();
+
       m_pcLEDIndex->ForEntitiesInBoxRange(m_sViewport.Position,
                                           m_sViewport.HalfExtents,
                                           *this);
@@ -86,7 +89,7 @@ namespace argos {
                UInt32 unLedHorizontalIndex = m_unHorizontalResolution * (cLedPositionOnSensor.GetX() + m_sViewport.HalfExtents[0]) / (2.0f * m_sViewport.HalfExtents[0]);
                UInt32 unLedVerticalIndex = m_unVerticalResolution * (cLedPositionOnSensor.GetY() + m_sViewport.HalfExtents[0]) / (2.0f * m_sViewport.HalfExtents[0]);
                   /* Store this observation into our observation list */
-               //m_psReading->ObservationList.push_back(CCI_PrototypeCamerasSensor::SObservation(c_led.GetColor(), unLedHorizontalIndex, unLedVerticalIndex));
+               m_tReadings.push_back(SReading(c_led.GetColor(), unLedHorizontalIndex, unLedVerticalIndex));
                if(m_bShowRays) {
                   //m_cControllableEntity.AddCheckedRay(false, CRay3(m_cCameraPosition, c_led.GetPosition()));
                }

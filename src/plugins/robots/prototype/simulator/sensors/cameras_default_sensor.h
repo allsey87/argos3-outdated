@@ -49,6 +49,7 @@ namespace argos {
 
       virtual void Disable();
 
+
    public:
 
       struct SViewport {
@@ -68,11 +69,6 @@ namespace argos {
       CCameraEquippedEntity*             m_pcCameraEquippedEntity;
       // CControllableEntity*               m_pcControllableEntity;
       std::vector<SViewport>             m_vecViewports;
-      
-      /* A vector of maps for each camera, the map is populated with
-         the algorithms that are associated loaded on that camera */
-      std::vector<std::vector<CCamerasDefaultSensorAlgorithm*> > m_vecAlgorithms;
-
    };
 }
 

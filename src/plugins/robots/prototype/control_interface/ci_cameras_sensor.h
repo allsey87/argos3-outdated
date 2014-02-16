@@ -1,5 +1,5 @@
 /**
- * @file <argos3/plugins/robot/prototype/control_interface/ci_cameras_sensor/ci_cameras_sensor.cpp>
+ * @file <argos3/plugins/robot/prototype/control_interface/ci_cameras_sensor/ci_cameras_sensor.h>
  *
  * @author Michael Allwright - <allsey87@gmail.com>
  */
@@ -12,9 +12,12 @@ namespace argos {
 }
 
 #include <argos3/core/control_interface/ci_sensor.h>
-#include <argos3/core/utility/math/angles.h>
-#include <argos3/core/utility/datatypes/color.h>
-#include <vector>
+
+#include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor_algorithm.h>
+
+#include <cxxabi.h>
+#include <typeinfo>
+
 
 namespace argos {
    
@@ -31,19 +34,6 @@ namespace argos {
       
    public:
 
-      struct SCI_Result {
-         typedef std::vector<SCI_Result*> TList;
-      };
-      
-      struct SReading {
-         SCI_Result::TList Algorithms;
-         /**
-          * Vector of observation lists.
-          */
-         typedef std::vector<SReading> TList;
-      };
-
-      
       struct SDescriptor {
          std::string Id;
          UInt32 HorizontalResolution;
@@ -78,9 +68,8 @@ namespace argos {
          typedef std::vector<SDescriptor> TList;
       };
 
-
    public:
-      
+     
       /**
        * Constructor
        */
@@ -91,14 +80,6 @@ namespace argos {
        * Destructor
        */
       virtual ~CCI_CamerasSensor() {
-      }
-      
-      /**
-       * Returns a reference to the current camera readings.
-       * @return A reference to the current camera readings.
-       */
-      inline const SReading::TList& GetReadings() const {
-         return m_tReadings;
       }
       
       /**
@@ -119,16 +100,49 @@ namespace argos {
        */
       virtual void Disable() = 0;
       
+   public:
+
+      bool HasAlgorithm(const std::string& str_camera_name, const std::string& str_algorithm_type) const;
+
+      template<typename ALGORITHM_IMPL>
+      ALGORITHM_IMPL* GetAlgorithm(const std::string& str_camera_name, const std::string& str_algorithm_type) {
+         std::map<std::string, CCI_CamerasSensorAlgorithm::TMap, std::less<std::string> >::const_iterator itCamera =
+            m_mapCameraAlgorithms.find(str_camera_name);
+         if(itCamera != m_mapCameraAlgorithms.end()) {
+            CCI_CamerasSensorAlgorithm::TMap::const_iterator itAlgorithm = itCamera->second.find(str_algorithm_type);
+            if(itAlgorithm != itCamera->second.end()) {
+               ALGORITHM_IMPL* pcAlgorithm = dynamic_cast<ALGORITHM_IMPL*>(itAlgorithm->second);
+               if(pcAlgorithm != NULL) {
+                  return pcAlgorithm;
+               }
+               else {
+                  char* pchDemangledType = abi::__cxa_demangle(typeid(ALGORITHM_IMPL).name(), NULL, NULL, NULL);
+                  THROW_ARGOSEXCEPTION("Algorithm type " << str_algorithm_type << " cannot be cast to type " << pchDemangledType);
+               }
+            }
+            else {
+               THROW_ARGOSEXCEPTION("Camera " << str_camera_name << " is not running the " <<
+                                    str_algorithm_type << " algorithm. Did you add it to the XML file?");
+            }
+         }
+         else {
+            THROW_ARGOSEXCEPTION("Unknown camera instance " << str_camera_name <<
+                                 " requested in camera sensor. Did you add it to the XML file?");
+         }
+      }
+
 #ifdef ARGOS_WITH_LUA
       virtual void CreateLuaState(lua_State* pt_lua_state);
       
       virtual void ReadingsToLuaState(lua_State* pt_lua_state);
 #endif
 
+
    protected:
  
-      SReading::TList m_tReadings;
       SDescriptor::TList m_tDescriptors;
+
+      std::map<std::string, CCI_CamerasSensorAlgorithm::TMap, std::less<std::string> > m_mapCameraAlgorithms;
       
       
    };
