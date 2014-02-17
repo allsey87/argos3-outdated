@@ -1,17 +1,17 @@
 /**
- * @file <argos3/plugins/robots/prototype/simulator/sensors/cameras_default_sensor_algorithms/cameras_default_sensor_leddetector_algorithm.h>
+ * @file <argos3/plugins/robots/prototype/simulator/sensors/cameras_sensor_algorithms/cameras_sensor_leddetector_algorithm.h>
  *
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-#ifndef CAMERAS_DEFAULT_SENSOR_LEDDETECTOR_ALGORITHM_H
-#define CAMERAS_DEFAULT_SENSOR_LEDDETECTOR_ALGORITHM_H
+#ifndef CAMERAS_SENSOR_LEDDETECTOR_ALGORITHM_H
+#define CAMERAS_SENSOR_LEDDETECTOR_ALGORITHM_H
 
 namespace argos {
-	class CCamerasDefaultSensorLEDDetectorAlgorithm;
+	class CCamerasSensorLEDDetectorAlgorithm;
 }
 
-#include <argos3/plugins/robots/prototype/simulator/sensors/cameras_default_sensor_algorithm.h>
+#include <argos3/plugins/robots/prototype/simulator/sensors/cameras_sensor_algorithm.h>
 #include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_leddetector_algorithm.h>
 #include <argos3/core/simulator/space/positional_indices/positional_index.h>
 
@@ -29,15 +29,15 @@ namespace argos {
     * The camera sensor enables the user to extract information from the images
     * acquired by the simulated or by the physical camera.
     */
-   class CCamerasDefaultSensorLEDDetectorAlgorithm : public CCamerasDefaultSensorAlgorithm,
-                                                     public CCI_CamerasSensorLEDDetectorAlgorithm,
-                                                     public CPositionalIndex<CLEDEntity>::COperation {
+   class CCamerasSensorLEDDetectorAlgorithm : public CCamerasSensorSimulatedAlgorithm,
+                                              public CCI_CamerasSensorLEDDetectorAlgorithm,
+                                              public CPositionalIndex<CLEDEntity>::COperation {
       
    public:
 
-      CCamerasDefaultSensorLEDDetectorAlgorithm() {}
+      CCamerasSensorLEDDetectorAlgorithm();
 
-      virtual ~CCamerasDefaultSensorLEDDetectorAlgorithm() {}
+      virtual ~CCamerasSensorLEDDetectorAlgorithm() {}
 
       virtual void Init(TConfigurationNode& t_tree);
 
@@ -49,7 +49,7 @@ namespace argos {
 
       virtual void SetCamera(CCameraEquippedEntity& c_entity, UInt32 un_index);
 
-      virtual void SetViewport(const CCamerasDefaultSensor::SViewport& s_viewport) {
+      virtual void SetViewport(const SViewport& s_viewport) {
          m_sViewport = s_viewport;
       }
 
@@ -68,8 +68,7 @@ namespace argos {
 
       SEmbodiedEntityIntersectionItem    m_sIntersectionItem;
  
-      //CPrototypeCamerasSensor::SReading* m_psReading;
-      CCamerasDefaultSensor::SViewport   m_sViewport;
+      SViewport                          m_sViewport;
 
       CVector3                           m_cCameraPosition;
       CVector3                           m_cAttachedBodyPosition;

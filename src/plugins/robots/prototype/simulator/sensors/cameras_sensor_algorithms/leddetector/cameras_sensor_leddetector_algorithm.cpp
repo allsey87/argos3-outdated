@@ -1,10 +1,10 @@
 /**
- * @file <argos3/plugins/robots/prototype/simulator/sensors/cameras_default_sensor_algorithms/cameras_default_sensor_leddetector_algorithm.cpp>
+ * @file <argos3/plugins/robots/prototype/simulator/sensors/cameras_sensor_algorithms/cameras_sensor_leddetector_algorithm.cpp>
  *
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-#include "cameras_default_sensor_leddetector_algorithm.h"
+#include "cameras_sensor_leddetector_algorithm.h"
 
 #include <argos3/core/simulator/simulator.h>
 
@@ -16,18 +16,38 @@ namespace argos {
    /****************************************/
    /****************************************/   
 
-   void CCamerasDefaultSensorLEDDetectorAlgorithm::SetCamera(CCameraEquippedEntity& c_entity, UInt32 un_index) {
+   CCamerasSensorLEDDetectorAlgorithm::CCamerasSensorLEDDetectorAlgorithm() :
+      m_pcCameraEquippedEntity(NULL),
+      m_pcControllableEntity(NULL),
+      m_unCameraIndex(0),
+      m_bShowRays(false),
+      m_fDistanceNoiseStdDev(0.0f),
+      m_pcRNG(NULL),
+      m_pcLEDIndex(NULL),
+      m_unHorizontalResolution(0u),
+      m_unVerticalResolution(0u) {}
+
+   /****************************************/
+   /****************************************/   
+
+   void CCamerasSensorLEDDetectorAlgorithm::SetCamera(CCameraEquippedEntity& c_entity, UInt32 un_index) {
       m_pcCameraEquippedEntity = &c_entity;
       m_unCameraIndex = un_index;
+
+      m_cCameraPositionOffset    = m_pcCameraEquippedEntity->GetOffsetPosition(m_unCameraIndex);
+      m_cCameraOrientationOffset = m_pcCameraEquippedEntity->GetOffsetOrientation(m_unCameraIndex);
+      m_cCameraRoll              = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetRoll();
+      m_unHorizontalResolution   = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetHorizontalResolution();
+      m_unVerticalResolution     = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetVerticalResolution();;
    }
 
    /****************************************/
    /****************************************/
    
-   void CCamerasDefaultSensorLEDDetectorAlgorithm::Init(TConfigurationNode& t_tree) {
+   void CCamerasSensorLEDDetectorAlgorithm::Init(TConfigurationNode& t_tree) {
       try {
          /* Parent class init */
-         CCamerasDefaultSensorAlgorithm::Init(t_tree);
+         CCI_CamerasSensorAlgorithm::Init(t_tree);
          /* Show rays? */
          GetNodeAttributeOrDefault(t_tree, "show_rays", m_bShowRays, m_bShowRays);
          /* Parse noise */
@@ -48,18 +68,17 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CCamerasDefaultSensorLEDDetectorAlgorithm::Update() {
+   void CCamerasSensorLEDDetectorAlgorithm::Update() {
       // TODO: Extend CTransformationMatrix3 / CSquareMatrix<N> to compute inverse
       // This will allow faster transforms of the LED positions to the sensor
       // coordinate system
 
       m_cAttachedBodyPosition = m_pcCameraEquippedEntity->GetPositionalEntity(m_unCameraIndex).GetPosition();
       m_cAttachedBodyOrientation = m_pcCameraEquippedEntity->GetPositionalEntity(m_unCameraIndex).GetOrientation();
-      m_cCameraPositionOffset = m_pcCameraEquippedEntity->GetOffsetPosition(m_unCameraIndex);
-      m_cCameraOrientationOffset = m_pcCameraEquippedEntity->GetOffsetOrientation(m_unCameraIndex);
-      m_cCameraRoll = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetRoll();
 
-      // Clear the old readings
+      /* All occlusion rays start from the camera position */
+      m_cOcclusionCheckRay.SetStart(m_sViewport.CameraLocation);
+      /* Clear the old readings */ 
       m_tReadings.clear();
 
       m_pcLEDIndex->ForEntitiesInBoxRange(m_sViewport.Position,
@@ -70,9 +89,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   bool CCamerasDefaultSensorLEDDetectorAlgorithm::operator()(CLEDEntity& c_led) {
-      fprintf(stderr, "LED Detected: %s\n", (c_led.GetContext() + c_led.GetId()).c_str());
-
+   bool CCamerasSensorLEDDetectorAlgorithm::operator()(CLEDEntity& c_led) {
       if(c_led.GetColor() != CColor::BLACK) {
          if((c_led.GetPosition() - m_sViewport.Position).Length() < m_sViewport.HalfExtents[0]) {
             m_cOcclusionCheckRay.SetEnd(c_led.GetPosition());         
@@ -88,7 +105,7 @@ namespace argos {
                /* Calculate the relevant index of the pixel presenting the centroid of the detected LED blob */
                UInt32 unLedHorizontalIndex = m_unHorizontalResolution * (cLedPositionOnSensor.GetX() + m_sViewport.HalfExtents[0]) / (2.0f * m_sViewport.HalfExtents[0]);
                UInt32 unLedVerticalIndex = m_unVerticalResolution * (cLedPositionOnSensor.GetY() + m_sViewport.HalfExtents[0]) / (2.0f * m_sViewport.HalfExtents[0]);
-                  /* Store this observation into our observation list */
+               /* Store this led into our readings list */
                m_tReadings.push_back(SReading(c_led.GetColor(), unLedHorizontalIndex, unLedVerticalIndex));
                if(m_bShowRays) {
                   //m_cControllableEntity.AddCheckedRay(false, CRay3(m_cCameraPosition, c_led.GetPosition()));
@@ -105,13 +122,13 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   REGISTER_CAMERA_SENSOR_ALGORITHM(CCamerasDefaultSensorLEDDetectorAlgorithm,
-                                    "led_detector",
-                                    "Michael Allwright [allsey87@gmail.com]",
-                                    "1.0",
-                                    "This algorithm detects nearby LEDs seen by the camera and\n"
-                                    "returns the X and Y coordinates on the sensor",
-                                    "This algorithm detects nearby LEDs seen by the camera and\n"
-                                    "returns the X and Y coordinates on the sensor",
-                                    "Under development");  
+   REGISTER_CAMERAS_SENSOR_ALGORITHM(CCamerasSensorLEDDetectorAlgorithm,
+                                     "led_detector",
+                                     "Michael Allwright [allsey87@gmail.com]",
+                                     "1.0",
+                                     "This algorithm detects nearby LEDs seen by the camera and\n"
+                                     "returns the X and Y coordinates on the sensor",
+                                     "This algorithm detects nearby LEDs seen by the camera and\n"
+                                     "returns the X and Y coordinates on the sensor",
+                                     "Under development");  
 }

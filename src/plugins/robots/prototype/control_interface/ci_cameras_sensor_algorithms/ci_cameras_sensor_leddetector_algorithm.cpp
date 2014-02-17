@@ -33,6 +33,7 @@ namespace argos {
 
 #ifdef ARGOS_WITH_LUA
    void CCI_CamerasSensorLEDDetectorAlgorithm::ReadingsToLuaState(lua_State* pt_lua_state) {
+      // @todo lua_objlen(pt_lua_state, -1) is returning always 0 instead of last number of readings
       size_t unLastReadingsNum = lua_objlen(pt_lua_state, -1);
       for(size_t i = 0; i < m_tReadings.size(); ++i) {
          CLuaUtility::StartTable(pt_lua_state, i+1);

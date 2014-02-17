@@ -1,14 +1,14 @@
-#include "prototype_camera_user_functions.h"
+#include "camera_user_functions.h"
 #include <argos3/core/simulator/simulator.h>
 #include <argos3/core/simulator/space/space.h>
 #include <argos3/core/simulator/entity/composable_entity.h>
 
-#include <argos3/plugins/robots/prototype/control_interface/ci_prototype_cameras_sensor.h>
+#include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor.h>
 
 /********************************************************************************/
 /********************************************************************************/
 
-CPrototypeCameraUserFunctions::CPrototypeCameraUserFunctions() : 
+CCameraUserFunctions::CCameraUserFunctions() : 
    m_cSimulator(CSimulator::GetInstance()),
    m_cSpace(m_cSimulator.GetSpace()),
    m_bConnected(false),
@@ -17,7 +17,7 @@ CPrototypeCameraUserFunctions::CPrototypeCameraUserFunctions() :
 /********************************************************************************/
 /********************************************************************************/
 
-CPrototypeCameraUserFunctions::~CPrototypeCameraUserFunctions() {
+CCameraUserFunctions::~CCameraUserFunctions() {
    while(!m_tWindows.empty()) {
       delete m_tWindows.back();
       m_tWindows.pop_back();
@@ -27,7 +27,7 @@ CPrototypeCameraUserFunctions::~CPrototypeCameraUserFunctions() {
 /********************************************************************************/
 /********************************************************************************/
 
-void CPrototypeCameraUserFunctions::DrawInWorld() {
+void CCameraUserFunctions::DrawInWorld() {
    if(!m_bConnected) {
       QObject::connect(&GetOpenGLWidget(),
                        SIGNAL(EntitySelected(size_t)),
@@ -48,7 +48,7 @@ void CPrototypeCameraUserFunctions::DrawInWorld() {
 /********************************************************************************/
 /********************************************************************************/
 
-void CPrototypeCameraUserFunctions::EntitySelected(size_t un_index) {
+void CCameraUserFunctions::EntitySelected(size_t un_index) {
    CEntity::TVector& vecEntities = m_cSpace.GetRootEntityVector();
    
    CComposableEntity* pcComposableEntity = dynamic_cast<CComposableEntity*>(vecEntities[un_index]);
@@ -57,10 +57,10 @@ void CPrototypeCameraUserFunctions::EntitySelected(size_t un_index) {
       if(pcComposableEntity->HasComponent("controller")) {
          CControllableEntity& cController = pcComposableEntity->GetComponent<CControllableEntity>("controller");
          
-         if(cController.GetController().HasSensor("prototype_cameras")) {
-            m_pcSensor = cController.GetController().GetSensor<CCI_PrototypeCamerasSensor>("prototype_cameras");
+         if(cController.GetController().HasSensor("cameras")) {
+            m_pcSensor = cController.GetController().GetSensor<CCI_CamerasSensor>("cameras");
             for(UInt32 i = 0; i < m_pcSensor->GetDescriptors().size(); ++i) {
-               m_tWindows.push_back(new CPrototypeCameraWindow(&GetOpenGLWidget(),m_pcSensor, i));
+               m_tWindows.push_back(new CCameraWindow(&GetOpenGLWidget(),m_pcSensor, i));
             }
          }
       }
@@ -70,7 +70,7 @@ void CPrototypeCameraUserFunctions::EntitySelected(size_t un_index) {
 /********************************************************************************/
 /********************************************************************************/
 
-void CPrototypeCameraUserFunctions::EntityDeselected(size_t un_index) {
+void CCameraUserFunctions::EntityDeselected(size_t un_index) {
    while(!m_tWindows.empty()) {
       delete m_tWindows.back();
       m_tWindows.pop_back();
@@ -80,7 +80,7 @@ void CPrototypeCameraUserFunctions::EntityDeselected(size_t un_index) {
 /********************************************************************************/
 /********************************************************************************/
 
-void CPrototypeCameraUserFunctions::UpdateCameras(int n_step) {
+void CCameraUserFunctions::UpdateCameras(int n_step) {
    for(UInt32 i = 0; i < m_tWindows.size(); i++) {
       m_tWindows[i]->Update();
    }
@@ -89,4 +89,4 @@ void CPrototypeCameraUserFunctions::UpdateCameras(int n_step) {
 /********************************************************************************/
 /********************************************************************************/
 
-REGISTER_QTOPENGL_USER_FUNCTIONS(CPrototypeCameraUserFunctions, "prototype_camera_user_functions");
+REGISTER_QTOPENGL_USER_FUNCTIONS(CCameraUserFunctions, "camera_user_functions");

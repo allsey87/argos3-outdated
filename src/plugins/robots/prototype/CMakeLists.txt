@@ -51,6 +51,7 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     simulator/physics_models/dynamics3d_prototype_model.h)
   set(ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR_SENSORS
     simulator/sensors/cameras_default_sensor.h
+    simulator/sensors/cameras_sensor_algorithm.h
     simulator/sensors/prototype_joints_default_sensor.h
     simulator/sensors/prototype_proximity_default_sensor.h
     simulator/sensors/prototype_radios_default_sensor.h)
@@ -163,4 +164,4 @@ install(TARGETS argos3plugin_${ARGOS_BUILD_FOR}_prototype
 #
 # Compile the default camera sensor algorithms
 #
-add_subdirectory(simulator/sensors/cameras_default_sensor_algorithms)
+add_subdirectory(simulator/sensors/cameras_sensor_algorithms)

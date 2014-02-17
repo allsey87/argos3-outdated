@@ -8,7 +8,7 @@
 #include <argos3/core/simulator/simulator.h>
 #include <argos3/core/simulator/entity/composable_entity.h>
 #include <argos3/plugins/robots/prototype/simulator/entities/camera_equipped_entity.h>
-#include <argos3/plugins/robots/prototype/simulator/sensors/cameras_default_sensor_algorithm.h>
+#include <argos3/plugins/robots/prototype/simulator/sensors/cameras_sensor_algorithm.h>
 
 namespace argos {
 
@@ -66,12 +66,18 @@ namespace argos {
                if(m_pcCameraEquippedEntity->GetCamera(i).GetId() == strCamera) break;
             }
             if(i < m_pcCameraEquippedEntity->GetAllCameras().size()) {
-               CCamerasDefaultSensorAlgorithm* pcAlgorithm = 
-                  CFactory<CCamerasDefaultSensorAlgorithm>::New(itAlgorithm->Value());
+               CCamerasSensorSimulatedAlgorithm* pcAlgorithm = 
+                  CFactory<CCamerasSensorSimulatedAlgorithm>::New(itAlgorithm->Value());
+               CCI_CamerasSensorAlgorithm* pcCIAlgorithm = dynamic_cast<CCI_CamerasSensorAlgorithm*>(pcAlgorithm);
+               if(pcCIAlgorithm == NULL) {
+                  THROW_ARGOSEXCEPTION("BUG: algorithm \"" << itAlgorithm->Value() << "\" does not inherit from CCI_CamerasSensorAlgorithm");
+               }
                pcAlgorithm->SetCamera(*m_pcCameraEquippedEntity, i);
-               pcAlgorithm->Init(*itAlgorithm);
-               m_mapCameraAlgorithms[m_pcCameraEquippedEntity->GetCamera(i).GetId()][itAlgorithm->Value()] =
+               pcCIAlgorithm->Init(*itAlgorithm);
+               m_mapSimulatedAlgorithms[m_pcCameraEquippedEntity->GetCamera(i).GetId()][itAlgorithm->Value()] =
                   pcAlgorithm;
+               m_mapAlgorithms[m_pcCameraEquippedEntity->GetCamera(i).GetId()][itAlgorithm->Value()] =
+                  pcCIAlgorithm;
             }
             else {
                THROW_ARGOSEXCEPTION("Could not assign algorithm \"" << itAlgorithm->Value() <<
@@ -79,8 +85,6 @@ namespace argos {
             }
          }
       }
-
-
       catch(CARGoSException& ex) {
          THROW_ARGOSEXCEPTION_NESTED("Error initializing the camera sensor", ex);
       }
@@ -109,14 +113,19 @@ namespace argos {
          m_vecViewports[i].CameraLocation.Rotate(m_pcCameraEquippedEntity->GetPositionalEntity(i).GetOrientation());
          m_vecViewports[i].CameraLocation += m_pcCameraEquippedEntity->GetPositionalEntity(i).GetPosition();
 
-         std::map<std::string, CCI_CamerasSensorAlgorithm::TMap, std::less<std::string> >::iterator
-                itCamera = m_mapCameraAlgorithms.find(m_pcCameraEquippedEntity->GetCamera(i).GetId());
+         std::map<std::string, CCamerasSensorSimulatedAlgorithm::TMap, std::less<std::string> >::iterator
+                itCamera = m_mapSimulatedAlgorithms.find(m_pcCameraEquippedEntity->GetCamera(i).GetId());
 
-         for(CCI_CamerasSensorAlgorithm::TMap::iterator itAlgorithm = itCamera->second.begin();
-             itAlgorithm != itCamera->second.end();
-             ++itAlgorithm) {
-            itAlgorithm->second->SetViewport(m_vecViewports[i]);
-            itAlgorithm->second->Update();
+         if(itCamera != m_mapSimulatedAlgorithms.end()) {
+            for(CCamerasSensorSimulatedAlgorithm::TMap::iterator itAlgorithm = itCamera->second.begin();
+                itAlgorithm != itCamera->second.end();
+                ++itAlgorithm) {
+               itAlgorithm->second->SetViewport(m_vecViewports[i]);
+               itAlgorithm->second->Update();
+            }
+         }
+         else {
+            THROW_ARGOSEXCEPTION("Could not find camera in algorithms vector");
          }
       }
    }

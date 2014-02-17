@@ -107,8 +107,8 @@ namespace argos {
       template<typename ALGORITHM_IMPL>
       ALGORITHM_IMPL* GetAlgorithm(const std::string& str_camera_name, const std::string& str_algorithm_type) {
          std::map<std::string, CCI_CamerasSensorAlgorithm::TMap, std::less<std::string> >::const_iterator itCamera =
-            m_mapCameraAlgorithms.find(str_camera_name);
-         if(itCamera != m_mapCameraAlgorithms.end()) {
+            m_mapAlgorithms.find(str_camera_name);
+         if(itCamera != m_mapAlgorithms.end()) {
             CCI_CamerasSensorAlgorithm::TMap::const_iterator itAlgorithm = itCamera->second.find(str_algorithm_type);
             if(itAlgorithm != itCamera->second.end()) {
                ALGORITHM_IMPL* pcAlgorithm = dynamic_cast<ALGORITHM_IMPL*>(itAlgorithm->second);
@@ -142,7 +142,7 @@ namespace argos {
  
       SDescriptor::TList m_tDescriptors;
 
-      std::map<std::string, CCI_CamerasSensorAlgorithm::TMap, std::less<std::string> > m_mapCameraAlgorithms;
+      std::map<std::string, CCI_CamerasSensorAlgorithm::TMap, std::less<std::string> > m_mapAlgorithms;
       
       
    };

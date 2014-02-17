@@ -17,8 +17,8 @@ namespace argos {
 
    bool CCI_CamerasSensor::HasAlgorithm(const std::string& str_camera_name, const std::string& str_algorithm_type) const {
       std::map<std::string, CCI_CamerasSensorAlgorithm::TMap, std::less<std::string> >::const_iterator itCamera =
-         m_mapCameraAlgorithms.find(str_camera_name);
-      if(itCamera != m_mapCameraAlgorithms.end()) {
+         m_mapAlgorithms.find(str_camera_name);
+      if(itCamera != m_mapAlgorithms.end()) {
          CCI_CamerasSensorAlgorithm::TMap::const_iterator itAlgorithm = itCamera->second.find(str_algorithm_type);
          if(itAlgorithm != itCamera->second.end()) {
             return true;
@@ -27,7 +27,6 @@ namespace argos {
       return false;
    }
    
-
    /****************************************/
    /****************************************/
 
@@ -60,8 +59,8 @@ namespace argos {
       //CLuaUtility::AddToTable(pt_lua_state, "enable", &LuaEnableCamera);
       //CLuaUtility::AddToTable(pt_lua_state, "disable", &LuaDisableCamera);
       for(std::map<std::string, CCI_CamerasSensorAlgorithm::TMap, std::less<std::string> >::iterator
-             itCamera = m_mapCameraAlgorithms.begin();
-          itCamera != m_mapCameraAlgorithms.end();
+             itCamera = m_mapAlgorithms.begin();
+          itCamera != m_mapAlgorithms.end();
           ++itCamera) {
          CLuaUtility::StartTable(pt_lua_state, itCamera->first);
          for(CCI_CamerasSensorAlgorithm::TMap::iterator itAlgorithm = itCamera->second.begin();
@@ -84,8 +83,8 @@ namespace argos {
    void CCI_CamerasSensor::ReadingsToLuaState(lua_State* pt_lua_state) {
       lua_getfield(pt_lua_state, -1, "cameras");
       for(std::map<std::string, CCI_CamerasSensorAlgorithm::TMap, std::less<std::string> >::iterator
-             itCamera = m_mapCameraAlgorithms.begin();
-          itCamera != m_mapCameraAlgorithms.end();
+             itCamera = m_mapAlgorithms.begin();
+          itCamera != m_mapAlgorithms.end();
           ++itCamera) {
          CLuaUtility::StartTable(pt_lua_state, itCamera->first);
          for(CCI_CamerasSensorAlgorithm::TMap::iterator itAlgorithm = itCamera->second.begin();
