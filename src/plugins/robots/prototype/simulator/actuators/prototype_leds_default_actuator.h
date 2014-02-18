@@ -13,7 +13,6 @@
 
 namespace argos {
    class CPrototypeLEDsDefaultActuator;
-   class CLEDMedium;
 }
 
 #include <argos3/plugins/robots/generic/control_interface/ci_leds_actuator.h>
@@ -41,7 +40,6 @@ namespace argos {
    private:
 
       CPrototypeLEDEquippedEntity* m_pcLEDEquippedEntity;
-      CLEDMedium*                  m_pcLEDMedium;
 
    };
 

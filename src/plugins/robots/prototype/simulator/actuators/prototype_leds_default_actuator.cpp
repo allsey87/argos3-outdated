@@ -33,10 +33,6 @@ namespace argos {
    void CPrototypeLEDsDefaultActuator::Init(TConfigurationNode& t_tree) {
       try {
          CCI_LEDsActuator::Init(t_tree);
-         std::string strMedium;
-         GetNodeAttribute(t_tree, "medium", strMedium);
-         m_pcLEDMedium = &CSimulator::GetInstance().GetMedium<CLEDMedium>(strMedium);
-         m_pcLEDEquippedEntity->AddToMedium(*m_pcLEDMedium);
       }
       catch(CARGoSException& ex) {
          THROW_ARGOSEXCEPTION_NESTED("Error initializing the LEDs default actuator", ex);
@@ -61,7 +57,6 @@ namespace argos {
    /****************************************/
 
    void CPrototypeLEDsDefaultActuator::Destroy() {
-      m_pcLEDEquippedEntity->RemoveFromMedium(*m_pcLEDMedium);
    }
 
    /****************************************/
@@ -83,8 +78,7 @@ REGISTER_ACTUATOR(CPrototypeLEDsDefaultActuator,
                   "      ...\n"
                   "      <actuators>\n"
                   "        ...\n"
-                  "        <leds implementation=\"default\"\n"
-                  "              medium=\"leds\" />\n"
+                  "        <leds implementation=\"default\"/>"
                   "        ...\n"
                   "      </actuators>\n"
                   "      ...\n"

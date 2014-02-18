@@ -12,15 +12,14 @@ function init()
    end
 
 	if(robot.id == "test-pattern") then
-		robot.leds.set_single_color(1, "red");
-		robot.leds.set_single_color(2, "green");
+		robot.leds.set_single_color(1, "blue");
+		robot.leds.set_single_color(2, "blue");
 		robot.leds.set_single_color(3, "blue");
-		robot.leds.set_single_color(4, "green");
+		robot.leds.set_single_color(4, "blue");
 		robot.leds.set_single_color(5, "blue");
-		robot.leds.set_single_color(6, "red");
+		robot.leds.set_single_color(6, "blue");
 		robot.leds.set_single_color(7, "blue");
-		robot.leds.set_single_color(8, "red");
-		robot.leds.set_single_color(9, "green");
+		robot.leds.set_single_color(8, "blue");
 	end
 end
 

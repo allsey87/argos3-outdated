@@ -16,6 +16,9 @@
 #include <argos3/plugins/robots/prototype/simulator/entities/barcode2_equipped_entity.h>
 #include <argos3/plugins/robots/prototype/simulator/entities/radio_equipped_entity.h>
 
+#include <argos3/plugins/robots/prototype/simulator/media/barcode2_medium.h>
+#include <argos3/plugins/simulator/media/led_medium.h>
+
 #include <argos3/core/simulator/space/space.h>
 //#include <argos3/core/simulator/entity/controllable_entity.h>
 #include <argos3/core/simulator/entity/embodied_entity.h>
@@ -79,6 +82,10 @@ namespace argos {
                   CPrototypeLEDEquippedEntity* m_pcEquippedEntity =
                      new CPrototypeLEDEquippedEntity(this);
                   m_pcEquippedEntity->Init(*itDevice);
+                  /* Add the LEDs to the specified medium */
+                  std::string strMedium;
+                  GetNodeAttribute(*itDevice, "medium", strMedium);
+                  m_pcEquippedEntity->AddToMedium(CSimulator::GetInstance().GetMedium<CLEDMedium>(strMedium));
                   AddComponent(*m_pcEquippedEntity);
                }
                else if(itDevice->Value() == "cameras" ) {
@@ -97,6 +104,10 @@ namespace argos {
                   CBarcode2EquippedEntity* m_pcEquippedEntity = 
                      new CBarcode2EquippedEntity(this);
                   m_pcEquippedEntity->Init(*itDevice);
+                  /* Add the barcodes to the specified medium */
+                  std::string strMedium;
+                  GetNodeAttribute(*itDevice, "medium", strMedium);
+                  m_pcEquippedEntity->AddToMedium(CSimulator::GetInstance().GetMedium<CBarcode2Medium>(strMedium));
                   AddComponent(*m_pcEquippedEntity);         
                }
                else if(itDevice->Value() == "radios" ) {

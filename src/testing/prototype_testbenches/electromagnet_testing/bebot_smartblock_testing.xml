@@ -33,7 +33,7 @@
 
     <lua_controller id="smartblock_prototype_lua">
       <actuators>
-        <pleds implementation="default" medium="leds"/>
+        <pleds implementation="default"/>
       </actuators>
       <sensors/>
       <params/>
@@ -301,7 +301,7 @@
         </body>
       </bodies>
       <devices>
-        <barcodes>
+        <barcodes medium="barcodes">
           <barcode id="top"    body="block" localizable="true" position=" 0.000, 0.000, 0.071" orientation="0,0,0"   payload="" side_length="0.035"/>
           <barcode id="north"  body="block" localizable="true" position=" 0.036, 0.000, 0.035" orientation="0,90,0"  payload="" side_length="0.035"/>
           <barcode id="east"   body="block" localizable="true" position=" 0.000,-0.036, 0.035" orientation="0,0,90"  payload="" side_length="0.035"/>
@@ -309,7 +309,7 @@
           <barcode id="west"   body="block" localizable="true" position=" 0.000, 0.036, 0.035" orientation="0,0,-90" payload="" side_length="0.035"/>
           <barcode id="bottom" body="block" localizable="true" position=" 0.000, 0.000,-0.001" orientation="0,0,180" payload="" side_length="0.035"/>
         </barcodes>
-        <leds>
+        <leds medium="leds">
           <led id="top_a"    body="block" position=" 0.000, 0.025, 0.071" color="blue"/>
           <led id="top_b"    body="block" position=" 0.025, 0.000, 0.071" color="blue"/>
           <led id="top_c"    body="block" position=" 0.000,-0.025, 0.071" color="blue"/>
@@ -335,7 +335,7 @@
           <led id="bottom_c" body="block" position=" 0.000,-0.025,-0.001" color="red"/>
           <led id="bottom_d" body="block" position="-0.025, 0.000,-0.001" color="red"/>
         </leds>
-        <radios>
+        <radios medium="nfc">
           <radio id="top" body="block" position="0.000, 0.000, 0.070" range="1.2"/>
         </radios>
       </devices>

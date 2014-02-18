@@ -69,6 +69,10 @@ namespace argos {
       inline Real GetSideLength() const {
          return m_fSideLength;
       }
+      
+      inline bool IsLocalizable() const {
+         return m_bLocalizable;
+      }
 
 
       virtual std::string GetTypeDescription() const {
