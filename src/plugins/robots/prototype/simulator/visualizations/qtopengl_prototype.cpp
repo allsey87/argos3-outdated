@@ -229,10 +229,10 @@ namespace argos {
          }
       }
       
-      /* Camera Testing Begin
+      /* Camera Testing Begin */
       if(c_entity.HasComponent("controller")) {
          CControllableEntity& cController = c_entity.GetComponent<CControllableEntity>("controller");
-         if(cController.GetController().HasSensor("prototype_cameras")) {
+         if(cController.GetController().HasSensor("cameras")) {
             CCamerasDefaultSensor* pcCameraSensor = cController.GetController().GetSensor<CCamerasDefaultSensor>("cameras");
             if(pcCameraSensor != NULL) {
                for(size_t i = 0; i < pcCameraSensor->GetViewports().size(); ++i) {

@@ -56,7 +56,8 @@ namespace argos {
 
       bool                               m_bEnabled;
       CCameraEquippedEntity*             m_pcCameraEquippedEntity;
-      // CControllableEntity*            m_pcControllableEntity;
+      CControllableEntity*               m_pcControllableEntity;
+
       std::vector<CCamerasSensorSimulatedAlgorithm::SViewport> m_vecViewports;
       
       std::map<std::string, CCamerasSensorSimulatedAlgorithm::TMap, std::less<std::string> > m_mapSimulatedAlgorithms;

@@ -8,7 +8,7 @@ function init()
    	if(robot.id == "robot") then
 	   --robot.prototype_forwards_camera.enable();
       --robot.leds.set_all_colors("blue");
-      robot.joints.set_joint_velocity("joint_0", "ANGULAR_Z", 5)
+      robot.joints.set_joint_velocity("joint_0", "ANGULAR_X", 5)
    end
 
 	if(robot.id == "test-pattern") then

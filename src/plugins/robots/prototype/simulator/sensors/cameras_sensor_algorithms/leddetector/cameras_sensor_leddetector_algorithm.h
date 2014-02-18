@@ -70,7 +70,6 @@ namespace argos {
  
       SViewport                          m_sViewport;
 
-      CVector3                           m_cCameraPosition;
       CVector3                           m_cAttachedBodyPosition;
       CQuaternion                        m_cAttachedBodyOrientation;
       CVector3                           m_cCameraPositionOffset;
@@ -79,7 +78,7 @@ namespace argos {
 
       UInt32                             m_unHorizontalResolution;
       UInt32                             m_unVerticalResolution;
-  
+
    };
 }         
 

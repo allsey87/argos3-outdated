@@ -17,8 +17,8 @@ namespace argos {
 
    CCamerasDefaultSensor::CCamerasDefaultSensor() :
       m_bEnabled(false),
-      m_pcCameraEquippedEntity(NULL) {}
-      //m_pcControllableEntity(NULL) {}
+      m_pcCameraEquippedEntity(NULL),
+      m_pcControllableEntity(NULL) {}
 
    /****************************************/
    /****************************************/
@@ -43,7 +43,7 @@ namespace argos {
       /* Initialise the viewport vector to the correct size */
       m_vecViewports.resize(m_pcCameraEquippedEntity->GetAllCameras().size());
       /* Get controllable entity */
-      //m_pcControllableEntity = &(c_entity.GetComponent<CControllableEntity>("controller"));
+      m_pcControllableEntity = &(c_entity.GetComponent<CControllableEntity>("controller"));
    }
 
    /****************************************/
@@ -122,6 +122,11 @@ namespace argos {
                 ++itAlgorithm) {
                itAlgorithm->second->SetViewport(m_vecViewports[i]);
                itAlgorithm->second->Update();
+               /* transfer the checked rays to the controllable entity */
+               m_pcControllableEntity->GetCheckedRays().insert(m_pcControllableEntity->GetCheckedRays().end(),
+                                                               itAlgorithm->second->GetCheckedRays().begin(),
+                                                               itAlgorithm->second->GetCheckedRays().end());
+               
             }
          }
          else {

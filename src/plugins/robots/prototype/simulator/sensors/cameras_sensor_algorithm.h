@@ -39,6 +39,14 @@ namespace argos {
 
       virtual void Update() = 0;
 
+      const std::vector<std::pair<bool, CRay3> >& GetCheckedRays() const {
+         return m_vecCheckedRays;
+      }
+
+   protected:
+      
+      std::vector<std::pair<bool, CRay3> > m_vecCheckedRays;
+
    };   
 }
 

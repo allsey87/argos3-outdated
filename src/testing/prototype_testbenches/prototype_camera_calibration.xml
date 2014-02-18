@@ -86,11 +86,11 @@
       <joints>
         <joint id="joint_0" disable_collisions="false" sensor="enabled" actuator="enabled">
           <frames>
-            <frame body="base" position="0,0, 0.05" orientation="0,0,0"/>
-            <frame body="link_0" position="0,0,0" orientation="0,0,0"/>
+            <frame body="base" position="0,0, 0.05" orientation="0,90,0"/>
+            <frame body="link_0" position="0,0,0" orientation="0,90,0"/>
           </frames>
           <axes>
-            <axis direction="z" mode="angular" range="unconstrained">
+            <axis direction="x" mode="angular" range="unconstrained">
               <actuator enabled="true" force="5" target_velocity="0"/>
             </axis>
           </axes>

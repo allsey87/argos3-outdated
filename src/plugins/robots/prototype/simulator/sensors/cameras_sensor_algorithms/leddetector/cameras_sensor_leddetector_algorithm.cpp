@@ -80,6 +80,7 @@ namespace argos {
       m_cOcclusionCheckRay.SetStart(m_sViewport.CameraLocation);
       /* Clear the old readings */ 
       m_tReadings.clear();
+      m_vecCheckedRays.clear();
 
       m_pcLEDIndex->ForEntitiesInBoxRange(m_sViewport.Position,
                                           m_sViewport.HalfExtents,
@@ -108,11 +109,8 @@ namespace argos {
                /* Store this led into our readings list */
                m_tReadings.push_back(SReading(c_led.GetColor(), unLedHorizontalIndex, unLedVerticalIndex));
                if(m_bShowRays) {
-                  //m_cControllableEntity.AddCheckedRay(false, CRay3(m_cCameraPosition, c_led.GetPosition()));
+                  m_vecCheckedRays.push_back(std::pair<bool, CRay3>(false, CRay3(m_sViewport.CameraLocation, c_led.GetPosition())));
                }
-            }
-            else {
-               //m_cControllableEntity.AddCheckedRay(true, CRay3(m_cCameraPosition, c_led.GetPosition()));
             }
          }
       }
