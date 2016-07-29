@@ -1,19 +1,19 @@
 /**
- * @file <argos3/plugins/robots/prototype/simulator/sensors/cameras_sensor_algorithms/cameras_sensor_apriltags_algorithm.h>
+ * @file <argos3/plugins/robots/prototype/simulator/sensors/cameras_sensor_algorithms/tagdetector/cameras_sensor_tagdetector_algorithm.h>
  *
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-#ifndef CAMERAS_SENSOR_APRILTAGS_ALGORITHM_H
-#define CAMERAS_SENSOR_APRILTAGS_ALGORITHM_H
+#ifndef CAMERAS_SENSOR_TAGDETECTOR_ALGORITHM_H
+#define CAMERAS_SENSOR_TAGDETECTOR_ALGORITHM_H
 
 namespace argos {
-	class CCamerasSensorApriltagsAlgorithm;
+	class CCamerasSensorTagDetectorAlgorithm;
 }
 
 #include <argos3/plugins/robots/prototype/simulator/sensors/cameras_sensor_algorithm.h>
-#include <argos3/plugins/robots/prototype/simulator/entities/barcode2_entity.h>
-#include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_apriltags_algorithm.h>
+#include <argos3/plugins/robots/prototype/simulator/entities/tag_entity.h>
+#include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_tagdetector_algorithm.h>
 #include <argos3/core/simulator/space/positional_indices/positional_index.h>
 
 #include <argos3/core/utility/math/rng.h>
@@ -28,15 +28,15 @@ namespace argos {
     * The camera sensor enables the user to extract information from the images
     * acquired by the simulated or by the physical camera.
     */
-   class CCamerasSensorApriltagsAlgorithm :   public CCamerasSensorSimulatedAlgorithm,
-                                              public CCI_CamerasSensorApriltagsAlgorithm,
-                                              public CPositionalIndex<CBarcode2Entity>::COperation {
+   class CCamerasSensorTagDetectorAlgorithm : public CCamerasSensorSimulatedAlgorithm,
+                                              public CCI_CamerasSensorTagDetectorAlgorithm,
+                                              public CPositionalIndex<CTagEntity>::COperation {
       
    public:
 
-      CCamerasSensorApriltagsAlgorithm();
+      CCamerasSensorTagDetectorAlgorithm();
 
-      virtual ~CCamerasSensorApriltagsAlgorithm() {}
+      virtual ~CCamerasSensorTagDetectorAlgorithm() {}
 
       virtual void Init(TConfigurationNode& t_tree);
 
@@ -52,7 +52,7 @@ namespace argos {
          m_sViewport = s_viewport;
       }
 
-      virtual bool operator()(CBarcode2Entity& c_barcode);
+      virtual bool operator()(CTagEntity& c_tag);
 
    protected:
 
@@ -63,7 +63,7 @@ namespace argos {
       CRay3                              m_cOcclusionCheckRay;
       Real                               m_fDistanceNoiseStdDev;
       CRandom::CRNG*                     m_pcRNG;
-      CPositionalIndex<CBarcode2Entity>* m_pcBarcodeIndex;
+      CPositionalIndex<CTagEntity>*      m_pcTagIndex;
 
       SEmbodiedEntityIntersectionItem    m_sIntersectionItem;
  

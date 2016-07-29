@@ -12,7 +12,7 @@
 #include <argos3/plugins/robots/prototype/simulator/visualizations/argos_website_url.tex>
 #include <argos3/plugins/robots/prototype/simulator/entities/prototype_led_equipped_entity.h>
 #include <argos3/plugins/robots/prototype/simulator/entities/electromagnet_equipped_entity.h>
-#include <argos3/plugins/robots/prototype/simulator/entities/barcode2_equipped_entity.h>
+#include <argos3/plugins/robots/prototype/simulator/entities/tag_equipped_entity.h>
 #include <argos3/plugins/robots/prototype/simulator/entities/camera_equipped_entity.h>
 #include <argos3/plugins/robots/prototype/simulator/sensors/cameras_default_sensor.h>
 
@@ -41,7 +41,7 @@ namespace argos {
       m_unSphereList   = m_unBaseList + 2;
       m_unLEDList      = m_unBaseList + 3;
       m_unPoleList     = m_unBaseList + 4;
-      m_unBarcodeList  = m_unBaseList + 5;
+      m_unTagList  = m_unBaseList + 5;
       
       /* Make box list */
       glNewList(m_unBoxList, GL_COMPILE);
@@ -68,10 +68,10 @@ namespace argos {
       MakePoles();
       glEndList();
 
-      /* Make Barcode list */
-      MakeBarcodeTexture();
-      glNewList(m_unBarcodeList, GL_COMPILE);
-      MakeBarcode();
+      /* Make Tag list */
+      MakeTagTexture();
+      glNewList(m_unTagList, GL_COMPILE);
+      MakeTag();
       glEndList();
    }
 
@@ -256,42 +256,26 @@ namespace argos {
       }
       /* Camera Testing End */
 
-      if(c_entity.HasComponent("barcode2_container")) {
-         CBarcode2EquippedEntity& cBarcode2EquippedEntity =
-            c_entity.GetComponent<CBarcode2EquippedEntity>("barcode2_container");
-         //fprintf(stderr, "\n\n");
-         for(UInt32 i = 0; i < cBarcode2EquippedEntity.GetAllBarcodes().size(); ++i) {
-            /*fprintf(stderr, 
-                    "drawing barcode %s with payload %s\n", 
-                    (cBarcode2EquippedEntity.GetBarcode(i).GetContext() + cBarcode2EquippedEntity.GetBarcode(i).GetId()).c_str(),
-                    cBarcode2EquippedEntity.GetBarcode(i).GetPayload().c_str());
-            */
-            const CVector3& cBarcodePosition = cBarcode2EquippedEntity.GetBarcode(i).GetPosition();
-            const CQuaternion& cBarcodeOrientation = cBarcode2EquippedEntity.GetBarcode(i).GetOrientation(); 
+      if(c_entity.HasComponent("tag_container")) {
+         CTagEquippedEntity& cTagEquippedEntity =
+            c_entity.GetComponent<CTagEquippedEntity>("tag_container");
+         for(UInt32 i = 0; i < cTagEquippedEntity.GetAllTags().size(); ++i) {
+            const CVector3& cTagPosition = cTagEquippedEntity.GetTag(i).GetPosition();
+            const CQuaternion& cTagOrientation = cTagEquippedEntity.GetTag(i).GetOrientation(); 
             CRadians cZ, cY, cX;
-            cBarcodeOrientation.ToEulerAngles(cZ, cY, cX);
-            Real fScaling = cBarcode2EquippedEntity.GetBarcode(i).GetSideLength();
-
-            /*            fprintf(stderr,
-                    "\tLocation = [%.3f, %.3f, %.3f]; Angles = [%.3f, %.3f, %.3f]\n",
-                    cBarcodePosition.GetX(),
-                    cBarcodePosition.GetY(),
-                    cBarcodePosition.GetZ(),
-                    ToDegrees(cZ).GetValue(),
-                    ToDegrees(cY).GetValue(),
-                    ToDegrees(cX).GetValue());
-            */
+            cTagOrientation.ToEulerAngles(cZ, cY, cX);
+            Real fScaling = cTagEquippedEntity.GetTag(i).GetSideLength();
 
             glPushMatrix();
             
-            glTranslatef(cBarcodePosition.GetX(),
-                         cBarcodePosition.GetY(),
-                         cBarcodePosition.GetZ());
+            glTranslatef(cTagPosition.GetX(),
+                         cTagPosition.GetY(),
+                         cTagPosition.GetZ());
             glRotatef(ToDegrees(cX).GetValue(), 1.0f, 0.0f, 0.0f);
             glRotatef(ToDegrees(cY).GetValue(), 0.0f, 1.0f, 0.0f); 
             glRotatef(ToDegrees(cZ).GetValue(), 0.0f, 0.0f, 1.0f);
             glScalef(fScaling, fScaling, 1.0f);
-            glCallList(m_unBarcodeList);
+            glCallList(m_unTagList);
             glPopMatrix();
          }
       }
@@ -452,9 +436,9 @@ namespace argos {
    }
 
 
-   void CQTOpenGLPrototype::MakeBarcodeTexture() {
-      glGenTextures(1, &m_unBarcodeTex);
-      glBindTexture(GL_TEXTURE_2D, m_unBarcodeTex);
+   void CQTOpenGLPrototype::MakeTagTexture() {
+      glGenTextures(1, &m_unTagTex);
+      glBindTexture(GL_TEXTURE_2D, m_unTagTex);
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 32, 32, 0, GL_RGB, GL_FLOAT, ARGOS_WEBSITE_URL);
       
       glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
@@ -464,14 +448,14 @@ namespace argos {
 
    }
 
-   void CQTOpenGLPrototype::MakeBarcode() {
+   void CQTOpenGLPrototype::MakeTag() {
       glEnable(GL_NORMALIZE);
       glDisable(GL_LIGHTING);
       glEnable(GL_TEXTURE_2D);
-      glBindTexture(GL_TEXTURE_2D, m_unBarcodeTex);
+      glBindTexture(GL_TEXTURE_2D, m_unTagTex);
      
       glBegin(GL_QUADS);
-      // barcode
+      // tag
       glNormal3f(0.0f, 0.0f, 1.0f);
       glTexCoord2f(1.0f, 1.0f); glVertex2f( 0.5f,  0.5f);
       glTexCoord2f(0.03f, 1.0f); glVertex2f(-0.5f,  0.5f);

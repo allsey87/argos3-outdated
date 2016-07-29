@@ -38,8 +38,8 @@ namespace argos {
       void MakeSphere();
       void MakeLED();
       void MakePoles();
-      void MakeBarcode();
-      void MakeBarcodeTexture();
+      void MakeTag();
+      void MakeTagTexture();
 
    private:
       GLuint m_unBaseList;
@@ -48,9 +48,9 @@ namespace argos {
       GLuint m_unSphereList;
       GLuint m_unLEDList;
       GLuint m_unPoleList;
-      GLuint m_unBarcodeList;
+      GLuint m_unTagList;
       GLuint m_unVertices;
-      GLuint m_unBarcodeTex;
+      GLuint m_unTagTex;
 
    };
 }

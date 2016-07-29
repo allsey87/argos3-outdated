@@ -25,7 +25,7 @@
         <cameras implementation="default">
             <algorithms>
                <led_detector medium="leds" camera="front_camera" show_rays="true"/>
-               <apriltags medium="apriltags" camera="front_camera" show_rays="true"/>
+               <tag_detector medium="apriltags" camera="front_camera" show_rays="true"/>
             </algorithms>
          </cameras>
         <joints implementation="default" />
@@ -242,8 +242,6 @@
         </prototype>
       </entity>
     </distribute>
-
-
     
     <distribute>
       <position method="grid" center="2,2,0" distances="0.06,0.06,0.06" layout="3,3,1"/>
@@ -390,14 +388,14 @@
               <electromagnet body="magnet_bq3" passive_field="0,0,2"/>
               <electromagnet body="magnet_bq4" passive_field="0,0,2"/>
             </electromagnets>
-            <barcodes medium="apriltags">
-              <barcode id="top"    body="block" localizable="true" position="0.000,0.000,0.056" orientation="0,0,0"   payload="255" side_length="0.024"/>
-              <barcode id="north"  body="block" localizable="true" position="0.0285,0.000,0.0275" orientation="0,90,0"  payload="255" side_length="0.024"/>
-              <barcode id="east"   body="block" localizable="true" position="0.000,-0.0285,0.0275" orientation="0,0,90"  payload="255" side_length="0.024"/>
-              <barcode id="south"  body="block" localizable="true" position="-0.0285,0.000,0.0275" orientation="0,-90,0" payload="255" side_length="0.024"/>
-              <barcode id="west"   body="block" localizable="true" position="0.000,0.0285,0.0275" orientation="0,0,-90" payload="255" side_length="0.024"/>
-              <barcode id="bottom" body="block" localizable="true" position="0.000,0.000,-0.001" orientation="0,0,180" payload="255" side_length="0.024"/>
-            </barcodes>
+            <tags medium="apriltags">
+              <tag id="top"    body="block" localizable="true" position="0.000,0.000,0.056" orientation="0,0,0"   payload="255" side_length="0.024"/>
+              <tag id="north"  body="block" localizable="true" position="0.0285,0.000,0.0275" orientation="0,90,0"  payload="255" side_length="0.024"/>
+              <tag id="east"   body="block" localizable="true" position="0.000,-0.0285,0.0275" orientation="0,0,90"  payload="255" side_length="0.024"/>
+              <tag id="south"  body="block" localizable="true" position="-0.0285,0.000,0.0275" orientation="0,-90,0" payload="255" side_length="0.024"/>
+              <tag id="west"   body="block" localizable="true" position="0.000,0.0285,0.0275" orientation="0,0,-90" payload="255" side_length="0.024"/>
+              <tag id="bottom" body="block" localizable="true" position="0.000,0.000,-0.001" orientation="0,0,180" payload="255" side_length="0.024"/>
+            </tags>
             <leds medium="leds">
               <led id="top_a"    body="block" position="0.000,0.020,0.056" color="blue"/>
               <led id="top_b"    body="block" position="0.020,0.000,0.056" color="blue"/>
@@ -447,7 +445,7 @@
   <!-- ********* -->
   <media>
     <led id="leds" index="grid" grid_size="20,20,20" />
-    <barcode2 id="apriltags" index="grid" grid_size="20,20,20" />
+    <tag id="apriltags" index="grid" grid_size="20,20,20" />
     <radio id="nfc" index="grid" grid_size="20,20,20" />
   </media>
   

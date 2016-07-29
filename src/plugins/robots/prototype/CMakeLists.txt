@@ -7,7 +7,7 @@ set(ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_CONTROLINTERFACE
   control_interface/ci_cameras_sensor.h
   control_interface/ci_cameras_sensor_algorithm.h
   control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_leddetector_algorithm.h
-  control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_apriltags_algorithm.h
+  control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_tagdetector_algorithm.h
   control_interface/ci_prototype_joints_sensor.h
   control_interface/ci_prototype_joints_actuator.h
   control_interface/ci_prototype_proximity_sensor.h
@@ -28,8 +28,8 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     simulator/actuators/prototype_electromagnets_default_actuator.h
     simulator/actuators/prototype_radios_default_actuator.h)
   set(ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR_ENTITIES
-    simulator/entities/barcode2_entity.h
-    simulator/entities/barcode2_equipped_entity.h
+    simulator/entities/tag_entity.h
+    simulator/entities/tag_equipped_entity.h
     simulator/entities/body_entity.h
     simulator/entities/body_equipped_entity.h
     simulator/entities/frame_entity.h
@@ -46,7 +46,7 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     simulator/entities/prototype_entity.h
     simulator/entities/prototype_led_equipped_entity.h)
   set(ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR_MEDIA
-    simulator/media/barcode2_medium.h
+    simulator/media/tag_medium.h
     simulator/media/radio_medium.h)
   set(ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_SIMULATOR_PHYSICS_MODELS
     simulator/physics_models/dynamics3d_prototype_model.h)
@@ -66,7 +66,7 @@ set(ARGOS3_SOURCES_PLUGINS_ROBOTS_PROTOTYPE
   ${ARGOS3_HEADERS_PLUGINS_ROBOTS_PROTOTYPE_CONTROLINTERFACE}
     control_interface/ci_cameras_sensor.cpp
     control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_leddetector_algorithm.cpp
-    control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_apriltags_algorithm.cpp
+    control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_tagdetector_algorithm.cpp
     control_interface/ci_prototype_joints_sensor.cpp
     control_interface/ci_prototype_joints_actuator.cpp
     control_interface/ci_prototype_proximity_sensor.cpp
@@ -86,8 +86,8 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     simulator/actuators/prototype_leds_default_actuator.cpp
     simulator/actuators/prototype_electromagnets_default_actuator.cpp
     simulator/actuators/prototype_radios_default_actuator.cpp    
-    simulator/entities/barcode2_entity.cpp
-    simulator/entities/barcode2_equipped_entity.cpp
+    simulator/entities/tag_entity.cpp
+    simulator/entities/tag_equipped_entity.cpp
     simulator/entities/body_entity.cpp
     simulator/entities/body_equipped_entity.cpp
     simulator/entities/frame_entity.cpp
@@ -103,7 +103,7 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     simulator/entities/prototype_entity.cpp
     simulator/entities/prototype_proximity_sensor_equipped_entity.cpp    
     simulator/entities/prototype_led_equipped_entity.cpp
-    simulator/media/barcode2_medium.cpp
+    simulator/media/tag_medium.cpp
     simulator/media/radio_medium.cpp
     simulator/physics_models/dynamics3d_prototype_model.cpp
     simulator/sensors/cameras_default_sensor.cpp

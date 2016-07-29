@@ -1,14 +1,14 @@
 /**
- * @file <argos3/plugins/robot/prototype/control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_apriltags_algorithm.h>
+ * @file <argos3/plugins/robot/prototype/control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_tagdetector_algorithm.h>
  *
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-#ifndef CI_CAMERAS_SENSOR_APRILTAGS_ALGORITHM_H
-#define CI_CAMERAS_SENSOR_APRILTAGS_ALGORITHM_H
+#ifndef CI_CAMERAS_SENSOR_TAGDETECTOR_ALGORITHM_H
+#define CI_CAMERAS_SENSOR_TAGDETECTOR_ALGORITHM_H
 
 namespace argos {
-	class CCI_CamerasSensorApriltagsAlgorithm;
+	class CCI_CamerasSensorTagDetectorAlgorithm;
 }
 
 #include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor_algorithm.h>
@@ -28,7 +28,7 @@ extern "C" {
 
 namespace argos {
    
-   class CCI_CamerasSensorApriltagsAlgorithm : virtual public CCI_CamerasSensorAlgorithm {
+   class CCI_CamerasSensorTagDetectorAlgorithm : virtual public CCI_CamerasSensorAlgorithm {
       
    public:
 
@@ -76,13 +76,13 @@ namespace argos {
       /**
        * Constructor
        */
-      CCI_CamerasSensorApriltagsAlgorithm() {
+      CCI_CamerasSensorTagDetectorAlgorithm() {
       }
       
       /**
        * Destructor
        */
-      virtual ~CCI_CamerasSensorApriltagsAlgorithm() {
+      virtual ~CCI_CamerasSensorTagDetectorAlgorithm() {
       }
       
       const SReading::TList& GetReadings() const {

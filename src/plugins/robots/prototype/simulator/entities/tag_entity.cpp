@@ -1,25 +1,25 @@
 /**
- * @file <argos3/plugins/robots/prototype/simulator/entities/barcode2_entity.h>
+ * @file <argos3/plugins/robots/prototype/simulator/entities/tag_entity.h>
  *
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-#include "barcode2_entity.h"
+#include "tag_entity.h"
 #include <argos3/core/simulator/space/space.h>
-#include <argos3/plugins/robots/prototype/simulator/media/barcode2_medium.h>
+#include <argos3/plugins/robots/prototype/simulator/media/tag_medium.h>
 
 namespace argos {
 
    /****************************************/
    /****************************************/
 
-   CBarcode2Entity::CBarcode2Entity(CComposableEntity* pc_parent) :
+   CTagEntity::CTagEntity(CComposableEntity* pc_parent) :
       CPositionalEntity(pc_parent) {}
 
    /****************************************/
    /****************************************/
 
-   CBarcode2Entity::CBarcode2Entity(CComposableEntity* pc_parent,
+   CTagEntity::CTagEntity(CComposableEntity* pc_parent,
                                     const std::string& str_id,
                                     const std::string& str_payload,
                                     bool b_localizable,
@@ -32,7 +32,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CBarcode2Entity::Init(TConfigurationNode& t_tree) {
+   void CTagEntity::Init(TConfigurationNode& t_tree) {
       try {
          /* Parse XML */
          CPositionalEntity::Init(t_tree);
@@ -42,30 +42,30 @@ namespace argos {
          GetNodeAttribute(t_tree, "payload", m_strPayload);
       }
       catch(CARGoSException& ex) {
-         THROW_ARGOSEXCEPTION_NESTED("Error while initializing barcode2 entity", ex);
+         THROW_ARGOSEXCEPTION_NESTED("Error while initializing tag entity", ex);
       }
    }
 
    /****************************************/
    /****************************************/
 
-   void CBarcode2Entity::AddToMedium(CBarcode2Medium& c_medium) {
+   void CTagEntity::AddToMedium(CTagMedium& c_medium) {
       c_medium.AddEntity(*this);
    }
 
    /****************************************/
    /****************************************/
 
-   void CBarcode2Entity::RemoveFromMedium(CBarcode2Medium& c_medium) {
+   void CTagEntity::RemoveFromMedium(CTagMedium& c_medium) {
       c_medium.RemoveEntity(*this);
    }
 
    /****************************************/
    /****************************************/
 
-   void CBarcode2EntitySpaceHashUpdater::operator()(CAbstractSpaceHash<CBarcode2Entity>& c_space_hash,
-                                                    CBarcode2Entity& c_element) {
-      /* Calculate the position of the 2D barcode in the space hash */
+   void CTagEntitySpaceHashUpdater::operator()(CAbstractSpaceHash<CTagEntity>& c_space_hash,
+                                                    CTagEntity& c_element) {
+      /* Calculate the position of the tag in the space hash */
       c_space_hash.SpaceToHashTable(m_nI, m_nJ, m_nK, c_element.GetPosition());
       /* Update the corresponding cell */
       c_space_hash.UpdateCell(m_nI, m_nJ, m_nK, c_element);
@@ -74,21 +74,21 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   CBarcode2EntityGridUpdater::CBarcode2EntityGridUpdater(CGrid<CBarcode2Entity>& c_grid) :
+   CTagEntityGridUpdater::CTagEntityGridUpdater(CGrid<CTagEntity>& c_grid) :
       m_cGrid(c_grid) {}
 
    /****************************************/
    /****************************************/
 
-   bool CBarcode2EntityGridUpdater::operator()(CBarcode2Entity& c_entity) {
+   bool CTagEntityGridUpdater::operator()(CTagEntity& c_entity) {
       try {
-         /* Calculate the position of the 2D barcode in the space hash */
+         /* Calculate the position of the tag in the space hash */
          m_cGrid.PositionToCell(m_nI, m_nJ, m_nK, c_entity.GetPosition());
          /* Update the corresponding cell */
          m_cGrid.UpdateCell(m_nI, m_nJ, m_nK, c_entity);
       }
       catch(CARGoSException& ex) {
-         THROW_ARGOSEXCEPTION_NESTED("While updating the Barcode2 grid for 2D Barcode \"" << c_entity.GetContext() << c_entity.GetId() << "\"", ex);
+         THROW_ARGOSEXCEPTION_NESTED("While updating the tag grid for tag \"" << c_entity.GetContext() << c_entity.GetId() << "\"", ex);
       }
       /* Continue with the other entities */
       return true;
@@ -97,7 +97,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   REGISTER_STANDARD_SPACE_OPERATIONS_ON_ENTITY(CBarcode2Entity);
+   REGISTER_STANDARD_SPACE_OPERATIONS_ON_ENTITY(CTagEntity);
 
    /****************************************/
    /****************************************/

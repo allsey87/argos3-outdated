@@ -1,10 +1,10 @@
 /**
- * @file <argos3/plugins/robots/prototype/simulator/media/barcode2_medium.cpp>
+ * @file <argos3/plugins/robots/prototype/simulator/media/tag_medium.cpp>
  *
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-#include "barcode2_medium.h"
+#include "tag_medium.h"
 #include <argos3/core/simulator/simulator.h>
 #include <argos3/core/simulator/space/space.h>
 #include <argos3/core/simulator/space/positional_indices/grid.h>
@@ -16,19 +16,19 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   CBarcode2Medium::CBarcode2Medium() {
+   CTagMedium::CTagMedium() {
    }
 
    /****************************************/
    /****************************************/
 
-   CBarcode2Medium::~CBarcode2Medium() {
+   CTagMedium::~CTagMedium() {
    }
 
    /****************************************/
    /****************************************/
 
-   void CBarcode2Medium::Init(TConfigurationNode& t_tree) {
+   void CTagMedium::Init(TConfigurationNode& t_tree) {
       try {
          CMedium::Init(t_tree);
          /* Get the positional index method */
@@ -40,7 +40,7 @@ namespace argos {
          TConfigurationNode& tArena = GetNode(CSimulator::GetInstance().GetConfigurationRoot(), "arena");
          GetNodeAttribute(tArena, "size", cArenaSize);
          GetNodeAttributeOrDefault(tArena, "center", cArenaCenter, cArenaCenter);
-         /* Create the positional index for Barcode2 entities */
+         /* Create the positional index for tag entities */
          if(strPosIndexMethod == "grid") {
             size_t punGridSize[3];
             if(!NodeAttributeExists(t_tree, "grid_size")) {
@@ -53,81 +53,81 @@ namespace argos {
                GetNodeAttribute(t_tree, "grid_size", strPosGridSize);
                ParseValues<size_t>(strPosGridSize, 3, punGridSize, ',');
             }
-            CGrid<CBarcode2Entity>* pcGrid = new CGrid<CBarcode2Entity>(
+            CGrid<CTagEntity>* pcGrid = new CGrid<CTagEntity>(
                cArenaCenter - cArenaSize * 0.5f, cArenaCenter + cArenaSize * 0.5f,
                punGridSize[0], punGridSize[1], punGridSize[2]);
-            m_pcBarcode2EntityGridUpdateOperation = new CBarcode2EntityGridUpdater(*pcGrid);
-            pcGrid->SetUpdateEntityOperation(m_pcBarcode2EntityGridUpdateOperation);
-            m_pcBarcode2EntityIndex = pcGrid;
+            m_pcTagEntityGridUpdateOperation = new CTagEntityGridUpdater(*pcGrid);
+            pcGrid->SetUpdateEntityOperation(m_pcTagEntityGridUpdateOperation);
+            m_pcTagEntityIndex = pcGrid;
          }
          else {
             THROW_ARGOSEXCEPTION("Unknown method \"" << strPosIndexMethod << "\" for the positional index.");
          }
       }
       catch(CARGoSException& ex) {
-         THROW_ARGOSEXCEPTION_NESTED("Error in initialization of the Barcode2 medium", ex);
+         THROW_ARGOSEXCEPTION_NESTED("Error in initialization of the tag medium", ex);
       }
    }
 
    /****************************************/
    /****************************************/
 
-   void CBarcode2Medium::PostSpaceInit() {
+   void CTagMedium::PostSpaceInit() {
       Update();
    }
 
    /****************************************/
    /****************************************/
 
-   void CBarcode2Medium::Reset() {
-      m_pcBarcode2EntityIndex->Reset();
+   void CTagMedium::Reset() {
+      m_pcTagEntityIndex->Reset();
    }
 
    /****************************************/
    /****************************************/
 
-   void CBarcode2Medium::Destroy() {
-      delete m_pcBarcode2EntityIndex;
-      if(m_pcBarcode2EntityGridUpdateOperation != NULL) {
-         delete m_pcBarcode2EntityGridUpdateOperation;
+   void CTagMedium::Destroy() {
+      delete m_pcTagEntityIndex;
+      if(m_pcTagEntityGridUpdateOperation != NULL) {
+         delete m_pcTagEntityGridUpdateOperation;
       }
    }
 
    /****************************************/
    /****************************************/
 
-   void CBarcode2Medium::Update() {
-      m_pcBarcode2EntityIndex->Update();
+   void CTagMedium::Update() {
+      m_pcTagEntityIndex->Update();
    }
 
    /****************************************/
    /****************************************/
 
-   void CBarcode2Medium::AddEntity(CBarcode2Entity& c_entity) {
-      m_pcBarcode2EntityIndex->AddEntity(c_entity);
+   void CTagMedium::AddEntity(CTagEntity& c_entity) {
+      m_pcTagEntityIndex->AddEntity(c_entity);
    }
 
    /****************************************/
    /****************************************/
 
-   void CBarcode2Medium::RemoveEntity(CBarcode2Entity& c_entity) {
-      m_pcBarcode2EntityIndex->RemoveEntity(c_entity);
+   void CTagMedium::RemoveEntity(CTagEntity& c_entity) {
+      m_pcTagEntityIndex->RemoveEntity(c_entity);
    }
 
    /****************************************/
    /****************************************/
 
-   REGISTER_MEDIUM(CBarcode2Medium,
-                   "barcode2",
+   REGISTER_MEDIUM(CTagMedium,
+                   "tag",
                    "Michael Allwright [allsey87@gmail.com]",
                    "1.0",
-                   "Manages the 2D Barcodes.",
-                   "This medium is required to manage the 2D barcode entities, thus allowing the\n"
+                   "Manages the tags.",
+                   "This medium is required to manage the tag entities, thus allowing the\n"
                    "associated camera sensors to work properly. If you intend to use a camera\n"
-                   "sensor that detects barcodes, you must add this medium to the XML\n"
+                   "sensor that detects tags, you must add this medium to the XML\n"
                    "configuration file.\n\n"
                    "REQUIRED XML CONFIGURATION\n\n"
-                   "<barcode2 id=\"barcodes\" />\n\n"
+                   "<tag id=\"qr_codes\" />\n\n"
                    "OPTIONAL XML CONFIGURATION\n\n"
                    "None for the time being\n",
                    "Under development"

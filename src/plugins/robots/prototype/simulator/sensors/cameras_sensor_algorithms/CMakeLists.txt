@@ -1,2 +1,2 @@
 add_subdirectory(leddetector)
-add_subdirectory(apriltags)
+add_subdirectory(tagdetector)

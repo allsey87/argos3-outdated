@@ -1,10 +1,10 @@
 /**
- * @file <argos3/plugins/robot/prototype/control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_apriltags_algorithm.cpp>
+ * @file <argos3/plugins/robot/prototype/control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_tagdetector_algorithm.cpp>
  *
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
-#include "ci_cameras_sensor_apriltags_algorithm.h"
+#include "ci_cameras_sensor_tagdetector_algorithm.h"
 
 #ifdef ARGOS_WITH_LUA
 #include <argos3/core/wrappers/lua/lua_utility.h>
@@ -17,7 +17,7 @@ namespace argos {
    /****************************************/
 
 #ifdef ARGOS_WITH_LUA
-   void CCI_CamerasSensorApriltagsAlgorithm::CreateLuaState(lua_State* pt_lua_state) {
+   void CCI_CamerasSensorTagDetectorAlgorithm::CreateLuaState(lua_State* pt_lua_state) {
       for(size_t i = 0; i < m_tReadings.size(); ++i) {
          CLuaUtility::StartTable(pt_lua_state, i+1);
          // @todo Implement CLuaUtility::AddToTable(pt_lua_state*, const char *, const std::string&);
@@ -39,7 +39,7 @@ namespace argos {
    /****************************************/
 
 #ifdef ARGOS_WITH_LUA
-   void CCI_CamerasSensorApriltagsAlgorithm::ReadingsToLuaState(lua_State* pt_lua_state) {
+   void CCI_CamerasSensorTagDetectorAlgorithm::ReadingsToLuaState(lua_State* pt_lua_state) {
       // @todo lua_objlen(pt_lua_state, -1) is returning always 0 instead of last number of readings
       size_t unLastReadingsNum = lua_objlen(pt_lua_state, -1);
       for(size_t i = 0; i < m_tReadings.size(); ++i) {
