@@ -40,31 +40,30 @@ namespace argos {
       virtual void UnregisterModel(CDynamics3DModel& c_model);
       
       virtual void Update();
-      
-   private:
-      
-      
-      struct SModel {
-         CDynamics3DModel* Model;
-         CElectromagnetEquippedEntity* Electromagnets;
 
-         std::vector<UInt32> BodyIndices;
-         std::vector<UInt32> ElectromagnetIndices;       
+   public:
+      struct SMagneticBody {
+         SMagneticBody() :
+            Parent(NULL),
+				Body(NULL),
+            Electromagnet(NULL) {}
+         SMagneticBody(CDynamics3DModel* pc_parent,
+							  CDynamics3DBody* pc_body,
+							  CElectromagnetEntity* pc_electromagnet) :
+            Parent(pc_parent),
+				Body(pc_body),
+            Electromagnet(pc_electromagnet) {}
 
-         SModel() :
-            Model(NULL),
-            Electromagnets(NULL) {}
+         CDynamics3DModel* Parent;
+			CDynamics3DBody* Body;
+         CElectromagnetEntity* Electromagnet;
 
-         SModel(CDynamics3DModel* pc_model, CElectromagnetEquippedEntity* pc_electromagnets) :
-            Model(pc_model),
-            Electromagnets(pc_electromagnets) {}
-
-         typedef std::vector<SModel> TList;
+         typedef std::vector<SMagneticBody> TList;
+			typedef std::vector<SMagneticBody>::iterator TListIterator;
       };
-            
+
       Real m_fForceConstant;
-      SModel::TList m_tModels;
-      
+      SMagneticBody::TList m_tMagneticBodies;     
    };
    
    /****************************************/

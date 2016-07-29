@@ -10,10 +10,8 @@
 #include <argos3/core/utility/math/vector3.h>
 
 namespace argos {
-
    class CGeometry3 {
       public:
-      
          enum EGeometry3Tag {
             BOX,
             CYLINDER,
@@ -21,6 +19,7 @@ namespace argos {
          };
 
       public:
+			virtual ~CGeometry3() {}
          virtual EGeometry3Tag GetTag() const = 0;
          virtual CVector3 GetExtents() const = 0;
    };

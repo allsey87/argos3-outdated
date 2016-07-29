@@ -84,10 +84,10 @@
         </joint>
       </joints>
       <devices>
-        <led_actuators/>
-        <electromagnet_actuators>
-           <electromagnet body="link_0"/>
-        </electromagnet_actuators>
+        <leds/>
+        <electromagnets>
+           <electromagnet body="link_0" passive_field="0,0,1"/>
+        </electromagnets>
       </devices>
     </prototype>
     

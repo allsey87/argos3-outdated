@@ -40,6 +40,9 @@ namespace argos {
                                                                                m_pcMotionState,
                                                                                m_pcCollisionShape,
                                                                                m_cInertia));
+
+      m_pcRigidBody->setDamping(0.75f, 0.75f);
+
       /* Clone the provided map of attributes */
       m_mapAttributes.insert(map_attributes.begin(), map_attributes.end());
 

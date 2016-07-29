@@ -261,7 +261,7 @@ namespace argos {
          cJoint.SetActuatorTargetVelocity(CDynamics3DJoint::LINEAR_X,
                                           (*itJoint)->GetAxisLinearX().m_fActuatorTargetVelocity);
          cJoint.SetActuatorTargetVelocity(CDynamics3DJoint::LINEAR_Y,
-                                          (*itJoint)->GetAxisLinearZ().m_fActuatorTargetVelocity);
+                                          -(*itJoint)->GetAxisLinearZ().m_fActuatorTargetVelocity);
          cJoint.SetActuatorTargetVelocity(CDynamics3DJoint::LINEAR_Z,
                                           (*itJoint)->GetAxisLinearY().m_fActuatorTargetVelocity);
 

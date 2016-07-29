@@ -1,0 +1,97 @@
+<?xml version="1.0" ?>
+<argos-configuration>
+
+  <!-- ************************* -->
+  <!-- * General configuration * -->
+  <!-- ************************* -->
+  <framework>
+    <!--experiment threads="2" length="0" ticks_per_second="100" /-->
+    <experiment threads="2" length="0" ticks_per_second="100" />
+  </framework>
+
+   <!--loop_functions label="dyn3d_testbench_loop_functions" /-->
+
+  <!-- *************** -->
+  <!-- * Controllers * -->
+  <!-- *************** -->
+  <controllers/>
+   
+  <!-- *********************** -->
+  <!-- * Arena configuration * -->
+  <!-- *********************** -->
+  <arena size="10, 10, 1" positional_index="grid" positional_grid_size="25,25,1">
+
+    <prototype id="magnet_test_box_2">
+      <body position="0.1,0.0,0.2"  orientation="30,0,90"/>
+       <bodies reference_body="base_2">
+         <body id="base_2" geometry="box" radius="0.05" size="0.1,0.1,0.1" mass="1.0">
+            <coordinates/>
+            <offset/>
+         </body>
+       </bodies>
+      <devices>
+        <electromagnets>
+           <electromagnet body="base_2" passive_field="0,0,100000"/>
+        </electromagnets>
+      </devices>
+   </prototype>
+
+   <prototype id="magnet_test_box_1">
+      <body position="-0.1,0.0,0.2"  orientation="-210,0,90"/>
+       <bodies reference_body="base_1">
+         <body id="base_1" geometry="box" radius="0.05" size="0.1,0.1,0.1" mass="1.0">
+            <coordinates/>
+            <offset/>
+         </body>
+       </bodies>
+      <devices>
+        <electromagnets>
+           <electromagnet body="base_1" passive_field="0,0,100000"/>
+        </electromagnets>
+      </devices>
+   </prototype>
+
+  </arena>
+  
+  <!-- ********* -->
+  <!-- * Media * -->
+  <!-- ********* -->
+  <media/>
+  
+  <!-- ******************* -->
+  <!-- * Physics engines * -->
+  <!-- ******************* -->
+  <physics_engines>
+    <!--dynamics3d id="dyn3d" iterations="25"-->
+    <dynamics3d id="dyn3d" iterations="25">
+      <floor/>
+      <plugins>
+         <!--antigravity force="0,0,9.8"/-->
+         <magnetism/>
+      </plugins>
+    </dynamics3d>
+  </physics_engines>
+
+  <!-- ****************** -->
+  <!-- * Visualization * -->
+  <!-- ****************** -->
+  <visualization>
+    <!-- ************************************************************************ -->
+    <!-- * To activate the Lua editor, just use the 'lua_editor' flag attribute * -->
+    <!-- ************************************************************************ -->
+    <qt-opengl lua_editor="false">
+      <camera>
+        <placement idx="0" position="0,0,0.5" look_at="0.001,0.001,0.125" lens_focal_length="20" />
+        <placement idx="1" position=" 4,-4, 1.5" look_at="2,-2,1" lens_focal_length="30" />
+        <placement idx="2" position=" 4, 0, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" />
+        <placement idx="3" position=" 4, 4, 1.5" look_at="2,2,1" lens_focal_length="30" />
+        <placement idx="4" position=" 0, 4, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" />
+        <placement idx="5" position="-4, 4, 1.5" look_at="-2,2,1" lens_focal_length="30" />
+        <placement idx="6" position="-4, 0, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" />
+        <placement idx="7" position="-4,-4, 1.5" look_at="-2,-2,1" lens_focal_length="30" />
+	<placement idx="8" position="0,0, 4" look_at="0,0,0.001" lens_focal_length="10" />
+      </camera>
+    </qt-opengl>
+  </visualization>
+
+</argos-configuration>

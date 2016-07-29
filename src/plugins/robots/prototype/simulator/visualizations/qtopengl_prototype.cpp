@@ -218,9 +218,9 @@ namespace argos {
             glRotatef(ToDegrees(cFieldXAngle).GetValue(), 1.0f, 0.0f, 0.0f);
             glRotatef(ToDegrees(cFieldYAngle).GetValue(), 0.0f, 1.0f, 0.0f); 
             glRotatef(ToDegrees(cFieldZAngle).GetValue(), 0.0f, 0.0f, 1.0f);
-            glScalef((Abs(cBodyField.GetX()) + 1.0f) * 0.01f,
-                     (Abs(cBodyField.GetY()) + 1.0f) * 0.01f,
-                     (Abs(cBodyField.GetZ()) + 1.0f) * 0.01f);
+            glScalef((Abs(cBodyField.GetX()) + 1.0f) * 0.5f,
+                     (Abs(cBodyField.GetY()) + 1.0f) * 0.5f,
+                     (Abs(cBodyField.GetZ()) + 1.0f) * 0.5f);
             glScalef(cBody.GetGeometry().GetExtents().GetX(),
                      cBody.GetGeometry().GetExtents().GetY(),
                      cBody.GetGeometry().GetExtents().GetZ());                             

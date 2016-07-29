@@ -188,25 +188,7 @@ namespace argos {
          m_pcJoint->getRotationalLimitMotor(e_axis - ANGULAR_AXIS_OFFSET)->m_targetVelocity = f_target_velocity;
          break;
       }
-
-      /*
-      if(e_axis == ANGULAR_X) {
-      const btTransform* toFprintf = &m_pcJoint->getCalculatedTransformA();
-      fprintf(stderr, "%s: getCalculatedTransformA() : position = [%.3f, %.3f, %.3f], orientation-axis = [%.3f, %.3f, %.3f], orientation-angle = [%.3f]\n", m_strId.c_str(), toFprintf->getOrigin().getX(), toFprintf->getOrigin().getY(), toFprintf->getOrigin().getZ(), toFprintf->getRotation().getAxis().getX(), toFprintf->getRotation().getAxis().getY(), toFprintf->getRotation().getAxis().getZ(), toFprintf->getRotation().getAngle() * 57.2957795131);
-
-      toFprintf = &m_pcJoint->getCalculatedTransformB();
-      fprintf(stderr, "%s: getCalculatedTransformB() : position = [%.3f, %.3f, %.3f], orientation-axis = [%.3f, %.3f, %.3f], orientation-angle = [%.3f]\n", m_strId.c_str(), toFprintf->getOrigin().getX(), toFprintf->getOrigin().getY(), toFprintf->getOrigin().getZ(), toFprintf->getRotation().getAxis().getX(), toFprintf->getRotation().getAxis().getY(), toFprintf->getRotation().getAxis().getZ(), toFprintf->getRotation().getAngle() * 57.2957795131);
-
-      toFprintf = &m_pcJoint->getFrameOffsetA();
-      fprintf(stderr, "%s: getFrameOffsetA() : position = [%.3f, %.3f, %.3f], orientation-axis = [%.3f, %.3f, %.3f], orientation-angle = [%.3f]\n", m_strId.c_str(), toFprintf->getOrigin().getX(), toFprintf->getOrigin().getY(), toFprintf->getOrigin().getZ(), toFprintf->getRotation().getAxis().getX(), toFprintf->getRotation().getAxis().getY(), toFprintf->getRotation().getAxis().getZ(), toFprintf->getRotation().getAngle() * 57.2957795131);
-
-      toFprintf = &m_pcJoint->getFrameOffsetB();
-      fprintf(stderr, "%s: getFrameOffsetB() : position = [%.3f, %.3f, %.3f], orientation-axis = [%.3f, %.3f, %.3f], orientation-angle = [%.3f]\n", m_strId.c_str(), toFprintf->getOrigin().getX(), toFprintf->getOrigin().getY(), toFprintf->getOrigin().getZ(), toFprintf->getRotation().getAxis().getX(), toFprintf->getRotation().getAxis().getY(), toFprintf->getRotation().getAxis().getZ(), toFprintf->getRotation().getAngle() * 57.2957795131);
-
-      toFprintf = new btTransform();
-      fprintf(stderr, "%s: getCalculatedTransformA() * getCalculatedTransformB().inverse : position = [%.3f, %.3f, %.3f], orientation-axis = [%.3f, %.3f, %.3f], orientation-angle = [%.3f]\n", m_strId.c_str(), toFprintf->getOrigin().getX(), toFprintf->getOrigin().getY(), toFprintf->getOrigin().getZ(), toFprintf->getRotation().getAxis().getX(), toFprintf->getRotation().getAxis().getY(), toFprintf->getRotation().getAxis().getZ(), toFprintf->getRotation().getAngle() * 57.2957795131);
-
-      }*/
+      
    }
 
    /****************************************/

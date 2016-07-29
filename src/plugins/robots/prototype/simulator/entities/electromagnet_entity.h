@@ -69,7 +69,6 @@ namespace argos {
          return m_cActiveField;
       }
 
-
       /**
        * Sets the current field of the electromagnet.
        * @param c_field the wanted field.
@@ -78,7 +77,6 @@ namespace argos {
       inline void SetField(const CVector3& c_field) {
          m_cField = c_field;
       }
-
 
       virtual std::string GetTypeDescription() const {
          return "electromagnet";
