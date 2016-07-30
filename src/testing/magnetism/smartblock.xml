@@ -5,8 +5,7 @@
   <!-- * General configuration * -->
   <!-- ************************* -->
   <framework>
-    <!--experiment threads="2" length="0" ticks_per_second="100" /-->
-    <experiment threads="2" length="0" ticks_per_second="5" />
+    <experiment threads="1" length="0" ticks_per_second="5"/>
   </framework>
 
   <!--loop_functions label="dyn3d_testbench_loop_functions" /-->
@@ -22,14 +21,14 @@
         <electromagnets implementation="default" show_poles="true" target="electromagnet-q1,electromagnet-q2,electromagnet-q3,electromagnet-q4"/>
       </actuators>
       <sensors>
-        <!--cameras implementation="default">
+        <cameras implementation="default">
             <algorithms>
                <led_detector medium="leds" camera="front_camera" show_rays="false"/>
-               <tag_detector medium="apriltags" camera="front_camera" show_rays="false"/>
+               <tag_detector medium="apriltags" camera="front_camera" show_rays="true"/>
             </algorithms>
-         </cameras-->
+         </cameras>
         <joints implementation="default" />
-        <prototype_proximity implementation="default" show_rays="true"/>
+        <prototype_proximity implementation="default" show_rays="false"/>
       </sensors>
       <params/>
     </lua_controller>
@@ -114,7 +113,7 @@
               </frames>
               <axes>
                 <axis direction="y" mode="angular" range="unconstrained">
-                  <actuator enabled="true" force="15" target_velocity="5"/>
+                  <actuator enabled="true" force="15" target_velocity="0"/>
                 </axis>
               </axes>
             </joint>
@@ -125,7 +124,7 @@
               </frames>
               <axes>
                 <axis direction="y" mode="angular" range="unconstrained">
-                  <actuator enabled="true" force="15" target_velocity="-5"/>
+                  <actuator enabled="true" force="15" target_velocity="0"/>
                 </axis>
               </axes>
             </joint>
@@ -136,7 +135,7 @@
               </frames>
               <axes>
                 <axis direction="y" mode="angular" range="unconstrained">
-                  <actuator enabled="true" force="15" target_velocity="5"/>
+                  <actuator enabled="true" force="15" target_velocity="0"/>
                 </axis>
               </axes>
             </joint>
@@ -147,7 +146,7 @@
               </frames>
               <axes>
                 <axis direction="y" mode="angular" range="unconstrained">
-                  <actuator enabled="true" force="15" target_velocity="-5"/>
+                  <actuator enabled="true" force="15" target_velocity="0"/>
                 </axis>
               </axes>
             </joint>
@@ -227,10 +226,10 @@
                       enabled="true"/>
             </cameras>
             <proximity_sensors>
-              <sensor body="horizontal-link" offset="-0.036000,0,0.007300" direction="-1,0,0" range="0.20" />
-              <sensor body="horizontal-link" offset="-0.001000,0,0.001000" direction="0,0,-1" range="0.02" />
-              <!--sensor body="vertical-link" offset="-0.002000,0.016000,-0.007900" direction="-1,0,0" range="0.20" /-->
-              <!--sensor body="vertical-link" offset="-0.002000,-0.016000,-0.007900" direction="-1,0,0" range="0.20" /-->
+              <sensor body="horizontal-link" offset="-0.036000,0,0.007300" direction="-1,0,0" range="0.20"/>
+              <sensor body="horizontal-link" offset="-0.001000,0,0.001000" direction="0,0,-1" range="0.02"/>
+              <sensor body="vertical-link" offset="-0.002000,0.016000,-0.007900" direction="-1,0,0" range="0.20"/>
+              <sensor body="vertical-link" offset="-0.002000,-0.016000,-0.007900" direction="-1,0,0" range="0.20"/>
             </proximity_sensors>
             <electromagnets>
               <electromagnet body="electromagnet-q1" passive_field="0,0,2" active_field="0,0,1"/>
@@ -243,10 +242,10 @@
       <!--/entity>
     </distribute-->
     
-    <!--distribute>
-      <position method="grid" center="-0.25,-0.06,0" distances="0.06,0.06,0.06" layout="3,3,1"/>
+    <distribute>
+      <position method="grid" center="-0.25,0,0.125" distances="0.06,0.06,0.06" layout="1,1,2"/>
       <orientation method="constant" values="0,0,0"/>
-      <entity quantity="1" max_trials="10" base_num="0"-->
+      <entity quantity="2" max_trials="10" base_num="0">
         <prototype id="smartblock">
           <body position="-0.25,0,0"  orientation="0,0,0"/>
           <bodies reference_body="block">
@@ -432,8 +431,8 @@
             </radios>
           </devices>
         </prototype>
-      <!--/entity>
-    </distribute-->
+      </entity>
+    </distribute>
 
 
 
@@ -453,7 +452,6 @@
   <!-- * Physics engines * -->
   <!-- ******************* -->
   <physics_engines>
-    <!--dynamics3d id="dyn3d" iterations="25"-->
     <dynamics3d id="dyn3d" iterations="20">
       <floor/>
       <plugins>
