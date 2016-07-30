@@ -94,6 +94,7 @@ namespace argos {
       if((c_tag.GetPosition() - m_sViewport.Position).Length() < m_sViewport.HalfExtents[0]) {
          m_cOcclusionCheckRay.SetEnd(c_tag.GetPosition());         
          if(!GetClosestEmbodiedEntityIntersectedByRay(m_sIntersectionItem, m_cOcclusionCheckRay)) {
+            //std::cout << "detected tag: " << c_tag.GetId() << std::endl;
             /* Take position of current tag */
             CVector3 cTagPositionOnSensor = c_tag.GetPosition();
             /* Transform the position of tag into the local coordinate system of the camera */

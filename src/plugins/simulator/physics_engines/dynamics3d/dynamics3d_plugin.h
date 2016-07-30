@@ -32,7 +32,7 @@ namespace argos {
 
       CDynamics3DPlugin() {}
 
-      ~CDynamics3DPlugin() {}
+      virtual ~CDynamics3DPlugin() {}
       
       virtual void Init(TConfigurationNode& t_tree) {}
       virtual void Reset() {}

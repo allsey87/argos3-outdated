@@ -242,10 +242,12 @@ namespace argos {
       btVector3 cRayEnd(ARGoSToBullet(c_ray.GetEnd()));
 
       btCollisionWorld::ClosestRayResultCallback cResult(cRayStart, cRayEnd);
+      //cResult.m_flags = btTriangleRaycastCallback::kF_UseSubSimplexConvexCastRaytest;
    
       m_pcWorld->rayTest(cRayStart, cRayEnd, cResult);
 
       if (cResult.hasHit()) {
+         std::cout << "intersect at " << BulletToARGoS(cResult.m_hitPointWorld) << std::endl;
          f_t_on_ray = (cResult.m_hitPointWorld - cRayStart).length() / c_ray.GetLength();
          CDynamics3DBody* pcBody = static_cast<CDynamics3DBody*>(cResult.m_collisionObject->getUserPointer());
          return &(pcBody->GetParentModel().GetEmbodiedEntity());

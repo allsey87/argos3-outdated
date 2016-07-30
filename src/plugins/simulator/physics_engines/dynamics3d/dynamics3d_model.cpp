@@ -88,7 +88,7 @@ namespace argos {
    /****************************************/
 
    void CDynamics3DModel::CalculateBoundingBox() {
-      btVector3 cAabbMin, cAabbMax, cBodyAabbMin, cBodyAabbMax;
+      btVector3 cAabbMin(0,0,0), cAabbMax(0,0,0), cBodyAabbMin(0,0,0), cBodyAabbMax(0,0,0);
       bool bAabbVectorInitRequired = true;
 
       for(CDynamics3DBody::TVector::iterator itBody = m_vecLocalBodies.begin();

@@ -27,8 +27,7 @@ include_directories(
 
 set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET
    bullet/btBulletCollisionCommon.h
-   bullet/btBulletDynamicsCommon.h
-   bullet/Bullet-C-Api.h)
+   bullet/btBulletDynamicsCommon.h)
    
 set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET_BULLETCOLLISION_BROADPHASECOLLISION
    bullet/BulletCollision/BroadphaseCollision/btAxisSweep3.h
@@ -349,7 +348,6 @@ set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET
 	bullet/BulletDynamics/Dynamics/btDiscreteDynamicsWorld.cpp
 	bullet/BulletDynamics/Dynamics/btRigidBody.cpp
 	bullet/BulletDynamics/Dynamics/btSimpleDynamicsWorld.cpp
-	bullet/BulletDynamics/Dynamics/Bullet-C-API.cpp
 	bullet/BulletDynamics/Vehicle/btRaycastVehicle.cpp
 	bullet/BulletDynamics/Vehicle/btWheelInfo.cpp
 	bullet/LinearMath/btAlignedAllocator.cpp
