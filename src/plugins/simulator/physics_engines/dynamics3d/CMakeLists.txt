@@ -53,7 +53,9 @@ set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET_BULLETCOL
    bullet/BulletCollision/CollisionDispatch/btCollisionDispatcher.h
    bullet/BulletCollision/CollisionDispatch/btCollisionObject.h
    bullet/BulletCollision/CollisionDispatch/btCollisionWorld.h
+   bullet/BulletCollision/CollisionDispatch/btCollisionWorldImporter.h
    bullet/BulletCollision/CollisionDispatch/btCompoundCollisionAlgorithm.h
+   bullet/BulletCollision/CollisionDispatch/btCompoundCompoundCollisionAlgorithm.h
    bullet/BulletCollision/CollisionDispatch/btConvexConcaveCollisionAlgorithm.h
    bullet/BulletCollision/CollisionDispatch/btConvexConvexAlgorithm.h
    bullet/BulletCollision/CollisionDispatch/btConvex2dConvex2dAlgorithm.h
@@ -61,6 +63,7 @@ set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET_BULLETCOL
    bullet/BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.h
    bullet/BulletCollision/CollisionDispatch/btEmptyCollisionAlgorithm.h
    bullet/BulletCollision/CollisionDispatch/btGhostObject.h
+   bullet/BulletCollision/CollisionDispatch/btHashedSimplePairCache.h
    bullet/BulletCollision/CollisionDispatch/btManifoldResult.h
    bullet/BulletCollision/CollisionDispatch/btSimulationIslandManager.h
    bullet/BulletCollision/CollisionDispatch/btSphereBoxCollisionAlgorithm.h
@@ -114,6 +117,7 @@ set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET_BULLETCOL
 set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET_BULLETCOLLISION_GIMPACT
    bullet/BulletCollision/Gimpact/btBoxCollision.h
    bullet/BulletCollision/Gimpact/btClipPolygon.h
+   bullet/BulletCollision/Gimpact/btCompoundFromGimpact.h
    bullet/BulletCollision/Gimpact/btContactProcessing.h
    bullet/BulletCollision/Gimpact/btGenericPoolAllocator.h
    bullet/BulletCollision/Gimpact/btGeometryOperations.h
@@ -141,16 +145,20 @@ set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET_BULLETCOL
    bullet/BulletCollision/Gimpact/gim_tri_collision.h)
 
 set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET_BULLETCOLLISION_NARROWPHASECOLLISION
+   bullet/BulletCollision/NarrowPhaseCollision/btComputeGjkEpaPenetration.h
    bullet/BulletCollision/NarrowPhaseCollision/btContinuousConvexCollision.h
    bullet/BulletCollision/NarrowPhaseCollision/btConvexCast.h
    bullet/BulletCollision/NarrowPhaseCollision/btConvexPenetrationDepthSolver.h
    bullet/BulletCollision/NarrowPhaseCollision/btDiscreteCollisionDetectorInterface.h
+   bullet/BulletCollision/NarrowPhaseCollision/btGjkCollisionDescription.h
    bullet/BulletCollision/NarrowPhaseCollision/btGjkConvexCast.h
    bullet/BulletCollision/NarrowPhaseCollision/btGjkEpa2.h
+   bullet/BulletCollision/NarrowPhaseCollision/btGjkEpa3.h
    bullet/BulletCollision/NarrowPhaseCollision/btGjkEpaPenetrationDepthSolver.h
    bullet/BulletCollision/NarrowPhaseCollision/btGjkPairDetector.h
    bullet/BulletCollision/NarrowPhaseCollision/btManifoldPoint.h
    bullet/BulletCollision/NarrowPhaseCollision/btMinkowskiPenetrationDepthSolver.h
+   bullet/BulletCollision/NarrowPhaseCollision/btMprPenetration.h
    bullet/BulletCollision/NarrowPhaseCollision/btPersistentManifold.h
    bullet/BulletCollision/NarrowPhaseCollision/btPointCollector.h
    bullet/BulletCollision/NarrowPhaseCollision/btRaycastCallback.h
@@ -159,69 +167,98 @@ set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET_BULLETCOL
    bullet/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.h
    bullet/BulletCollision/NarrowPhaseCollision/btPolyhedralContactClipping.h)
 
+set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET_BULLETDYNAMICS_CHARACTER
+   bullet/BulletDynamics/Character/btCharacterControllerInterface.h
+   bullet/BulletDynamics/Character/btKinematicCharacterController.h)
+
 set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET_BULLETDYNAMICS_CONSTRAINTSOLVER
-	bullet/BulletDynamics/ConstraintSolver/btConeTwistConstraint.h
-	bullet/BulletDynamics/ConstraintSolver/btConstraintSolver.h
-	bullet/BulletDynamics/ConstraintSolver/btContactConstraint.h
-	bullet/BulletDynamics/ConstraintSolver/btContactSolverInfo.h
-	bullet/BulletDynamics/ConstraintSolver/btGearConstraint.h
-	bullet/BulletDynamics/ConstraintSolver/btGeneric6DofConstraint.h
-	bullet/BulletDynamics/ConstraintSolver/btGeneric6DofSpringConstraint.h
-	bullet/BulletDynamics/ConstraintSolver/btHinge2Constraint.h
-	bullet/BulletDynamics/ConstraintSolver/btHingeConstraint.h
-	bullet/BulletDynamics/ConstraintSolver/btJacobianEntry.h
-	bullet/BulletDynamics/ConstraintSolver/btPoint2PointConstraint.h
-	bullet/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h
-	bullet/BulletDynamics/ConstraintSolver/btSliderConstraint.h
-	bullet/BulletDynamics/ConstraintSolver/btSolve2LinearConstraint.h
-	bullet/BulletDynamics/ConstraintSolver/btSolverBody.h
-	bullet/BulletDynamics/ConstraintSolver/btSolverConstraint.h
-	bullet/BulletDynamics/ConstraintSolver/btTypedConstraint.h
-	bullet/BulletDynamics/ConstraintSolver/btUniversalConstraint.h)
+   bullet/BulletDynamics/ConstraintSolver/btConeTwistConstraint.h
+   bullet/BulletDynamics/ConstraintSolver/btConstraintSolver.h
+   bullet/BulletDynamics/ConstraintSolver/btContactConstraint.h
+   bullet/BulletDynamics/ConstraintSolver/btContactSolverInfo.h
+   bullet/BulletDynamics/ConstraintSolver/btFixedConstraint.h
+   bullet/BulletDynamics/ConstraintSolver/btGearConstraint.h
+   bullet/BulletDynamics/ConstraintSolver/btGeneric6DofConstraint.h
+   bullet/BulletDynamics/ConstraintSolver/btGeneric6DofSpringConstraint.h
+   bullet/BulletDynamics/ConstraintSolver/btGeneric6DofSpring2Constraint.h
+   bullet/BulletDynamics/ConstraintSolver/btHinge2Constraint.h
+   bullet/BulletDynamics/ConstraintSolver/btHingeConstraint.h
+   bullet/BulletDynamics/ConstraintSolver/btJacobianEntry.h
+	bullet/BulletDynamics/ConstraintSolver/btNNCGConstraintSolver.h
+   bullet/BulletDynamics/ConstraintSolver/btPoint2PointConstraint.h
+   bullet/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.h
+   bullet/BulletDynamics/ConstraintSolver/btSliderConstraint.h
+   bullet/BulletDynamics/ConstraintSolver/btSolve2LinearConstraint.h
+   bullet/BulletDynamics/ConstraintSolver/btSolverBody.h
+   bullet/BulletDynamics/ConstraintSolver/btSolverConstraint.h
+   bullet/BulletDynamics/ConstraintSolver/btTypedConstraint.h
+   bullet/BulletDynamics/ConstraintSolver/btUniversalConstraint.h)
 
 set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET_BULLETDYNAMICS_DYNAMICS
-	bullet/BulletDynamics/Dynamics/btActionInterface.h
-	bullet/BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h
-	bullet/BulletDynamics/Dynamics/btDynamicsWorld.h
-	bullet/BulletDynamics/Dynamics/btSimpleDynamicsWorld.h
-	bullet/BulletDynamics/Dynamics/btRigidBody.h)
+   bullet/BulletDynamics/Dynamics/btActionInterface.h
+   bullet/BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h
+   bullet/BulletDynamics/Dynamics/btDynamicsWorld.h
+   bullet/BulletDynamics/Dynamics/btSimpleDynamicsWorld.h
+   bullet/BulletDynamics/Dynamics/btRigidBody.h)
+
+set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET_BULLETDYNAMICS_FEATHERSTONE
+   bullet/BulletDynamics/Featherstone/btMultiBody.h
+   bullet/BulletDynamics/Featherstone/btMultiBodyConstraint.h
+   bullet/BulletDynamics/Featherstone/btMultiBodyConstraintSolver.h
+   bullet/BulletDynamics/Featherstone/btMultiBodyDynamicsWorld.h
+   bullet/BulletDynamics/Featherstone/btMultiBodyJointFeedback.h
+   bullet/BulletDynamics/Featherstone/btMultiBodyJointLimitConstraint.h
+   bullet/BulletDynamics/Featherstone/btMultiBodyJointMotor.h
+   bullet/BulletDynamics/Featherstone/btMultiBodyLink.h
+   bullet/BulletDynamics/Featherstone/btMultiBodyLinkCollider.h
+   bullet/BulletDynamics/Featherstone/btMultiBodyPoint2Point.h
+   bullet/BulletDynamics/Featherstone/btMultiBodySolverConstraint.h)
+
+set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET_BULLETDYNAMICS_MLCPSOLVERS
+   bullet/BulletDynamics/MLCPSolvers/btDantzigLCP.h
+   bullet/BulletDynamics/MLCPSolvers/btDantzigSolver.h
+   bullet/BulletDynamics/MLCPSolvers/btLemkeAlgorithm.h
+   bullet/BulletDynamics/MLCPSolvers/btLemkeSolver.h
+   bullet/BulletDynamics/MLCPSolvers/btMLCPSolver.h
+   bullet/BulletDynamics/MLCPSolvers/btMLCPSolverInterface.h
+   bullet/BulletDynamics/MLCPSolvers/btPATHSolver.h
+   bullet/BulletDynamics/MLCPSolvers/btSolveProjectedGaussSeidel.h)
 
 set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET_BULLETDYNAMICS_VEHICLE
-	bullet/BulletDynamics/Vehicle/btRaycastVehicle.h
-	bullet/BulletDynamics/Vehicle/btVehicleRaycaster.h
-	bullet/BulletDynamics/Vehicle/btWheelInfo.h)
-
-set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET_BULLETDYNAMICS_CHARACTER
-	bullet/BulletDynamics/Character/btCharacterControllerInterface.h
-	bullet/BulletDynamics/Character/btKinematicCharacterController.h)
+   bullet/BulletDynamics/Vehicle/btRaycastVehicle.h
+   bullet/BulletDynamics/Vehicle/btVehicleRaycaster.h
+   bullet/BulletDynamics/Vehicle/btWheelInfo.h)
 
 set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET_LINEARMATH
-	bullet/LinearMath/btAabbUtil2.h
-	bullet/LinearMath/btAlignedAllocator.h
-	bullet/LinearMath/btAlignedObjectArray.h
-	bullet/LinearMath/btConvexHull.h
-	bullet/LinearMath/btConvexHullComputer.h
-	bullet/LinearMath/btDefaultMotionState.h
-	bullet/LinearMath/btGeometryUtil.h
-	bullet/LinearMath/btGrahamScan2dConvexHull.h
-	bullet/LinearMath/btHashMap.h
-	bullet/LinearMath/btIDebugDraw.h
-	bullet/LinearMath/btList.h
-	bullet/LinearMath/btMatrix3x3.h
-	bullet/LinearMath/btMinMax.h
-	bullet/LinearMath/btMotionState.h
-	bullet/LinearMath/btPolarDecomposition.h
-	bullet/LinearMath/btPoolAllocator.h
-	bullet/LinearMath/btQuadWord.h
-	bullet/LinearMath/btQuaternion.h
-	bullet/LinearMath/btQuickprof.h
-	bullet/LinearMath/btRandom.h
-	bullet/LinearMath/btScalar.h
-	bullet/LinearMath/btSerializer.h
-	bullet/LinearMath/btStackAlloc.h
-	bullet/LinearMath/btTransform.h
-	bullet/LinearMath/btTransformUtil.h
-	bullet/LinearMath/btVector3.h)
+   bullet/LinearMath/btAabbUtil2.h
+   bullet/LinearMath/btAlignedAllocator.h
+   bullet/LinearMath/btAlignedObjectArray.h
+   bullet/LinearMath/btConvexHull.h
+   bullet/LinearMath/btConvexHullComputer.h
+   bullet/LinearMath/btCpuFeatureUtility.h
+   bullet/LinearMath/btDefaultMotionState.h
+   bullet/LinearMath/btGeometryUtil.h
+   bullet/LinearMath/btGrahamScan2dConvexHull.h
+   bullet/LinearMath/btHashMap.h
+   bullet/LinearMath/btIDebugDraw.h
+   bullet/LinearMath/btList.h
+   bullet/LinearMath/btMatrix3x3.h
+   bullet/LinearMath/btMatrixX.h
+   bullet/LinearMath/btMinMax.h
+   bullet/LinearMath/btMotionState.h
+   bullet/LinearMath/btPolarDecomposition.h
+   bullet/LinearMath/btPoolAllocator.h
+   bullet/LinearMath/btQuadWord.h
+   bullet/LinearMath/btQuaternion.h
+   bullet/LinearMath/btQuickprof.h
+   bullet/LinearMath/btRandom.h
+   bullet/LinearMath/btScalar.h
+   bullet/LinearMath/btSerializer.h
+   bullet/LinearMath/btSpatialAlgebra.h
+   bullet/LinearMath/btStackAlloc.h
+   bullet/LinearMath/btTransform.h
+   bullet/LinearMath/btTransformUtil.h
+   bullet/LinearMath/btVector3.h)
 
 #
 # Sources
@@ -239,125 +276,141 @@ set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET
    ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET_BULLETDYNAMICS_CHARACTER}
    ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_BULLET_LINEARMATH}
    bullet/BulletCollision/BroadphaseCollision/btAxisSweep3.cpp
-	bullet/BulletCollision/BroadphaseCollision/btBroadphaseProxy.cpp
-	bullet/BulletCollision/BroadphaseCollision/btCollisionAlgorithm.cpp
-	bullet/BulletCollision/BroadphaseCollision/btDbvt.cpp
-	bullet/BulletCollision/BroadphaseCollision/btDbvtBroadphase.cpp
-	bullet/BulletCollision/BroadphaseCollision/btDispatcher.cpp
-	bullet/BulletCollision/BroadphaseCollision/btMultiSapBroadphase.cpp
-	bullet/BulletCollision/BroadphaseCollision/btOverlappingPairCache.cpp
-	bullet/BulletCollision/BroadphaseCollision/btQuantizedBvh.cpp
-	bullet/BulletCollision/BroadphaseCollision/btSimpleBroadphase.cpp
-	bullet/BulletCollision/CollisionDispatch/btActivatingCollisionAlgorithm.cpp
-	bullet/BulletCollision/CollisionDispatch/btBoxBoxCollisionAlgorithm.cpp
-	bullet/BulletCollision/CollisionDispatch/btBox2dBox2dCollisionAlgorithm.cpp
-	bullet/BulletCollision/CollisionDispatch/btBoxBoxDetector.cpp
-	bullet/BulletCollision/CollisionDispatch/btCollisionDispatcher.cpp
-	bullet/BulletCollision/CollisionDispatch/btCollisionObject.cpp
-	bullet/BulletCollision/CollisionDispatch/btCollisionWorld.cpp
-	bullet/BulletCollision/CollisionDispatch/btCompoundCollisionAlgorithm.cpp
-	bullet/BulletCollision/CollisionDispatch/btConvexConcaveCollisionAlgorithm.cpp
-	bullet/BulletCollision/CollisionDispatch/btConvexConvexAlgorithm.cpp
-	bullet/BulletCollision/CollisionDispatch/btConvexPlaneCollisionAlgorithm.cpp
-	bullet/BulletCollision/CollisionDispatch/btConvex2dConvex2dAlgorithm.cpp
-	bullet/BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.cpp
-	bullet/BulletCollision/CollisionDispatch/btEmptyCollisionAlgorithm.cpp
-	bullet/BulletCollision/CollisionDispatch/btGhostObject.cpp
-	bullet/BulletCollision/CollisionDispatch/btInternalEdgeUtility.cpp
-	bullet/BulletCollision/CollisionDispatch/btInternalEdgeUtility.h
-	bullet/BulletCollision/CollisionDispatch/btManifoldResult.cpp
-	bullet/BulletCollision/CollisionDispatch/btSimulationIslandManager.cpp
-	bullet/BulletCollision/CollisionDispatch/btSphereBoxCollisionAlgorithm.cpp
-	bullet/BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.cpp
-	bullet/BulletCollision/CollisionDispatch/btSphereTriangleCollisionAlgorithm.cpp
-	bullet/BulletCollision/CollisionDispatch/btUnionFind.cpp
-	bullet/BulletCollision/CollisionDispatch/SphereTriangleDetector.cpp
-	bullet/BulletCollision/CollisionShapes/btBoxShape.cpp
-	bullet/BulletCollision/CollisionShapes/btBox2dShape.cpp
-	bullet/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.cpp
-	bullet/BulletCollision/CollisionShapes/btCapsuleShape.cpp
-	bullet/BulletCollision/CollisionShapes/btCollisionShape.cpp
-	bullet/BulletCollision/CollisionShapes/btCompoundShape.cpp
-	bullet/BulletCollision/CollisionShapes/btConcaveShape.cpp
-	bullet/BulletCollision/CollisionShapes/btConeShape.cpp
-	bullet/BulletCollision/CollisionShapes/btConvexHullShape.cpp
-	bullet/BulletCollision/CollisionShapes/btConvexInternalShape.cpp
-	bullet/BulletCollision/CollisionShapes/btConvexPointCloudShape.cpp
-	bullet/BulletCollision/CollisionShapes/btConvexPolyhedron.cpp
-	bullet/BulletCollision/CollisionShapes/btConvexShape.cpp
-	bullet/BulletCollision/CollisionShapes/btConvex2dShape.cpp
-	bullet/BulletCollision/CollisionShapes/btConvexTriangleMeshShape.cpp
-	bullet/BulletCollision/CollisionShapes/btCylinderShape.cpp
-	bullet/BulletCollision/CollisionShapes/btEmptyShape.cpp
-	bullet/BulletCollision/CollisionShapes/btHeightfieldTerrainShape.cpp
-	bullet/BulletCollision/CollisionShapes/btMinkowskiSumShape.cpp
-	bullet/BulletCollision/CollisionShapes/btMultimaterialTriangleMeshShape.cpp
-	bullet/BulletCollision/CollisionShapes/btMultiSphereShape.cpp
-	bullet/BulletCollision/CollisionShapes/btOptimizedBvh.cpp
-	bullet/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp
-	bullet/BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.cpp
-	bullet/BulletCollision/CollisionShapes/btShapeHull.cpp
-	bullet/BulletCollision/CollisionShapes/btSphereShape.cpp
-	bullet/BulletCollision/CollisionShapes/btStaticPlaneShape.cpp
-	bullet/BulletCollision/CollisionShapes/btStridingMeshInterface.cpp
-	bullet/BulletCollision/CollisionShapes/btTetrahedronShape.cpp
-	bullet/BulletCollision/CollisionShapes/btTriangleBuffer.cpp
-	bullet/BulletCollision/CollisionShapes/btTriangleCallback.cpp
-	bullet/BulletCollision/CollisionShapes/btTriangleIndexVertexArray.cpp
-	bullet/BulletCollision/CollisionShapes/btTriangleIndexVertexMaterialArray.cpp
-	bullet/BulletCollision/CollisionShapes/btTriangleMesh.cpp
-	bullet/BulletCollision/CollisionShapes/btTriangleMeshShape.cpp
-	bullet/BulletCollision/CollisionShapes/btUniformScalingShape.cpp
-	bullet/BulletCollision/Gimpact/btContactProcessing.cpp
-	bullet/BulletCollision/Gimpact/btGenericPoolAllocator.cpp
-	bullet/BulletCollision/Gimpact/btGImpactBvh.cpp
-	bullet/BulletCollision/Gimpact/btGImpactCollisionAlgorithm.cpp
-	bullet/BulletCollision/Gimpact/btGImpactQuantizedBvh.cpp
-	bullet/BulletCollision/Gimpact/btGImpactShape.cpp
-	bullet/BulletCollision/Gimpact/btTriangleShapeEx.cpp
-	bullet/BulletCollision/Gimpact/gim_box_set.cpp
-	bullet/BulletCollision/Gimpact/gim_contact.cpp
-	bullet/BulletCollision/Gimpact/gim_memory.cpp
-	bullet/BulletCollision/Gimpact/gim_tri_collision.cpp
-	bullet/BulletCollision/NarrowPhaseCollision/btContinuousConvexCollision.cpp
-	bullet/BulletCollision/NarrowPhaseCollision/btConvexCast.cpp
-	bullet/BulletCollision/NarrowPhaseCollision/btGjkConvexCast.cpp
-	bullet/BulletCollision/NarrowPhaseCollision/btGjkEpa2.cpp
-	bullet/BulletCollision/NarrowPhaseCollision/btGjkEpaPenetrationDepthSolver.cpp
-	bullet/BulletCollision/NarrowPhaseCollision/btGjkPairDetector.cpp
-	bullet/BulletCollision/NarrowPhaseCollision/btMinkowskiPenetrationDepthSolver.cpp
-	bullet/BulletCollision/NarrowPhaseCollision/btPersistentManifold.cpp
-	bullet/BulletCollision/NarrowPhaseCollision/btRaycastCallback.cpp
-	bullet/BulletCollision/NarrowPhaseCollision/btSubSimplexConvexCast.cpp
-	bullet/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.cpp
-	bullet/BulletCollision/NarrowPhaseCollision/btPolyhedralContactClipping.cpp
-	bullet/BulletDynamics/Character/btKinematicCharacterController.cpp
-	bullet/BulletDynamics/ConstraintSolver/btConeTwistConstraint.cpp
-	bullet/BulletDynamics/ConstraintSolver/btContactConstraint.cpp
-	bullet/BulletDynamics/ConstraintSolver/btGearConstraint.cpp
-	bullet/BulletDynamics/ConstraintSolver/btGeneric6DofConstraint.cpp
-	bullet/BulletDynamics/ConstraintSolver/btGeneric6DofSpringConstraint.cpp
-	bullet/BulletDynamics/ConstraintSolver/btHinge2Constraint.cpp
-	bullet/BulletDynamics/ConstraintSolver/btHingeConstraint.cpp
-	bullet/BulletDynamics/ConstraintSolver/btPoint2PointConstraint.cpp
-	bullet/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.cpp
-	bullet/BulletDynamics/ConstraintSolver/btSliderConstraint.cpp
-	bullet/BulletDynamics/ConstraintSolver/btSolve2LinearConstraint.cpp
-	bullet/BulletDynamics/ConstraintSolver/btTypedConstraint.cpp
-	bullet/BulletDynamics/ConstraintSolver/btUniversalConstraint.cpp
-	bullet/BulletDynamics/Dynamics/btDiscreteDynamicsWorld.cpp
-	bullet/BulletDynamics/Dynamics/btRigidBody.cpp
-	bullet/BulletDynamics/Dynamics/btSimpleDynamicsWorld.cpp
-	bullet/BulletDynamics/Vehicle/btRaycastVehicle.cpp
-	bullet/BulletDynamics/Vehicle/btWheelInfo.cpp
-	bullet/LinearMath/btAlignedAllocator.cpp
-	bullet/LinearMath/btConvexHull.cpp
-	bullet/LinearMath/btConvexHullComputer.cpp
-	bullet/LinearMath/btGeometryUtil.cpp
-	bullet/LinearMath/btPolarDecomposition.cpp
-	bullet/LinearMath/btQuickprof.cpp
-	bullet/LinearMath/btSerializer.cpp
-	bullet/LinearMath/btVector3.cpp)
+   bullet/BulletCollision/BroadphaseCollision/btBroadphaseProxy.cpp
+   bullet/BulletCollision/BroadphaseCollision/btCollisionAlgorithm.cpp
+   bullet/BulletCollision/BroadphaseCollision/btDbvt.cpp
+   bullet/BulletCollision/BroadphaseCollision/btDbvtBroadphase.cpp
+   bullet/BulletCollision/BroadphaseCollision/btDispatcher.cpp
+   bullet/BulletCollision/BroadphaseCollision/btMultiSapBroadphase.cpp
+   bullet/BulletCollision/BroadphaseCollision/btOverlappingPairCache.cpp
+   bullet/BulletCollision/BroadphaseCollision/btQuantizedBvh.cpp
+   bullet/BulletCollision/BroadphaseCollision/btSimpleBroadphase.cpp
+   bullet/BulletCollision/CollisionDispatch/btActivatingCollisionAlgorithm.cpp
+   bullet/BulletCollision/CollisionDispatch/btBoxBoxCollisionAlgorithm.cpp
+   bullet/BulletCollision/CollisionDispatch/btBox2dBox2dCollisionAlgorithm.cpp
+   bullet/BulletCollision/CollisionDispatch/btBoxBoxDetector.cpp
+   bullet/BulletCollision/CollisionDispatch/btCollisionDispatcher.cpp
+   bullet/BulletCollision/CollisionDispatch/btCollisionObject.cpp
+   bullet/BulletCollision/CollisionDispatch/btCollisionWorld.cpp
+   bullet/BulletCollision/CollisionDispatch/btCollisionWorldImporter.cpp
+   bullet/BulletCollision/CollisionDispatch/btCompoundCollisionAlgorithm.cpp
+   bullet/BulletCollision/CollisionDispatch/btCompoundCompoundCollisionAlgorithm.cpp
+   bullet/BulletCollision/CollisionDispatch/btConvexConcaveCollisionAlgorithm.cpp
+   bullet/BulletCollision/CollisionDispatch/btConvexConvexAlgorithm.cpp
+   bullet/BulletCollision/CollisionDispatch/btConvexPlaneCollisionAlgorithm.cpp
+   bullet/BulletCollision/CollisionDispatch/btConvex2dConvex2dAlgorithm.cpp
+   bullet/BulletCollision/CollisionDispatch/btDefaultCollisionConfiguration.cpp
+   bullet/BulletCollision/CollisionDispatch/btEmptyCollisionAlgorithm.cpp
+   bullet/BulletCollision/CollisionDispatch/btGhostObject.cpp
+   bullet/BulletCollision/CollisionDispatch/btHashedSimplePairCache.cpp
+   bullet/BulletCollision/CollisionDispatch/btInternalEdgeUtility.cpp
+   bullet/BulletCollision/CollisionDispatch/btInternalEdgeUtility.h
+   bullet/BulletCollision/CollisionDispatch/btManifoldResult.cpp
+   bullet/BulletCollision/CollisionDispatch/btSimulationIslandManager.cpp
+   bullet/BulletCollision/CollisionDispatch/btSphereBoxCollisionAlgorithm.cpp
+   bullet/BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.cpp
+   bullet/BulletCollision/CollisionDispatch/btSphereTriangleCollisionAlgorithm.cpp
+   bullet/BulletCollision/CollisionDispatch/btUnionFind.cpp
+   bullet/BulletCollision/CollisionDispatch/SphereTriangleDetector.cpp
+   bullet/BulletCollision/CollisionShapes/btBoxShape.cpp
+   bullet/BulletCollision/CollisionShapes/btBox2dShape.cpp
+   bullet/BulletCollision/CollisionShapes/btBvhTriangleMeshShape.cpp
+   bullet/BulletCollision/CollisionShapes/btCapsuleShape.cpp
+   bullet/BulletCollision/CollisionShapes/btCollisionShape.cpp
+   bullet/BulletCollision/CollisionShapes/btCompoundShape.cpp
+   bullet/BulletCollision/CollisionShapes/btConcaveShape.cpp
+   bullet/BulletCollision/CollisionShapes/btConeShape.cpp
+   bullet/BulletCollision/CollisionShapes/btConvexHullShape.cpp
+   bullet/BulletCollision/CollisionShapes/btConvexInternalShape.cpp
+   bullet/BulletCollision/CollisionShapes/btConvexPointCloudShape.cpp
+   bullet/BulletCollision/CollisionShapes/btConvexPolyhedron.cpp
+   bullet/BulletCollision/CollisionShapes/btConvexShape.cpp
+   bullet/BulletCollision/CollisionShapes/btConvex2dShape.cpp
+   bullet/BulletCollision/CollisionShapes/btConvexTriangleMeshShape.cpp
+   bullet/BulletCollision/CollisionShapes/btCylinderShape.cpp
+   bullet/BulletCollision/CollisionShapes/btEmptyShape.cpp
+   bullet/BulletCollision/CollisionShapes/btHeightfieldTerrainShape.cpp
+   bullet/BulletCollision/CollisionShapes/btMinkowskiSumShape.cpp
+   bullet/BulletCollision/CollisionShapes/btMultimaterialTriangleMeshShape.cpp
+   bullet/BulletCollision/CollisionShapes/btMultiSphereShape.cpp
+   bullet/BulletCollision/CollisionShapes/btOptimizedBvh.cpp
+   bullet/BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp
+   bullet/BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.cpp
+   bullet/BulletCollision/CollisionShapes/btShapeHull.cpp
+   bullet/BulletCollision/CollisionShapes/btSphereShape.cpp
+   bullet/BulletCollision/CollisionShapes/btStaticPlaneShape.cpp
+   bullet/BulletCollision/CollisionShapes/btStridingMeshInterface.cpp
+   bullet/BulletCollision/CollisionShapes/btTetrahedronShape.cpp
+   bullet/BulletCollision/CollisionShapes/btTriangleBuffer.cpp
+   bullet/BulletCollision/CollisionShapes/btTriangleCallback.cpp
+   bullet/BulletCollision/CollisionShapes/btTriangleIndexVertexArray.cpp
+   bullet/BulletCollision/CollisionShapes/btTriangleIndexVertexMaterialArray.cpp
+   bullet/BulletCollision/CollisionShapes/btTriangleMesh.cpp
+   bullet/BulletCollision/CollisionShapes/btTriangleMeshShape.cpp
+   bullet/BulletCollision/CollisionShapes/btUniformScalingShape.cpp
+   bullet/BulletCollision/Gimpact/btContactProcessing.cpp
+   bullet/BulletCollision/Gimpact/btGenericPoolAllocator.cpp
+   bullet/BulletCollision/Gimpact/btGImpactBvh.cpp
+   bullet/BulletCollision/Gimpact/btGImpactCollisionAlgorithm.cpp
+   bullet/BulletCollision/Gimpact/btGImpactQuantizedBvh.cpp
+   bullet/BulletCollision/Gimpact/btGImpactShape.cpp
+   bullet/BulletCollision/Gimpact/btTriangleShapeEx.cpp
+   bullet/BulletCollision/Gimpact/gim_box_set.cpp
+   bullet/BulletCollision/Gimpact/gim_contact.cpp
+   bullet/BulletCollision/Gimpact/gim_memory.cpp
+   bullet/BulletCollision/Gimpact/gim_tri_collision.cpp
+   bullet/BulletCollision/NarrowPhaseCollision/btContinuousConvexCollision.cpp
+   bullet/BulletCollision/NarrowPhaseCollision/btConvexCast.cpp
+   bullet/BulletCollision/NarrowPhaseCollision/btGjkConvexCast.cpp
+   bullet/BulletCollision/NarrowPhaseCollision/btGjkEpa2.cpp
+   bullet/BulletCollision/NarrowPhaseCollision/btGjkEpaPenetrationDepthSolver.cpp
+   bullet/BulletCollision/NarrowPhaseCollision/btGjkPairDetector.cpp
+   bullet/BulletCollision/NarrowPhaseCollision/btMinkowskiPenetrationDepthSolver.cpp
+   bullet/BulletCollision/NarrowPhaseCollision/btPersistentManifold.cpp
+   bullet/BulletCollision/NarrowPhaseCollision/btRaycastCallback.cpp
+   bullet/BulletCollision/NarrowPhaseCollision/btSubSimplexConvexCast.cpp
+   bullet/BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.cpp
+   bullet/BulletCollision/NarrowPhaseCollision/btPolyhedralContactClipping.cpp
+   bullet/BulletDynamics/Character/btKinematicCharacterController.cpp
+   bullet/BulletDynamics/ConstraintSolver/btConeTwistConstraint.cpp
+   bullet/BulletDynamics/ConstraintSolver/btContactConstraint.cpp
+   bullet/BulletDynamics/ConstraintSolver/btGearConstraint.cpp
+   bullet/BulletDynamics/ConstraintSolver/btGeneric6DofConstraint.cpp
+   bullet/BulletDynamics/ConstraintSolver/btGeneric6DofSpringConstraint.cpp
+   bullet/BulletDynamics/ConstraintSolver/btGeneric6DofSpring2Constraint.cpp
+   bullet/BulletDynamics/ConstraintSolver/btHinge2Constraint.cpp
+   bullet/BulletDynamics/ConstraintSolver/btHingeConstraint.cpp
+   bullet/BulletDynamics/ConstraintSolver/btFixedConstraint.cpp
+   bullet/BulletDynamics/ConstraintSolver/btNNCGConstraintSolver.cpp
+   bullet/BulletDynamics/ConstraintSolver/btPoint2PointConstraint.cpp
+   bullet/BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.cpp
+   bullet/BulletDynamics/ConstraintSolver/btSliderConstraint.cpp
+   bullet/BulletDynamics/ConstraintSolver/btSolve2LinearConstraint.cpp
+   bullet/BulletDynamics/ConstraintSolver/btTypedConstraint.cpp
+   bullet/BulletDynamics/ConstraintSolver/btUniversalConstraint.cpp
+   bullet/BulletDynamics/Dynamics/btDiscreteDynamicsWorld.cpp
+   bullet/BulletDynamics/Dynamics/btRigidBody.cpp
+   bullet/BulletDynamics/Dynamics/btSimpleDynamicsWorld.cpp
+   bullet/BulletDynamics/Featherstone/btMultiBody.cpp
+   bullet/BulletDynamics/Featherstone/btMultiBodyConstraint.cpp
+   bullet/BulletDynamics/Featherstone/btMultiBodyConstraintSolver.cpp
+   bullet/BulletDynamics/Featherstone/btMultiBodyDynamicsWorld.cpp
+   bullet/BulletDynamics/Featherstone/btMultiBodyJointLimitConstraint.cpp
+   bullet/BulletDynamics/Featherstone/btMultiBodyJointMotor.cpp
+   bullet/BulletDynamics/Featherstone/btMultiBodyPoint2Point.cpp
+   bullet/BulletDynamics/MLCPSolvers/btDantzigLCP.cpp
+   bullet/BulletDynamics/MLCPSolvers/btLemkeAlgorithm.cpp
+   bullet/BulletDynamics/MLCPSolvers/btMLCPSolver.cpp
+   bullet/BulletDynamics/Vehicle/btRaycastVehicle.cpp
+   bullet/BulletDynamics/Vehicle/btWheelInfo.cpp
+   bullet/LinearMath/btAlignedAllocator.cpp
+   bullet/LinearMath/btConvexHull.cpp
+   bullet/LinearMath/btConvexHullComputer.cpp
+   bullet/LinearMath/btGeometryUtil.cpp
+   bullet/LinearMath/btPolarDecomposition.cpp
+   bullet/LinearMath/btQuickprof.cpp
+   bullet/LinearMath/btSerializer.cpp
+   bullet/LinearMath/btVector3.cpp)
 
 #
 # Headers
