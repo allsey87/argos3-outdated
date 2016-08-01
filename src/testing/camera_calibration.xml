@@ -25,7 +25,7 @@
          <cameras implementation="default">
             <algorithms>
                <led_detector medium="leds" camera="front_camera" show_rays="true"/>
-               <apriltags medium="barcodes" camera="front_camera" show_rays="true"/>
+               <tag_detector medium="barcodes" camera="front_camera" show_rays="true"/>
             </algorithms>
          </cameras>
       </sensors>
@@ -140,9 +140,9 @@
           <led id="led_40" body="base" position="0.0051, -0.175269119, 0.625269119" color="red"/>
           <led id="led_44" body="base" position="0.0051,  0.175269119, 0.625269119" color="red"/-->
         </leds>
-        <barcodes medium="barcodes">
-          <barcode id="apriltag" body="base" localizable="true" position="0.0051, -0.000, 0.450" orientation="0,90,0"  payload="toaster" side_length="0.15"/>
-        </barcodes>
+        <tags medium="barcodes">
+          <tag id="apriltag" body="base" localizable="true" position="0.0051, -0.000, 0.450" orientation="0,90,0"  payload="toaster" side_length="0.15"/>
+        </tags>
       </devices>
     </prototype>
     
@@ -159,7 +159,7 @@
   <media>
     <range_and_bearing id="rab" index="grid" grid_size="3,3,3" />
     <led id="leds" index="grid" grid_size="20,20,20" />
-    <barcode2 id="barcodes" index="grid" grid_size="20,20,20" />
+    <tag id="barcodes" index="grid" grid_size="20,20,20" />
   </media>
   
   <!-- ******************* -->

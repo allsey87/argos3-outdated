@@ -14,11 +14,12 @@
   <!-- * Controllers * -->
   <!-- *************** -->
   <controllers>
-    <lua_controller id="bebot_test_ctrl">
+    <bebot_controller id="bebot_test_ctrl">
       <actuators>
         <!--pleds implementation="default" medium="leds"/-->
-        <joints implementation="default" target="lift-fixture:vertical-link(linear_z)"/>
+        <joints implementation="default"/>
         <electromagnets implementation="default" show_poles="true" target="electromagnet-q1,electromagnet-q2,electromagnet-q3,electromagnet-q4"/>
+        <radios implementation="default" />
       </actuators>
       <sensors>
         <cameras implementation="default">
@@ -28,10 +29,11 @@
             </algorithms>
          </cameras>
         <joints implementation="default" />
+        <radios implementation="default" />
         <prototype_proximity implementation="default" show_rays="false"/>
       </sensors>
       <params/>
-    </lua_controller>
+    </bebot_controller>
   </controllers>
   
   <!-- *********************** -->
@@ -237,6 +239,7 @@
               <electromagnet body="electromagnet-q3" passive_field="0,0,2" active_field="0,0,1"/>
               <electromagnet body="electromagnet-q4" passive_field="0,0,2" active_field="0,0,1"/>
             </electromagnets>
+            <radios/>
           </devices>
         </prototype>
       <!--/entity>
@@ -469,7 +472,7 @@
     <!-- * To activate the Lua editor, just use the 'lua_editor' flag attribute * -->
     <!-- ************************************************************************ -->
     <qt-opengl lua_editor="true">
-      <!--user_functions label="camera_user_functions" library="build/testing/prototype_testbenches/qt_camera_visualisation/libcamera_loop_functions.so"/-->
+      <!--user_functions label="camera_user_functions" library="build/testing/qt_camera_visualisation/libcamera_loop_functions.so"/-->
       <camera>
         <placement idx="0" position="-0.0791426,0.372937,0.110654" look_at="-0.146059,-0.624456,0.0836324" lens_focal_length="20" />
         <placement idx="1" position=" 2,-2, 1.5" look_at="1,-1,1" lens_focal_length="30" />
@@ -479,7 +482,7 @@
         <placement idx="5" position="-2, 2, 1.5" look_at="-1,1,1" lens_focal_length="30" />
         <placement idx="6" position="-2, 0, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" />
         <placement idx="7" position="-2,-2, 1.5" look_at="-1,-1,1" lens_focal_length="30" />
-	<placement idx="8" position="0,0, 4" look_at="0,0,0.001" lens_focal_length="10" />
+        <placement idx="8" position="0,0, 4" look_at="0,0,0.001" lens_focal_length="10" />
       </camera>
     </qt-opengl>
   </visualization>

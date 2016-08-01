@@ -2,7 +2,7 @@
 #define CAMERA_USER_FUNCTIONS_H
 
 #include <argos3/plugins/simulator/visualizations/qt-opengl/qtopengl_user_functions.h>
-#include <argos3/testing/prototype_testbenches/qt_camera_visualisation/camera_window.h>
+#include <argos3/testing/qt_camera_visualisation/camera_window.h>
 
 using namespace argos;
 
