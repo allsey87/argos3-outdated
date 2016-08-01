@@ -94,9 +94,16 @@ namespace argos {
       if((c_tag.GetPosition() - m_sViewport.Position).Length() < m_sViewport.HalfExtents[0]) {
          m_cOcclusionCheckRay.SetEnd(c_tag.GetPosition());         
          if(!GetClosestEmbodiedEntityIntersectedByRay(m_sIntersectionItem, m_cOcclusionCheckRay)) {
-            //std::cout << "detected tag: " << c_tag.GetId() << std::endl;
+            std::cout << "detected tag: " << c_tag.GetId() << std::endl;
             /* Take position of current tag */
             CVector3 cTagPositionOnSensor = c_tag.GetPosition();
+
+            /*
+            CRadians cTagEulers[3];
+            c_tag.GetOrientation().ToEulerAngles(cTagEulers[0], cTagEulers[1], cTagEulers[2]);
+            std::cout << "orientation: " << c_tag.GetId() << std::endl;
+            */
+
             /* Transform the position of tag into the local coordinate system of the camera */
             cTagPositionOnSensor -= (m_cAttachedBodyPosition);
             cTagPositionOnSensor.Rotate(m_cAttachedBodyOrientation.Inverse());
@@ -104,8 +111,10 @@ namespace argos {
             cTagPositionOnSensor.Rotate(m_cCameraOrientationOffset.Inverse());
             cTagPositionOnSensor.Rotate(CQuaternion(m_cCameraRoll, CVector3::Z));
             /* Calculate the relevant index of the pixel presenting the centroid of the detected tag */
-            UInt32 unTagHorizontalIndex = m_unHorizontalResolution * (cTagPositionOnSensor.GetX() + m_sViewport.HalfExtents[0]) / (2.0f * m_sViewport.HalfExtents[0]);
-            UInt32 unTagVerticalIndex = m_unVerticalResolution * (cTagPositionOnSensor.GetY() + m_sViewport.HalfExtents[0]) / (2.0f * m_sViewport.HalfExtents[0]);
+            UInt32 unTagHorizontalIndex = m_unHorizontalResolution * 
+               (cTagPositionOnSensor.GetX() + m_sViewport.HalfExtents[0]) / (2.0f * m_sViewport.HalfExtents[0]);
+            UInt32 unTagVerticalIndex = m_unVerticalResolution *
+               (cTagPositionOnSensor.GetY() + m_sViewport.HalfExtents[0]) / (2.0f * m_sViewport.HalfExtents[0]);
             m_tReadings.push_back(
                SReading(c_tag.GetPayload(),
                         unTagHorizontalIndex,

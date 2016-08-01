@@ -107,7 +107,7 @@ namespace argos {
       void RemoveFromMedium(CRadioMedium& c_medium);
 
       virtual std::string GetTypeDescription() const {
-         return "radio_container";
+         return "radios";
       }
 
    protected:

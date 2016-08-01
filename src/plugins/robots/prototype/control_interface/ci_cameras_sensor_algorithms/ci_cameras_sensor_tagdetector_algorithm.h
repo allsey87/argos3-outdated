@@ -33,13 +33,13 @@ namespace argos {
    public:
 
       struct SReading {
-         /* Data contained in barcode */
+         /* Data contained in tag */
          std::string Payload;
          /* Coordinates in image */
          UInt32 HorizontalIndex;
          UInt32 VerticalIndex;
          /* 3D transform */
-         /* Only populated if barcode is localizable */
+         /* Only populated if tag is localizable */
          CVector3 Position;
          CQuaternion Orientation;
          /**

@@ -23,7 +23,7 @@ namespace argos {
    void CPrototypeRadiosDefaultSensor::SetRobot(CComposableEntity& c_entity) {
       try {
          /* Get and enable omndirectional radio equipped entity */
-         m_pcRadioEquippedEntity = &(c_entity.GetComponent<CRadioEquippedEntity>("radio_container"));
+         m_pcRadioEquippedEntity = &(c_entity.GetComponent<CRadioEquippedEntity>("radios"));
          m_pcRadioEquippedEntity->SetCanBeEnabledIfDisabled(true);
          /* Create a readings list for each radio in the container */
          m_tReadings.resize(m_pcRadioEquippedEntity->GetAllRadios().size());
