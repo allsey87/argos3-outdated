@@ -1,7 +1,12 @@
 #
 # Set minimum required version
 #
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.1)
+
+#
+# Set C++ standard to C++11
+#
+set(CMAKE_CXX_STANDARD 11)
 
 #
 # Set the path additional cmake files must be searched for

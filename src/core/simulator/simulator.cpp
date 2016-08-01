@@ -7,6 +7,7 @@
 #include "simulator.h"
 
 #include <iostream>
+#include <memory>
 #include <string>
 #include <sys/time.h>
 #include <argos3/core/utility/logging/argos_log.h>
@@ -71,7 +72,7 @@ namespace argos {
    /****************************************/
 
    CSimulator& CSimulator::GetInstance() {
-      static std::auto_ptr<CSimulator> pcSimulatorInstance(new CSimulator());
+      static std::unique_ptr<CSimulator> pcSimulatorInstance(new CSimulator());
       return *(pcSimulatorInstance.get());
    }
 

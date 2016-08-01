@@ -181,7 +181,7 @@ namespace argos {
          for(size_t i = 1; i < vecPotentialEngines.size(); ++i) {
             ossEngines << ", \"" << vecPotentialEngines[i]->GetId() << "\"";
          }
-         THROW_ARGOSEXCEPTION("Multiple engines can house \"" << c_entity.GetId() << "\", but a movable entity and can only be added to a single engine. Conflicting engines: " << ossEngines);
+         THROW_ARGOSEXCEPTION("Multiple engines can house \"" << c_entity.GetId() << "\", but a movable entity and can only be added to a single engine. Conflicting engines: " << ossEngines.str());
       }
    }
       
