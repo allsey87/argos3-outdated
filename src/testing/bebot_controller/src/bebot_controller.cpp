@@ -37,12 +37,16 @@ void CBeBotController::Init(TConfigurationNode& t_tree) {
    m_pcJointsActuator = GetActuator<CCI_PrototypeJointsActuator>("joints");
    m_pcRadiosActuator = GetActuator<CCI_PrototypeRadiosActuator>("radios");
    m_pcElectromagnets = GetActuator<CCI_PrototypeElectromagnetsActuator>("electromagnets");
-   /* joints */   
-   m_pcLiftActuatorJoint = &(m_pcJointsActuator->GetJointActuator("lift-fixture:vertical-link", CCI_PrototypeJointsActuator::LINEAR_Z));
+   /* wheels */   
    m_pcFrontLeftWheelJoint = &(m_pcJointsActuator->GetJointActuator("wheel-front-left:lower-chassis", CCI_PrototypeJointsActuator::ANGULAR_Y));
    m_pcFrontRightWheelJoint = &(m_pcJointsActuator->GetJointActuator("wheel-front-right:lower-chassis", CCI_PrototypeJointsActuator::ANGULAR_Y));
    m_pcRearLeftWheelJoint = &(m_pcJointsActuator->GetJointActuator("wheel-rear-left:lower-chassis", CCI_PrototypeJointsActuator::ANGULAR_Y));
    m_pcRearRightWheelJoint = &(m_pcJointsActuator->GetJointActuator("wheel-rear-right:lower-chassis", CCI_PrototypeJointsActuator::ANGULAR_Y));
+   /* lift actuator system */
+   m_pcLiftActuatorSystemController = new CLiftActuatorSystemController(
+      m_pcJointsSensor->GetJointSensor("lift-fixture:vertical-link"),
+      &(m_pcJointsActuator->GetJointActuator("lift-fixture:vertical-link", CCI_PrototypeJointsActuator::LINEAR_Z))
+   );
    /* issue reset */
    Reset();
 }
@@ -51,7 +55,8 @@ void CBeBotController::Init(TConfigurationNode& t_tree) {
 /****************************************/
 
 void CBeBotController::Reset() {
-   //m_pcLiftActuatorJoint->SetTargetVelocity(0.2);
+   m_pcLiftActuatorSystemController->Reset();
+   SetElectromagnetCurrent(1.0);
    //SetTargetVelocity(-2,2);
    //m_pcFrontLeftWheelJoint->SetTargetVelocity(5);
    //m_pcFrontRightWheelJoint->SetTargetVelocity(5);
@@ -62,12 +67,15 @@ void CBeBotController::Reset() {
 /****************************************/
 
 void CBeBotController::Destroy() {
+   delete m_pcLiftActuatorSystemController;
 }
 
 /****************************************/
 /****************************************/
 
 void CBeBotController::ControlStep() {
+   m_pcLiftActuatorSystemController->ControlStep();
+   
    /*
    std::cout << "detected: " 
              << m_pcLEDDetectorAlgorithm->GetReadings().size()
@@ -103,7 +111,7 @@ void CBeBotController::ControlStep() {
 /****************************************/
 /****************************************/
 
-void CBeBotController::SetTargetVelocity(double f_left, double f_right) {
+void CBeBotController::SetTargetVelocity(Real f_left, Real f_right) {
    m_pcFrontLeftWheelJoint->SetTargetVelocity(f_left);
    m_pcFrontRightWheelJoint->SetTargetVelocity(f_right);
    m_pcRearLeftWheelJoint->SetTargetVelocity(f_left);
@@ -113,7 +121,7 @@ void CBeBotController::SetTargetVelocity(double f_left, double f_right) {
 /****************************************/
 /****************************************/
 
-void CBeBotController::SetElectromagnetCurrent(double f_value) {
+void CBeBotController::SetElectromagnetCurrent(Real f_value) {
    for(auto& t_configuration : m_pcElectromagnets->GetConfigurations()) {
       t_configuration.Current = f_value;
    }
