@@ -47,21 +47,19 @@ namespace argos {
    /****************************************/
 
    class CDynamics3DModel : public CPhysicsModel {
-
    public:
-
       typedef std::vector<CDynamics3DModel*> TVector;
       typedef std::vector<CDynamics3DModel*>::iterator TVectorIterator;
       typedef std::vector<CDynamics3DModel*>::const_iterator TVectorConstIterator;
 
    public:
-
       CDynamics3DModel(CDynamics3DEngine& c_engine,
                        CEmbodiedEntity& c_entity,
                        const std::string& str_id) :
          CPhysicsModel(c_engine, c_entity),
          m_cEngine(c_engine),
          m_strId(str_id) {}
+
       virtual ~CDynamics3DModel();
 
       virtual bool MoveTo(const CVector3& c_position,
@@ -97,20 +95,18 @@ namespace argos {
       virtual bool IsCollidingWithSomething() const;
 
    protected:
-
       virtual btTransform GetModelCoordinates() const = 0;
 
       virtual void SetModelCoordinates(const btTransform& c_coordinates);
 
    protected:
-
       CDynamics3DEngine&      m_cEngine;
 
       CDynamics3DBody::TVector m_vecLocalBodies;
+
       CDynamics3DJoint::TVector m_vecLocalJoints;
 
       std::string m_strId;
-
    };
    
    /****************************************/

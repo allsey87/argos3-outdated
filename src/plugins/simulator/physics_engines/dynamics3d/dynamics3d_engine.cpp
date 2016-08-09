@@ -147,9 +147,15 @@ namespace argos {
        * by iterating over the vector, we ensure that the entities are removed in the same order
        * as they were added during initisation
        */
-      for(CDynamics3DModel::TVector::iterator itModel = m_vecPhysicsModels.begin();
+      for(CDynamics3DModel::TVectorIterator itModel = m_vecPhysicsModels.begin();
           itModel != m_vecPhysicsModels.end();
-          ++itModel) {         
+          ++itModel) {
+         /* remove model from plugins */
+         for(CDynamics3DPlugin::TVectorIterator itPlugin = m_vecPhysicsPlugins.begin();
+             itPlugin != m_vecPhysicsPlugins.end();
+             ++itPlugin) {
+            (*itPlugin)->UnregisterModel(**itModel);
+         }
          RemoveJointsFromModel(**itModel);
          RemoveBodiesFromModel(**itModel);
          (*itModel)->Reset();
@@ -163,6 +169,12 @@ namespace argos {
       /* reset the solvers and dispatchers */
       m_pcBroadphaseInterface->resetPool(m_pcCollisionDispatcher);
       m_pcSolver->setRandSeed(m_pcRNG->Uniform(m_cRandomSeedRange));
+      /* reset plugins */
+      for(CDynamics3DPlugin::TVectorIterator itPlugin = m_vecPhysicsPlugins.begin();
+          itPlugin != m_vecPhysicsPlugins.end();
+          ++itPlugin) {
+         (*itPlugin)->Reset();
+      } 
       /* Add elements back to the engine
        * by iterating over the vector, we ensure that the entities are added in the same order
        * as they were added during initisation, this is important for repeatability between resets
@@ -170,11 +182,17 @@ namespace argos {
       if(m_pcGround != NULL) {
          m_pcGround->AddBodyToWorld(m_pcWorld);
       }
-      for(CDynamics3DModel::TVector::iterator itModel = m_vecPhysicsModels.begin();
+      for(CDynamics3DModel::TVectorIterator itModel = m_vecPhysicsModels.begin();
           itModel != m_vecPhysicsModels.end();
           ++itModel) {
          AddBodiesFromModel(**itModel);
          AddJointsFromModel(**itModel);
+         /* add model to plugins */
+         for(CDynamics3DPlugin::TVectorIterator itPlugin = m_vecPhysicsPlugins.begin();
+             itPlugin != m_vecPhysicsPlugins.end();
+             ++itPlugin) {
+            (*itPlugin)->RegisterModel(**itModel);
+         }
       }
    }
    
@@ -183,7 +201,7 @@ namespace argos {
 
    void CDynamics3DEngine::Destroy() {
       /* empty the physics entity map */
-      for(CDynamics3DModel::TVector::iterator itModel = m_vecPhysicsModels.begin();
+      for(CDynamics3DModel::TVectorIterator itModel = m_vecPhysicsModels.begin();
           itModel != m_vecPhysicsModels.end();
           ++itModel) {
          delete *itModel;
@@ -207,21 +225,15 @@ namespace argos {
 
    void CDynamics3DEngine::Update() {      
       /* Update the physics state from the entities */
-      for(CDynamics3DModel::TVector::iterator itModel = m_vecPhysicsModels.begin();
+      for(CDynamics3DModel::TVectorIterator itModel = m_vecPhysicsModels.begin();
           itModel != m_vecPhysicsModels.end();
           ++itModel) {
          (*itModel)->UpdateFromEntityStatus();
       }
-      /* Execute the plugins update methods */
-      for(CDynamics3DPlugin::TVector::iterator itPlugin = m_vecPhysicsPlugins.begin();
-          itPlugin != m_vecPhysicsPlugins.end();
-          ++itPlugin) {
-         (*itPlugin)->Update();
-      }
       /* Step the simuation forwards */
       m_pcWorld->stepSimulation(GetPhysicsClockTick(), m_unIterations, m_fDeltaT);
       /* Update the simulated space */
-      for(CDynamics3DModel::TVector::iterator itModel = m_vecPhysicsModels.begin();
+      for(CDynamics3DModel::TVectorIterator itModel = m_vecPhysicsModels.begin();
           itModel != m_vecPhysicsModels.end();
           ++itModel) {
          (*itModel)->CalculateBoundingBox();
@@ -319,7 +331,7 @@ namespace argos {
       AddBodiesFromModel(c_model);      
       AddJointsFromModel(c_model);
       // Notify the plugins of the added model
-      for(CDynamics3DPlugin::TVector::iterator itPlugin = m_vecPhysicsPlugins.begin();
+      for(CDynamics3DPlugin::TVectorIterator itPlugin = m_vecPhysicsPlugins.begin();
           itPlugin != m_vecPhysicsPlugins.end();
           ++itPlugin) {
          (*itPlugin)->RegisterModel(c_model);
@@ -331,12 +343,12 @@ namespace argos {
 
    void CDynamics3DEngine::RemovePhysicsModel(const std::string& str_id) {
 
-      CDynamics3DModel::TVector::iterator itModel = std::find(m_vecPhysicsModels.begin(),
+      CDynamics3DModel::TVectorIterator itModel = std::find(m_vecPhysicsModels.begin(),
                                                               m_vecPhysicsModels.end(),
                                                               str_id);
       if(itModel != m_vecPhysicsModels.end()) {
          // Notify the plugins of model removal
-         for(CDynamics3DPlugin::TVector::iterator itPlugin = m_vecPhysicsPlugins.begin();
+         for(CDynamics3DPlugin::TVectorIterator itPlugin = m_vecPhysicsPlugins.begin();
              itPlugin != m_vecPhysicsPlugins.end();
              ++itPlugin) {
             (*itPlugin)->UnregisterModel(**itModel);
@@ -364,7 +376,7 @@ namespace argos {
 
    void CDynamics3DEngine::RemovePhysicsPlugin(const std::string& str_id) {
 
-      CDynamics3DPlugin::TVector::iterator itPlugin = std::find(m_vecPhysicsPlugins.begin(),
+      CDynamics3DPlugin::TVectorIterator itPlugin = std::find(m_vecPhysicsPlugins.begin(),
                                                                 m_vecPhysicsPlugins.end(),
                                                                 str_id);
       if(itPlugin != m_vecPhysicsPlugins.end()) {
@@ -383,7 +395,7 @@ namespace argos {
    void CDynamics3DEngine::UpdatePhysicsPlugins(btScalar f_time_step) {
       m_pcWorld->clearForces();
       /* run the plugins */
-      for(CDynamics3DPlugin::TVector::iterator itPlugin = m_vecPhysicsPlugins.begin();
+      for(CDynamics3DPlugin::TVectorIterator itPlugin = m_vecPhysicsPlugins.begin();
           itPlugin != m_vecPhysicsPlugins.end();
           ++itPlugin) {
          (*itPlugin)->Update();
@@ -470,7 +482,7 @@ namespace argos {
    /****************************************/
 
    void CDynamics3DEngine::AddBodiesFromModel(CDynamics3DModel& c_model) {
-      for(CDynamics3DBody::TVector::iterator itBody = c_model.GetBodies().begin(); 
+      for(CDynamics3DBody::TVectorIterator itBody = c_model.GetBodies().begin(); 
           itBody != c_model.GetBodies().end();
           ++itBody) {   
          (*itBody)->AddBodyToWorld(m_pcWorld);
@@ -481,7 +493,7 @@ namespace argos {
    /****************************************/
 
    void CDynamics3DEngine::AddJointsFromModel(CDynamics3DModel& c_model) {
-      for(CDynamics3DJoint::TVector::iterator itJoint = c_model.GetJoints().begin(); 
+      for(CDynamics3DJoint::TVectorIterator itJoint = c_model.GetJoints().begin(); 
           itJoint != c_model.GetJoints().end();
           itJoint++) {
          (*itJoint)->AddJointToWorld(m_pcWorld);
@@ -492,7 +504,7 @@ namespace argos {
    /****************************************/
 
    void CDynamics3DEngine::RemoveJointsFromModel(CDynamics3DModel& c_model) {
-      for(CDynamics3DJoint::TVector::iterator itJoint = c_model.GetJoints().begin();
+      for(CDynamics3DJoint::TVectorIterator itJoint = c_model.GetJoints().begin();
           itJoint != c_model.GetJoints().end();
           itJoint++) {
          (*itJoint)->RemoveJointFromWorld(m_pcWorld);
@@ -503,7 +515,7 @@ namespace argos {
    /****************************************/
    
    void CDynamics3DEngine::RemoveBodiesFromModel(CDynamics3DModel& c_model) {
-      for(CDynamics3DBody::TVector::iterator itBody = c_model.GetBodies().begin(); 
+      for(CDynamics3DBody::TVectorIterator itBody = c_model.GetBodies().begin(); 
           itBody !=  c_model.GetBodies().end();
           itBody++) {
          (*itBody)->RemoveBodyFromWorld(m_pcWorld);

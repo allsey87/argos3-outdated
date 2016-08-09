@@ -74,9 +74,11 @@ namespace argos {
       bool IsModelCollidingWithSomething(const CDynamics3DModel& c_model);
       
       void AddPhysicsModel(CDynamics3DModel& c_model);      
+      
       void RemovePhysicsModel(const std::string& str_id);
 
       void AddPhysicsPlugin(CDynamics3DPlugin& c_plugin);
+
       void RemovePhysicsPlugin(const std::string& str_id);
 
       void UpdatePhysicsPlugins(btScalar f_time_step);
@@ -100,15 +102,15 @@ namespace argos {
       }
 
    private:
-
       void AddBodiesFromModel(CDynamics3DModel& c_model);
+
       void AddJointsFromModel(CDynamics3DModel& c_model);
 
       void RemoveJointsFromModel(CDynamics3DModel& c_model);
+
       void RemoveBodiesFromModel(CDynamics3DModel& c_model);
 
    private:
-
       std::vector<CDynamics3DModel*> m_vecPhysicsModels;
       std::vector<CDynamics3DPlugin*> m_vecPhysicsPlugins;
 

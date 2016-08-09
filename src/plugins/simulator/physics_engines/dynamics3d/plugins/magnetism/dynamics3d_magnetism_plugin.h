@@ -20,7 +20,9 @@ namespace argos {
    
    class CDynamics3DMagnetismPlugin : public CDynamics3DPlugin {
    public:
-      CDynamics3DMagnetismPlugin() {}
+      CDynamics3DMagnetismPlugin() :
+         m_fForceConstant(7.0500949e-13),
+         m_fAngularDampingRatio(0.999999) {}
       
       ~CDynamics3DMagnetismPlugin() {}
       
@@ -51,12 +53,13 @@ namespace argos {
 			CDynamics3DBody* Body;
          CElectromagnetEntity* Electromagnet;
 
-         typedef std::vector<SMagneticBody> TList;
-			typedef std::vector<SMagneticBody>::iterator TListIterator;
+         typedef std::vector<SMagneticBody> TVector;
+			typedef std::vector<SMagneticBody>::iterator TVectorIterator;
       };
 
       Real m_fForceConstant;
-      SMagneticBody::TList m_tMagneticBodies;     
+      Real m_fAngularDampingRatio;
+      SMagneticBody::TVector m_tMagneticBodies;     
    };
    
    /****************************************/

@@ -23,13 +23,12 @@ namespace argos {
    /****************************************/
 
    class CDynamics3DJoint {
-
    public:
-
       typedef std::vector<CDynamics3DJoint*> TVector;
+      typedef std::vector<CDynamics3DJoint*>::iterator TVectorIterator;
+      typedef std::vector<CDynamics3DJoint*>::const_iterator TVectorConstIterator;
 
    public:
-
       struct SJointLimits {
          SJointLimits(const btVector3& c_lower_limit = btVector3(0.0f, 0.0f, 0.0f),
                       const btVector3& c_upper_limit = btVector3(0.0f, 0.0f, 0.0f)) :
@@ -63,7 +62,6 @@ namespace argos {
       };
 
    public:
-
       enum EAxis {
          LINEAR_X = 0,
          LINEAR_Y = 1,
@@ -76,7 +74,6 @@ namespace argos {
       const static UInt8 ANGULAR_AXIS_OFFSET = 3;
 
    public:
-
       CDynamics3DJoint(const std::string& str_id,
                        CDynamics3DBody& c_body_a,
                        CDynamics3DBody& c_body_b,
@@ -88,7 +85,6 @@ namespace argos {
                        const SJointActuators& c_angular_actuators,
                        bool b_use_reference_linear_frame_a = true,
                        bool b_disable_linked_body_collisions = false);
-         
 
       ~CDynamics3DJoint();
 

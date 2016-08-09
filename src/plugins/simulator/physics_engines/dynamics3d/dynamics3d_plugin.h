@@ -23,13 +23,12 @@ namespace argos {
    /****************************************/
 
    class CDynamics3DPlugin {
-
    public:
-
       typedef std::vector<CDynamics3DPlugin*> TVector;
+      typedef std::vector<CDynamics3DPlugin*>::iterator TVectorIterator;
+      typedef std::vector<CDynamics3DPlugin*>::const_iterator TVectorConstIterator;
 
    public:
-
       CDynamics3DPlugin() {}
 
       virtual ~CDynamics3DPlugin() {}

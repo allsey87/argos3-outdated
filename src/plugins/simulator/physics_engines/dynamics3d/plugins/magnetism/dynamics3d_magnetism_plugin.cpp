@@ -24,8 +24,7 @@ namespace argos {
    /****************************************/
    
    void CDynamics3DMagnetismPlugin::Init(TConfigurationNode& t_tree) {           
-      //force_constant is calculated for Air medium.. replace with 7.0459388e-13 for vacuum, 5.643797e-11 for water @20 degrees celcius
-      GetNodeAttributeOrDefault(t_tree, "force_constant", m_fForceConstant, 7.0500949e-13);
+      GetNodeAttributeOrDefault(t_tree, "force_constant", m_fForceConstant, m_fForceConstant);
    } 
    
    /****************************************/
@@ -43,7 +42,7 @@ namespace argos {
                 ++unElectromagnetIdx) {
                if(cElectromagnets.GetElectromagneticBody(unElectromagnetIdx).GetId() == c_model.GetBodies()[unBodyIdx]->GetId()) {
                   /* hack set damping on magnets */
-                  c_model.GetBodies()[unBodyIdx]->SetDamping(0.0, 0.999999);
+                  c_model.GetBodies()[unBodyIdx]->SetDamping(0.0, m_fAngularDampingRatio);
                   /* add magnet to list of magnetic bodies */
                   m_tMagneticBodies.push_back(
                      SMagneticBody(&c_model,
@@ -83,19 +82,10 @@ namespace argos {
    /****************************************/
    
    void CDynamics3DMagnetismPlugin::Update() {
-      
-      // add drag force with respect to angular velocity
-      for(SMagneticBody::TListIterator itBody = m_tMagneticBodies.begin();
-          itBody != m_tMagneticBodies.end();
-          ++itBody) {
-         //btVector3 cAngularVelocity = itBody->Body->m_pcRigidBody->getAngularVelocity();
-         //itBody->Body->ApplyTorque(-0.1 * cAngularVelocity);
-      }
-      
-      for(SMagneticBody::TListIterator itMainBody = m_tMagneticBodies.begin();
+      for(SMagneticBody::TVectorIterator itMainBody = m_tMagneticBodies.begin();
           itMainBody != m_tMagneticBodies.end() - 1;
           ++itMainBody) {
-         for(SMagneticBody::TListIterator itSubBody = itMainBody + 1;
+         for(SMagneticBody::TVectorIterator itSubBody = itMainBody + 1;
              itSubBody != m_tMagneticBodies.end();
              ++itSubBody) {
             
