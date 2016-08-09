@@ -255,7 +255,10 @@ namespace argos {
       if (cResult.hasHit()) {
          f_t_on_ray = (cResult.m_hitPointWorld - cRayStart).length() / c_ray.GetLength();
          CDynamics3DBody* pcBody = static_cast<CDynamics3DBody*>(cResult.m_collisionObject->getUserPointer());
-         return &(pcBody->GetParentModel().GetEmbodiedEntity());
+         /* required as some bodies do not belong to models (i.e. the floor) */
+         if(pcBody->HasParentModel()) {
+            return &(pcBody->GetParentModel().GetEmbodiedEntity());
+         }
       }
       f_t_on_ray = 0.0f;
       return NULL;
