@@ -57,8 +57,8 @@ namespace argos {
 			typedef std::vector<SMagneticBody>::iterator TVectorIterator;
       };
 
-      Real m_fForceConstant;
-      Real m_fAngularDampingRatio;
+      btScalar m_fForceConstant;
+      btScalar m_fAngularDampingRatio;
       SMagneticBody::TVector m_tMagneticBodies;     
    };
    

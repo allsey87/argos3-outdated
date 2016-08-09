@@ -19,7 +19,7 @@ namespace argos {
    class CDynamics3DGravityPlugin : public CDynamics3DPlugin {
    public:
       CDynamics3DGravityPlugin() :
-         m_fGravitationalForce(10.0) {}
+         m_fGravitationalAcceleration(10.0) {}
       
       ~CDynamics3DGravityPlugin() {}
       
@@ -34,7 +34,7 @@ namespace argos {
       virtual void Update();
 
    private:
-      Real m_fGravitationalForce;
+      btScalar m_fGravitationalAcceleration;
       CDynamics3DBody::TVector m_tBodies;
    };
    

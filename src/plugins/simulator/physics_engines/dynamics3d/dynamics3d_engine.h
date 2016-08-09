@@ -64,7 +64,7 @@ namespace argos {
       virtual void Reset();
       virtual void Destroy();
       virtual void Update();
-      virtual CEmbodiedEntity* CheckIntersectionWithRay(Real& f_t_on_ray,
+      virtual CEmbodiedEntity* CheckIntersectionWithRay(btScalar& f_t_on_ray,
                                                         const CRay3& c_ray) const;
       virtual UInt32 GetNumPhysicsEngineEntities();
 
@@ -90,7 +90,7 @@ namespace argos {
 
       virtual bool IsPointContained(const CVector3& c_point);
       virtual void TransferEntities();
-      bool CalculateTransfer(Real f_x, Real f_y, std::string& str_engine_id);
+      bool CalculateTransfer(btScalar f_x, btScalar f_y, std::string& str_engine_id);
       void ScheduleEntityForTransfer(CEntity& c_entity, const std::string& str_engine_id);
 
       inline virtual bool IsEntityTransferNeeded() const {
@@ -131,7 +131,7 @@ namespace argos {
 
       /* Dynamics 3D iterations per pick and iteration length */
       UInt32 m_unIterations;
-      Real m_fDeltaT;
+      btScalar m_fDeltaT;
       
       /* Transfer entity mechanism data */
       /* @todo create a 3D implementation - at the moment, only prisms with infinite height are supported */

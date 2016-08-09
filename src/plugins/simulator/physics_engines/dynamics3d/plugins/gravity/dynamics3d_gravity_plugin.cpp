@@ -15,7 +15,7 @@ namespace argos {
    /****************************************/
    
    void CDynamics3DGravityPlugin::Init(TConfigurationNode& t_tree) {
-      GetNodeAttributeOrDefault(t_tree, "force", m_fGravitationalForce, m_fGravitationalForce);
+      GetNodeAttributeOrDefault(t_tree, "g", m_fGravitationalAcceleration, m_fGravitationalAcceleration);
    } 
 
    /****************************************/
@@ -51,7 +51,7 @@ namespace argos {
       for(CDynamics3DBody::TVectorIterator t_body_iter = m_tBodies.begin();
           t_body_iter != m_tBodies.end();
           t_body_iter++) {
-         (*t_body_iter)->ApplyForce(btVector3(0.0, -m_fGravitationalForce, 0.0));
+         (*t_body_iter)->ApplyForce(btVector3(0.0, -m_fGravitationalAcceleration * (*t_body_iter)->GetMass(), 0.0));
       }
    }
    

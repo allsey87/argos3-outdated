@@ -153,7 +153,7 @@ namespace argos {
 
    void CDynamics3DJoint::SetActuatorParameters(EAxis e_axis,
                                                 bool b_enable,
-                                                Real f_max_force) {
+                                                btScalar f_max_force) {
       
       switch(e_axis) {
       case LINEAR_X:
@@ -175,7 +175,7 @@ namespace argos {
    /****************************************/
 
    void CDynamics3DJoint::SetActuatorTargetVelocity(EAxis e_axis,
-                                                    Real f_target_velocity) {
+                                                    btScalar f_target_velocity) {
       switch(e_axis) {
       case LINEAR_X:
       case LINEAR_Y:

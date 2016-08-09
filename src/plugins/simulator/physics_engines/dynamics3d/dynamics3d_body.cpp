@@ -17,7 +17,7 @@ namespace argos {
                                     btCollisionShape* pc_collision_shape,
                                     const btTransform& c_positional_offset,
                                     const btTransform& c_geometric_offset,
-                                    Real f_mass) :
+                                    btScalar f_mass) :
       m_pcParentModel(pc_parent_model),
       m_strId(str_id),
       m_pcCollisionShape(pc_collision_shape),
@@ -105,11 +105,20 @@ namespace argos {
 
    /****************************************/
    /****************************************/
+
+   btScalar CDynamics3DBody::GetMass() const {
+      return m_fMass;
+   }
+
+   /****************************************/
+   /****************************************/
    
    void CDynamics3DBody::SetMotionStateTransform(const btTransform & cTransform) {
       m_pcMotionState->m_graphicsWorldTrans = cTransform;
    }
 
+   /****************************************/
+   /****************************************/
 
    void CDynamics3DBody::SetDamping(btScalar f_linear_damping, btScalar f_angular_damping) {
       m_pcRigidBody->setDamping(f_linear_damping, f_angular_damping);

@@ -25,7 +25,7 @@ namespace argos {
       btTransform cBoxGeometricOffset(
          btQuaternion(0.0f, 0.0f, 0.0f, 1.0f),
          btVector3(0.0f, -c_box.GetSize().GetZ() * 0.5f, 0.0f));
-      Real fMass = c_box.GetEmbodiedEntity().IsMovable() ? c_box.GetMass() : 0.0f;
+      btScalar fMass = c_box.GetEmbodiedEntity().IsMovable() ? c_box.GetMass() : 0.0f;
       m_vecLocalBodies.push_back(new CDynamics3DBody(this,
                                                      "box",
                                                      m_pcBoxCollisionShape,

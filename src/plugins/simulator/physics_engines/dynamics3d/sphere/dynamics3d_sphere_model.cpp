@@ -23,7 +23,7 @@ namespace argos {
       btTransform cSphereGeometricOffset(
          btQuaternion(0.0f, 0.0f, 0.0f, 1.0f), 
          btVector3(0.0f, -c_sphere.GetRadius(), 0.0f));
-      Real fMass = c_sphere.GetEmbodiedEntity().IsMovable() ? c_sphere.GetMass() : 0.0f;
+      btScalar fMass = c_sphere.GetEmbodiedEntity().IsMovable() ? c_sphere.GetMass() : 0.0f;
       m_vecLocalBodies.push_back(new CDynamics3DBody(this,
                                                      "Sphere",
                                                      m_pcSphereCollisionShape,
@@ -64,7 +64,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   btSphereShape* CDynamics3DSphereModel::CSphereShapeManager::RequestSphereShape(Real f_radius) {
+   btSphereShape* CDynamics3DSphereModel::CSphereShapeManager::RequestSphereShape(btScalar f_radius) {
       std::vector<CResource>::iterator itResource;      
       for(itResource = m_vecResources.begin();
           itResource != m_vecResources.end();
@@ -104,7 +104,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   CDynamics3DSphereModel::CSphereShapeManager::CResource::CResource(Real f_radius,
+   CDynamics3DSphereModel::CSphereShapeManager::CResource::CResource(btScalar f_radius,
                                                                      btSphereShape* c_shape) : 
       m_fRadius(f_radius),
       m_cShape(c_shape),

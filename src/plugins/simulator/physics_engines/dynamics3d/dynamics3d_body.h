@@ -36,7 +36,7 @@ namespace argos {
                       btCollisionShape* pc_collision_shape = NULL,
                       const btTransform& c_positional_offset = btTransform::getIdentity(),
                       const btTransform& c_geometric_offset = btTransform::getIdentity(),
-                      Real f_mass = 0.0f);
+                      btScalar f_mass = 0.0f);
 
       ~CDynamics3DBody();
 
@@ -53,7 +53,6 @@ namespace argos {
       const CDynamics3DModel& GetParentModel() const {
          return *m_pcParentModel;
       }
-
    
       bool HasParentModel() const {
          return (m_pcParentModel != NULL);
@@ -68,6 +67,8 @@ namespace argos {
       const btTransform& GetGeometricOffset() const;
 
       const btTransform& GetMotionStateTransform() const;
+
+      btScalar GetMass() const; 
       
       void SetMotionStateTransform(const btTransform& c_transform);
 
@@ -100,7 +101,7 @@ namespace argos {
       const btTransform m_cPositionalOffset;
       
       btVector3 m_cInertia;
-      Real m_fMass;
+      btScalar m_fMass;
 
       friend class CDynamics3DJoint;
    };

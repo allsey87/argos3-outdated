@@ -38,12 +38,12 @@ namespace argos {
 
       class CSphereShapeManager {
          public:
-            btSphereShape* RequestSphereShape(Real f_radius);
+            btSphereShape* RequestSphereShape(btScalar f_radius);
             void ReleaseSphereShape(const btSphereShape* pc_release);
          private:
             struct CResource {
-               CResource(Real f_radius, btSphereShape* c_shape);
-               Real m_fRadius;
+               CResource(btScalar f_radius, btSphereShape* c_shape);
+               btScalar m_fRadius;
                btSphereShape* m_cShape;
                UInt32 m_unInUseCount;
             };

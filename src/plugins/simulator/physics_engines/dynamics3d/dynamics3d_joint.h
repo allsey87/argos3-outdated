@@ -42,15 +42,15 @@ namespace argos {
       struct SJointActuators {
          struct SActuator {
             SActuator(bool b_enabled = false,
-                      Real f_force = 0.0f,
-                      Real f_target_velocity = 0.0f) :
+                      btScalar f_force = 0.0f,
+                      btScalar f_target_velocity = 0.0f) :
                m_bEnabled(b_enabled),
                m_fForce(f_force),
                m_fTargetVelocity(f_target_velocity) {}
 
             bool m_bEnabled;
-            Real m_fForce;
-            Real m_fTargetVelocity;
+            btScalar m_fForce;
+            btScalar m_fTargetVelocity;
          };
          
          SJointActuators(const SActuator& s_x = SActuator(),
@@ -96,10 +96,10 @@ namespace argos {
 
       void SetActuatorParameters(EAxis e_axis,
                                  bool b_enable,
-                                 Real f_max_force);
+                                 btScalar f_max_force);
 
       void SetActuatorTargetVelocity(EAxis e_axis,
-                                     Real f_target_velocity);
+                                     btScalar f_target_velocity);
       
       void AddJointToWorld(btDynamicsWorld* pc_dynamics_world);
 

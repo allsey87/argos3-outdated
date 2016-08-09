@@ -55,7 +55,7 @@ namespace argos {
       m_pcRNG = CRandom::CreateRNG("argos");      
       /* Parse the XML */
       GetNodeAttributeOrDefault(t_tree, "iterations", m_unIterations, m_unIterations);
-      m_fDeltaT = GetPhysicsClockTick() / (Real)m_unIterations;
+      m_fDeltaT = GetPhysicsClockTick() / (btScalar)m_unIterations;
       /* Select the default broadphase, collision configuration, dispatcher and solver */
       m_pcBroadphaseInterface = new btDbvtBroadphase;
       m_pcCollisionConfiguration = new btDefaultCollisionConfiguration;
@@ -244,7 +244,7 @@ namespace argos {
    /****************************************/
    /****************************************/
    
-   CEmbodiedEntity* CDynamics3DEngine::CheckIntersectionWithRay(Real& f_t_on_ray,
+   CEmbodiedEntity* CDynamics3DEngine::CheckIntersectionWithRay(btScalar& f_t_on_ray,
                                                                 const CRay3& c_ray) const {
       btVector3 cRayStart(ARGoSToBullet(c_ray.GetStart()));
       btVector3 cRayEnd(ARGoSToBullet(c_ray.GetEnd()));
@@ -418,7 +418,7 @@ namespace argos {
          for(size_t i = 0; i < m_vecSegments.size(); ++i) {
             const CVector2& cP0 = m_vecSegments[i].Segment.GetStart();
             const CVector2& cP1 = m_vecSegments[i].Segment.GetEnd();
-            Real fCriterion =
+            btScalar fCriterion =
                (c_point.GetY() - cP0.GetY()) * (cP1.GetX() - cP0.GetX()) -
                (c_point.GetX() - cP0.GetX()) * (cP1.GetY() - cP0.GetY());
             if(fCriterion > 0.0f) {
@@ -447,8 +447,8 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   bool CDynamics3DEngine::CalculateTransfer(Real f_x,
-                                             Real f_y,
+   bool CDynamics3DEngine::CalculateTransfer(btScalar f_x,
+                                             btScalar f_y,
                                              std::string& str_engine_id) {
       /*
        * @todo: this method makes the assumption that only one gate is trespassed at any time.
@@ -459,7 +459,7 @@ namespace argos {
          if(m_vecSegments[i].Type == SBoundarySegment::SEGMENT_TYPE_GATE) {
             const CVector2& cP0 = m_vecSegments[i].Segment.GetStart();
             const CVector2& cP1 = m_vecSegments[i].Segment.GetEnd();
-            Real fCriterion =
+            btScalar fCriterion =
                (f_y - cP0.GetY()) * (cP1.GetX() - cP0.GetX()) -
                (f_x - cP0.GetX()) * (cP1.GetY() - cP0.GetY());
             if(fCriterion < 0.0f) {
