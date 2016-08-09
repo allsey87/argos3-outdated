@@ -21,7 +21,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   static const Real LED_RADIUS     = 0.005f;
+   static const Real LED_RADIUS     = 0.0025f;
    const GLfloat BODY_COLOR[]       = { 0.4f, 0.4f, 0.4f, 1.0f };
    const GLfloat SPECULAR[]         = { 0.0f, 0.0f, 0.0f, 1.0f };
    const GLfloat SHININESS[]        = { 0.0f                   };
@@ -128,8 +128,8 @@ namespace argos {
           ++itBody) {
          /* Configure the body material */
          glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, BODY_COLOR);
-         glPolygonMode(GL_FRONT, GL_LINE);
-         glPolygonMode(GL_BACK, GL_LINE);
+         //glPolygonMode(GL_FRONT, GL_LINE);
+         //glPolygonMode(GL_BACK, GL_LINE);
 
          /* Get the position of the body */
          const CVector3& cPosition = (*itBody)->GetPositionalEntity().GetPosition();
@@ -160,8 +160,8 @@ namespace argos {
             glCallList(m_unSphereList);
             break;
          }
-         glPolygonMode(GL_FRONT, GL_FILL);
-         glPolygonMode(GL_BACK, GL_FILL);
+         //glPolygonMode(GL_FRONT, GL_FILL);
+         //glPolygonMode(GL_BACK, GL_FILL);
          glPopMatrix();
       }
    }
@@ -194,13 +194,14 @@ namespace argos {
          }
       }
       
+      /*
       if(c_entity.HasComponent("electromagnets")) {
          CElectromagnetEquippedEntity& cElectromagnetEquippedEntity = c_entity.GetComponent<CElectromagnetEquippedEntity>("electromagnets");
          for(UInt32 i = 0; i < cElectromagnetEquippedEntity.GetAllElectromagneticBodies().size(); ++i) {
 
             const CBodyEntity& cBody = cElectromagnetEquippedEntity.GetElectromagneticBody(i);          
             const CVector3& cBodyPosition = cBody.GetPositionalEntity().GetPosition();
-            /* Get the orientation of the body */
+            // Get the orientation of the body
             const CQuaternion& cBodyOrientation = cBody.GetPositionalEntity().GetOrientation();
             CRadians cBodyZAngle, cBodyYAngle, cBodyXAngle;                 
             cBodyOrientation.ToEulerAngles(cBodyZAngle, cBodyYAngle, cBodyXAngle);       
@@ -208,8 +209,6 @@ namespace argos {
             CQuaternion cFieldOrientation(CVector3::Z, cBodyField);              
             CRadians cFieldZAngle, cFieldYAngle, cFieldXAngle;                             
             cFieldOrientation.ToEulerAngles(cFieldZAngle, cFieldYAngle, cFieldXAngle);
-
-            //std::cout << "drawing magnet for " << cElectromagnetEquippedEntity.GetRootEntity().GetId() << ": " << cBodyField << std::endl;
 
             glPushMatrix();
             glTranslatef(cBodyPosition.GetX(), cBodyPosition.GetY(),cBodyPosition.GetZ());    
@@ -230,6 +229,7 @@ namespace argos {
             glPopMatrix();                              
          }
       }
+      */
       
       /* Camera Testing Begin */
       if(c_entity.HasComponent("controller")) {
