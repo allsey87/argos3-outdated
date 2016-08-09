@@ -17,8 +17,7 @@ namespace argos {
                                     btCollisionShape* pc_collision_shape,
                                     const btTransform& c_positional_offset,
                                     const btTransform& c_geometric_offset,
-                                    Real f_mass,
-                                    const std::map<std::string, std::string>& map_attributes) :
+                                    Real f_mass) :
       m_pcParentModel(pc_parent_model),
       m_strId(str_id),
       m_pcCollisionShape(pc_collision_shape),
@@ -27,8 +26,7 @@ namespace argos {
       m_cGeometricOffset(c_geometric_offset),
       m_cPositionalOffset(c_positional_offset),
       m_cInertia(btVector3(0.0f, 0.0f, 0.0f)),
-      m_fMass(f_mass),
-      m_mapAttributes(map_attributes) {      
+      m_fMass(f_mass) {      
       /* calculate the inertia */
       if(m_fMass != 0.0f && m_pcCollisionShape != NULL) {
          m_pcCollisionShape->calculateLocalInertia(m_fMass, m_cInertia);
@@ -40,12 +38,9 @@ namespace argos {
                                                                                m_pcMotionState,
                                                                                m_pcCollisionShape,
                                                                                m_cInertia));
-
-      m_pcRigidBody->setDamping(0.75f, 0.75f);
-
-      /* Clone the provided map of attributes */
-      m_mapAttributes.insert(map_attributes.begin(), map_attributes.end());
-
+      /* set the default surface friction */
+      m_pcRigidBody->setFriction(0.5f);
+      /* For reverse look up */
       m_pcRigidBody->setUserPointer(this);
    }
 
@@ -75,42 +70,11 @@ namespace argos {
 
    /****************************************/
    /****************************************/
-
-   bool CDynamics3DBody::HasAttribute(const std::string& str_key) const {
-      std::map<std::string, std::string>::const_iterator itValue;
-      itValue = m_mapAttributes.find(str_key);
-      return itValue != m_mapAttributes.end();
-   }
-
-   /****************************************/
-   /****************************************/
-
-   const std::string& CDynamics3DBody::GetAttribute(const std::string& str_key) const {
-      std::map<std::string, std::string>::const_iterator itValue;
-      itValue = m_mapAttributes.find(str_key);
-      if(itValue != m_mapAttributes.end()) {
-         return itValue->second;
-      }
-      else {
-         THROW_ARGOSEXCEPTION("Attribute \"" << str_key <<
-                              "\" does not exist in dynamics3d body \"" << m_strId << "\"." );
-      }
-   }
-
-   /****************************************/
-   /****************************************/
    
    const btCollisionShape& CDynamics3DBody::GetCollisionShape() const {
       return *m_pcCollisionShape;
    }
 
-   /****************************************/
-   /****************************************/
-   
-   bool CDynamics3DBody::operator==(const btCollisionObject* pc_collision_object) const {
-      return (pc_collision_object == m_pcRigidBody);
-   }   
-   
    /****************************************/
    /****************************************/
       
@@ -144,6 +108,11 @@ namespace argos {
    
    void CDynamics3DBody::SetMotionStateTransform(const btTransform & cTransform) {
       m_pcMotionState->m_graphicsWorldTrans = cTransform;
+   }
+
+
+   void CDynamics3DBody::SetDamping(btScalar f_linear_damping, btScalar f_angular_damping) {
+      m_pcRigidBody->setDamping(f_linear_damping, f_angular_damping);
    }
 
    /****************************************/

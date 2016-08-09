@@ -16,7 +16,6 @@ namespace argos {
 #include <map>
 
 #include <argos3/plugins/simulator/physics_engines/dynamics3d/bullet/btBulletDynamicsCommon.h>
-//#include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_model.h>
 #include <argos3/core/utility/datatypes/datatypes.h>
 
 
@@ -26,21 +25,18 @@ namespace argos {
    /****************************************/
 
    class CDynamics3DBody {
-
    public:
-
       typedef std::vector<CDynamics3DBody*> TVector;
-      typedef std::map<std::string, std::string> TAttributesMap;
+      typedef std::vector<CDynamics3DBody*>::iterator TVectorIterator;
+      typedef std::vector<CDynamics3DBody*>::const_iterator TVectorConstIterator;
 
    public:
-
       CDynamics3DBody(CDynamics3DModel* pc_parent_model,
                       const std::string& str_id,
                       btCollisionShape* pc_collision_shape = NULL,
                       const btTransform& c_positional_offset = btTransform::getIdentity(),
                       const btTransform& c_geometric_offset = btTransform::getIdentity(),
-                      Real f_mass = 0.0f,
-                      const TAttributesMap& map_attributes = TAttributesMap());
+                      Real f_mass = 0.0f);
 
       ~CDynamics3DBody();
 
@@ -54,13 +50,16 @@ namespace argos {
          return *m_pcParentModel;
       }
 
-      const std::string& GetAttribute(const std::string& str_key) const;
+      const CDynamics3DModel& GetParentModel() const {
+         return *m_pcParentModel;
+      }
 
-      bool HasAttribute(const std::string& str_key) const;
+   
+      bool HasParentModel() const {
+         return (m_pcParentModel != NULL);
+      }
 
       const btCollisionShape& GetCollisionShape() const;
-
-      bool operator==(const btCollisionObject* pc_collision_object) const;
 
       const btTransform& GetRigidBodyTransform() const;    
 
@@ -71,6 +70,8 @@ namespace argos {
       const btTransform& GetMotionStateTransform() const;
       
       void SetMotionStateTransform(const btTransform& c_transform);
+
+      void SetDamping(btScalar f_linear_damping, btScalar f_angular_damping);
 
       void SynchronizeMotionState();
 
@@ -87,7 +88,7 @@ namespace argos {
       void AddBodyToWorld(btDynamicsWorld * pc_dynamics_world);
       void RemoveBodyFromWorld(btDynamicsWorld * pc_dynamics_world);
 
-   private:
+   public:
       CDynamics3DModel* m_pcParentModel;
       std::string m_strId;
 
@@ -100,8 +101,6 @@ namespace argos {
       
       btVector3 m_cInertia;
       Real m_fMass;
-
-      std::map<std::string, std::string> m_mapAttributes;
 
       friend class CDynamics3DJoint;
    };

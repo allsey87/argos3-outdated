@@ -67,7 +67,7 @@ namespace argos {
 
    void CRadioEntitySpaceHashUpdater::operator()(CAbstractSpaceHash<CRadioEntity>& c_space_hash,
                                                  CRadioEntity& c_element) {
-      /* Calculate the position of the 2D barcode in the space hash */
+      /* Calculate the position of the radio in the space hash */
       c_space_hash.SpaceToHashTable(m_nI, m_nJ, m_nK, c_element.GetPosition());
       /* Update the corresponding cell */
       c_space_hash.UpdateCell(m_nI, m_nJ, m_nK, c_element);
@@ -84,13 +84,13 @@ namespace argos {
 
    bool CRadioEntityGridUpdater::operator()(CRadioEntity& c_entity) {
       try {
-         /* Calculate the position of the 2D barcode in the space hash */
+         /* Calculate the position of the radio in the space hash */
          m_cGrid.PositionToCell(m_nI, m_nJ, m_nK, c_entity.GetPosition());
          /* Update the corresponding cell */
          m_cGrid.UpdateCell(m_nI, m_nJ, m_nK, c_entity);
       }
       catch(CARGoSException& ex) {
-         THROW_ARGOSEXCEPTION_NESTED("While updating the Radio grid for 2D Barcode \"" << c_entity.GetContext() << c_entity.GetId() << "\"", ex);
+         THROW_ARGOSEXCEPTION_NESTED("While updating the grid for radio \"" << c_entity.GetContext() << c_entity.GetId() << "\"", ex);
       }
       /* Continue with the other entities */
       return true;

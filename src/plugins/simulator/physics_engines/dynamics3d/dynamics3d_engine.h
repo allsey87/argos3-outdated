@@ -79,6 +79,8 @@ namespace argos {
       void AddPhysicsPlugin(CDynamics3DPlugin& c_plugin);
       void RemovePhysicsPlugin(const std::string& str_id);
 
+      void UpdatePhysicsPlugins(btScalar f_time_step);
+
       std::vector<CDynamics3DModel*>& GetModels() {
          return m_vecPhysicsModels;
       }

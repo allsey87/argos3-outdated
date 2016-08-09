@@ -42,6 +42,9 @@ namespace argos {
                 unElectromagnetIdx < cElectromagnets.GetAllElectromagneticBodies().size();
                 ++unElectromagnetIdx) {
                if(cElectromagnets.GetElectromagneticBody(unElectromagnetIdx).GetId() == c_model.GetBodies()[unBodyIdx]->GetId()) {
+                  /* hack set damping on magnets */
+                  c_model.GetBodies()[unBodyIdx]->SetDamping(0.0, 0.999999);
+                  /* add magnet to list of magnetic bodies */
                   m_tMagneticBodies.push_back(
                      SMagneticBody(&c_model,
                                    c_model.GetBodies()[unBodyIdx],
@@ -80,10 +83,14 @@ namespace argos {
    /****************************************/
    
    void CDynamics3DMagnetismPlugin::Update() {
-      SMagneticBody MainBody;
-      SMagneticBody SubBody;
-      CVector3 cMainBodyField;
-      CVector3 cSubBodyField;
+      
+      // add drag force with respect to angular velocity
+      for(SMagneticBody::TListIterator itBody = m_tMagneticBodies.begin();
+          itBody != m_tMagneticBodies.end();
+          ++itBody) {
+         //btVector3 cAngularVelocity = itBody->Body->m_pcRigidBody->getAngularVelocity();
+         //itBody->Body->ApplyTorque(-0.1 * cAngularVelocity);
+      }
       
       for(SMagneticBody::TListIterator itMainBody = m_tMagneticBodies.begin();
           itMainBody != m_tMagneticBodies.end() - 1;
@@ -93,9 +100,9 @@ namespace argos {
              ++itSubBody) {
             
             //perform Barnes-hut algorithm            
-            const btVector3 &cBodyPositionalCoordinatesSub = itSubBody->Body->GetRigidBodyTransform().getOrigin();            
-            const btVector3 &cBodyPositionalCoordinatesMaster = itMainBody->Body->GetRigidBodyTransform().getOrigin();            
-           
+            const btVector3& cBodyPositionalCoordinatesSub = itSubBody->Body->GetRigidBodyTransform().getOrigin();            
+            const btVector3& cBodyPositionalCoordinatesMaster = itMainBody->Body->GetRigidBodyTransform().getOrigin();            
+                      
             const btVector3 cSeparationRangeMaster = (cBodyPositionalCoordinatesMaster) - (cBodyPositionalCoordinatesSub);
             const btScalar fSeparationModulusMaster = cBodyPositionalCoordinatesMaster.distance(cBodyPositionalCoordinatesSub);
 
@@ -104,32 +111,33 @@ namespace argos {
                continue;
             }
 
-            const btVector3 cNormalizedSeparationRangeMaster=(cSeparationRangeMaster)/(fSeparationModulusMaster);
+            const btVector3 cNormalizedSeparationRangeMaster = (cSeparationRangeMaster) / (fSeparationModulusMaster);
 
             const btVector3 cSeparationRangeSub = cBodyPositionalCoordinatesSub - cBodyPositionalCoordinatesMaster;
             const btScalar fSeparationModulusSub = cBodyPositionalCoordinatesSub.distance(cBodyPositionalCoordinatesMaster);
 
             const btVector3 cNormalizedSeparationRangeSub = (cSeparationRangeSub)/(fSeparationModulusSub);
 
-            btVector3 cFieldMain = ARGoSToBullet(itMainBody->Electromagnet->GetField());
-            btVector3 cFieldSub = ARGoSToBullet(itSubBody->Electromagnet->GetField());
+            btTransform cMainBodyRotation = itMainBody->Body->GetRigidBodyTransform();
+            cMainBodyRotation.getOrigin() = btVector3(0.0f,0.0f,0.0f);
+            
+            btTransform cSubBodyRotation = itSubBody->Body->GetRigidBodyTransform();
+            cSubBodyRotation.getOrigin() = btVector3(0.0f,0.0f,0.0f);
 
-            cFieldMain = cFieldMain.rotate(itMainBody->Body->GetRigidBodyTransform().getRotation().getAxis(),
-                                           itMainBody->Body->GetRigidBodyTransform().getRotation().getAngle());
-            cFieldSub = cFieldSub.rotate(itSubBody->Body->GetRigidBodyTransform().getRotation().getAxis(),
-                                         itSubBody->Body->GetRigidBodyTransform().getRotation().getAngle());
+            btVector3 cFieldMainRotated = cMainBodyRotation * ARGoSToBullet(itMainBody->Electromagnet->GetField());
+            btVector3 cFieldSubRotated = cSubBodyRotation * ARGoSToBullet(itSubBody->Electromagnet->GetField());
 
-            const btVector3 cCrossProduct1 = cFieldMain.cross(cFieldSub);
-            const btVector3 cCrossProduct2 = cFieldMain.cross(cNormalizedSeparationRangeMaster);
-            const btVector3 cCrossProduct3 = cFieldSub.cross(cFieldMain);
-            const btVector3 cCrossProduct4 = cFieldSub.cross(cNormalizedSeparationRangeSub);
+            const btVector3 cCrossProduct1 = cFieldMainRotated.cross(cFieldSubRotated);
+            const btVector3 cCrossProduct2 = cFieldMainRotated.cross(cNormalizedSeparationRangeMaster);
+            const btVector3 cCrossProduct3 = cFieldSubRotated.cross(cFieldMainRotated);
+            const btVector3 cCrossProduct4 = cFieldSubRotated.cross(cNormalizedSeparationRangeSub);
 
-            const btScalar cDotProduct = cFieldMain.dot(cFieldSub);
+            const btScalar cDotProduct = cFieldMainRotated.dot(cFieldSubRotated);
 
-            const btScalar cDotProduct1 = cFieldMain.dot(cNormalizedSeparationRangeMaster);
-            const btScalar cDotProduct2 = cFieldMain.dot(cNormalizedSeparationRangeSub);
-            const btScalar cDotProduct3 = cFieldSub.dot(cNormalizedSeparationRangeMaster);
-            const btScalar cDotProduct4 = cFieldSub.dot(cNormalizedSeparationRangeSub);
+            const btScalar cDotProduct1 = cFieldMainRotated.dot(cNormalizedSeparationRangeMaster);
+            const btScalar cDotProduct2 = cFieldMainRotated.dot(cNormalizedSeparationRangeSub);
+            const btScalar cDotProduct3 = cFieldSubRotated.dot(cNormalizedSeparationRangeMaster);
+            const btScalar cDotProduct4 = cFieldSubRotated.dot(cNormalizedSeparationRangeSub);
 
             btVector3 cComponentsTorqueMain = ((3 * cCrossProduct2 * cDotProduct3) - cCrossProduct1) * m_fForceConstant / btPow(fSeparationModulusMaster, 3);      
             btVector3 cComponentsTorqueSub = ((3 * cCrossProduct4 * cDotProduct2) - cCrossProduct3) * m_fForceConstant / btPow(fSeparationModulusSub, 3);
@@ -137,21 +145,21 @@ namespace argos {
             btVector3 cComponentsForceMain = (m_fForceConstant / btPow(fSeparationModulusMaster, 4)) * (
                (-15 * cNormalizedSeparationRangeMaster * (cDotProduct1 * cDotProduct3)) +
                (3 * cNormalizedSeparationRangeMaster * cDotProduct) +
-               (3 * (cFieldMain * cDotProduct3 + cFieldSub * cDotProduct1))
+               (3 * (cFieldMainRotated * cDotProduct3 + cFieldSubRotated * cDotProduct1))
             );
 
             btVector3 cComponentsForceSub = (m_fForceConstant/ btPow(fSeparationModulusSub, 4)) * (
                (-15 * cNormalizedSeparationRangeSub * (cDotProduct4 * cDotProduct2)) +
                (3 * cNormalizedSeparationRangeSub * cDotProduct) +
-               (3 * (cFieldSub * cDotProduct2 + cFieldMain * cDotProduct4))
+               (3 * (cFieldSubRotated * cDotProduct2 + cFieldMainRotated * cDotProduct4))
             );
 /*
-            std::cout << "Force: " << cComponentsForceMain << std::endl;
-            std::cout << "Torque: " << cComponentsTorqueMain << std::endl;
+            std::cerr << "Pos Main: " << cBodyPositionalCoordinatesMaster << std::endl;
+            std::cerr << "Pos Sub: " << cBodyPositionalCoordinatesSub << std::endl;
 
-            std::cerr << "Force: " << cComponentsForceSub << std::endl;
+            std::cerr << "Torque: " << cComponentsTorqueMain << std::endl;
             std::cerr << "Torque: " << cComponentsTorqueSub << std::endl;
-  */          
+*/
             itMainBody->Body->ApplyForce(btVector3(cComponentsForceMain.getX(), 
                                                    cComponentsForceMain.getY(), 
                                                    cComponentsForceMain.getZ()));

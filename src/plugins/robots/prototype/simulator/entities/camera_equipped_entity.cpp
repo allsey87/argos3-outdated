@@ -53,37 +53,6 @@ namespace argos {
             m_tCameras.push_back(pcCamera);
 
             AddComponent(*pcCamera);
-
-            // // DEBUG - to remove!
-            // fprintf(stderr, 
-            //         "%s setup complete!\n", 
-            //         (m_tCameras.back()->GetContext() + m_tCameras.back()->GetId()).c_str());
-            // fprintf(stderr, 
-            //         "\tposition = [%.3f, %.3f, %.3f]\n",
-            //         m_vecPositionOffsets.back().GetX(),
-            //         m_vecPositionOffsets.back().GetY(),
-            //         m_vecPositionOffsets.back().GetZ());
-            // CRadians cX,cY,cZ; m_vecOrientationOffsets.back().ToEulerAngles(cZ, cY, cX);
-            // fprintf(stderr,
-            //         "\torientation = [%.3f, %.3f, %.3f]\n", 
-            //         ToDegrees(cZ).GetValue(),
-            //         ToDegrees(cY).GetValue(),
-            //         ToDegrees(cX).GetValue());
-            // fprintf(stderr, 
-            //         "\tfield of view = %.3f\n",
-            //         ToDegrees(m_tCameras.back()->GetFieldOfView()).GetValue());
-            // fprintf(stderr, 
-            //         "\trange = %.3f\n", 
-            //         m_tCameras.back()->GetRange());
-            // fprintf(stderr,
-            //         "\tresolution = %ux%u\n",
-            //         m_tCameras.back()->GetHorizontalResolution(),
-            //         m_tCameras.back()->GetVerticalResolution());
-            // fprintf(stderr, 
-            //         "\tattached to %s\n",
-            //         (m_vecPositionalEntities.back()->GetContext() + m_vecPositionalEntities.back()->GetId()).c_str());
-            // // DEBUG
-
          }
       }
       catch(CARGoSException& ex) {

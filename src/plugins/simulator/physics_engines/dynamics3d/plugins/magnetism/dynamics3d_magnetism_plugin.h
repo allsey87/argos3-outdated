@@ -7,10 +7,6 @@
 #ifndef DYNAMICS3D_MAGNETISM_PLUGIN_H
 #define DYNAMICS3D_MAGNETISM_PLUGIN_H
 
-namespace argos {
-   
-}
-
 #include <vector>
 
 #include <argos3/plugins/simulator/physics_engines/dynamics3d/dynamics3d_plugin.h>
@@ -23,10 +19,7 @@ namespace argos {
    /****************************************/
    
    class CDynamics3DMagnetismPlugin : public CDynamics3DPlugin {
-      
-      
    public:
-      
       CDynamics3DMagnetismPlugin() {}
       
       ~CDynamics3DMagnetismPlugin() {}

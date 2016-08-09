@@ -175,7 +175,7 @@ namespace argos {
                    "Manages and allows the CRadioEntities to communication.",
                    "This medium is required to manage and to allow the radios to communicate\n"
                    "REQUIRED XML CONFIGURATION\n\n"
-                   "<radio id=\"barcodes\" />\n\n"
+                   "<radio id=\"nfc\" />\n\n"
                    "OPTIONAL XML CONFIGURATION\n\n"
                    "None for the time being\n",
                    "Under development"

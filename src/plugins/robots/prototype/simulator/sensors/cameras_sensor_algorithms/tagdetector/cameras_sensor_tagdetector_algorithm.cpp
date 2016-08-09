@@ -36,9 +36,8 @@ namespace argos {
 
       m_cCameraPositionOffset    = m_pcCameraEquippedEntity->GetOffsetPosition(m_unCameraIndex);
       m_cCameraOrientationOffset = m_pcCameraEquippedEntity->GetOffsetOrientation(m_unCameraIndex);
-      m_cCameraRoll              = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetRoll();
       m_unHorizontalResolution   = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetHorizontalResolution();
-      m_unVerticalResolution     = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetVerticalResolution();;
+      m_unVerticalResolution     = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetVerticalResolution();
    }
 
    /****************************************/
@@ -94,9 +93,47 @@ namespace argos {
       if((c_tag.GetPosition() - m_sViewport.Position).Length() < m_sViewport.HalfExtents[0]) {
          m_cOcclusionCheckRay.SetEnd(c_tag.GetPosition());         
          if(!GetClosestEmbodiedEntityIntersectedByRay(m_sIntersectionItem, m_cOcclusionCheckRay)) {
-            std::cout << "detected tag: " << c_tag.GetId() << std::endl;
             /* Take position of current tag */
-            CVector3 cTagPositionOnSensor = c_tag.GetPosition();
+
+
+            CQuaternion cXFlip; cXFlip.FromEulerAngles(CRadians::ZERO, CRadians::ZERO, CRadians::PI);          
+            
+            /* south [90.0, 0.0, -135.0]
+               top [90.0, -0.0, 135.0] */
+            //CQuaternion cTagOrientationCam = m_cCameraOrientationOffset.Inverse();
+            //cTagOrientationCam *= c_tag.GetOrientation();
+
+            /* south [90.0, 0.0, -135.0]
+               top [90.0, -0.0, 135.0] */
+            // No difference from above -> should be this way, attached body (for camera) orientation is currently 0,0,0
+            CQuaternion cTagOrientationCam = (m_cCameraOrientationOffset * cXFlip).Inverse();
+            cTagOrientationCam *= m_cAttachedBodyOrientation.Inverse();
+            cTagOrientationCam *= c_tag.GetOrientation();
+
+
+            /*  */
+            // No difference from above -> should be this way, attached body (for camera) orientation is currently 0,0,0
+            //CQuaternion cTagOrientationCam = c_tag.GetOrientation();
+
+            //CQuaternion cTest; cTest.FromEulerAngles(CRadians::ZERO, CRadians::ZERO, CRadians::PI);          
+            //cTagOrientationCam *= cTest;
+
+            //cTagOrientationCam *= (m_cAttachedBodyOrientation * m_cCameraOrientationOffset).Inverse();
+
+            std::cout << cTagOrientationCam.Length() << std::endl;
+            //cTagOrientationCam *= m_cCameraOrientationOffset.Inverse();
+
+            /*
+            CRadians pcAttachedBodyEulers[3];
+            m_cAttachedBodyOrientation.ToEulerAngles(pcAttachedBodyEulers[0], pcAttachedBodyEulers[1], pcAttachedBodyEulers[2]);
+            std::cout << "camera " << std::fixed << std::setprecision(1) << " [" 
+               << ToDegrees(pcAttachedBodyEulers[0]).GetValue() << ", "
+               << ToDegrees(pcAttachedBodyEulers[1]).GetValue() << ", "
+               << ToDegrees(pcAttachedBodyEulers[2]).GetValue() << "]"
+               << std::endl;
+            */
+            CVector3 cTagPositionCam;
+
 
             /*
             CRadians cTagEulers[3];
@@ -104,12 +141,15 @@ namespace argos {
             std::cout << "orientation: " << c_tag.GetId() << std::endl;
             */
 
+
+
+
             /* Transform the position of tag into the local coordinate system of the camera */
+            CVector3 cTagPositionOnSensor = c_tag.GetPosition();
             cTagPositionOnSensor -= (m_cAttachedBodyPosition);
             cTagPositionOnSensor.Rotate(m_cAttachedBodyOrientation.Inverse());
             cTagPositionOnSensor -= m_cCameraPositionOffset;
             cTagPositionOnSensor.Rotate(m_cCameraOrientationOffset.Inverse());
-            cTagPositionOnSensor.Rotate(CQuaternion(m_cCameraRoll, CVector3::Z));
             /* Calculate the relevant index of the pixel presenting the centroid of the detected tag */
             UInt32 unTagHorizontalIndex = m_unHorizontalResolution * 
                (cTagPositionOnSensor.GetX() + m_sViewport.HalfExtents[0]) / (2.0f * m_sViewport.HalfExtents[0]);
@@ -119,11 +159,12 @@ namespace argos {
                SReading(c_tag.GetPayload(),
                         unTagHorizontalIndex,
                         unTagVerticalIndex,
-                        c_tag.IsLocalizable() ? CVector3() : CVector3(),
-                        c_tag.IsLocalizable() ? CQuaternion() : CQuaternion()));
+                        c_tag.IsLocalizable() ? cTagPositionOnSensor : CVector3(),
+                        c_tag.IsLocalizable() ? cTagOrientationCam : CQuaternion()));
             /* Add this tag into our readings list */
             if(m_bShowRays) {
                m_vecCheckedRays.push_back(std::pair<bool, CRay3>(false, CRay3(m_sViewport.CameraLocation, c_tag.GetPosition())));
+               m_vecCheckedRays.push_back(std::pair<bool, CRay3>(true, CRay3(m_sViewport.CameraLocation, m_sViewport.Position)));
             }
          }
       }

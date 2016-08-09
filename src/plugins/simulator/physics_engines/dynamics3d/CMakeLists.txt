@@ -6,11 +6,6 @@
 # Headers
 #
 # Headers for the bullet physics engine
-if(ARGOS_USE_DOUBLE)
-#  add_definitions(-DBT_USE_DOUBLE_PRECISION)
-#  set( BULLET_DOUBLE_DEF "-DBT_USE_DOUBLE_PRECISION")
-endif(ARGOS_USE_DOUBLE)
-
 
 include_directories(
    ${CMAKE_CURRENT_SOURCE_DIR}/bullet
@@ -470,6 +465,11 @@ add_library(argos3plugin_${ARGOS_BUILD_FOR}_dynamics3d SHARED
   ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D}
   ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_SPHERE}
   ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_SPHERE})
+
+if(ARGOS_USE_DOUBLE)
+   target_compile_definitions(argos3plugin_${ARGOS_BUILD_FOR}_dynamics3d PUBLIC BT_USE_DOUBLE_PRECISION)
+endif(ARGOS_USE_DOUBLE)
+
 target_link_libraries(argos3plugin_${ARGOS_BUILD_FOR}_dynamics3d)
 install(
   FILES

@@ -128,8 +128,8 @@ namespace argos {
           ++itBody) {
          /* Configure the body material */
          glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, BODY_COLOR);
-         //glPolygonMode(GL_FRONT, GL_LINE);
-         //glPolygonMode(GL_BACK, GL_LINE);
+         glPolygonMode(GL_FRONT, GL_LINE);
+         glPolygonMode(GL_BACK, GL_LINE);
 
          /* Get the position of the body */
          const CVector3& cPosition = (*itBody)->GetPositionalEntity().GetPosition();
@@ -160,8 +160,8 @@ namespace argos {
             glCallList(m_unSphereList);
             break;
          }
-         //glPolygonMode(GL_FRONT, GL_FILL);
-         //glPolygonMode(GL_BACK, GL_FILL);
+         glPolygonMode(GL_FRONT, GL_FILL);
+         glPolygonMode(GL_BACK, GL_FILL);
          glPopMatrix();
       }
    }
@@ -209,6 +209,8 @@ namespace argos {
             CRadians cFieldZAngle, cFieldYAngle, cFieldXAngle;                             
             cFieldOrientation.ToEulerAngles(cFieldZAngle, cFieldYAngle, cFieldXAngle);
 
+            //std::cout << "drawing magnet for " << cElectromagnetEquippedEntity.GetRootEntity().GetId() << ": " << cBodyField << std::endl;
+
             glPushMatrix();
             glTranslatef(cBodyPosition.GetX(), cBodyPosition.GetY(),cBodyPosition.GetZ());    
             glRotatef(ToDegrees(cBodyXAngle).GetValue(), 1.0f, 0.0f, 0.0f);
@@ -218,9 +220,9 @@ namespace argos {
             glRotatef(ToDegrees(cFieldXAngle).GetValue(), 1.0f, 0.0f, 0.0f);
             glRotatef(ToDegrees(cFieldYAngle).GetValue(), 0.0f, 1.0f, 0.0f); 
             glRotatef(ToDegrees(cFieldZAngle).GetValue(), 0.0f, 0.0f, 1.0f);
-            glScalef((Abs(cBodyField.GetX()) + 1.0f) * 0.5f,
-                     (Abs(cBodyField.GetY()) + 1.0f) * 0.5f,
-                     (Abs(cBodyField.GetZ()) + 1.0f) * 0.5f);
+            glScalef(Abs(cBodyField.GetX() * 0.01f) + 1.0f,
+                     Abs(cBodyField.GetY() * 0.01f) + 1.0f,
+                     Abs(cBodyField.GetZ() * 0.01f) + 1.0f);
             glScalef(cBody.GetGeometry().GetExtents().GetX(),
                      cBody.GetGeometry().GetExtents().GetY(),
                      cBody.GetGeometry().GetExtents().GetZ());                             

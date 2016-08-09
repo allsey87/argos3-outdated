@@ -7,6 +7,7 @@
 
 #include "bebot_controller.h"
 #include <argos3/core/utility/logging/argos_log.h>
+#include <iomanip>
 
 /****************************************/
 /****************************************/
@@ -28,18 +29,21 @@ void CBeBotController::Init(TConfigurationNode& t_tree) {
    m_pcRadiosSensor = GetSensor<CCI_PrototypeRadiosSensor>("radios");
    m_pcJointsSensor = GetSensor<CCI_PrototypeJointsSensor>("joints");   
    m_pcProximitySensor = GetSensor<CCI_PrototypeProximitySensor>("prototype_proximity");
+   m_pcCamerasSensor = GetSensor<CCI_CamerasSensor>("cameras");
+   /* camera sensor algorithms */   
+   m_pcLEDDetectorAlgorithm = m_pcCamerasSensor->GetAlgorithm<CCI_CamerasSensorLEDDetectorAlgorithm>("front_camera","led_detector");
+   m_pcTagDetectorAlgorithm = m_pcCamerasSensor->GetAlgorithm<CCI_CamerasSensorTagDetectorAlgorithm>("front_camera","tag_detector");
    /* actuators */
    m_pcJointsActuator = GetActuator<CCI_PrototypeJointsActuator>("joints");
    m_pcRadiosActuator = GetActuator<CCI_PrototypeRadiosActuator>("radios");
    m_pcElectromagnets = GetActuator<CCI_PrototypeElectromagnetsActuator>("electromagnets");
-
-   /* fetch joint actuators */   
+   /* joints */   
    m_pcLiftActuatorJoint = &(m_pcJointsActuator->GetJointActuator("lift-fixture:vertical-link", CCI_PrototypeJointsActuator::LINEAR_Z));
    m_pcFrontLeftWheelJoint = &(m_pcJointsActuator->GetJointActuator("wheel-front-left:lower-chassis", CCI_PrototypeJointsActuator::ANGULAR_Y));
    m_pcFrontRightWheelJoint = &(m_pcJointsActuator->GetJointActuator("wheel-front-right:lower-chassis", CCI_PrototypeJointsActuator::ANGULAR_Y));
    m_pcRearLeftWheelJoint = &(m_pcJointsActuator->GetJointActuator("wheel-rear-left:lower-chassis", CCI_PrototypeJointsActuator::ANGULAR_Y));
    m_pcRearRightWheelJoint = &(m_pcJointsActuator->GetJointActuator("wheel-rear-right:lower-chassis", CCI_PrototypeJointsActuator::ANGULAR_Y));
-
+   /* issue reset */
    Reset();
 }
 
@@ -49,6 +53,9 @@ void CBeBotController::Init(TConfigurationNode& t_tree) {
 void CBeBotController::Reset() {
    //m_pcLiftActuatorJoint->SetTargetVelocity(0.2);
    //SetTargetVelocity(-2,2);
+   //m_pcFrontLeftWheelJoint->SetTargetVelocity(5);
+   //m_pcFrontRightWheelJoint->SetTargetVelocity(5);
+
 }
 
 /****************************************/
@@ -61,7 +68,31 @@ void CBeBotController::Destroy() {
 /****************************************/
 
 void CBeBotController::ControlStep() {
- 
+   /*
+   std::cout << "detected: " 
+             << m_pcLEDDetectorAlgorithm->GetReadings().size()
+             << " leds, "
+             << m_pcTagDetectorAlgorithm->GetReadings().size()
+             << " tags"
+             << std::endl;
+   */
+   for(auto& t_reading : m_pcTagDetectorAlgorithm->GetReadings()) {
+      CRadians pcEulers[3];
+      t_reading.Orientation.ToEulerAngles(pcEulers[0], pcEulers[1], pcEulers[2]);
+      std::cout << std::fixed << std::setprecision(1) << t_reading.Payload << " [" 
+         << ToDegrees(pcEulers[0]).GetValue() << ", "
+         << ToDegrees(pcEulers[1]).GetValue() << ", "
+         << ToDegrees(pcEulers[2]).GetValue() << "]"
+         << std::endl;
+/*
+      std::cout << std::fixed << std::setprecision(3) << t_reading.Payload << " [" 
+         << t_reading.Position.GetX() << ", "
+         << t_reading.Position.GetY() << ", "
+         << t_reading.Position.GetZ() << "]"
+         << std::endl;
+*/
+   }
+
    // simulate the lift actuator
    // read sensors
    // update data structures

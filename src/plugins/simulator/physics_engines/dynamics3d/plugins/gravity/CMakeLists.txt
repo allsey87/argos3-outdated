@@ -1,22 +1,22 @@
 #
-# Dynamics3d Magnetism plugin
+# Dynamics3D Gravity plugin
 #
 
 #
 # Plugin headers
 #
-set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_PLUGINS_MAGNETISM
-    dynamics3d_magnetism_plugin.h)
+set(ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_PLUGINS_GRAVITY
+    dynamics3d_gravity_plugin.h)
 
 #
 # Plugin sources
 #
-set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_PLUGINS_MAGNETISM
-    ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_PLUGINS_MAGNETISM}
-    dynamics3d_magnetism_plugin.cpp)
+set(ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_PLUGINS_GRAVITY
+    ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_PLUGINS_GRAVITY}
+    dynamics3d_gravity_plugin.cpp)
 
 #
-# Create the magnetism plugin
+# Create the gravity plugin
 #
 include_directories(
    ${CMAKE_SOURCE_DIR}/plugins/simulator/physics_engines/dynamics3d/bullet
@@ -32,14 +32,14 @@ include_directories(
    ${CMAKE_SOURCE_DIR}/plugins/simulator/physics_engines/dynamics3d/bullet/BulletDynamics/MLCPSolvers
    ${CMAKE_SOURCE_DIR}/plugins/simulator/physics_engines/dynamics3d/bullet/BulletDynamics/Vehicle
    ${CMAKE_SOURCE_DIR}/plugins/simulator/physics_engines/dynamics3d/bullet/LinearMath)
-add_library(argos3plugin_${ARGOS_BUILD_FOR}_dyn3dplugin_magnetism SHARED ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_PLUGINS_MAGNETISM})
-target_link_libraries(argos3plugin_${ARGOS_BUILD_FOR}_dyn3dplugin_magnetism
+add_library(argos3plugin_${ARGOS_BUILD_FOR}_dyn3dplugin_gravity SHARED ${ARGOS3_SOURCES_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_PLUGINS_GRAVITY})
+target_link_libraries(argos3plugin_${ARGOS_BUILD_FOR}_dyn3dplugin_gravity
                       argos3plugin_${ARGOS_BUILD_FOR}_dynamics3d
                       argos3plugin_${ARGOS_BUILD_FOR}_prototype)
 
-install(FILES ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_PLUGINS_MAGNETISM} DESTINATION include/argos3/plugins/physics_engines/dynamics3d/plugins/magnetism)
+install(FILES ${ARGOS3_HEADERS_PLUGINS_SIMULATOR_PHYSICS_ENGINES_DYNAMICS3D_PLUGINS_GRAVITY} DESTINATION include/argos3/plugins/physics_engines/dynamics3d/plugins/gravity)
 
-install(TARGETS argos3plugin_${ARGOS_BUILD_FOR}_dyn3dplugin_magnetism
+install(TARGETS argos3plugin_${ARGOS_BUILD_FOR}_dyn3dplugin_gravity
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib/argos3
   ARCHIVE DESTINATION lib/argos3)

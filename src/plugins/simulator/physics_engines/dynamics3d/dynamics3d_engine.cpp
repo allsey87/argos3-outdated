@@ -25,6 +25,14 @@ namespace argos {
    /****************************************/
    /****************************************/
 
+   void PluginPreTickCallback(btDynamicsWorld* pc_world, btScalar f_time_step) {
+      CDynamics3DEngine* pc_engine = static_cast<CDynamics3DEngine*>(pc_world->getWorldUserInfo());
+      pc_engine->UpdatePhysicsPlugins(f_time_step);
+   }
+
+   /****************************************/
+   /****************************************/
+
    CDynamics3DEngine::CDynamics3DEngine() :
       m_pcRNG(NULL),
       m_cRandomSeedRange(0,1000),
@@ -58,8 +66,6 @@ namespace argos {
                                               m_pcBroadphaseInterface,
                                               m_pcSolver,
                                               m_pcCollisionConfiguration);
-      /* Set the gravity in the world */
-      m_pcWorld->setGravity(btVector3(0.0f, -9.8f, 0.0f));
       /* clear the forces in the world (shouldn't  be required as there are no bodies in the world) */
       m_pcWorld->clearForces();
       /* reset the solvers and dispatchers */
@@ -67,7 +73,7 @@ namespace argos {
       m_pcSolver->setRandSeed(m_pcRNG->Uniform(m_cRandomSeedRange));
       /* Add a static plane as the experiment floor on request */
       if(NodeExists(t_tree, "floor")) {
-         m_pcGround = new CDynamics3DBody(NULL, "floor", &m_cGroundCollisionShape);
+         m_pcGround = new CDynamics3DBody(NULL, "", &m_cGroundCollisionShape);
          m_pcGround->AddBodyToWorld(m_pcWorld);
       }
       /* load the plugins */
@@ -81,6 +87,7 @@ namespace argos {
             pcPlugin->Init(*itPlugin);
             AddPhysicsPlugin(*pcPlugin);
          }
+         m_pcWorld->setInternalTickCallback(PluginPreTickCallback, static_cast<void*>(this), true);
       }
       /* Parse the boundaries of this physics engine if they exist */
       if(NodeExists(t_tree, "boundaries")) {
@@ -213,17 +220,6 @@ namespace argos {
       }
       /* Step the simuation forwards */
       m_pcWorld->stepSimulation(GetPhysicsClockTick(), m_unIterations, m_fDeltaT);
-      /////
-      //fprintf(stderr, "m_fSimulationClockTick = %.8f, m_unIterations = %d, m_fDeltaT = %.8f\n", m_fSimulationClockTick, m_unIterations, m_fDeltaT);
-      /*
-      	btDefaultSerializer*	serializer = new btDefaultSerializer();
-	m_pcWorld->serialize(serializer);
- 
-	FILE* file = fopen("argos3dworld.bullet","wb");
-	fwrite(serializer->getBufferPointer(),serializer->getCurrentBufferSize(),1, file);
-	fclose(file);
-      */
-        ///
       /* Update the simulated space */
       for(CDynamics3DModel::TVector::iterator itModel = m_vecPhysicsModels.begin();
           itModel != m_vecPhysicsModels.end();
@@ -281,81 +277,39 @@ namespace argos {
    bool CDynamics3DEngine::IsModelCollidingWithSomething(const CDynamics3DModel& c_model) {
       /* this doesn't step the simulation, but rather reruns the collision detection */
       /* @todo: this method is very slow and memory consuming, find an alternative */
+      /* @todo: the result could be cached and only rerun when something is added to the engine */
       m_pcWorld->performDiscreteCollisionDetection();
-      /* get the vector of bodies associated with the given model */
-      const CDynamics3DBody::TVector& vecModelBodies = c_model.GetBodies();
-      // an iterator over the model
-      CDynamics3DBody::TVector::const_iterator itBody;
+      /* for each manifold from the collision dispatcher */
       for(UInt32 i = 0; i < UInt32(m_pcCollisionDispatcher->getNumManifolds()); i++) {
          btPersistentManifold* pcContactManifold = m_pcCollisionDispatcher->getManifoldByIndexInternal(i);
-         const btCollisionObject* pcBodyA = pcContactManifold->getBody0();
-         const btCollisionObject* pcBodyB = pcContactManifold->getBody1();
-         bool bBelongsToModelBodyA = false;
-         bool bBelongsToModelBodyB = false;
-         // ignore collisions with the ground
-         if(*m_pcGround == pcBodyA || *m_pcGround == pcBodyB) {
-            continue;
-         }        
-         // Check if either body in the contact manifold belongs to the model
-         for(itBody = vecModelBodies.begin();
-             itBody != vecModelBodies.end();
-             ++itBody) {  
-            if(**itBody == pcBodyA) {
-               bBelongsToModelBodyA = true;
-            }
-            if(**itBody == pcBodyB) {
-               bBelongsToModelBodyB = true;
-            }
-            //@todo optimisation: once both are true we can exit this loop
-         }
-         // if the collision pair exists within the same model, ignore it!
-         if(bBelongsToModelBodyA == true && bBelongsToModelBodyB == true) {
+         CDynamics3DBody* pcBodyA = static_cast<CDynamics3DBody*>(pcContactManifold->getBody0()->getUserPointer());
+         CDynamics3DBody* pcBodyB = static_cast<CDynamics3DBody*>(pcContactManifold->getBody1()->getUserPointer());
+         // ignore collisions of bodies that don't belong to a model (e.g. the ground)
+         if((pcBodyA->HasParentModel() == false) || (pcBodyB->HasParentModel() == false)) {
             continue;
          }
-         // if niether body in the collision pair belongs to this model, ignore it!
-         if(bBelongsToModelBodyA == false && bBelongsToModelBodyB == false) {
+         // ignore collisions between bodies that belong to the same model
+         if(pcBodyA->GetParentModel() == pcBodyB->GetParentModel()) {
             continue;
          }
-         /* At this point we know that one of the two bodies involved in the contact manifold
-            belong to this model, we now check for contact points with negative distance to 
-            indicate a collision */
-         for(UInt32 j = 0; j < UInt32(pcContactManifold->getNumContacts()); j++) {  
-            btManifoldPoint& cManifoldPoint = pcContactManifold->getContactPoint(j);
-            if (cManifoldPoint.getDistance() < 0.0f) {
-               // This manifold tells us that the model is coliding with something
-               // We can now return true
-               return true;
+         // check that the collision involves this model
+         if((pcBodyA->GetParentModel() == c_model) || (pcBodyB->GetParentModel() == c_model)) {
+            /* At this point we know that one of the two bodies involved in the contact manifold
+               belong to this model, we now check for contact points with negative distance to 
+               indicate a collision */
+            for(UInt32 j = 0; j < UInt32(pcContactManifold->getNumContacts()); j++) {  
+               btManifoldPoint& cManifoldPoint = pcContactManifold->getContactPoint(j);
+               if (cManifoldPoint.getDistance() < 0.0f) {
+                  // This manifold tells us that the model is coliding with something
+                  // We can now return true
+                  return true;
+               }
             }
          }
       }
       return false;
    }
    
-   /****************************************/
-   /****************************************/
-
-   void CDynamics3DEngine::AddPhysicsPlugin(CDynamics3DPlugin& c_plugin) {
-      m_vecPhysicsPlugins.push_back(&c_plugin);
-   }
-
-   /****************************************/
-   /****************************************/
-
-   void CDynamics3DEngine::RemovePhysicsPlugin(const std::string& str_id) {
-
-      CDynamics3DPlugin::TVector::iterator itPlugin = std::find(m_vecPhysicsPlugins.begin(),
-                                                                m_vecPhysicsPlugins.end(),
-                                                                str_id);
-      if(itPlugin != m_vecPhysicsPlugins.end()) {
-         delete *itPlugin;
-         m_vecPhysicsPlugins.erase(itPlugin);
-      }
-      else {
-         THROW_ARGOSEXCEPTION("Dynamics3D plugin id \"" << str_id <<
-                              "\" not found in dynamics 3D engine \"" << GetId() << "\"");
-      }
-   }
-
    /****************************************/
    /****************************************/
 
@@ -395,6 +349,44 @@ namespace argos {
       else {
          THROW_ARGOSEXCEPTION("Dynamics3D model id \"" << str_id <<
                               "\" not found in dynamics 3D engine \"" << GetId() << "\"");
+      }
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CDynamics3DEngine::AddPhysicsPlugin(CDynamics3DPlugin& c_plugin) {
+      m_vecPhysicsPlugins.push_back(&c_plugin);
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CDynamics3DEngine::RemovePhysicsPlugin(const std::string& str_id) {
+
+      CDynamics3DPlugin::TVector::iterator itPlugin = std::find(m_vecPhysicsPlugins.begin(),
+                                                                m_vecPhysicsPlugins.end(),
+                                                                str_id);
+      if(itPlugin != m_vecPhysicsPlugins.end()) {
+         delete *itPlugin;
+         m_vecPhysicsPlugins.erase(itPlugin);
+      }
+      else {
+         THROW_ARGOSEXCEPTION("Dynamics3D plugin id \"" << str_id <<
+                              "\" not found in dynamics 3D engine \"" << GetId() << "\"");
+      }
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CDynamics3DEngine::UpdatePhysicsPlugins(btScalar f_time_step) {
+      m_pcWorld->clearForces();
+      /* run the plugins */
+      for(CDynamics3DPlugin::TVector::iterator itPlugin = m_vecPhysicsPlugins.begin();
+          itPlugin != m_vecPhysicsPlugins.end();
+          ++itPlugin) {
+         (*itPlugin)->Update();
       }
    }
 

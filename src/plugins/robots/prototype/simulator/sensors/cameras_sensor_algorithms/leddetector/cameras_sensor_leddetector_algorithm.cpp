@@ -36,7 +36,6 @@ namespace argos {
 
       m_cCameraPositionOffset    = m_pcCameraEquippedEntity->GetOffsetPosition(m_unCameraIndex);
       m_cCameraOrientationOffset = m_pcCameraEquippedEntity->GetOffsetOrientation(m_unCameraIndex);
-      m_cCameraRoll              = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetRoll();
       m_unHorizontalResolution   = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetHorizontalResolution();
       m_unVerticalResolution     = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetVerticalResolution();;
    }
@@ -102,7 +101,6 @@ namespace argos {
                cLedPositionOnSensor.Rotate(m_cAttachedBodyOrientation.Inverse());
                cLedPositionOnSensor -= m_cCameraPositionOffset;
                cLedPositionOnSensor.Rotate(m_cCameraOrientationOffset.Inverse());
-               cLedPositionOnSensor.Rotate(CQuaternion(m_cCameraRoll, CVector3::Z));
                /* Calculate the relevant index of the pixel presenting the centroid of the detected LED blob */
                UInt32 unLedHorizontalIndex = m_unHorizontalResolution * (cLedPositionOnSensor.GetX() + m_sViewport.HalfExtents[0]) / (2.0f * m_sViewport.HalfExtents[0]);
                UInt32 unLedVerticalIndex = m_unVerticalResolution * (cLedPositionOnSensor.GetY() + m_sViewport.HalfExtents[0]) / (2.0f * m_sViewport.HalfExtents[0]);

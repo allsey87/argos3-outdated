@@ -200,9 +200,11 @@ namespace argos {
          CallEntityOperation<CQTOpenGLOperationDrawNormal, CQTOpenGLWidget, void>(*this, **itEntities);
          m_cUserFunctions.Call(**itEntities);
          glPopMatrix();
+         /*
          glPushMatrix();
          CallEntityOperation<CQTOpenGLOperationDrawSelected, CQTOpenGLWidget, void>(*this, **itEntities);
          glPopMatrix();
+         */
       }
       /* Draw the selected object, if necessary */
       if(m_sSelectionInfo.IsSelected) {

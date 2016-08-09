@@ -68,17 +68,6 @@ namespace argos {
          if(NodeExists(t_tree, "offset")) {
             m_pcOffsetPositionalEntity->Init(GetNode(t_tree, "offset"));
          }
-         if(NodeExists(t_tree, "attributes")) {
-            TConfigurationNodeIterator itAttribute("attribute");
-            for(itAttribute = itAttribute.begin(&GetNode(t_tree, "attributes"));
-                itAttribute != itAttribute.end();
-                ++itAttribute) {
-               std::string strKey, strValue;
-               GetNodeAttribute(*itAttribute, "key", strKey);
-               GetNodeAttribute(*itAttribute, "value", strValue);
-               m_mapAttributes.insert(std::pair<std::string, std::string>(strKey, strValue));
-            }
-         }
       }
       catch(CARGoSException& ex) {
          THROW_ARGOSEXCEPTION_NESTED("Error while initializing body entity", ex);

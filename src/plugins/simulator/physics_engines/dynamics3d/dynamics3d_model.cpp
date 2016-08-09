@@ -171,6 +171,10 @@ namespace argos {
       return (pc_dyn3d_model->GetId() == str_id);
    }
 
+   bool operator==(const CDynamics3DModel& pc_lhs_model, const CDynamics3DModel& pc_rhs_model) {
+      return (&pc_lhs_model == &pc_rhs_model);
+   }
+
    /****************************************/
    /****************************************/
 

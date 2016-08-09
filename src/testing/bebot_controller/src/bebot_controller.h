@@ -13,6 +13,8 @@
 #include <argos3/plugins/robots/prototype/control_interface/ci_prototype_proximity_sensor.h>
 #include <argos3/plugins/robots/prototype/control_interface/ci_prototype_electromagnets_actuator.h>
 #include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor.h>
+#include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_leddetector_algorithm.h>
+#include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_tagdetector_algorithm.h>
 
 using namespace argos;
 
@@ -33,6 +35,10 @@ private:
    CCI_PrototypeJointsSensor* m_pcJointsSensor;
    CCI_PrototypeProximitySensor* m_pcProximitySensor;
    CCI_PrototypeRadiosSensor* m_pcRadiosSensor;
+   CCI_CamerasSensor* m_pcCamerasSensor;
+   /* camera sensor algorithms */
+   CCI_CamerasSensorLEDDetectorAlgorithm* m_pcLEDDetectorAlgorithm;
+   CCI_CamerasSensorTagDetectorAlgorithm* m_pcTagDetectorAlgorithm;
    /* actuators */
    CCI_PrototypeElectromagnetsActuator* m_pcElectromagnets;
    CCI_PrototypeJointsActuator* m_pcJointsActuator;

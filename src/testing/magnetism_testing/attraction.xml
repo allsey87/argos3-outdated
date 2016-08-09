@@ -6,10 +6,8 @@
   <!-- ************************* -->
   <framework>
     <!--experiment threads="2" length="0" ticks_per_second="100" /-->
-    <experiment threads="2" length="0" ticks_per_second="100" />
+    <experiment threads="1" length="0" ticks_per_second="500" />
   </framework>
-
-   <!--loop_functions label="dyn3d_testbench_loop_functions" /-->
 
   <!-- *************** -->
   <!-- * Controllers * -->
@@ -20,93 +18,36 @@
   <!-- * Arena configuration * -->
   <!-- *********************** -->
   <arena size="10, 10, 1" positional_index="grid" positional_grid_size="25,25,1">
-    <!-- boundary boxes -->
-    <!--box id="bn" size="0.1, 5, 0.2" movable="false" mass="10">
-      <body position="2.5,0,0"  orientation="0,0,0"/>
-    </box>
-    <box id="bs" size="0.1, 5, 0.2" movable="false" mass="10">
-      <body position="-2.5,0,0" orientation="0,0,0"/>
-    </box>
-    <box id="be" size="5, 0.1, 0.2" movable="false" mass="10">
-      <body position="0,-2.5,0" orientation="0,0,0"/>
-    </box>
-    <box id="bw" size="5, 0.1, 0.2" movable="false" mass="10">
-      <body position="0,2.5,0"  orientation="0,0,0"/>
-    </box-->
-    
  
     <prototype id="magnet_test_box_a">
-      <body position="0.1,0.0,0.0"  orientation="45,0,0"/>
+      <body position="0.01,0.0,0.0"  orientation="45,0,0"/>
        <bodies reference_body="base">
-         <body id="base" geometry="box" radius="0.05" size="0.1,0.1,0.1" mass="3.0">
+         <body id="base" geometry="box" size="0.010,0.010,0.010" mass="0.025">
             <coordinates/>
             <offset/>
-            <attributes>
-               <attribute key="magnetic" value="true"/>
-               <attribute key="magnetic_field" value="-100000,0,0"/>
-            </attributes>
          </body>
        </bodies>
       <devices>
         <electromagnets>
-           <electromagnet body="base"/>
+           <electromagnet body="base" passive_field="100,0,0"/>
         </electromagnets>
       </devices>
    </prototype>
 
    <prototype id="magnet_test_box_b1">
-      <body position="-0.1,0.0,0.0"  orientation="135,0,0"/>
+      <body position="-0.01,0.0,0.0"  orientation="135,0,0"/>
        <bodies reference_body="base">
-         <body id="base" geometry="box" radius="0.05" size="0.1,0.1,0.1" mass="3.0">
+         <body id="base" geometry="box" size="0.010,0.010,0.010" mass="0.025">
             <coordinates/>
             <offset/>
-            <attributes>
-               <attribute key="magnetic" value="true"/>
-               <attribute key="magnetic_field" value="100000,0,0"/>
-            </attributes>
          </body>
        </bodies>
       <devices>
         <electromagnets>
-           <electromagnet body="base"/>
+           <electromagnet body="base" passive_field="100,0,0"/>
         </electromagnets>
       </devices>
    </prototype>
-
-  <!--robot id="magnet_test_box_b2">
-      <body position="-0.1,0.05,0.05"  orientation="0,0,90"/>
-       <bodies reference_body="base">
-         <body id="base" geometry="box" size="0.1,0.1,0.1" mass="3">
-            <coordinates/>
-            <offset/>
-            <attributes>
-               <attribute key="magnetic" value="true"/>
-               <attribute key="magnetic_field" value="500000,0,0"/>
-            </attributes>
-         </body>
-       </bodies>
-   </robot-->
-   
-    <!-- single body magnets for testing -->
-    <!--distribute>
-      <position method="grid" center="-0,0,0.005" distances="0.15,0.1,0.5" layout="5,3,1" />
-      <orientation method="constant" values="0,0,0"/>
-      <entity quantity="15" max_trials="100" base_num="0">
-      <robot id="magnet">
-          <bodies reference_body="base">
-            <body id="base" geometry="box" size="0.1,0.1,0.1" radius="0.05" mass="1">
-               <coordinates/>
-               <offset/>
-               <attributes>
-                  <attribute key="magnetic" value="true"/>
-                  <attribute key="magnetic_field" value="40000,0,0"/>
-		  
-               </attributes>
-            </body>
-          </bodies>
-      </robot>
-      </entity>
-    </distribute-->
 
   </arena>
   
@@ -119,11 +60,9 @@
   <!-- * Physics engines * -->
   <!-- ******************* -->
   <physics_engines>
-    <!--dynamics3d id="dyn3d" iterations="25"-->
     <dynamics3d id="dyn3d" iterations="25">
       <floor/>
       <plugins>
-         <!--antigravity force="0,0,9.8"/-->
          <magnetism/>
       </plugins>
     </dynamics3d>
@@ -138,7 +77,7 @@
     <!-- ************************************************************************ -->
     <qt-opengl lua_editor="false">
       <camera>
-        <placement idx="0" position="0,0,0.5" look_at="0.001,0.001,0.125" lens_focal_length="20" />
+        <placement idx="0" position="-0.00719833,-0.14161,-0.0013879" look_at="-0.0217759,0.856658,-0.0583816"/>
         <placement idx="1" position=" 4,-4, 1.5" look_at="2,-2,1" lens_focal_length="30" />
         <placement idx="2" position=" 4, 0, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" />
         <placement idx="3" position=" 4, 4, 1.5" look_at="2,2,1" lens_focal_length="30" />
