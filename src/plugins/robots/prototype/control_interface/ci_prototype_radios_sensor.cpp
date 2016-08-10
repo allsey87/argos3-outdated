@@ -17,7 +17,7 @@ namespace argos {
 
 #ifdef ARGOS_WITH_LUA
    void CCI_PrototypeRadiosSensor::CreateLuaState(lua_State* pt_lua_state) {
-      CLuaUtility::OpenRobotStateTable(pt_lua_state, "radios");
+      CLuaUtility::OpenRobotStateTable(pt_lua_state, "radio_rx");
       //      CLuaUtility::AddToTable(pt_lua_state, "_instance", this);
       // i = radios
       // j = messages
@@ -43,7 +43,7 @@ namespace argos {
 
 #ifdef ARGOS_WITH_LUA
    void CCI_PrototypeRadiosSensor::ReadingsToLuaState(lua_State* pt_lua_state) {
-      lua_getfield(pt_lua_state, -1, "radios");
+      lua_getfield(pt_lua_state, -1, "radio_rx");
       /* Overwrite the table with the new messages */
       for(size_t i = 0; i < m_tReadings.size(); i++) {
          CLuaUtility::StartTable(pt_lua_state, m_tDescriptors[i].Id);
@@ -52,17 +52,17 @@ namespace argos {
          size_t unLastMessageCnt = lua_objlen(pt_lua_state, -1);
          for(size_t j = 0; j < m_tReadings[i].RxData.size(); ++j) {
 
-            CLuaUtility::StartTable(pt_lua_state, j);
+            CLuaUtility::StartTable(pt_lua_state, j + 1);
             size_t unLastByteCnt = lua_objlen(pt_lua_state, -1);
             for(size_t k = 0; k < m_tReadings[i].RxData[j].Size(); ++k) {
-               CLuaUtility::AddToTable(pt_lua_state, k, m_tReadings[i].RxData[j][k]);
+               CLuaUtility::AddToTable(pt_lua_state, k + 1, m_tReadings[i].RxData[j][k]);
             }
             CLuaUtility::EndTable(pt_lua_state);
             /* Is there more bytes in the new messages than in the old ones? */
             if(m_tReadings[i].RxData[j].Size() < unLastByteCnt) {
                /* Yes, set to nil all the extra entries */
                for(size_t k = m_tReadings[i].RxData[j].Size() + 1; k <= unLastByteCnt; ++k) {
-                  lua_pushnumber(pt_lua_state,  k);
+                  lua_pushnumber(pt_lua_state,  k + 1);
                   lua_pushnil   (pt_lua_state    );
                   lua_settable  (pt_lua_state, -3);
                }
@@ -74,7 +74,7 @@ namespace argos {
          if(m_tReadings[i].RxData.size() < unLastMessageCnt) {
             /* Yes, set to nil all the extra entries */
             for(size_t j = m_tReadings[i].RxData.size() + 1; j <= unLastMessageCnt; ++j) {
-               lua_pushnumber(pt_lua_state,  j);
+               lua_pushnumber(pt_lua_state,  j + 1);
                lua_pushnil   (pt_lua_state    );
                lua_settable  (pt_lua_state, -3);
             }

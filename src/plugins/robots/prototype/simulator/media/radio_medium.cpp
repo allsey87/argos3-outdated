@@ -14,21 +14,21 @@
 namespace argos {
 
    class CRxOperation : public CPositionalIndex<CRadioEntity>::COperation { 
-
    public:
-
       CRxOperation(const CRadioEntity& c_tx_radio) :
          m_cTxRadio(c_tx_radio) {}
 
       virtual bool operator()(CRadioEntity& c_rx_radio) {
-         if((c_rx_radio.GetPosition() - m_cTxRadio.GetPosition()).Length() <  m_cTxRadio.GetTxRange()) {
-            c_rx_radio.AppendRxData(m_cTxRadio.GetTxData());
+         if(c_rx_radio.IsFullDuplex() || !c_rx_radio.HasTxData()) {
+            Real fInterRadioDist = (c_rx_radio.GetPosition() - m_cTxRadio.GetPosition()).Length();
+            if(fInterRadioDist < m_cTxRadio.GetTxRange()) {
+               c_rx_radio.AppendRxData(m_cTxRadio.GetTxData());
+            }
          }
          return true;
       }
 
    private:
-
       const CRadioEntity& m_cTxRadio;
    };
 
@@ -36,9 +36,7 @@ namespace argos {
    /****************************************/
 
    class CTxOperation : public CPositionalIndex<CRadioEntity>::COperation {
-
    public:
-
       CTxOperation(CPositionalIndex<CRadioEntity>& c_index) :
          m_cIndex(c_index) {}
 
@@ -55,7 +53,6 @@ namespace argos {
       }
       
    private:
-
       CPositionalIndex<CRadioEntity>& m_cIndex;
    };
 

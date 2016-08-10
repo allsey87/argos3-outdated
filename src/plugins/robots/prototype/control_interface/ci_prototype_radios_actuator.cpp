@@ -24,14 +24,14 @@ namespace argos {
    int LuaSendMessage(lua_State* pt_lua_state) {
       /* Check parameters */
       if(lua_gettop(pt_lua_state) != 2) {
-         return luaL_error(pt_lua_state, "robot.radios.set_current() expects 2 arguments");
+         return luaL_error(pt_lua_state, "robot.radios.send() expects 2 arguments");
       }
       luaL_checktype(pt_lua_state, 1, LUA_TSTRING);
       luaL_checktype(pt_lua_state, 2, LUA_TTABLE);
       /* Get a reference to the specified radio */
       std::string strRadioId = lua_tostring(pt_lua_state, 1);
       CCI_PrototypeRadiosActuator* pcTargetActuator =
-         CLuaUtility::GetDeviceInstance<CCI_PrototypeRadiosActuator>(pt_lua_state, "radios");
+         CLuaUtility::GetDeviceInstance<CCI_PrototypeRadiosActuator>(pt_lua_state, "radio_tx");
       UInt32 unRadioIdx;
       for(unRadioIdx = 0;
           unRadioIdx < pcTargetActuator->GetDescriptors().size();
@@ -67,7 +67,7 @@ namespace argos {
 
 #ifdef ARGOS_WITH_LUA
    void CCI_PrototypeRadiosActuator::CreateLuaState(lua_State* pt_lua_state) {
-      CLuaUtility::StartTable(pt_lua_state, "radios");
+      CLuaUtility::StartTable(pt_lua_state, "radio_tx");
       CLuaUtility::AddToTable(pt_lua_state, "_instance", this);
       CLuaUtility::AddToTable(pt_lua_state, "send", &LuaSendMessage);
       CLuaUtility::EndTable(pt_lua_state);

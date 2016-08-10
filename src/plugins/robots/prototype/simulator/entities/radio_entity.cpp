@@ -26,7 +26,8 @@ namespace argos {
                               const std::string& str_id,
                               Real f_tx_range) :
       CPositionalEntity(pc_parent, str_id, CVector3(), CQuaternion()),
-      m_fTxRange(f_tx_range) {}
+      m_fTxRange(f_tx_range),
+      m_bIsFullDuplex(true) {}
 
    /****************************************/
    /****************************************/
@@ -36,12 +37,15 @@ namespace argos {
          /* Parse XML */
          CPositionalEntity::Init(t_tree);
          GetNodeAttribute(t_tree, "range", m_fTxRange);
-         
+         /* Parse medium */
          std::string strMedium;
          GetNodeAttribute(t_tree, "medium", strMedium);
          CRadioMedium* pcRadioMedium = &CSimulator::GetInstance().GetMedium<CRadioMedium>(strMedium);
          pcRadioMedium->AddEntity(*this);
-
+         /* check the duplex mode */
+         std::string strDuplexMode("full");
+         GetNodeAttributeOrDefault(t_tree, "duplex_mode", strDuplexMode, strDuplexMode);
+         m_bIsFullDuplex = (strDuplexMode == "full");
       }
       catch(CARGoSException& ex) {
          THROW_ARGOSEXCEPTION_NESTED("Error while initializing radio entity", ex);

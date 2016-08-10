@@ -179,6 +179,14 @@ namespace argos {
          m_fTxRange = f_range;
       }
 
+      /**
+       * Returns whether the radio is in full duplex mode.
+       * @return true if the radio is in full duplex mode, false otherwise.
+       */
+      inline bool IsFullDuplex() {
+         return m_bIsFullDuplex;
+      }   
+
 
       virtual std::string GetTypeDescription() const {
          return "radio";
@@ -201,6 +209,7 @@ namespace argos {
    protected:
 
       Real m_fTxRange;
+      bool m_bIsFullDuplex;
 
       std::vector<CByteArray> m_vecRxData;
       std::vector<CByteArray> m_vecTxData;
