@@ -90,6 +90,7 @@ namespace argos {
    /****************************************/
 
    bool CCamerasSensorTagDetectorAlgorithm::operator()(CTagEntity& c_tag) {
+      // m_sViewport.Position is the center of the wire frame sphere drawn, it represents the visual field of the camera
       if((c_tag.GetPosition() - m_sViewport.Position).Length() < m_sViewport.HalfExtents[0]) {
          m_cOcclusionCheckRay.SetEnd(c_tag.GetPosition());         
          if(!GetClosestEmbodiedEntityIntersectedByRay(m_sIntersectionItem, m_cOcclusionCheckRay)) {
@@ -104,68 +105,43 @@ namespace argos {
             // Second attempt (incorrect / No difference from above) -> expected, attached body (of the camera) orientation is 0,0,0
             /* south [90.0, 0.0, -135.0]
                top [90.0, -0.0, 135.0] */
-
             CQuaternion cTagOrientationCam = (m_cCameraOrientationOffset).Inverse();
             cTagOrientationCam *= m_cAttachedBodyOrientation.Inverse();
             cTagOrientationCam *= c_tag.GetOrientation();
 
-
-            /*  */
-            // No difference from above -> should be this way, attached body (for camera) orientation is currently 0,0,0
-            //CQuaternion cTagOrientationCam = c_tag.GetOrientation();
-
-            //CQuaternion cTest; cTest.FromEulerAngles(CRadians::ZERO, CRadians::ZERO, CRadians::PI);          
-            //cTagOrientationCam *= cTest;
-
-            //cTagOrientationCam *= (m_cAttachedBodyOrientation * m_cCameraOrientationOffset).Inverse();
-
-            //cTagOrientationCam *= m_cCameraOrientationOffset.Inverse();
-
-            /*
-            CRadians pcAttachedBodyEulers[3];
-            m_cAttachedBodyOrientation.ToEulerAngles(pcAttachedBodyEulers[0], pcAttachedBodyEulers[1], pcAttachedBodyEulers[2]);
-            std::cout << "camera " << std::fixed << std::setprecision(1) << " [" 
-               << ToDegrees(pcAttachedBodyEulers[0]).GetValue() << ", "
-               << ToDegrees(pcAttachedBodyEulers[1]).GetValue() << ", "
-               << ToDegrees(pcAttachedBodyEulers[2]).GetValue() << "]"
-               << std::endl;
-            */
+            // TODO
             CVector3 cTagPositionCam;
 
-
-            /*
-            CRadians cTagEulers[3];
-            c_tag.GetOrientation().ToEulerAngles(cTagEulers[0], cTagEulers[1], cTagEulers[2]);
-            std::cout << "orientation: " << c_tag.GetId() << std::endl;
-            */
-
-
-
-
+            // some old code, I would need to check the correctness of this
             /* Transform the position of tag into the local coordinate system of the camera */
-            CVector3 cTagPositionOnSensor = c_tag.GetPosition();
+            /*CVector3 cTagPositionOnSensor = c_tag.GetPosition();
             cTagPositionOnSensor -= (m_cAttachedBodyPosition);
             cTagPositionOnSensor.Rotate(m_cAttachedBodyOrientation.Inverse());
             cTagPositionOnSensor -= m_cCameraPositionOffset;
-            cTagPositionOnSensor.Rotate(m_cCameraOrientationOffset.Inverse());
+            cTagPositionOnSensor.Rotate(m_cCameraOrientationOffset.Inverse());*/
+            
             /* Calculate the relevant index of the pixel presenting the centroid of the detected tag */
-            UInt32 unTagHorizontalIndex = m_unHorizontalResolution * 
-               (cTagPositionOnSensor.GetX() + m_sViewport.HalfExtents[0]) / (2.0f * m_sViewport.HalfExtents[0]);
-            UInt32 unTagVerticalIndex = m_unVerticalResolution *
-               (cTagPositionOnSensor.GetY() + m_sViewport.HalfExtents[0]) / (2.0f * m_sViewport.HalfExtents[0]);
+            // This code will eventually be rewritten to use homography to correct locate the tag corners on the image
+            UInt32 unTagHorizontalIndex = 0; /* m_unHorizontalResolution * 
+               (cTagPositionOnSensor.GetX() + m_sViewport.HalfExtents[0]) / (2.0f * m_sViewport.HalfExtents[0]); */
+            UInt32 unTagVerticalIndex = 0; /* m_unVerticalResolution *
+               (cTagPositionOnSensor.GetY() + m_sViewport.HalfExtents[0]) / (2.0f * m_sViewport.HalfExtents[0]);*/
+
+            /* add the reading to the readings vector */
             m_tReadings.push_back(
                SReading(c_tag.GetPayload(),
                         unTagHorizontalIndex,
                         unTagVerticalIndex,
-                        c_tag.IsLocalizable() ? cTagPositionOnSensor : CVector3(),
+                        c_tag.IsLocalizable() ? cTagPositionCam : CVector3(),
                         c_tag.IsLocalizable() ? cTagOrientationCam : CQuaternion()));
             /* Add this tag into our readings list */
             if(m_bShowRays) {
                m_vecCheckedRays.push_back(std::pair<bool, CRay3>(false, CRay3(m_sViewport.CameraLocation, c_tag.GetPosition())));
-               m_vecCheckedRays.push_back(std::pair<bool, CRay3>(true, CRay3(m_sViewport.CameraLocation, m_sViewport.Position)));
             }
          }
       }
+      // draws a line from the camera to the center of the wire frame sphere representing the visual field of the camera
+      m_vecCheckedRays.push_back(std::pair<bool, CRay3>(true, CRay3(m_sViewport.CameraLocation, m_sViewport.Position)));
       return true;
    }
    
