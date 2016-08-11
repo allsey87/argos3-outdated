@@ -180,9 +180,9 @@ namespace argos {
             glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, pfEmission);
             /* Set the material */
             const CColor& cColor = cLEDEquippedEntity.GetLED(i).GetColor();
-            pfColor[0] = cColor.GetRed();
-            pfColor[1] = cColor.GetGreen();
-            pfColor[2] = cColor.GetBlue();
+            pfColor[0] = cColor.GetRed() / 255.0f;
+            pfColor[1] = cColor.GetGreen() / 255.0f;
+            pfColor[2] = cColor.GetBlue() / 255.0f;
             glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, pfColor);
             /* Get the orientation of the LED */
             const CVector3& cPosition = cLEDEquippedEntity.GetLED(i).GetPosition();
