@@ -56,11 +56,8 @@ void CBeBotController::Init(TConfigurationNode& t_tree) {
 
 void CBeBotController::Reset() {
    m_pcLiftActuatorSystemController->Reset();
-   SetElectromagnetCurrent(1.0);
-   //SetTargetVelocity(-2,2);
-   //m_pcFrontLeftWheelJoint->SetTargetVelocity(5);
-   //m_pcFrontRightWheelJoint->SetTargetVelocity(5);
-
+   SetElectromagnetCurrent(0.0);
+   SetTargetVelocity(-0.5, -0.5);
 }
 
 /****************************************/
@@ -74,48 +71,47 @@ void CBeBotController::Destroy() {
 /****************************************/
 
 void CBeBotController::ControlStep() {
+   // step the las controller
    m_pcLiftActuatorSystemController->ControlStep();
-   
+ 
    /*
-   std::cout << "detected: " 
-             << m_pcLEDDetectorAlgorithm->GetReadings().size()
-             << " leds, "
-             << m_pcTagDetectorAlgorithm->GetReadings().size()
-             << " tags"
-             << std::endl;
+   // send radio message  
+   CCI_PrototypeRadiosActuator::SConfiguration* psConfig = 
+      &m_pcRadiosActuator->GetConfigurations()[0];
+ 
+   psConfig->TxData.clear();
+   psConfig->TxData.emplace_back();
+   psConfig->TxData.back() << '1';
    */
+
    for(auto& t_reading : m_pcTagDetectorAlgorithm->GetReadings()) {
       CRadians pcEulers[3];
       t_reading.Orientation.ToEulerAngles(pcEulers[0], pcEulers[1], pcEulers[2]);
-      std::cout << std::fixed << std::setprecision(1) << t_reading.Payload << " [" 
-         << ToDegrees(pcEulers[0]).GetValue() << ", "
-         << ToDegrees(pcEulers[1]).GetValue() << ", "
-         << ToDegrees(pcEulers[2]).GetValue() << "]"
-         << std::endl;
-/*
-      std::cout << std::fixed << std::setprecision(3) << t_reading.Payload << " [" 
-         << t_reading.Position.GetX() << ", "
-         << t_reading.Position.GetY() << ", "
-         << t_reading.Position.GetZ() << "]"
-         << std::endl;
-*/
+      std::cout << std::fixed << std::setprecision(1) << t_reading.Payload << " ["
+                << ToDegrees(pcEulers[0]).GetValue() << ", "
+                << ToDegrees(pcEulers[1]).GetValue() << ", "
+                << ToDegrees(pcEulers[2]).GetValue() << "]"
+                << std::endl;
    }
 
-   // simulate the lift actuator
-   // read sensors
-   // update data structures
-   // step state machine
-   // write back to actuators
+
+   /* TODO:
+      1. simulate the lift actuator control loop - done
+      2. read sensors
+      3. update data structures
+      4. step state machine
+      5. write back to actuators
+   */
 }
 
 /****************************************/
 /****************************************/
 
 void CBeBotController::SetTargetVelocity(Real f_left, Real f_right) {
-   m_pcFrontLeftWheelJoint->SetTargetVelocity(f_left);
-   m_pcFrontRightWheelJoint->SetTargetVelocity(f_right);
-   m_pcRearLeftWheelJoint->SetTargetVelocity(f_left);
-   m_pcRearRightWheelJoint->SetTargetVelocity(f_right);
+   m_pcFrontLeftWheelJoint->SetTargetVelocity(-f_left);
+   m_pcFrontRightWheelJoint->SetTargetVelocity(-f_right);
+   m_pcRearLeftWheelJoint->SetTargetVelocity(-f_left);
+   m_pcRearRightWheelJoint->SetTargetVelocity(-f_right);
 }
 
 /****************************************/

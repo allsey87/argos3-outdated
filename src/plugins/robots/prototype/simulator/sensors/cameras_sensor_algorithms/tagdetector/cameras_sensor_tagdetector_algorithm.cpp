@@ -93,20 +93,19 @@ namespace argos {
       if((c_tag.GetPosition() - m_sViewport.Position).Length() < m_sViewport.HalfExtents[0]) {
          m_cOcclusionCheckRay.SetEnd(c_tag.GetPosition());         
          if(!GetClosestEmbodiedEntityIntersectedByRay(m_sIntersectionItem, m_cOcclusionCheckRay)) {
-            /* Take position of current tag */
+            // c_tag.GetOrientation() -> is in the global coordinate system
 
-
-            CQuaternion cXFlip; cXFlip.FromEulerAngles(CRadians::ZERO, CRadians::ZERO, CRadians::PI);          
-            
+            // First attempt (incorrect) - didn't include the body attached to the camera transform
             /* south [90.0, 0.0, -135.0]
                top [90.0, -0.0, 135.0] */
             //CQuaternion cTagOrientationCam = m_cCameraOrientationOffset.Inverse();
             //cTagOrientationCam *= c_tag.GetOrientation();
 
+            // Second attempt (incorrect / No difference from above) -> expected, attached body (of the camera) orientation is 0,0,0
             /* south [90.0, 0.0, -135.0]
                top [90.0, -0.0, 135.0] */
-            // No difference from above -> should be this way, attached body (for camera) orientation is currently 0,0,0
-            CQuaternion cTagOrientationCam = (m_cCameraOrientationOffset * cXFlip).Inverse();
+
+            CQuaternion cTagOrientationCam = (m_cCameraOrientationOffset).Inverse();
             cTagOrientationCam *= m_cAttachedBodyOrientation.Inverse();
             cTagOrientationCam *= c_tag.GetOrientation();
 
@@ -120,7 +119,6 @@ namespace argos {
 
             //cTagOrientationCam *= (m_cAttachedBodyOrientation * m_cCameraOrientationOffset).Inverse();
 
-            std::cout << cTagOrientationCam.Length() << std::endl;
             //cTagOrientationCam *= m_cCameraOrientationOffset.Inverse();
 
             /*

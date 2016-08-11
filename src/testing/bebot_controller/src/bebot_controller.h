@@ -154,7 +154,7 @@ private:
       }
 
    private:
-      Real m_fTargetPosition = 0.010;
+      Real m_fTargetPosition = 0.040;
       Real m_fKp = 1.0;
       CCI_PrototypeJointsSensor::CJointSensor* m_pcSensor;
       CCI_PrototypeJointsActuator::CJointActuator* m_pcActuator;

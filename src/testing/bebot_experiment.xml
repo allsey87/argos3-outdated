@@ -19,21 +19,33 @@
         <!--pleds implementation="default" medium="leds"/-->
         <joints implementation="default"/>
         <electromagnets implementation="default" show_poles="true" target="electromagnet-q1,electromagnet-q2,electromagnet-q3,electromagnet-q4"/>
-        <radios implementation="default" />
+        <radios implementation="default" medium="nfc"/>
       </actuators>
       <sensors>
         <cameras implementation="default">
           <algorithms>
-            <led_detector medium="leds" camera="front_camera" show_rays="true"/>
+            <led_detector medium="leds" camera="front_camera" show_rays="false"/>
             <tag_detector medium="apriltags" camera="front_camera" show_rays="true"/>
           </algorithms>
         </cameras>
         <joints implementation="default" />
-        <radios implementation="default" />
-        <prototype_proximity implementation="default" show_rays="true"/>
+        <radios implementation="default" medium="nfc"/>
+        <prototype_proximity implementation="default" show_rays="false"/>
       </sensors>
       <params/>
     </bebot_controller>
+
+    <lua_controller id="block_ctrl">
+      <actuators>
+        <pleds implementation="default" medium="leds"/>
+        <radios implementation="default" medium="nfc"/>         
+      </actuators>
+      <sensors>
+        <radios implementation="default" medium="nfc"/>
+      </sensors>
+      <params script="src/testing/block_controller.lua"/>
+    </lua_controller>
+
   </controllers>
   
   <!-- *********************** -->
@@ -48,7 +60,7 @@
     <entity quantity="1" max_trials="10" base_num="0"-->
     <prototype id="bebot">
       <controller config="bebot_test_ctrl"/>
-      <body position="-0.125,0,0" orientation="-180,0,0"/>
+      <body position="0,0,0" orientation="0,0,0"/>
       <bodies reference_body="lower-chassis">
         <body id="lower-chassis" geometry="box" size="0.089510,0.057000,0.030000" mass="0.250">
           <coordinates/>
@@ -235,7 +247,9 @@
           <electromagnet body="electromagnet-q3" passive_field="0,0,100" active_field="0,0,100"/>
           <electromagnet body="electromagnet-q4" passive_field="0,0,100" active_field="0,0,100"/>
         </electromagnets>
-        <radios/>
+        <radios>
+          <radio id="radio" medium="nfc" duplex_mode="half" body="vertical-link" position="0.002000,0,-0.007900" orientation="0,0,0" range="0.02"/>
+        </radios>
       </devices>
     </prototype>
     <!--/entity>
@@ -279,7 +293,8 @@
     <orientation method="constant" values="0,0,0"/>
     <entity quantity="2" max_trials="10" base_num="0"-->
     <prototype id="smartblock">
-      <body position="-0.225,0,0"  orientation="0,0,0"/>
+      <body position="0.375,0,0"  orientation="0,0,0"/>
+      <controller config="block_ctrl"/>
       <bodies reference_body="block">
         <body id="block" geometry="box" size="0.055,0.055,0.055" mass="0.25">
           <offset/>
@@ -420,46 +435,46 @@
           <electromagnet body="magnet_bq4" passive_field="0,0,100"/>
         </electromagnets>
         <tags medium="apriltags">
-          <tag id="top"    body="block" localizable="true" position="0.000,0.000,0.056" orientation="0,0,0"   payload="top" side_length="0.024"/>
-          <tag id="north"  body="block" localizable="true" position="0.0285,0.000,0.0275" orientation="0,90,0"  payload="north" side_length="0.024"/>
-          <tag id="east"   body="block" localizable="true" position="0.000,-0.0285,0.0275" orientation="0,0,90"  payload="east" side_length="0.024"/>
-          <tag id="south"  body="block" localizable="true" position="-0.0285,0.000,0.0275" orientation="0,-90,0" payload="south" side_length="0.024"/>
-          <tag id="west"   body="block" localizable="true" position="0.000,0.0285,0.0275" orientation="0,0,-90" payload="west" side_length="0.024"/>
+          <tag id="top" body="block" localizable="true" position="0.000,0.000,0.056" orientation="0,0,0"   payload="top" side_length="0.024"/>
+          <tag id="north" body="block" localizable="true" position="0.0285,0.000,0.0275" orientation="0,90,0"  payload="north" side_length="0.024"/>
+          <tag id="east" body="block" localizable="true" position="0.000,-0.0285,0.0275" orientation="0,0,90"  payload="east" side_length="0.024"/>
+          <tag id="south" body="block" localizable="true" position="-0.0285,0.000,0.0275" orientation="0,-90,0" payload="south" side_length="0.024"/>
+          <tag id="west" body="block" localizable="true" position="0.000,0.0285,0.0275" orientation="0,0,-90" payload="west" side_length="0.024"/>
           <tag id="bottom" body="block" localizable="true" position="0.000,0.000,-0.001" orientation="0,0,180" payload="bottom" side_length="0.024"/>
         </tags>
         <leds medium="leds">
-          <led id="top_a"    body="block" position="0.000,0.020,0.056" color="black"/>
-          <led id="top_b"    body="block" position="0.020,0.000,0.056" color="black"/>
-          <led id="top_c"    body="block" position="0.000,-0.020,0.056" color="black"/>
-          <led id="top_d"    body="block" position="-0.020,0.000,0.056" color="black"/>
-          <led id="north_a"  body="block" position="0.0285,0.000,0.0475" color="black"/>
-          <led id="north_b"  body="block" position="0.0285,0.020,0.0275" color="black"/>
-          <led id="north_c"  body="block" position="0.0285,0.000,0.0075" color="black"/>
-          <led id="north_d"  body="block" position="0.0285,-0.020,0.0275" color="black"/>
-          <led id="east_a"   body="block" position="0.000,-0.0285,0.0475" color="black"/>
-          <led id="east_b"   body="block" position="0.020,-0.0285,0.0275" color="black"/>
-          <led id="east_c"   body="block" position="0.000,-0.0285,0.0075" color="black"/>
-          <led id="east_d"   body="block" position="-0.020,-0.0285,0.0275" color="black"/>
-          <led id="south_a"  body="block" position="-0.0285,0.000,0.0475" color="black"/>
-          <led id="south_b"  body="block" position="-0.0285,-0.020,0.0275" color="black"/>
-          <led id="south_c"  body="block" position="-0.0285,0.000,0.0075" color="black"/>
-          <led id="south_d"  body="block" position="-0.0285,0.020,0.0275" color="black"/>
-          <led id="west_a"   body="block" position="0.000,0.0285,0.0475" color="black"/>
-          <led id="west_b"   body="block" position="-0.020,0.0285,0.0275" color="black"/>
-          <led id="west_c"   body="block" position="0.000,0.0285,0.0075" color="black"/>
-          <led id="west_d"   body="block" position="0.020,0.0285,0.0275" color="black"/>
+          <led id="top_a" body="block" position="0.000,0.020,0.056" color="black"/>
+          <led id="top_b" body="block" position="0.020,0.000,0.056" color="black"/>
+          <led id="top_c" body="block" position="0.000,-0.020,0.056" color="black"/>
+          <led id="top_d" body="block" position="-0.020,0.000,0.056" color="black"/>
+          <led id="north_a" body="block" position="0.0285,0.000,0.0475" color="black"/>
+          <led id="north_b" body="block" position="0.0285,0.020,0.0275" color="black"/>
+          <led id="north_c" body="block" position="0.0285,0.000,0.0075" color="black"/>
+          <led id="north_d" body="block" position="0.0285,-0.020,0.0275" color="black"/>
+          <led id="east_a" body="block" position="0.000,-0.0285,0.0475" color="black"/>
+          <led id="east_b" body="block" position="0.020,-0.0285,0.0275" color="black"/>
+          <led id="east_c" body="block" position="0.000,-0.0285,0.0075" color="black"/>
+          <led id="east_d" body="block" position="-0.020,-0.0285,0.0275" color="black"/>
+          <led id="south_a" body="block" position="-0.0285,0.000,0.0475" color="black"/>
+          <led id="south_b" body="block" position="-0.0285,-0.020,0.0275" color="black"/>
+          <led id="south_c" body="block" position="-0.0285,0.000,0.0075" color="black"/>
+          <led id="south_d" body="block" position="-0.0285,0.020,0.0275" color="black"/>
+          <led id="west_a" body="block" position="0.000,0.0285,0.0475" color="black"/>
+          <led id="west_b" body="block" position="-0.020,0.0285,0.0275" color="black"/>
+          <led id="west_c" body="block" position="0.000,0.0285,0.0075" color="black"/>
+          <led id="west_d" body="block" position="0.020,0.0285,0.0275" color="black"/>
           <led id="bottom_a" body="block" position="0.000,0.020,-0.001" color="black"/>
           <led id="bottom_b" body="block" position="0.020,0.000,-0.001" color="black"/>
           <led id="bottom_c" body="block" position="0.000,-0.020,-0.001" color="black"/>
           <led id="bottom_d" body="block" position="-0.020,0.000,-0.001" color="black"/>
         </leds>
         <radios>
-          <radio medium="nfc" id="top"    body="block" localizable="true" position="0.000,0.000,0.050" orientation="0,0,0" range="0.020"/>
-          <radio medium="nfc" id="north"  body="block" localizable="true" position="0.0225,0.000,0.0275" orientation="0,90,0" range="0.020"/>
-          <radio medium="nfc" id="east"   body="block" localizable="true" position="0.000,-0.0225,0.0275" orientation="0,0,90" range="0.020"/>
-          <radio medium="nfc" id="south"  body="block" localizable="true" position="-0.0225,0.000,0.0275" orientation="0,-90,0" range="0.020"/>
-          <radio medium="nfc" id="west"   body="block" localizable="true" position="0.000,0.0225,0.0275" orientation="0,0,-90" range="0.020"/>
-          <radio medium="nfc" id="bottom" body="block" localizable="true" position="0.000,0.000,0.005" orientation="0,0,180" range="0.020"/>
+          <radio medium="nfc" duplex_mode="half" id="top" body="block" localizable="true" position="0.000,0.000,0.050" orientation="0,0,0" range="0.020"/>
+          <radio medium="nfc" duplex_mode="half" id="north" body="block" localizable="true" position="0.0225,0.000,0.0275" orientation="0,90,0" range="0.020"/>
+          <radio medium="nfc" duplex_mode="half" id="east" body="block" localizable="true" position="0.000,-0.0225,0.0275" orientation="0,0,90" range="0.020"/>
+          <radio medium="nfc" duplex_mode="half" id="south" body="block" localizable="true" position="-0.0225,0.000,0.0275" orientation="0,-90,0" range="0.020"/>
+          <radio medium="nfc" duplex_mode="half" id="west" body="block" localizable="true" position="0.000,0.0225,0.0275" orientation="0,0,-90" range="0.020"/>
+          <radio medium="nfc" duplex_mode="half" id="bottom" body="block" localizable="true" position="0.000,0.000,0.005" orientation="0,0,180" range="0.020"/>
         </radios>
       </devices>
     </prototype>
