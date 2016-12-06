@@ -16,105 +16,25 @@
 #include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_leddetector_algorithm.h>
 #include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_tagdetector_algorithm.h>
 
+/* hacks */
+#include <argos3/core/simulator/space/positional_indices/positional_index.h>
+// #include <argos3/plugins/simulator/entities/led_entity.h>
+#include <argos3/plugins/simulator/media/led_medium.h>
+#include <argos3/core/simulator/simulator.h>
+
 #include <array>
 #include <list>
 #include <cstdint>
 #include <chrono>
 
-#include "target.h"
-#include "structure.h"
+#include "block_demo.h"
+#include "block_sensor.h"
+#include "block_tracker.h"
+#include "structure_analyser.h"
+
+//#include "pyramid_experiment.h"
 
 using namespace argos;
-
-enum class EGripperFieldMode : uint8_t {
-   CONSTRUCTIVE = 0,
-   DESTRUCTIVE = 1,
-   DISABLED = 2
-};
-
-enum class ELiftActuatorSystemState : uint8_t {
-   /* Inactive means the stepper motor is disabled */
-   INACTIVE = 0,
-   /* Active means the stepper motor is running */
-   ACTIVE_POSITION_CTRL = 1,
-   ACTIVE_SPEED_CTRL = 2,
-   /* Calibration search bottom/top */
-   CALIBRATION_SRCH_TOP = 3,
-   CALIBRATION_SRCH_BTM = 4,
-   /* Not actually a state */
-   UNDEFINED = 5,
-};
-
-enum class EColor {
-   RED, GREEN, BLUE
-};
-
-struct SSensorData {
-   struct {
-      struct {
-         STarget::TList Targets;
-         SStructure::TList Structures;
-      } Detections;
-   } ImageSensor;
-   struct {
-      struct {
-         uint16_t EndEffector = 0, Left = 0, Right = 0,
-            Front = 0, Underneath = 0;
-      } RangeFinders;
-      struct {
-         struct {
-            bool Top = false, Bottom = false;
-         } LimitSwitches;
-         struct {
-            std::list<uint8_t> Charge;
-         } Electromagnets;
-         struct {
-            uint8_t Position = 0;
-         } EndEffector;
-         ELiftActuatorSystemState State = ELiftActuatorSystemState::UNDEFINED;
-      } LiftActuator;
-   } ManipulatorModule;
-   struct {
-      std::chrono::time_point<std::chrono::steady_clock> ExperimentStart;
-      std::chrono::time_point<std::chrono::steady_clock> Time;
-      unsigned int Ticks = 0;
-   } Clock;
-   std::array<std::list<uint16_t>, 12> RangeFinders;
-};
-
-struct SActuatorData {
-   struct {
-      struct {
-         int16_t Velocity = 0;
-         bool UpdateReq = false;
-      } Left, Right;
-   } DifferentialDriveSystem;
-   struct {
-      std::array<EColor, 12> Color;
-      std::array<bool, 12> UpdateReq = {};
-   } LEDDeck;
-   struct {
-      struct {
-         struct {
-            int8_t Value = 0;
-            bool UpdateReq = false;
-         } Velocity;
-         struct {
-            uint8_t Value = 0;
-            bool UpdateReq = false;
-         } Position;
-      } LiftActuator;
-      struct {
-         std::string OutboundMessage;
-         bool UpdateReq = false;
-      } NFCInterface;
-      struct {
-         EGripperFieldMode FieldMode =
-            EGripperFieldMode::DISABLED;
-         bool UpdateReq = false;
-      } EndEffector;
-   } ManipulatorModule;
-};
 
 class CBeBotController : public CCI_Controller {
 public:
@@ -161,8 +81,6 @@ private:
    };
 
 private:
-      
-
    /* private methods */
    void SetTargetVelocity(Real f_left, Real f_right);
    void SetElectromagnetCurrent(Real f_value);
@@ -185,6 +103,25 @@ private:
    CCI_PrototypeJointsActuator::CJointActuator* m_pcRearRightWheelJoint;
    /* lift actuator controller system*/
    CLiftActuatorSystemController* m_pcLiftActuatorSystemController;
+
+   /* Pointer to the LED medium (hack) */
+   CPositionalIndex<CLEDEntity>* m_pcLEDIndex;
+
+   /* Global data struct pointer */
+   CBlockDemo::SSensorData* m_psSensorData;
+   CBlockDemo::SActuatorData* m_psActuatorData;
+
+   /* Create lists for blocks, targets, and structures */
+   SBlock::TList m_tDetectedBlockList;
+   STarget::TList m_tTrackedTargetList;
+   SStructure::TList m_tStructureList;
+ 
+   CBlockSensor* m_pcBlockSensor;
+   CBlockTracker* m_pcBlockTracker;
+   CStructureAnalyser* m_pcStructureAnalyser;
+
+   /* time of the last reset of the controller */
+   std::chrono::time_point<std::chrono::steady_clock> m_tpLastReset;
 
 };
 
