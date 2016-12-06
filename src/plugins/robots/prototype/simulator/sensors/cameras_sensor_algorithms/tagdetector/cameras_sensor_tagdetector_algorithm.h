@@ -73,6 +73,7 @@ namespace argos {
       CQuaternion                        m_cAttachedBodyOrientation;
       CVector3                           m_cCameraPositionOffset;
       CQuaternion                        m_cCameraOrientationOffset;
+      CRadians                           m_cRoll;
 
       UInt32                             m_unHorizontalResolution;
       UInt32                             m_unVerticalResolution;

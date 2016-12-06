@@ -137,7 +137,7 @@ namespace argos {
       glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
       glHint(GL_TEXTURE_COMPRESSION_HINT, GL_NICEST);
       glEnable(GL_DEPTH_TEST);
-      qglClearColor(Qt::darkCyan);
+      qglClearColor(Qt::white);
       glClearAccum(0.0, 0.0, 0.0, 0.0);
       /* Place the lights */
       glLightfv(GL_LIGHT0, GL_AMBIENT,  m_pfLightAmbient);
@@ -591,7 +591,7 @@ namespace argos {
       m_unGroundTexture = bindTexture(cGroundTexture,
                                       GL_TEXTURE_2D,
                                       GL_RGB,
-                                      QGLContext::MipmapBindOption | QGLContext::LinearFilteringBindOption);
+                                      QGLContext::LinearFilteringBindOption); //QGLContext::MipmapBindOption | QGLContext::LinearFilteringBindOption);
       /* Now take care of the floor entity */
       try {
          /* Create an image to use as texture */
@@ -649,8 +649,10 @@ namespace argos {
       }
       else {
          /* Wrap the texture at the edges, which in this case means that it is repeated */
-         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
          glBindTexture(GL_TEXTURE_2D, m_unGroundTexture);
          /* Draw the floor along with its texture */
          glBegin(GL_QUADS);
@@ -665,7 +667,7 @@ namespace argos {
       /* Draw walls */
       glDisable(GL_CULL_FACE);
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-      glLineWidth(3.0f);
+      glLineWidth(0.5f);
       glColor3f(0.0f, 0.0f, 0.0f);
       /* This part covers the top and bottom faces (parallel to XY) */
       glBegin(GL_QUADS);

@@ -26,12 +26,14 @@ namespace argos {
    /****************************************/
 
    CCameraEntity::CCameraEntity(CComposableEntity* pc_parent,
-                                                const CRadians& c_field_of_view,
-                                                Real f_range,
-                                                UInt32 un_horizontal_resolution,
-                                                UInt32 un_vertical_resolution) :
+                               const CRadians& c_field_of_view,
+                               const CRadians& c_roll,
+                               Real f_range,
+                               UInt32 un_horizontal_resolution,
+                               UInt32 un_vertical_resolution) :
       CEntity(pc_parent),
       m_cFieldOfView(c_field_of_view),
+      m_cRoll(c_roll),
       m_fRange(f_range),
       m_unHorizontalResolution(un_horizontal_resolution),
       m_unVerticalResolution(un_vertical_resolution) {
@@ -51,6 +53,9 @@ namespace argos {
          CDegrees cFieldOfView;
          GetNodeAttribute(t_tree, "field_of_view", cFieldOfView);
          m_cFieldOfView = ToRadians(cFieldOfView);
+         CDegrees cRoll;
+         GetNodeAttribute(t_tree, "roll", cRoll);
+         m_cRoll = ToRadians(cRoll);
          GetNodeAttribute(t_tree, "range", m_fRange);
          std::string strResolution;
          GetNodeAttribute(t_tree, "resolution", strResolution);

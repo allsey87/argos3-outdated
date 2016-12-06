@@ -42,6 +42,8 @@ namespace argos {
          /* Only populated if tag is localizable */
          CVector3 Position;
          CQuaternion Orientation;
+         /* hack */
+         CVector3 GlobalPosition;
          /**
           * Constructor
           */
@@ -59,12 +61,14 @@ namespace argos {
                   UInt32 un_horizontal_index,
                   UInt32 un_vertical_index,
                   const CVector3& c_position = CVector3(),
-                  const CQuaternion& c_orientation = CQuaternion()) :
+                  const CQuaternion& c_orientation = CQuaternion(),
+                  const CVector3& c_global_position = CVector3()) :
             Payload(str_payload),
             HorizontalIndex(un_horizontal_index),
             VerticalIndex(un_vertical_index),
             Position(c_position),
-            Orientation(c_orientation) {}
+            Orientation(c_orientation),
+            GlobalPosition(c_global_position) {}
          /**
           * Vector of readings.
           */

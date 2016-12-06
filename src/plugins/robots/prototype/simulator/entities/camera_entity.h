@@ -30,6 +30,7 @@ namespace argos {
 
       CCameraEntity(CComposableEntity* pc_parent,
                             const CRadians& c_field_of_view,
+                            const CRadians& c_roll,
                             Real f_range,
                             UInt32 un_horizontal_resolution,
                             UInt32 un_vertical_resolution);
@@ -48,6 +49,10 @@ namespace argos {
 
       Real GetRange() const {
          return m_fRange;
+      }
+
+      const CRadians& GetRoll() const {
+         return m_cRoll;
       }
 
       UInt32 GetHorizontalResolution() const {
