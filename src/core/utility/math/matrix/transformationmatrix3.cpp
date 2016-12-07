@@ -9,8 +9,16 @@
 #include "transformationmatrix3.h"
 #include "rotationmatrix3.h"
 #include <argos3/core/utility/math/vector3.h>
+#include <argos3/core/utility/math/quaternion.h>
 
 namespace argos {
+
+   /****************************************/
+   /****************************************/   
+
+   void CTransformationMatrix3::SetFromComponents(const CQuaternion& c_rotation, const CVector3& c_translation) {
+      SetFromComponents(CRotationMatrix3(c_rotation), c_translation);
+   }
 
    /****************************************/
    /****************************************/   
@@ -114,6 +122,13 @@ namespace argos {
       return CVector3(m_pfValues[0]*c_vector.m_fX + m_pfValues[1]*c_vector.m_fY + m_pfValues[2]*c_vector.m_fZ + m_pfValues[3],
 	                   m_pfValues[4]*c_vector.m_fX + m_pfValues[5]*c_vector.m_fY + m_pfValues[6]*c_vector.m_fZ + m_pfValues[7],
 	                   m_pfValues[8]*c_vector.m_fX + m_pfValues[9]*c_vector.m_fY + m_pfValues[10]*c_vector.m_fZ + m_pfValues[11]);
+   }
+
+   /****************************************/
+   /****************************************/
+
+   CTransformationMatrix3 CTransformationMatrix3::operator*(const CTransformationMatrix3& c_matrix) const {
+      return CTransformationMatrix3(CMatrix<4,4>::operator*(c_matrix));
    }
 
    /****************************************/

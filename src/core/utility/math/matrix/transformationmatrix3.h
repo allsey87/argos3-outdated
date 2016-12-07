@@ -12,6 +12,7 @@
 namespace argos {
    class CVector3;
    class CRotationMatrix3;
+   class CQuaternion;
 }
 
 #include "squarematrix.h"
@@ -26,11 +27,15 @@ namespace argos {
          SetIdentityMatrix();
       }
       
-      CTransformationMatrix3(const CMatrix<4,4>& c_matrix) : CSquareMatrix<4>() {
-         SetFromMatrix(c_matrix);
-      }
-      
+      CTransformationMatrix3(const CSquareMatrix<4>& c_matrix) : CSquareMatrix<4>(c_matrix) {}
+
+      CTransformationMatrix3(const CMatrix<4,4>& c_matrix) : CSquareMatrix<4>(c_matrix) {}
+           
       CTransformationMatrix3(const CRotationMatrix3& c_rotation, const CVector3& c_translation) : CSquareMatrix<4>() {
+         SetFromComponents(c_rotation, c_translation);
+      }
+
+      CTransformationMatrix3(const CQuaternion& c_rotation, const CVector3& c_translation) : CSquareMatrix<4>() {
          SetFromComponents(c_rotation, c_translation);
       }
       
@@ -45,6 +50,8 @@ namespace argos {
       }
 
       void SetFromMatrix(const CMatrix<4,4>& c_matrix);
+
+      void SetFromComponents(const CQuaternion& c_rotation, const CVector3& c_translation);
       
       void SetFromComponents(const CRotationMatrix3& c_rotation, const CVector3& c_translation);
       
@@ -62,6 +69,8 @@ namespace argos {
       const CVector3 GetTranslationVector() const;
       
       CVector3 operator*(const CVector3& c_vector) const;
+
+      CTransformationMatrix3 operator*(const CTransformationMatrix3& c_matrix) const;
    };
 }
 

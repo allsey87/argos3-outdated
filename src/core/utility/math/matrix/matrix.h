@@ -14,6 +14,8 @@
 #include <cmath>
 #include <iomanip>
 
+
+
 namespace argos {
 
    template <UInt32 ROWS, UInt32 COLS>
@@ -37,6 +39,14 @@ namespace argos {
       CMatrix(const Real* pf_values) {
          Set(pf_values);
       }
+
+#if __cplusplus > 199711L
+      CMatrix(std::initializer_list<Real> lst_init) {
+         ARGOS_ASSERT(lst_init.size() <= ROWS * COLS,
+                      "Incompatible initializer list");
+         std::copy(std::begin(lst_init), std::end(lst_init), m_pfValues);
+      }
+#endif
       
       CMatrix(const CMatrix<ROWS,COLS>& c_matrix) {
          Set(c_matrix.m_pfValues);
@@ -88,7 +98,7 @@ namespace argos {
             m_pfValues[i] = f_values[i];
       }
       
-      CMatrix<COLS, ROWS> GetTransposed() {
+      CMatrix<COLS, ROWS> GetTransposed() const {
          Real fNewValues[COLS * ROWS];
          for(UInt32 i = 0; i < ROWS; i++)
             for(UInt32 j = 0; j < COLS; j++)
@@ -98,9 +108,9 @@ namespace argos {
       }
       
       template <UInt32 SMROWS, UInt32 SMCOLS>
-      CMatrix<SMROWS, SMCOLS>& GetSubmatrix(CMatrix<SMROWS, SMCOLS>& c_matrix,
+      void GetSubMatrix(CMatrix<SMROWS, SMCOLS>& c_sub_matrix,
                                             UInt32 un_offset_row, 
-                                            UInt32 un_offset_col) {
+                                            UInt32 un_offset_col) const {
          ARGOS_ASSERT((SMROWS - 1 + un_offset_row) < ROWS &&
                       (SMCOLS - 1 + un_offset_col) < COLS,
                       "Submatrix range is out of bounds: cannot extract a " <<
@@ -113,9 +123,7 @@ namespace argos {
                       
          for(UInt32 i = 0; i < SMROWS; i++)
             for(UInt32 j = 0; j < SMCOLS; j++)
-               c_matrix.m_pfValues[i * SMCOLS + j] = m_pfValues[(i + un_offset_row) * COLS + (j + un_offset_col)];
-         
-         return c_matrix;
+               c_sub_matrix.m_pfValues[i * SMCOLS + j] = m_pfValues[(i + un_offset_row) * COLS + (j + un_offset_col)];
       }
       
       bool operator==(const CMatrix<ROWS, COLS>& c_matrix) const {
