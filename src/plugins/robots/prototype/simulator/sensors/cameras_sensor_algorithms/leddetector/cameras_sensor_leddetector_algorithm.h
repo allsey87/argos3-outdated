@@ -21,6 +21,9 @@ namespace argos {
 #include <argos3/core/simulator/entity/embodied_entity.h>
 #include <argos3/plugins/simulator/entities/led_entity.h>
 
+#include <argos3/core/utility/math/matrix/matrix.h>
+#include <argos3/core/utility/math/matrix/squarematrix.h>
+#include <argos3/core/utility/math/matrix/transformationmatrix3.h>
 
 namespace argos {
    
@@ -70,14 +73,12 @@ namespace argos {
  
       SViewport                          m_sViewport;
 
-      CVector3                           m_cAttachedBodyPosition;
-      CQuaternion                        m_cAttachedBodyOrientation;
-      CVector3                           m_cCameraPositionOffset;
-      CQuaternion                        m_cCameraOrientationOffset;
-
       UInt32                             m_unHorizontalResolution;
       UInt32                             m_unVerticalResolution;
 
+      CSquareMatrix<3>                   m_cCameraMatrix;
+      CTransformationMatrix3             m_cCameraToBodyTransform;
+      CMatrix<3,4>                       m_cHomographyMatrix;
    };
 }         
 

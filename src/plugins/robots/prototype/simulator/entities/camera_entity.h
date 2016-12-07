@@ -13,6 +13,7 @@ namespace argos {
 
 #include <argos3/core/simulator/entity/composable_entity.h>
 #include <argos3/core/utility/math/vector2.h>
+#include <argos3/core/utility/math/matrix/squarematrix.h>
 
 namespace argos {
 
@@ -55,6 +56,10 @@ namespace argos {
          return m_cRoll;
       }
 
+      const CSquareMatrix<3> GetCameraMatrix() const {
+         return m_cCameraMatrix;
+      }
+
       UInt32 GetHorizontalResolution() const {
          return m_unHorizontalResolution;
       }
@@ -72,6 +77,8 @@ namespace argos {
       CRadians m_cFieldOfView;
       CRadians m_cRoll;
       Real m_fRange;
+   
+      CSquareMatrix<3> m_cCameraMatrix;
       UInt32 m_unHorizontalResolution;
       UInt32 m_unVerticalResolution;
 

@@ -31,8 +31,8 @@ void CBeBotController::Init(TConfigurationNode& t_tree) {
    m_pcProximitySensor = GetSensor<CCI_PrototypeProximitySensor>("prototype_proximity");
    m_pcCamerasSensor = GetSensor<CCI_CamerasSensor>("cameras");
    /* camera sensor algorithms */   
-   m_pcLEDDetectorAlgorithm = m_pcCamerasSensor->GetAlgorithm<CCI_CamerasSensorLEDDetectorAlgorithm>("front_camera","led_detector");
-   m_pcTagDetectorAlgorithm = m_pcCamerasSensor->GetAlgorithm<CCI_CamerasSensorTagDetectorAlgorithm>("front_camera","tag_detector");
+   m_pcLEDDetectorAlgorithm = m_pcCamerasSensor->GetAlgorithm<CCI_CamerasSensorLEDDetectorAlgorithm>("duovero_camera","led_detector");
+   m_pcTagDetectorAlgorithm = m_pcCamerasSensor->GetAlgorithm<CCI_CamerasSensorTagDetectorAlgorithm>("duovero_camera","tag_detector");
    /* actuators */
    m_pcJointsActuator = GetActuator<CCI_PrototypeJointsActuator>("joints");
    m_pcRadiosActuator = GetActuator<CCI_PrototypeRadiosActuator>("radios");

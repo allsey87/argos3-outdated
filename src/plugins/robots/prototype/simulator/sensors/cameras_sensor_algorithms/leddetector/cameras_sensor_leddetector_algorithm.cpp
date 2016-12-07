@@ -11,6 +11,10 @@
 #include <argos3/plugins/simulator/media/led_medium.h>
 #include <argos3/plugins/simulator/entities/led_entity.h>
 
+#include <argos3/core/utility/math/matrix/matrix.h>
+#include <argos3/core/utility/math/matrix/squarematrix.h>
+#include <argos3/core/utility/math/matrix/transformationmatrix3.h>
+
 namespace argos {
 
    /****************************************/
@@ -33,11 +37,12 @@ namespace argos {
    void CCamerasSensorLEDDetectorAlgorithm::SetCamera(CCameraEquippedEntity& c_entity, UInt32 un_index) {
       m_pcCameraEquippedEntity = &c_entity;
       m_unCameraIndex = un_index;
-
-      m_cCameraPositionOffset    = m_pcCameraEquippedEntity->GetOffsetPosition(m_unCameraIndex);
-      m_cCameraOrientationOffset = m_pcCameraEquippedEntity->GetOffsetOrientation(m_unCameraIndex);
       m_unHorizontalResolution   = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetHorizontalResolution();
-      m_unVerticalResolution     = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetVerticalResolution();;
+      m_unVerticalResolution     = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetVerticalResolution();
+      m_cCameraMatrix            = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetCameraMatrix();
+      /* get the body camera to body transform */
+      m_cCameraToBodyTransform.SetFromComponents(m_pcCameraEquippedEntity->GetOffsetOrientation(m_unCameraIndex),
+                                                 m_pcCameraEquippedEntity->GetOffsetPosition(m_unCameraIndex));
    }
 
    /****************************************/
@@ -68,19 +73,18 @@ namespace argos {
    /****************************************/
 
    void CCamerasSensorLEDDetectorAlgorithm::Update() {
-      // TODO: Extend CTransformationMatrix3 / CSquareMatrix<N> to compute inverse
-      // This will allow faster transforms of the LED positions to the sensor
-      // coordinate system
-
-      m_cAttachedBodyPosition = m_pcCameraEquippedEntity->GetPositionalEntity(m_unCameraIndex).GetPosition();
-      m_cAttachedBodyOrientation = m_pcCameraEquippedEntity->GetPositionalEntity(m_unCameraIndex).GetOrientation();
-
+      CTransformationMatrix3 cBodyToWorldTransform(m_pcCameraEquippedEntity->GetPositionalEntity(m_unCameraIndex).GetOrientation(),
+                                                   m_pcCameraEquippedEntity->GetPositionalEntity(m_unCameraIndex).GetPosition());
+    
+      /* build the homography matrix */
+      CMatrix<3,4> cCameraToWorldMatrix;
+      (cBodyToWorldTransform * m_cCameraToBodyTransform).GetInverse().GetSubMatrix(cCameraToWorldMatrix,0,0);
+      m_cHomographyMatrix = m_cCameraMatrix * cCameraToWorldMatrix;
       /* All occlusion rays start from the camera position */
       m_cOcclusionCheckRay.SetStart(m_sViewport.CameraLocation);
       /* Clear the old readings */ 
       m_tReadings.clear();
       m_vecCheckedRays.clear();
-
       m_pcLEDIndex->ForEntitiesInBoxRange(m_sViewport.Position,
                                           m_sViewport.HalfExtents,
                                           *this);
@@ -91,21 +95,16 @@ namespace argos {
 
    bool CCamerasSensorLEDDetectorAlgorithm::operator()(CLEDEntity& c_led) {
       if(c_led.GetColor() != CColor::BLACK) {
-         if((c_led.GetPosition() - m_sViewport.Position).Length() < m_sViewport.HalfExtents[0]) {
-            m_cOcclusionCheckRay.SetEnd(c_led.GetPosition());         
+         const CVector3& cLedPosition = c_led.GetPosition();
+         if((cLedPosition - m_sViewport.Position).Length() < m_sViewport.HalfExtents[0]) {
+            m_cOcclusionCheckRay.SetEnd(cLedPosition);         
             if(!GetClosestEmbodiedEntityIntersectedByRay(m_sIntersectionItem, m_cOcclusionCheckRay)) {
-               /* Take position of current LED */
-               CVector3 cLedPositionOnSensor = c_led.GetPosition();
-               /* Transform the position of LED into the local coordinate system of the camera */
-               cLedPositionOnSensor -= (m_cAttachedBodyPosition);
-               cLedPositionOnSensor.Rotate(m_cAttachedBodyOrientation.Inverse());
-               cLedPositionOnSensor -= m_cCameraPositionOffset;
-               cLedPositionOnSensor.Rotate(m_cCameraOrientationOffset.Inverse());
-               /* Calculate the relevant index of the pixel presenting the centroid of the detected LED blob */
-               UInt32 unLedHorizontalIndex = m_unHorizontalResolution * (cLedPositionOnSensor.GetX() + m_sViewport.HalfExtents[0]) / (2.0f * m_sViewport.HalfExtents[0]);
-               UInt32 unLedVerticalIndex = m_unVerticalResolution * (cLedPositionOnSensor.GetY() + m_sViewport.HalfExtents[0]) / (2.0f * m_sViewport.HalfExtents[0]);
+               CMatrix<4,1> cPositionVector = {cLedPosition.GetX(), cLedPosition.GetY(), cLedPosition.GetZ(), 1};
+               CMatrix<3,1> cImageCoordinates(m_cHomographyMatrix * cPositionVector);
                /* Store this led into our readings list */
-               m_tReadings.push_back(SReading(c_led.GetColor(), unLedHorizontalIndex, unLedVerticalIndex));
+               m_tReadings.push_back(SReading(c_led.GetColor(),
+                                              cImageCoordinates(0,0) + m_unHorizontalResolution * 0.5,
+                                              cImageCoordinates(1,0) + m_unVerticalResolution * 0.5));
                if(m_bShowRays) {
                   m_vecCheckedRays.push_back(std::pair<bool, CRay3>(false, CRay3(m_sViewport.CameraLocation, c_led.GetPosition())));
                }

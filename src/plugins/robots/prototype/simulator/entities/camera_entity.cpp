@@ -57,12 +57,29 @@ namespace argos {
          GetNodeAttribute(t_tree, "roll", cRoll);
          m_cRoll = ToRadians(cRoll);
          GetNodeAttribute(t_tree, "range", m_fRange);
+         /* get pairs */
+         UInt32 punValues[2];
+         /* resolution */
          std::string strResolution;
          GetNodeAttribute(t_tree, "resolution", strResolution);
-         UInt32 punValues[2];
          ParseValues<UInt32>(strResolution, 2, punValues, ',');
          m_unHorizontalResolution = punValues[0];
          m_unVerticalResolution = punValues[1];
+         /* init camera matrix */
+         m_cCameraMatrix.SetIdentityMatrix();
+         /* focal length */
+         std::string strFocalLength;
+         GetNodeAttribute(t_tree, "focal_length", strFocalLength);
+         ParseValues<UInt32>(strFocalLength, 2, punValues, ',');
+         m_cCameraMatrix(0,0) = punValues[0];
+         m_cCameraMatrix(1,1) = punValues[1];
+         /* principle point */
+         std::string strPrinciplePoint;
+         GetNodeAttribute(t_tree, "principle_point", strPrinciplePoint);
+         ParseValues<UInt32>(strPrinciplePoint, 2, punValues, ',');
+         m_cCameraMatrix(0,2) = punValues[0];
+         m_cCameraMatrix(1,2) = punValues[1];
+
       }
       catch(CARGoSException& ex) {
          THROW_ARGOSEXCEPTION_NESTED("Error while initializing camera entity", ex);

@@ -52,6 +52,12 @@ namespace argos {
       GLuint m_unVertices;
       GLuint m_unTagTex;
 
+      const GLfloat m_fTagTexture[48] = {
+         1.0f, 1.0f, 1.0f,    0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,    0.0f, 0.0f, 0.0f,
+         0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,    0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,
+         1.0f, 1.0f, 1.0f,    0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,    0.0f, 0.0f, 0.0f,
+         0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,    0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f
+      };
    };
 }
 

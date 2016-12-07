@@ -9,7 +9,6 @@
 #include <argos3/core/simulator/entity/embodied_entity.h>
 #include <argos3/plugins/simulator/visualizations/qt-opengl/qtopengl_widget.h>
 #include <argos3/plugins/robots/prototype/simulator/entities/prototype_entity.h>
-#include <argos3/plugins/robots/prototype/simulator/visualizations/argos_website_url.tex>
 #include <argos3/plugins/robots/prototype/simulator/entities/prototype_led_equipped_entity.h>
 #include <argos3/plugins/robots/prototype/simulator/entities/electromagnet_equipped_entity.h>
 #include <argos3/plugins/robots/prototype/simulator/entities/tag_equipped_entity.h>
@@ -443,13 +442,7 @@ namespace argos {
    void CQTOpenGLPrototype::MakeTagTexture() {
       glGenTextures(1, &m_unTagTex);
       glBindTexture(GL_TEXTURE_2D, m_unTagTex);
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 32, 32, 0, GL_RGB, GL_FLOAT, ARGOS_WEBSITE_URL);
-      
-      glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-      glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-      glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-      glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 4, 4, 0, GL_RGB, GL_FLOAT, m_fTagTexture);
    }
 
    void CQTOpenGLPrototype::MakeTag() {
@@ -457,7 +450,10 @@ namespace argos {
       glDisable(GL_LIGHTING);
       glEnable(GL_TEXTURE_2D);
       glBindTexture(GL_TEXTURE_2D, m_unTagTex);
-     
+      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);    
       glBegin(GL_QUADS);
       // tag
       glNormal3f(0.0f, 0.0f, 1.0f);
