@@ -11,6 +11,10 @@
 #include <argos3/plugins/robots/prototype/simulator/entities/tag_entity.h>
 #include <argos3/plugins/robots/prototype/simulator/media/tag_medium.h>
 
+#include <argos3/core/utility/math/matrix/matrix.h>
+#include <argos3/core/utility/math/matrix/squarematrix.h>
+#include <argos3/core/utility/math/matrix/transformationmatrix3.h>
+
 namespace argos {
 
    /****************************************/
@@ -33,12 +37,12 @@ namespace argos {
    void CCamerasSensorTagDetectorAlgorithm::SetCamera(CCameraEquippedEntity& c_entity, UInt32 un_index) {
       m_pcCameraEquippedEntity = &c_entity;
       m_unCameraIndex = un_index;
-
-      m_cCameraPositionOffset    = m_pcCameraEquippedEntity->GetOffsetPosition(m_unCameraIndex);
-      m_cCameraOrientationOffset = m_pcCameraEquippedEntity->GetOffsetOrientation(m_unCameraIndex);
       m_unHorizontalResolution   = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetHorizontalResolution();
       m_unVerticalResolution     = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetVerticalResolution();
-      m_cRoll                    = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetRoll();
+      m_cCameraMatrix            = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetCameraMatrix();
+      /* get the body camera to body transform */
+      m_cCameraToBodyTransform.SetFromComponents(m_pcCameraEquippedEntity->GetOffsetOrientation(m_unCameraIndex),
+                                                 m_pcCameraEquippedEntity->GetOffsetPosition(m_unCameraIndex));
    }
 
    /****************************************/
@@ -55,7 +59,7 @@ namespace argos {
          if(m_fDistanceNoiseStdDev > 0.0f) {
             m_pcRNG = CRandom::CreateRNG("argos");
          }
-         /* Get LED medium from id specified in the XML */
+         /* Get tag medium from id specified in the XML */
          std::string strMedium;
          GetNodeAttribute(t_tree, "medium", strMedium);
          m_pcTagIndex = &(CSimulator::GetInstance().GetMedium<CTagMedium>(strMedium).GetIndex());
@@ -69,13 +73,10 @@ namespace argos {
    /****************************************/
 
    void CCamerasSensorTagDetectorAlgorithm::Update() {
-      // TODO: Extend CTransformationMatrix3 / CSquareMatrix<N> to compute inverse
-      // This will allow faster transforms of the LED positions to the sensor
-      // coordinate system
-
-      m_cAttachedBodyPosition = m_pcCameraEquippedEntity->GetPositionalEntity(m_unCameraIndex).GetPosition();
-      m_cAttachedBodyOrientation = m_pcCameraEquippedEntity->GetPositionalEntity(m_unCameraIndex).GetOrientation();
-
+      CTransformationMatrix3 cBodyToWorldTransform(m_pcCameraEquippedEntity->GetPositionalEntity(m_unCameraIndex).GetOrientation(),
+                                                   m_pcCameraEquippedEntity->GetPositionalEntity(m_unCameraIndex).GetPosition());
+      /* build the camera to world matrix */
+      (cBodyToWorldTransform * m_cCameraToBodyTransform).GetInverse().GetSubMatrix(m_cCameraToWorldMatrix,0,0);
       /* All occlusion rays start from the camera position */
       m_cOcclusionCheckRay.SetStart(m_sViewport.CameraLocation);
       /* Clear the old readings */ 
@@ -91,52 +92,46 @@ namespace argos {
    /****************************************/
 
    bool CCamerasSensorTagDetectorAlgorithm::operator()(CTagEntity& c_tag) {
-      // m_sViewport.Position is the center of the wire frame sphere drawn, it represents the visual field of the camera
-      if((c_tag.GetPosition() - m_sViewport.Position).Length() < m_sViewport.HalfExtents[0]) {
-         m_cOcclusionCheckRay.SetEnd(c_tag.GetPosition());         
+      const CVector3& cTagPosition = c_tag.GetPosition();
+      if((cTagPosition - m_sViewport.Position).Length() < m_sViewport.HalfExtents[0]) {
+         m_cOcclusionCheckRay.SetEnd(cTagPosition);
+         /* note: we only ray check against the center of the tag */
          if(!GetClosestEmbodiedEntityIntersectedByRay(m_sIntersectionItem, m_cOcclusionCheckRay)) {
-            CQuaternion cTagOrientationCam = (m_cCameraOrientationOffset).Inverse();
-            cTagOrientationCam *= m_cAttachedBodyOrientation.Inverse();
-            // flip around X (due to tag coordinate system)
-            cTagOrientationCam *= (c_tag.GetOrientation() * CQuaternion(CRadians::PI, CVector3::X));
-            cTagOrientationCam *= CQuaternion(m_cRoll, CVector3::Z).Inverse();
-
-            /* Transform the position of tag into the local coordinate system of the camera */
-            CVector3 cTagPositionCam = c_tag.GetPosition();
-            cTagPositionCam -= (m_cAttachedBodyPosition);
-            cTagPositionCam.Rotate(m_cAttachedBodyOrientation.Inverse());
-            cTagPositionCam -= m_cCameraPositionOffset;
-            cTagPositionCam.Rotate(m_cCameraOrientationOffset.Inverse());
-            cTagPositionCam.Rotate(CQuaternion(m_cRoll, CVector3::Z).Inverse());
-            // random act of hackiness
-            cTagPositionCam.Set(cTagPositionCam.GetY(), cTagPositionCam.GetX(), cTagPositionCam.GetZ());
-            
-            /* Calculate the relevant index of the pixel presenting the centroid of the detected tag */
-            // This code will eventually be rewritten to use homography to correct locate the tag corners on the image
-            UInt32 unTagHorizontalIndex = m_unHorizontalResolution * 
-               (cTagPositionCam.GetX() + m_sViewport.HalfExtents[0]) / (2.0f * m_sViewport.HalfExtents[0]);
-            UInt32 unTagVerticalIndex = m_unVerticalResolution - m_unVerticalResolution *
-               (cTagPositionCam.GetY() + m_sViewport.HalfExtents[0]) / (2.0f * m_sViewport.HalfExtents[0]);
-
-            /* add the reading to the readings vector */
-            m_tReadings.push_back(
-               SReading(c_tag.GetPayload(),
-                        unTagHorizontalIndex,
-                        unTagVerticalIndex,
-                        c_tag.IsLocalizable() ? cTagPositionCam : CVector3(),
-                        c_tag.IsLocalizable() ? cTagOrientationCam : CQuaternion(),
-                        c_tag.GetPosition()));
-            /* Add this tag into our readings list */
+            /* Store this led into our readings list */
+            std::vector<CVector2> vecCorners;
+            for(const CVector3& cTagCornerOffset : m_vecTagCornerOffsets) {
+               CVector3 cCornerPosition(cTagCornerOffset * c_tag.GetSideLength());
+               cCornerPosition.Rotate(c_tag.GetOrientation());
+               cCornerPosition += cTagPosition;
+               vecCorners.push_back(Project(cCornerPosition));
+            }
+            m_tReadings.push_back(SReading(c_tag.GetPayload(),
+                                           Project(cTagPosition),
+                                           vecCorners));
             if(m_bShowRays) {
-               m_vecCheckedRays.push_back(std::pair<bool, CRay3>(false, CRay3(m_sViewport.CameraLocation, c_tag.GetPosition())));
+               m_vecCheckedRays.push_back(std::pair<bool, CRay3>(false, CRay3(m_sViewport.CameraLocation, cTagPosition)));
             }
          }
       }
-      // draws a line from the camera to the center of the wire frame sphere representing the visual field of the camera
-      //m_vecCheckedRays.push_back(std::pair<bool, CRay3>(true, CRay3(m_sViewport.CameraLocation, m_sViewport.Position)));
       return true;
    }
-   
+
+   /****************************************/
+   /****************************************/
+
+   CVector2 CCamerasSensorTagDetectorAlgorithm::Project(const CVector3& c_vector) {
+      CMatrix<4,1> cPosVector {c_vector.GetX(), c_vector.GetY(), c_vector.GetZ(), 1};
+      CMatrix<3,1> cPosCamCoords(m_cCameraToWorldMatrix * cPosVector);
+      /* normalize */
+      cPosCamCoords(0,0) /= cPosCamCoords(2,0);
+      cPosCamCoords(1,0) /= cPosCamCoords(2,0);
+      cPosCamCoords(2,0) /= cPosCamCoords(2,0);
+      /* get image coordinates */              
+      CMatrix<3,1> cPosImgCoords(m_cCameraMatrix * cPosCamCoords);
+      /* return as vector2 */
+      return CVector2(cPosImgCoords(0,0), cPosImgCoords(1,0));
+   }
+
    /****************************************/
    /****************************************/
 

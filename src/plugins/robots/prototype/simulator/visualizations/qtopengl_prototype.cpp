@@ -231,7 +231,6 @@ namespace argos {
       */
       
       /* Camera Testing Begin */
-      /*
       if(c_entity.HasComponent("controller")) {
          CControllableEntity& cController = c_entity.GetComponent<CControllableEntity>("controller");
          if(cController.GetController().HasSensor("cameras")) {
@@ -256,7 +255,6 @@ namespace argos {
             }
          }
       }
-      */
       /* Camera Testing End */
 
       if(c_entity.HasComponent("tag_container")) {

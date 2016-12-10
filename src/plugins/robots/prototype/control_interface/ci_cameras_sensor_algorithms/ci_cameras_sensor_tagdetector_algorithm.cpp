@@ -26,10 +26,8 @@ namespace argos {
          lua_pushstring(pt_lua_state, m_tReadings[i].Payload.c_str());
          lua_settable  (pt_lua_state, -3);
          //
-         CLuaUtility::AddToTable(pt_lua_state, "horizontal_idx", m_tReadings[i].HorizontalIndex);
-         CLuaUtility::AddToTable(pt_lua_state, "vertical_idx", m_tReadings[i].VerticalIndex);
-         CLuaUtility::AddToTable(pt_lua_state, "position", m_tReadings[i].Position);
-         CLuaUtility::AddToTable(pt_lua_state, "orientation", m_tReadings[i].Orientation);
+         
+         CLuaUtility::AddToTable(pt_lua_state, "center", m_tReadings[i].Center);
          CLuaUtility::EndTable(pt_lua_state);
       }
    }
@@ -50,10 +48,7 @@ namespace argos {
          lua_pushstring(pt_lua_state, m_tReadings[i].Payload.c_str());
          lua_settable  (pt_lua_state, -3);
          //
-         CLuaUtility::AddToTable(pt_lua_state, "horizontal_idx", m_tReadings[i].HorizontalIndex);
-         CLuaUtility::AddToTable(pt_lua_state, "vertical_idx", m_tReadings[i].VerticalIndex);
-         CLuaUtility::AddToTable(pt_lua_state, "position", m_tReadings[i].Position);
-         CLuaUtility::AddToTable(pt_lua_state, "orientation", m_tReadings[i].Orientation);
+         CLuaUtility::AddToTable(pt_lua_state, "center", m_tReadings[i].Center);
          CLuaUtility::EndTable(pt_lua_state);
       }
       if(m_tReadings.size() < unLastReadingsNum) {

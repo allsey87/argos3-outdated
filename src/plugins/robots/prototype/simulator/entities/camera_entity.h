@@ -33,8 +33,8 @@ namespace argos {
                             const CRadians& c_field_of_view,
                             const CRadians& c_roll,
                             Real f_range,
-                            UInt32 un_horizontal_resolution,
-                            UInt32 un_vertical_resolution);
+                            Real f_horizontal_resolution,
+                            Real f_vertical_resolution);
 
       virtual ~CCameraEntity() {}
 
@@ -60,12 +60,16 @@ namespace argos {
          return m_cCameraMatrix;
       }
 
-      UInt32 GetHorizontalResolution() const {
-         return m_unHorizontalResolution;
+      const CMatrix<1,5> GetDistortionParameters() const {
+         return m_cDistortionParameters;
       }
 
-      UInt32 GetVerticalResolution() const {
-         return m_unVerticalResolution;
+      Real GetHorizontalResolution() const {
+         return m_fHorizontalResolution;
+      }
+
+      Real GetVerticalResolution() const {
+         return m_fVerticalResolution;
       }
 
       virtual std::string GetTypeDescription() const {
@@ -79,8 +83,9 @@ namespace argos {
       Real m_fRange;
    
       CSquareMatrix<3> m_cCameraMatrix;
-      UInt32 m_unHorizontalResolution;
-      UInt32 m_unVerticalResolution;
+      CMatrix<1,5> m_cDistortionParameters;
+      Real m_fHorizontalResolution;
+      Real m_fVerticalResolution;
 
    };
 

@@ -12,8 +12,11 @@ namespace argos {
 }
 
 #include <argos3/core/control_interface/ci_sensor.h>
+#include <argos3/core/utility/math/matrix/squarematrix.h>
+#include <argos3/core/utility/math/matrix/matrix.h>
 
 #include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor_algorithm.h>
+
 
 #include <cxxabi.h>
 #include <typeinfo>
@@ -36,16 +39,18 @@ namespace argos {
 
       struct SDescriptor {
          std::string Id;
-         UInt32 HorizontalResolution;
-         UInt32 VerticalResolution;
+         Real HorizontalResolution;
+         Real VerticalResolution;
+         CSquareMatrix<3> CameraMatrix;
+         CMatrix<1,5> DistortionParameters;
          bool Enabled;
          /**
           * Constructor
           */
          SDescriptor() : 
             Id(""),
-            HorizontalResolution(0),
-            VerticalResolution(0),
+            HorizontalResolution(0.0),
+            VerticalResolution(0.0),
             Enabled(false) {}
          /**
           * Constructor with parameters
@@ -55,17 +60,23 @@ namespace argos {
           * @param b_enabled Camera Enabled
           */
          SDescriptor(std::string str_id,
-                     UInt32 un_horizontal_resolution,
-                     UInt32 un_vertical_resolution,
+                     Real f_horizontal_resolution,
+                     Real f_vertical_resolution,
+                     const CSquareMatrix<3>& c_camera_matrix,
+                     const CMatrix<1,5>& c_distortion_parameters,
                      bool b_enabled) : 
             Id(str_id),
-            HorizontalResolution(un_horizontal_resolution),
-            VerticalResolution(un_vertical_resolution),
+            HorizontalResolution(f_horizontal_resolution),
+            VerticalResolution(f_vertical_resolution),
+            CameraMatrix(c_camera_matrix),
+            DistortionParameters(c_distortion_parameters),
             Enabled(b_enabled) {}
          /**
           * Vector of descriptors.
           */
          typedef std::vector<SDescriptor> TList;
+         typedef std::vector<SDescriptor>::iterator TListIterator;
+         typedef std::vector<SDescriptor>::const_iterator TListConstIterator;
       };
 
    public:
@@ -99,7 +110,16 @@ namespace argos {
        * Disables image acquisition and processing.
        */
       virtual void Disable() = 0;
-      
+
+      /**
+       * Returns the camera matrix for a given camera
+       */
+      const CSquareMatrix<3>& GetCameraMatrix(const std::string& str_camera_id) const;
+
+      /**
+       * Returns the camera matrix for a given camera
+       */
+      const CMatrix<1,5>& GetDistortionParameters(const std::string& str_camera_id) const;
    public:
 
       bool HasAlgorithm(const std::string& str_camera_name, const std::string& str_algorithm_type) const;

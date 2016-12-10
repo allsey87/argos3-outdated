@@ -12,6 +12,7 @@ namespace argos {
 }
 
 #include <argos3/plugins/robots/prototype/simulator/sensors/cameras_sensor_algorithm.h>
+#include <argos3/plugins/simulator/entities/led_entity.h>
 #include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_leddetector_algorithm.h>
 #include <argos3/core/simulator/space/positional_indices/positional_index.h>
 
@@ -19,7 +20,6 @@ namespace argos {
 #include <argos3/core/utility/math/ray3.h>
 
 #include <argos3/core/simulator/entity/embodied_entity.h>
-#include <argos3/plugins/simulator/entities/led_entity.h>
 
 #include <argos3/core/utility/math/matrix/matrix.h>
 #include <argos3/core/utility/math/matrix/squarematrix.h>
@@ -58,6 +58,8 @@ namespace argos {
 
       virtual bool operator()(CLEDEntity& c_led);
 
+      CVector2 Project(const CVector3& c_vector);
+
    protected:
 
       CCameraEquippedEntity*             m_pcCameraEquippedEntity;
@@ -78,7 +80,7 @@ namespace argos {
 
       CSquareMatrix<3>                   m_cCameraMatrix;
       CTransformationMatrix3             m_cCameraToBodyTransform;
-      CMatrix<3,4>                       m_cHomographyMatrix;
+      CMatrix<3,4>                       m_cCameraToWorldMatrix;
    };
 }         
 

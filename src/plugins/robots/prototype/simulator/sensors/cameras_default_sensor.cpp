@@ -35,10 +35,13 @@ namespace argos {
       m_pcCameraEquippedEntity->SetCanBeEnabledIfDisabled(true);
       /* Populate the descriptors for each camera */
       for(size_t i = 0; i < m_pcCameraEquippedEntity->GetAllCameras().size(); ++i) {
-         m_tDescriptors.push_back(SDescriptor(m_pcCameraEquippedEntity->GetCamera(i).GetId(),
-                                              m_pcCameraEquippedEntity->GetCamera(i).GetHorizontalResolution(),
-                                              m_pcCameraEquippedEntity->GetCamera(i).GetVerticalResolution(),
-                                              m_pcCameraEquippedEntity->GetCamera(i).IsEnabled()));
+         const CCameraEntity& c_camera = m_pcCameraEquippedEntity->GetCamera(i);
+         m_tDescriptors.push_back(SDescriptor(c_camera.GetId(),
+                                              c_camera.GetHorizontalResolution(),
+                                              c_camera.GetVerticalResolution(),
+                                              c_camera.GetCameraMatrix(),
+                                              c_camera.GetDistortionParameters(),
+                                              c_camera.IsEnabled()));
       }
       /* Initialise the viewport vector to the correct size */
       m_vecViewports.resize(m_pcCameraEquippedEntity->GetAllCameras().size());
@@ -70,7 +73,7 @@ namespace argos {
                   CFactory<CCamerasSensorSimulatedAlgorithm>::New(itAlgorithm->Value());
                CCI_CamerasSensorAlgorithm* pcCIAlgorithm = dynamic_cast<CCI_CamerasSensorAlgorithm*>(pcAlgorithm);
                if(pcCIAlgorithm == NULL) {
-                  THROW_ARGOSEXCEPTION("BUG: algorithm \"" << itAlgorithm->Value() << "\" does not inherit from CCI_CamerasSensorAlgorithm");
+                  THROW_ARGOSEXCEPTION("Algorithm \"" << itAlgorithm->Value() << "\" does not inherit from CCI_CamerasSensorAlgorithm");
                }
                pcAlgorithm->SetCamera(*m_pcCameraEquippedEntity, i);
                pcCIAlgorithm->Init(*itAlgorithm);

@@ -4,6 +4,8 @@
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
+#include <algorithm>
+
 #include "ci_cameras_sensor.h"
 
 #ifdef ARGOS_WITH_LUA
@@ -15,9 +17,41 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   bool CCI_CamerasSensor::HasAlgorithm(const std::string& str_camera_name, const std::string& str_algorithm_type) const {
+   const CSquareMatrix<3>& CCI_CamerasSensor::GetCameraMatrix(const std::string& str_camera_id) const {
+      SDescriptor::TListConstIterator tCameraIter = std::find_if(std::begin(m_tDescriptors),
+                                                                 std::end(m_tDescriptors),
+                                                                 [str_camera_id] (const SDescriptor& s_descriptor) {
+         return (s_descriptor.Id == str_camera_id);
+      });
+      if(tCameraIter == std::end(m_tDescriptors)) {
+         THROW_ARGOSEXCEPTION("Unknown camera instance " << str_camera_id <<
+                              " requested in camera sensor. Did you add it to the XML file?");
+      }
+      return tCameraIter->CameraMatrix;
+   }
+
+   /****************************************/
+   /****************************************/
+
+   const CMatrix<1,5>& CCI_CamerasSensor::GetDistortionParameters(const std::string& str_camera_id) const {
+      SDescriptor::TListConstIterator tCameraIter = std::find_if(std::begin(m_tDescriptors),
+                                                                 std::end(m_tDescriptors),
+                                                                 [str_camera_id] (const SDescriptor& s_descriptor) {
+         return (s_descriptor.Id == str_camera_id);
+      });
+      if(tCameraIter == std::end(m_tDescriptors)) {
+         THROW_ARGOSEXCEPTION("Unknown camera instance " << str_camera_id <<
+                              " requested in camera sensor. Did you add it to the XML file?");
+      }
+      return tCameraIter->DistortionParameters;  
+   }
+
+   /****************************************/
+   /****************************************/
+
+   bool CCI_CamerasSensor::HasAlgorithm(const std::string& str_camera_id, const std::string& str_algorithm_type) const {
       std::map<std::string, CCI_CamerasSensorAlgorithm::TMap, std::less<std::string> >::const_iterator itCamera =
-         m_mapAlgorithms.find(str_camera_name);
+         m_mapAlgorithms.find(str_camera_id);
       if(itCamera != m_mapAlgorithms.end()) {
          CCI_CamerasSensorAlgorithm::TMap::const_iterator itAlgorithm = itCamera->second.find(str_algorithm_type);
          if(itAlgorithm != itCamera->second.end()) {

@@ -21,6 +21,10 @@ namespace argos {
 
 #include <argos3/core/simulator/entity/embodied_entity.h>
 
+#include <argos3/core/utility/math/matrix/matrix.h>
+#include <argos3/core/utility/math/matrix/squarematrix.h>
+#include <argos3/core/utility/math/matrix/transformationmatrix3.h>
+
 namespace argos {
    
    /**
@@ -54,6 +58,8 @@ namespace argos {
 
       virtual bool operator()(CTagEntity& c_tag);
 
+      CVector2 Project(const CVector3& c_vector);
+
    protected:
 
       CCameraEquippedEntity*             m_pcCameraEquippedEntity;
@@ -69,15 +75,19 @@ namespace argos {
  
       SViewport                          m_sViewport;
 
-      CVector3                           m_cAttachedBodyPosition;
-      CQuaternion                        m_cAttachedBodyOrientation;
-      CVector3                           m_cCameraPositionOffset;
-      CQuaternion                        m_cCameraOrientationOffset;
-      CRadians                           m_cRoll;
-
       UInt32                             m_unHorizontalResolution;
       UInt32                             m_unVerticalResolution;
 
+      CSquareMatrix<3>                   m_cCameraMatrix;
+      CTransformationMatrix3             m_cCameraToBodyTransform;
+      CMatrix<3,4>                       m_cCameraToWorldMatrix;
+
+      const std::vector<CVector3> m_vecTagCornerOffsets = {
+         { 0.5,  0.5, 0},
+         {-0.5,  0.5, 0},
+         {-0.5, -0.5, 0},
+         { 0.5, -0.5, 0},
+      };
    };
 }         
 

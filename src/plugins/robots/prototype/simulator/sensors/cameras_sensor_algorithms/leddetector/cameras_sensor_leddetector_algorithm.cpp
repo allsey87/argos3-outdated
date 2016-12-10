@@ -4,6 +4,15 @@
  * @author Michael Allwright - <allsey87@gmail.com>
  */
 
+
+/*
+ Reference: Robotics 2 Camera Calibration by Barbara Frank, Cyrill Stachniss, Giorgio Grisetti, Kai Arras, Wolfram Burgard
+ Universitaet Freiburg
+ http://ais.informatik.uni-freiburg.de/teaching/ws09/robotics2/pdfs/rob2-08-camera-calibration.pdf
+
+ discussion on culling objects https://forum.thegamecreators.com/thread/179559
+*/
+
 #include "cameras_sensor_leddetector_algorithm.h"
 
 #include <argos3/core/simulator/simulator.h>
@@ -75,11 +84,8 @@ namespace argos {
    void CCamerasSensorLEDDetectorAlgorithm::Update() {
       CTransformationMatrix3 cBodyToWorldTransform(m_pcCameraEquippedEntity->GetPositionalEntity(m_unCameraIndex).GetOrientation(),
                                                    m_pcCameraEquippedEntity->GetPositionalEntity(m_unCameraIndex).GetPosition());
-    
-      /* build the homography matrix */
-      CMatrix<3,4> cCameraToWorldMatrix;
-      (cBodyToWorldTransform * m_cCameraToBodyTransform).GetInverse().GetSubMatrix(cCameraToWorldMatrix,0,0);
-      m_cHomographyMatrix = m_cCameraMatrix * cCameraToWorldMatrix;
+      /* build the camera to world matrix */
+      (cBodyToWorldTransform * m_cCameraToBodyTransform).GetInverse().GetSubMatrix(m_cCameraToWorldMatrix,0,0);
       /* All occlusion rays start from the camera position */
       m_cOcclusionCheckRay.SetStart(m_sViewport.CameraLocation);
       /* Clear the old readings */ 
@@ -97,14 +103,9 @@ namespace argos {
       if(c_led.GetColor() != CColor::BLACK) {
          const CVector3& cLedPosition = c_led.GetPosition();
          if((cLedPosition - m_sViewport.Position).Length() < m_sViewport.HalfExtents[0]) {
-            m_cOcclusionCheckRay.SetEnd(cLedPosition);         
+            m_cOcclusionCheckRay.SetEnd(cLedPosition);
             if(!GetClosestEmbodiedEntityIntersectedByRay(m_sIntersectionItem, m_cOcclusionCheckRay)) {
-               CMatrix<4,1> cPositionVector = {cLedPosition.GetX(), cLedPosition.GetY(), cLedPosition.GetZ(), 1};
-               CMatrix<3,1> cImageCoordinates(m_cHomographyMatrix * cPositionVector);
-               /* Store this led into our readings list */
-               m_tReadings.push_back(SReading(c_led.GetColor(),
-                                              cImageCoordinates(0,0) + m_unHorizontalResolution * 0.5,
-                                              cImageCoordinates(1,0) + m_unVerticalResolution * 0.5));
+               m_tReadings.push_back(SReading(c_led.GetColor(), Project(cLedPosition)));
                if(m_bShowRays) {
                   m_vecCheckedRays.push_back(std::pair<bool, CRay3>(false, CRay3(m_sViewport.CameraLocation, c_led.GetPosition())));
                }
@@ -112,6 +113,22 @@ namespace argos {
          }
       }
       return true;
+   }
+
+   /****************************************/
+   /****************************************/
+
+   CVector2 CCamerasSensorLEDDetectorAlgorithm::Project(const CVector3& c_vector) {
+      CMatrix<4,1> cPosVector {c_vector.GetX(), c_vector.GetY(), c_vector.GetZ(), 1};
+      CMatrix<3,1> cPosCamCoords(m_cCameraToWorldMatrix * cPosVector);
+      /* normalize */
+      cPosCamCoords(0,0) /= cPosCamCoords(2,0);
+      cPosCamCoords(1,0) /= cPosCamCoords(2,0);
+      cPosCamCoords(2,0) /= cPosCamCoords(2,0);
+      /* get image coordinates */              
+      CMatrix<3,1> cPosImgCoords(m_cCameraMatrix * cPosCamCoords);
+      /* return as vector2 */
+      return CVector2(cPosImgCoords(0,0), cPosImgCoords(1,0));
    }
 
    /****************************************/

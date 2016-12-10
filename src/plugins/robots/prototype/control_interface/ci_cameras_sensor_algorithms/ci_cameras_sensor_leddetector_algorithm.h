@@ -14,6 +14,7 @@ namespace argos {
 #include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor_algorithm.h>
 
 #include <argos3/core/utility/datatypes/color.h>
+#include <argos3/core/utility/math/vector2.h>
 #include <argos3/core/utility/datatypes/datatypes.h>
 
 #ifdef ARGOS_WITH_LUA
@@ -35,15 +36,13 @@ namespace argos {
          /* Color */
          CColor Color;
          /* Coordinates in image */
-         UInt32 HorizontalIndex;
-         UInt32 VerticalIndex;
+         CVector2 Center;
          /**
           * Constructor
           */
          SReading() :
             Color(CColor::BLACK),
-            HorizontalIndex(0),
-            VerticalIndex(0) {}
+            Center(0.0,0.0) {}
          /**
           * Constructor with parameters
           * @param c_color Observation color
@@ -51,11 +50,9 @@ namespace argos {
           * @param un_vertical_index vertical index
           */
          SReading(const CColor& c_color,
-               UInt32 un_horizontal_index,
-               UInt32 un_vertical_index) :
+               const CVector2& c_center) :
             Color(c_color),
-            HorizontalIndex(un_horizontal_index),
-            VerticalIndex(un_vertical_index) {}
+            Center(c_center) {}
          /**
           * Vector of readings.
           */

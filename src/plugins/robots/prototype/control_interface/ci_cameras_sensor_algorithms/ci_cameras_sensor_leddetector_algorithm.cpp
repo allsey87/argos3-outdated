@@ -21,8 +21,7 @@ namespace argos {
       for(size_t i = 0; i < m_tReadings.size(); ++i) {
          CLuaUtility::StartTable(pt_lua_state, i+1);
          CLuaUtility::AddToTable(pt_lua_state, "color", m_tReadings[i].Color);
-         CLuaUtility::AddToTable(pt_lua_state, "horizontal_idx", m_tReadings[i].HorizontalIndex);
-         CLuaUtility::AddToTable(pt_lua_state, "vertical_idx", m_tReadings[i].VerticalIndex);
+         CLuaUtility::AddToTable(pt_lua_state, "center", m_tReadings[i].Center);
          CLuaUtility::EndTable(pt_lua_state);
       }
    }
@@ -38,8 +37,7 @@ namespace argos {
       for(size_t i = 0; i < m_tReadings.size(); ++i) {
          CLuaUtility::StartTable(pt_lua_state, i+1);
          CLuaUtility::AddToTable(pt_lua_state, "color", m_tReadings[i].Color);
-         CLuaUtility::AddToTable(pt_lua_state, "horizontal_idx", m_tReadings[i].HorizontalIndex);
-         CLuaUtility::AddToTable(pt_lua_state, "vertical_idx", m_tReadings[i].VerticalIndex);
+         CLuaUtility::AddToTable(pt_lua_state, "center", m_tReadings[i].Center);
          CLuaUtility::EndTable(pt_lua_state);
       }
       if(m_tReadings.size() < unLastReadingsNum) {
@@ -50,7 +48,7 @@ namespace argos {
             lua_settable  (pt_lua_state, -3);
          }
       }
-   } 
+   }
 #endif
 
    /****************************************/
