@@ -24,8 +24,8 @@
       <sensors>
         <cameras implementation="default">
           <algorithms>
-            <led_detector medium="leds" camera="duovero_camera" show_rays="true"/>
-            <tag_detector medium="apriltags" camera="duovero_camera" show_rays="false"/>
+            <led_detector medium="leds" camera="duovero_camera" show_rays="false"/>
+            <tag_detector medium="apriltags" camera="duovero_camera" show_rays="true"/>
           </algorithms>
         </cameras>
         <joints implementation="default" />
@@ -53,6 +53,58 @@
   <!-- *********************** -->
   <arena size="3, 3, 1" positional_index="grid" positional_grid_size="25,25,1">
 
+    <!--prototype id="test-pattern">
+      <body position="-0.155,0,0" orientation="0,0,0" />
+      <bodies reference_body="base">
+        <body id="base" geometry="box" size="0.1,0.05,0.025" mass="1">
+          <coordinates/>
+          <offset position="0,0,0" orientation="0,0,0"/>
+        </body>
+      </bodies>
+      <joints/>
+      <devices>
+        <leds medium="leds">        
+          <led id="led_aa" body="base" position="-0.045, 0.0125, 0.0255" color="yellow"/>
+          <led id="led_ab" body="base" position="-0.045, -0.0125, 0.0255" color="yellow"/>
+          <led id="led_ac" body="base" position="-0.040, 0.0125, 0.0255" color="yellow"/>
+          <led id="led_ad" body="base" position="-0.040, -0.0125, 0.0255" color="yellow"/>
+          <led id="led_ae" body="base" position="-0.035, 0.0125, 0.0255" color="yellow"/>
+          <led id="led_af" body="base" position="-0.035, -0.0125, 0.0255" color="yellow"/>
+          <led id="led_ag" body="base" position="-0.030, 0.0125, 0.0255" color="yellow"/>
+          <led id="led_ah" body="base" position="-0.030, -0.0125, 0.0255" color="yellow"/>
+          <led id="led_ai" body="base" position="-0.025, 0.0125, 0.0255" color="yellow"/>
+          <led id="led_aj" body="base" position="-0.025, -0.0125, 0.0255" color="yellow"/>
+          <led id="led_ak" body="base" position="-0.020, 0.0125, 0.0255" color="yellow"/>
+          <led id="led_al" body="base" position="-0.020, -0.0125, 0.0255" color="yellow"/>
+          <led id="led_am" body="base" position="-0.015, 0.0125, 0.0255" color="yellow"/>
+          <led id="led_an" body="base" position="-0.015, -0.0125, 0.0255" color="yellow"/>
+          <led id="led_ao" body="base" position="-0.010, 0.0125, 0.0255" color="yellow"/>
+          <led id="led_ap" body="base" position="-0.010, -0.0125, 0.0255" color="yellow"/>
+          <led id="led_aq" body="base" position="-0.005, 0.0125, 0.0255" color="yellow"/>
+          <led id="led_ar" body="base" position="-0.005, -0.0125, 0.0255" color="yellow"/>
+          <led id="led_as" body="base" position="-0.000, 0.0125, 0.0255" color="yellow"/>
+          <led id="led_at" body="base" position="-0.000, -0.0125, 0.0255" color="yellow"/>
+          <led id="led_au" body="base" position="0.045, 0.0125, 0.0255" color="yellow"/>
+          <led id="led_av" body="base" position="0.045, -0.0125, 0.0255" color="yellow"/>
+          <led id="led_aw" body="base" position="0.040, 0.0125, 0.0255" color="yellow"/>
+          <led id="led_ax" body="base" position="0.040, -0.0125, 0.0255" color="yellow"/>
+          <led id="led_ay" body="base" position="0.035, 0.0125, 0.0255" color="yellow"/>
+          <led id="led_az" body="base" position="0.035, -0.0125, 0.0255" color="yellow"/>
+          <led id="led_ba" body="base" position="0.030, 0.0125, 0.0255" color="yellow"/>
+          <led id="led_bb" body="base" position="0.030, -0.0125, 0.0255" color="yellow"/>
+          <led id="led_bc" body="base" position="0.025, 0.0125, 0.0255" color="yellow"/>
+          <led id="led_bd" body="base" position="0.025, -0.0125, 0.0255" color="yellow"/>
+          <led id="led_be" body="base" position="0.020, 0.0125, 0.0255" color="yellow"/>
+          <led id="led_bf" body="base" position="0.020, -0.0125, 0.0255" color="yellow"/>
+          <led id="led_bg" body="base" position="0.015, 0.0125, 0.0255" color="yellow"/>
+          <led id="led_bh" body="base" position="0.015, -0.0125, 0.0255" color="yellow"/>
+          <led id="led_bi" body="base" position="0.010, 0.0125, 0.0255" color="yellow"/>
+          <led id="led_bj" body="base" position="0.010, -0.0125, 0.0255" color="yellow"/>
+          <led id="led_bk" body="base" position="0.005, 0.0125, 0.0255" color="yellow"/>
+          <led id="led_bl" body="base" position="0.005, -0.0125, 0.0255" color="yellow"/>
+        </leds>
+      </devices>
+    </prototype-->
 
     <!--distribute>
     <position method="grid" center="0,0,0" distances="0.25,0.25,0.25" layout="1,1,1"/>
@@ -231,10 +283,11 @@
                   position="0.056500,0,0.080280"
                   orientation="-90,135,0"
                   roll="0"
-                  field_of_view="90"
-                  range="0.50"
+                  field_of_view="180"
+                  range="0.2"
                   focal_length="883.961,883.961"
                   principle_point="319.5,179.5"
+                  distortion_parameters="0,0,0"
                   resolution="640,360"
                   enabled="true"/>
         </cameras>
@@ -292,10 +345,11 @@
 
 
     <distribute>
-    <position method="grid" center="0.325,0,0" distances="0.060,0.060,0.0" layout="6,3,1"/>
+   <!--position method="grid" center="0.325,0,0" distances="0.060,0.060,0.0" layout="6,3,1"/-->
+    <position method="grid" center="0.175,0,0" distances="0.060,0.060,0.0" layout="1,1,1"/>   
     <!--orientation method="grid" center="0,0,0" distances="30,0,0" layout="3,1,1"/-->
     <orientation method="constant" values="0,0,0"/>
-    <entity quantity="18" max_trials="10" base_num="0">
+    <entity quantity="1" max_trials="10" base_num="0">
     <prototype id="smartblock">
       <!--body position="0.225,0,0.025"  orientation="0,0,0"/-->
       <!--controller config="block_ctrl"/-->
@@ -440,17 +494,17 @@
         </electromagnets>
         <tags medium="apriltags">
           <tag id="top" body="block" localizable="true" position="0.000,0.000,0.056" orientation="0,0,0"   payload="top" side_length="0.024"/>
-          <!--tag id="north" body="block" localizable="true" position="0.0285,0.000,0.0275" orientation="0,90,0"  payload="north" side_length="0.024"/-->
-          <!--tag id="east" body="block" localizable="true" position="0.000,-0.0285,0.0275" orientation="0,0,90"  payload="east" side_length="0.024"/-->
+          <tag id="north" body="block" localizable="true" position="0.0285,0.000,0.0275" orientation="0,90,0"  payload="north" side_length="0.024"/>
+          <tag id="east" body="block" localizable="true" position="0.000,-0.0285,0.0275" orientation="0,0,90"  payload="east" side_length="0.024"/>
           <tag id="south" body="block" localizable="true" position="-0.0285,0.000,0.0275" orientation="0,-90,0" payload="south" side_length="0.024"/>
-          <!--tag id="west" body="block" localizable="true" position="0.000,0.0285,0.0275" orientation="0,0,-90" payload="west" side_length="0.024"/-->
-          <!--tag id="bottom" body="block" localizable="true" position="0.000,0.000,-0.001" orientation="0,0,180" payload="bottom" side_length="0.024"/-->
+          <tag id="west" body="block" localizable="true" position="0.000,0.0285,0.0275" orientation="0,0,-90" payload="west" side_length="0.024"/>
+          <tag id="bottom" body="block" localizable="true" position="0.000,0.000,-0.001" orientation="0,0,180" payload="bottom" side_length="0.024"/>
         </tags>
         <leds medium="leds">
           <led id="top_a" body="block" position="0.000,0.020,0.056" color="red"/>
-          <led id="top_b" body="block" position="0.020,0.000,0.056" color="black"/>
+          <led id="top_b" body="block" position="0.020,0.000,0.056" color="red"/>
           <led id="top_c" body="block" position="0.000,-0.020,0.056" color="red"/>
-          <led id="top_d" body="block" position="-0.020,0.000,0.056" color="black"/>
+          <led id="top_d" body="block" position="-0.020,0.000,0.056" color="red"/>
           <led id="north_a" body="block" position="0.0285,0.000,0.0475" color="black"/>
           <led id="north_b" body="block" position="0.0285,0.020,0.0275" color="black"/>
           <led id="north_c" body="block" position="0.0285,0.000,0.0075" color="black"/>
@@ -504,7 +558,7 @@
     <floor/>
     <plugins>
       <gravity g="9.8"/>
-      <!--magnetism/-->
+      <magnetism/>
     </plugins>
   </dynamics3d>
 </physics_engines>

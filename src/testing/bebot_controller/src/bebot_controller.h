@@ -4,6 +4,13 @@
  * @author Michael Allwright <allsey87@gmail.com>
  */
 
+#ifndef BEBOT_CONTROLLER_H
+#define BEBOT_CONTROLLER_H
+
+namespace argos {
+   // forward declarations
+}
+
 #include <argos3/core/control_interface/ci_controller.h>
 
 #include <argos3/plugins/robots/prototype/control_interface/ci_prototype_joints_actuator.h>
@@ -28,100 +35,100 @@
 #include <chrono>
 
 #include "block_demo.h"
-#include "block_sensor.h"
+#include "block_detector.h"
 #include "block_tracker.h"
 #include "structure_analyser.h"
 
 //#include "pyramid_experiment.h"
 
-using namespace argos;
-
-class CBeBotController : public CCI_Controller {
-public:
-   CBeBotController();
-   virtual ~CBeBotController();
-   virtual void Init(TConfigurationNode& t_tree);
-   virtual void Reset();
-   virtual void Destroy();
-   virtual void ControlStep();
-
-private:
-   class CLiftActuatorSystemController {
+namespace argos {
+   class CBeBotController : public CCI_Controller {
    public:
-      CLiftActuatorSystemController(CCI_PrototypeJointsSensor::CJointSensor* pc_sensor,
-                                    CCI_PrototypeJointsActuator::CJointActuator* pc_actuator) :
-         m_pcSensor(pc_sensor),
-         m_pcActuator(pc_actuator) {}
-
-      void SetTargetPosition(Real f_target_position) {
-         m_fTargetPosition = f_target_position;
-      }
-
-      void Reset() {
-         m_pcActuator->SetTargetVelocity(0.0);
-      }
-
-      void ControlStep() {
-         CVector3 cReading;
-         m_pcSensor->GetReading(cReading);
-         Real fError = (m_fTargetPosition - cReading.GetZ());
-         if(std::abs(fError) > 0.001) {
-            m_pcActuator->SetTargetVelocity(fError * m_fKp);
-         }
-         else {
-            m_pcActuator->SetTargetVelocity(0.0);
-         }      
-      }
+      CBeBotController();
+      virtual ~CBeBotController();
+      virtual void Init(TConfigurationNode& t_tree);
+      virtual void Reset();
+      virtual void Destroy();
+      virtual void ControlStep();
 
    private:
-      Real m_fTargetPosition = 0.040;
-      Real m_fKp = 1.0;
-      CCI_PrototypeJointsSensor::CJointSensor* m_pcSensor;
-      CCI_PrototypeJointsActuator::CJointActuator* m_pcActuator;
+      class CLiftActuatorSystemController {
+      public:
+         CLiftActuatorSystemController(CCI_PrototypeJointsSensor::CJointSensor* pc_sensor,
+                                       CCI_PrototypeJointsActuator::CJointActuator* pc_actuator) :
+            m_pcSensor(pc_sensor),
+            m_pcActuator(pc_actuator) {}
+
+         void SetTargetPosition(Real f_target_position) {
+            m_fTargetPosition = f_target_position;
+         }
+
+         void Reset() {
+            m_pcActuator->SetTargetVelocity(0.0);
+         }
+
+         void ControlStep() {
+            CVector3 cReading;
+            m_pcSensor->GetReading(cReading);
+            Real fError = (m_fTargetPosition - cReading.GetZ());
+            if(std::abs(fError) > 0.001) {
+               m_pcActuator->SetTargetVelocity(fError * m_fKp);
+            }
+            else {
+               m_pcActuator->SetTargetVelocity(0.0);
+            }      
+         }
+
+      private:
+         Real m_fTargetPosition = 0.040;
+         Real m_fKp = 1.0;
+         CCI_PrototypeJointsSensor::CJointSensor* m_pcSensor;
+         CCI_PrototypeJointsActuator::CJointActuator* m_pcActuator;
+      };
+
+   private:
+      /* private methods */
+      void SetTargetVelocity(Real f_left, Real f_right);
+      void SetElectromagnetCurrent(Real f_value);
+      /* sensors */
+      CCI_PrototypeJointsSensor* m_pcJointsSensor;
+      CCI_PrototypeProximitySensor* m_pcProximitySensor;
+      CCI_PrototypeRadiosSensor* m_pcRadiosSensor;
+      CCI_CamerasSensor* m_pcCamerasSensor;
+      /* camera sensor algorithms */
+      CCI_CamerasSensorLEDDetectorAlgorithm* m_pcLEDDetectorAlgorithm;
+      CCI_CamerasSensorTagDetectorAlgorithm* m_pcTagDetectorAlgorithm;
+      /* actuators */
+      CCI_PrototypeElectromagnetsActuator* m_pcElectromagnets;
+      CCI_PrototypeJointsActuator* m_pcJointsActuator;
+      CCI_PrototypeRadiosActuator* m_pcRadiosActuator;
+      /* wheels */
+      CCI_PrototypeJointsActuator::CJointActuator* m_pcFrontLeftWheelJoint;
+      CCI_PrototypeJointsActuator::CJointActuator* m_pcFrontRightWheelJoint;
+      CCI_PrototypeJointsActuator::CJointActuator* m_pcRearLeftWheelJoint;
+      CCI_PrototypeJointsActuator::CJointActuator* m_pcRearRightWheelJoint;
+      /* lift actuator controller system*/
+      CLiftActuatorSystemController* m_pcLiftActuatorSystemController;
+
+      /* Pointer to the LED medium (hack) */
+      CPositionalIndex<CLEDEntity>* m_pcLEDIndex;
+
+      /* Global data struct pointer */
+      CBlockDemo::SSensorData* m_psSensorData;
+      CBlockDemo::SActuatorData* m_psActuatorData;
+
+      /* Create lists for blocks, targets, and structures */
+      SBlock::TList m_tDetectedBlockList;
+      STarget::TList m_tTrackedTargetList;
+      SStructure::TList m_tStructureList;
+      CBlockDetector* m_pcBlockDetector;
+      CBlockTracker* m_pcBlockTracker;
+      CStructureAnalyser* m_pcStructureAnalyser;
+
+      /* time of the last reset of the controller */
+      std::chrono::time_point<std::chrono::steady_clock> m_tpLastReset;
    };
+}
 
-private:
-   /* private methods */
-   void SetTargetVelocity(Real f_left, Real f_right);
-   void SetElectromagnetCurrent(Real f_value);
-   /* sensors */
-   CCI_PrototypeJointsSensor* m_pcJointsSensor;
-   CCI_PrototypeProximitySensor* m_pcProximitySensor;
-   CCI_PrototypeRadiosSensor* m_pcRadiosSensor;
-   CCI_CamerasSensor* m_pcCamerasSensor;
-   /* camera sensor algorithms */
-   CCI_CamerasSensorLEDDetectorAlgorithm* m_pcLEDDetectorAlgorithm;
-   CCI_CamerasSensorTagDetectorAlgorithm* m_pcTagDetectorAlgorithm;
-   /* actuators */
-   CCI_PrototypeElectromagnetsActuator* m_pcElectromagnets;
-   CCI_PrototypeJointsActuator* m_pcJointsActuator;
-   CCI_PrototypeRadiosActuator* m_pcRadiosActuator;
-   /* wheels */
-   CCI_PrototypeJointsActuator::CJointActuator* m_pcFrontLeftWheelJoint;
-   CCI_PrototypeJointsActuator::CJointActuator* m_pcFrontRightWheelJoint;
-   CCI_PrototypeJointsActuator::CJointActuator* m_pcRearLeftWheelJoint;
-   CCI_PrototypeJointsActuator::CJointActuator* m_pcRearRightWheelJoint;
-   /* lift actuator controller system*/
-   CLiftActuatorSystemController* m_pcLiftActuatorSystemController;
-
-   /* Pointer to the LED medium (hack) */
-   CPositionalIndex<CLEDEntity>* m_pcLEDIndex;
-
-   /* Global data struct pointer */
-   CBlockDemo::SSensorData* m_psSensorData;
-   CBlockDemo::SActuatorData* m_psActuatorData;
-
-   /* Create lists for blocks, targets, and structures */
-   SBlock::TList m_tDetectedBlockList;
-   STarget::TList m_tTrackedTargetList;
-   SStructure::TList m_tStructureList;
- 
-   CBlockSensor* m_pcBlockSensor;
-   CBlockTracker* m_pcBlockTracker;
-   CStructureAnalyser* m_pcStructureAnalyser;
-
-   /* time of the last reset of the controller */
-   std::chrono::time_point<std::chrono::steady_clock> m_tpLastReset;
-
-};
+#endif
 

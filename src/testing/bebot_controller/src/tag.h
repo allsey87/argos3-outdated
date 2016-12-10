@@ -8,6 +8,8 @@ enum class ELedState {
    OFF, Q1, Q2, Q3, Q4
 };
 
+/* TODO: rename to SFace */
+
 struct STag {
    using TCoordinate = std::pair<double, double>;
    using TCoordinateConstIterator = std::vector<TCoordinate>::const_iterator;
