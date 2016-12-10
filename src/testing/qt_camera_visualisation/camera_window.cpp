@@ -24,6 +24,10 @@ CCameraWindow::CCameraWindow(QWidget* pc_parent,
    if(m_pcCamera->HasAlgorithm(m_strCameraId, "led_detector")) {
       m_pcLEDDetectorAlgorithm = m_pcCamera->GetAlgorithm<CCI_CamerasSensorLEDDetectorAlgorithm>(m_strCameraId, "led_detector");
    }
+   if(m_pcCamera->HasAlgorithm(m_strCameraId, "tag_detector")) {
+      m_pcTagDetectorAlgorithm = m_pcCamera->GetAlgorithm<CCI_CamerasSensorTagDetectorAlgorithm>(m_strCameraId, "tag_detector");
+   }
+
                                   
    m_pcViewport = new QGraphicsView(m_pcScene);
    m_pcLayout = new QVBoxLayout;
@@ -61,12 +65,32 @@ void CCameraWindow::Update() {
                           sReadings[i].Color.GetGreen(),
                           sReadings[i].Color.GetBlue()));
          
-         m_pcScene->addEllipse(sReadings[i].HorizontalIndex,
-                               sReadings[i].VerticalIndex,
+         m_pcScene->addEllipse(sReadings[i].Center.GetX(),
+                               sReadings[i].Center.GetY(),
                                5.0f,
                                5.0f,
                                cPen);
          
+      }
+   }
+
+   if(m_pcTagDetectorAlgorithm != NULL) {
+      const CCI_CamerasSensorTagDetectorAlgorithm::SReading::TList& sReadings =
+         m_pcTagDetectorAlgorithm->GetReadings();      
+      for(UInt32 i = 0; i < sReadings.size(); ++i) {
+         QPen cPen(QColor(255,255,255));        
+         m_pcScene->addEllipse(sReadings[i].Center.GetX(),
+                               sReadings[i].Center.GetY(),
+                               5.0f,
+                               5.0f,
+                               cPen);
+         for(UInt32 j = 0; j < sReadings[i].Corners.size(); j++) {
+            m_pcScene->addLine(sReadings[i].Corners[j].GetX(),
+                               sReadings[i].Corners[j].GetY(),
+                               sReadings[i].Corners[(j + 1) % sReadings[i].Corners.size()].GetX(),
+                               sReadings[i].Corners[(j + 1) % sReadings[i].Corners.size()].GetY(),
+                               cPen);
+         }
       }
    }
 }

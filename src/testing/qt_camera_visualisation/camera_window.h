@@ -7,6 +7,7 @@ class QGraphicsView;
 
 #include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor.h>
 #include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_leddetector_algorithm.h>
+#include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_tagdetector_algorithm.h>
 
 #include <QDialog>
 
@@ -47,6 +48,7 @@ private:
    std::string m_strCameraId;
    /* Algorithms */
    CCI_CamerasSensorLEDDetectorAlgorithm* m_pcLEDDetectorAlgorithm;
+   CCI_CamerasSensorTagDetectorAlgorithm* m_pcTagDetectorAlgorithm;
       
    
    
