@@ -32,8 +32,7 @@ namespace argos {
       
    public:
       CMatrix() {
-         for(UInt32 i = 0; i < ROWS * COLS; i++)
-            m_pfValues[i] = 0;
+         SetZero();
       }
       
       CMatrix(const Real* pf_values) {
@@ -96,6 +95,11 @@ namespace argos {
       void Set(const Real* f_values) {
          for(UInt32 i = 0; i < ROWS * COLS; i++)
             m_pfValues[i] = f_values[i];
+      }
+
+      void SetZero() {
+         for(UInt32 i = 0; i < ROWS * COLS; i++)
+            m_pfValues[i] = 0.0;
       }
       
       CMatrix<COLS, ROWS> GetTransposed() const {
