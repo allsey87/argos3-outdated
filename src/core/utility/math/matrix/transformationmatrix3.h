@@ -62,11 +62,11 @@ namespace argos {
       
       void SetRotationMatrix(const CRotationMatrix3& c_rotation);
       
-      const CRotationMatrix3 GetRotationMatrix() const;
+      CRotationMatrix3 GetRotationMatrix() const;
       
       void SetTranslationVector(const CVector3& c_translation);
       
-      const CVector3 GetTranslationVector() const;
+      CVector3 GetTranslationVector() const;
       
       CVector3 operator*(const CVector3& c_vector) const;
 

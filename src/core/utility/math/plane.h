@@ -27,6 +27,12 @@ namespace argos {
          m_cPosition(c_position),
          m_cNormal(c_normal) {}
 
+      CPlane(const CVector3& c_point_1,
+             const CVector3& c_point_2,
+             const CVector3& c_point_3) {
+         SetFromThreePoints(c_point_1, c_point_2, c_point_3);
+      }
+
       ~CPlane() {}
 
       inline const CVector3& GetPosition() const {
@@ -45,11 +51,18 @@ namespace argos {
          m_cNormal = c_normal;
       }
 
-   private:
+      void SetFromThreePoints(const CVector3& c_point_1,
+                              const CVector3& c_point_2,
+                              const CVector3& c_point_3) {
+         m_cNormal = CVector3(c_point_3 - c_point_2);
+         m_cNormal.CrossProduct(c_point_1 - c_point_2);
+         m_cNormal.Normalize();
+         m_cPosition = c_point_2;
+      }
 
+   private:
       CVector3 m_cPosition;
       CVector3 m_cNormal;
-
    };
 
 }

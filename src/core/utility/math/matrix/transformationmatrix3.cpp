@@ -93,7 +93,7 @@ namespace argos {
    /****************************************/
    /****************************************/   
 
-   const CRotationMatrix3 CTransformationMatrix3::GetRotationMatrix() const {
+   CRotationMatrix3 CTransformationMatrix3::GetRotationMatrix() const {
       return CRotationMatrix3(m_pfValues[0], m_pfValues[1], m_pfValues[2],
                               m_pfValues[4], m_pfValues[5], m_pfValues[6],
                               m_pfValues[8], m_pfValues[9], m_pfValues[10]);
@@ -111,7 +111,7 @@ namespace argos {
    /****************************************/
    /****************************************/   
 
-   const CVector3 CTransformationMatrix3::GetTranslationVector() const {
+   CVector3 CTransformationMatrix3::GetTranslationVector() const {
       return CVector3(m_pfValues[3], m_pfValues[7], m_pfValues[11]);
    }
 
