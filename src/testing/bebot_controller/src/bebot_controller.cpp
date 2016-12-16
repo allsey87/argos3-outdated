@@ -54,8 +54,6 @@ namespace argos {
          m_pcJointsSensor->GetJointSensor("lift-fixture:vertical-link"),
          &(m_pcJointsActuator->GetJointActuator("lift-fixture:vertical-link", CCI_PrototypeJointsActuator::LINEAR_Z))
       );
-      /* Get pointer to the LED index - note: hard coded amongst other design issues */
-      m_pcLEDIndex = &(CSimulator::GetInstance().GetMedium<CLEDMedium>("leds").GetIndex());
       /* issue reset */
       Reset();
    }
@@ -129,42 +127,13 @@ namespace argos {
 
       m_pcBlockDetector->Detect(tTagReadings, tLedReadings, m_tDetectedBlockList);
 
-      //blocktracker tpControlStep m_tDetectedBlockList
-
-
-      for(auto& t_reading : m_pcTagDetectorAlgorithm->GetReadings()) {
-         /*
-         CRadians pcEulers[3];
-         t_reading.Orientation.ToEulerAngles(pcEulers[0], pcEulers[1], pcEulers[2]);
-
-         struct CNearbyLEDsOp : public CPositionalIndex<CLEDEntity>::COperation {
-            CNearbyLEDsOp(const CVector3& c_center) :
-               m_cCenter(c_center) {}
-            virtual bool operator()(CLEDEntity& c_led) {
-               if(Distance(c_led.GetPosition(), m_cCenter) < 0.0225) {
-                  m_vecLEDs.push_back(&c_led);
-               }
-               return true;
-            }
-            std::vector<CLEDEntity*> m_vecLEDs;
-            CVector3 m_cCenter;
-         } cNearbyLEDsOp(t_reading.GlobalPosition);
-
-         // Use the position of the tag to get the LED colors
-         m_pcLEDIndex->ForEntitiesInBoxRange(t_reading.GlobalPosition,
-                                             CVector3(0.05,0.05,0.05),
-                                             cNearbyLEDsOp);
-         */
-
-         /* TODO:
-            1. simulate the lift actuator control loop - done
-            2. read sensors
-            3. update data structures
-            4. step state machine
-            5. write back to actuators
-         */
-
-      }
+      /* TODO:
+         1. simulate the lift actuator control loop - done
+         2. read sensors
+         3. update data structures
+         4. step state machine
+         5. write back to actuators
+      */
    }
 
    /****************************************/

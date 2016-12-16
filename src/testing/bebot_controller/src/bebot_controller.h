@@ -80,7 +80,7 @@ namespace argos {
          }
 
       private:
-         Real m_fTargetPosition = 0.040;
+         Real m_fTargetPosition = 0.130;
          Real m_fKp = 1.0;
          CCI_PrototypeJointsSensor::CJointSensor* m_pcSensor;
          CCI_PrototypeJointsActuator::CJointActuator* m_pcActuator;
@@ -109,9 +109,6 @@ namespace argos {
       CCI_PrototypeJointsActuator::CJointActuator* m_pcRearRightWheelJoint;
       /* lift actuator controller system*/
       CLiftActuatorSystemController* m_pcLiftActuatorSystemController;
-
-      /* Pointer to the LED medium (hack) */
-      CPositionalIndex<CLEDEntity>* m_pcLEDIndex;
 
       /* Global data struct pointer */
       CBlockDemo::SSensorData* m_psSensorData;

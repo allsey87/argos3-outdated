@@ -24,6 +24,11 @@ namespace argos {
 namespace argos {
 
    class CBlockDetector {
+   public:
+      static CColor Q1;
+      static CColor Q2;
+      static CColor Q3;
+      static CColor Q4;
       
    public:
       /* constructor */
@@ -35,6 +40,8 @@ namespace argos {
       void Detect(const CCI_CamerasSensorTagDetectorAlgorithm::SReading::TList& t_tag_list,
                   const CCI_CamerasSensorLEDDetectorAlgorithm::SReading::TList& t_led_list,
                   SBlock::TList& t_block_list);
+
+      void AssociateLEDs(STag& s_tag, const CCI_CamerasSensorLEDDetectorAlgorithm::SReading::TList& t_led_list);
 
       void SetCameraMatrix(const CSquareMatrix<3>& c_camera_matrix) {
          m_cCameraMatrix = c_camera_matrix;
@@ -52,20 +59,27 @@ namespace argos {
 
       /* Apriltag (w.r.t. black frame) and block side length in meters */
       const double m_fTagSize = 0.024;
-      const double m_fBlockSideLength = 0.055;
+      const double m_fBlockSideLength = 0.057; // hack: tags are positioned 1mm above and below body in ARGoS
       const double m_fInterLedLength = 0.040;
       const unsigned int m_unLedRegionOfInterestLength = 9;
       const unsigned int m_unLedLuminanceOnThreshold = 64;
 
       const std::vector<cv::Point3d> m_vecTagPts = {
-         cv::Point3d(-m_fTagSize * 0.5f, -m_fTagSize * 0.5f, 0),
-         cv::Point3d( m_fTagSize * 0.5f, -m_fTagSize * 0.5f, 0),
-         cv::Point3d( m_fTagSize * 0.5f,  m_fTagSize * 0.5f, 0),
-         cv::Point3d(-m_fTagSize * 0.5f,  m_fTagSize * 0.5f, 0),
+         cv::Point3d( m_fTagSize * 0.5,  m_fTagSize * 0.5, 0),
+         cv::Point3d(-m_fTagSize * 0.5,  m_fTagSize * 0.5, 0),
+         cv::Point3d(-m_fTagSize * 0.5, -m_fTagSize * 0.5, 0),
+         cv::Point3d( m_fTagSize * 0.5, -m_fTagSize * 0.5, 0),
+      };
+
+      const std::vector<cv::Point3d> m_vecLedPts = {
+         cv::Point3d( m_fInterLedLength * 0.5,  0.0, 0.0),
+         cv::Point3d( 0.0,  m_fInterLedLength * 0.5, 0.0),
+         cv::Point3d(-m_fInterLedLength * 0.5,  0.0, 0.0),
+         cv::Point3d( 0.0, -m_fInterLedLength * 0.5, 0.0),
       };
 
       const std::vector<cv::Point3d> m_vecOriginPts = {
-         cv::Point3d(0.0f,0.0f, 0.0f)
+         cv::Point3d(0.0,0.0, 0.0)
       };
 
       /* Tag to block translation and rotation constants */

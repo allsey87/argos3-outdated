@@ -14,7 +14,8 @@ CCameraWindow::CCameraWindow(QWidget* pc_parent,
    m_pcCamera(pc_camera),
    m_unCameraIndex(un_index),
    m_strCameraId(m_pcCamera->GetDescriptors()[m_unCameraIndex].Id),
-   m_pcLEDDetectorAlgorithm(NULL) {
+   m_pcLEDDetectorAlgorithm(NULL),
+   m_pcTagDetectorAlgorithm(NULL) {
    /* window configuration */
    m_pcScene = new QGraphicsScene(0.0f,
                                   0.0f,
@@ -56,7 +57,7 @@ CCameraWindow::~CCameraWindow() {
 void CCameraWindow::Update() {
    m_pcScene->clear();
    m_pcViewport->setBackgroundBrush(QBrush(Qt::black, Qt::SolidPattern));
-
+   const Real fEllipseSize = 5.0f;
    if(m_pcLEDDetectorAlgorithm != NULL) {
       const CCI_CamerasSensorLEDDetectorAlgorithm::SReading::TList& sReadings =
          m_pcLEDDetectorAlgorithm->GetReadings();      
@@ -64,25 +65,22 @@ void CCameraWindow::Update() {
          QPen cPen(QColor(sReadings[i].Color.GetRed(),
                           sReadings[i].Color.GetGreen(),
                           sReadings[i].Color.GetBlue()));
-         
-         m_pcScene->addEllipse(sReadings[i].Center.GetX(),
-                               sReadings[i].Center.GetY(),
-                               5.0f,
-                               5.0f,
+         m_pcScene->addEllipse(sReadings[i].Center.GetX() - (fEllipseSize * 0.5f),
+                               sReadings[i].Center.GetY() - (fEllipseSize * 0.5f),
+                               fEllipseSize,
+                               fEllipseSize,
                                cPen);
-         
       }
    }
-
    if(m_pcTagDetectorAlgorithm != NULL) {
       const CCI_CamerasSensorTagDetectorAlgorithm::SReading::TList& sReadings =
          m_pcTagDetectorAlgorithm->GetReadings();      
       for(UInt32 i = 0; i < sReadings.size(); ++i) {
          QPen cPen(QColor(255,255,255));        
-         m_pcScene->addEllipse(sReadings[i].Center.GetX(),
-                               sReadings[i].Center.GetY(),
-                               5.0f,
-                               5.0f,
+         m_pcScene->addEllipse(sReadings[i].Center.GetX() - (fEllipseSize * 0.5f),
+                               sReadings[i].Center.GetY() - (fEllipseSize * 0.5f),
+                               fEllipseSize,
+                               fEllipseSize,
                                cPen);
          for(UInt32 j = 0; j < sReadings[i].Corners.size(); j++) {
             m_pcScene->addLine(sReadings[i].Corners[j].GetX(),
