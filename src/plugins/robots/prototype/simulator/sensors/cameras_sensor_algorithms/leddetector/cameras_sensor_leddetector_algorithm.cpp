@@ -30,32 +30,14 @@ namespace argos {
    /****************************************/   
 
    CCamerasSensorLEDDetectorAlgorithm::CCamerasSensorLEDDetectorAlgorithm() :
-      m_pcCameraEquippedEntity(NULL),
       m_pcControllableEntity(NULL),
-      m_unCameraIndex(0),
       m_bShowRays(false),
       m_fDistanceNoiseStdDev(0.0f),
       m_pcRNG(NULL),
-      m_pcLEDIndex(NULL),
-      m_unHorizontalResolution(0u),
-      m_unVerticalResolution(0u) {}
+      m_pcLEDIndex(NULL) {}
 
    /****************************************/
    /****************************************/   
-
-   void CCamerasSensorLEDDetectorAlgorithm::SetCamera(CCameraEquippedEntity& c_entity, UInt32 un_index) {
-      m_pcCameraEquippedEntity = &c_entity;
-      m_unCameraIndex = un_index;
-      m_unHorizontalResolution   = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetHorizontalResolution();
-      m_unVerticalResolution     = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetVerticalResolution();
-      m_cCameraMatrix            = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetCameraMatrix();
-      /* get the body camera to body transform */
-      m_cCameraToBodyTransform.SetFromComponents(m_pcCameraEquippedEntity->GetOffsetOrientation(m_unCameraIndex),
-                                                 m_pcCameraEquippedEntity->GetOffsetPosition(m_unCameraIndex));
-   }
-
-   /****************************************/
-   /****************************************/
    
    void CCamerasSensorLEDDetectorAlgorithm::Init(TConfigurationNode& t_tree) {
       try {
@@ -82,17 +64,13 @@ namespace argos {
    /****************************************/
 
    void CCamerasSensorLEDDetectorAlgorithm::Update() {
-      CTransformationMatrix3 cBodyToWorldTransform(m_pcCameraEquippedEntity->GetPositionalEntity(m_unCameraIndex).GetOrientation(),
-                                                   m_pcCameraEquippedEntity->GetPositionalEntity(m_unCameraIndex).GetPosition());
-      /* build the camera to world matrix */
-      (cBodyToWorldTransform * m_cCameraToBodyTransform).GetInverse().GetSubMatrix(m_cCameraToWorldMatrix,0,0);
       /* All occlusion rays start from the camera position */
-      m_cOcclusionCheckRay.SetStart(m_sViewport.CameraLocation);
+      m_cOcclusionCheckRay.SetStart(m_psData->CameraLocation);
       /* Clear the old readings */ 
       m_tReadings.clear();
       m_vecCheckedRays.clear();
-      m_pcLEDIndex->ForEntitiesInBoxRange(m_sViewport.Position,
-                                          m_sViewport.HalfExtents,
+      m_pcLEDIndex->ForEntitiesInBoxRange(m_psData->BoundingBoxPosition,
+                                          m_psData->BoundingBoxHalfExtents,
                                           *this);
    }
 
@@ -100,35 +78,31 @@ namespace argos {
    /****************************************/
 
    bool CCamerasSensorLEDDetectorAlgorithm::operator()(CLEDEntity& c_led) {
-      if(c_led.GetColor() != CColor::BLACK) {
-         const CVector3& cLedPosition = c_led.GetPosition();
-         if((cLedPosition - m_sViewport.Position).Length() < m_sViewport.HalfExtents[0]) {
-            m_cOcclusionCheckRay.SetEnd(cLedPosition);
-            if(!GetClosestEmbodiedEntityIntersectedByRay(m_sIntersectionItem, m_cOcclusionCheckRay)) {
-               m_tReadings.push_back(SReading(c_led.GetColor(), Project(cLedPosition)));
-               if(m_bShowRays) {
-                  m_vecCheckedRays.push_back(std::pair<bool, CRay3>(false, CRay3(m_sViewport.CameraLocation, c_led.GetPosition())));
-               }
-            }
-         }
+      /* color check: black (off) LEDs are not considered */
+      if(c_led.GetColor() == CColor::BLACK) {
+         return true;
       }
+      /* frustum check */
+      const CVector3& cLedPosition = c_led.GetPosition();
+      if(IsPointInsideFrustum(cLedPosition) == false) {
+         return true;
+      }
+      /* ray check */
+      m_cOcclusionCheckRay.SetEnd(cLedPosition);
+      if(GetClosestEmbodiedEntityIntersectedByRay(m_sIntersectionItem, m_cOcclusionCheckRay)) {
+         /* led is occluded */
+         if(m_bShowRays) {
+            m_vecCheckedRays.push_back(std::make_pair(true, m_cOcclusionCheckRay));
+         }
+         return true;
+      }
+      else {
+         if(m_bShowRays) {
+            m_vecCheckedRays.push_back(std::make_pair(false, m_cOcclusionCheckRay));
+         }
+      }               
+      m_tReadings.emplace_back(c_led.GetColor(), ProjectOntoSensor(cLedPosition));
       return true;
-   }
-
-   /****************************************/
-   /****************************************/
-
-   CVector2 CCamerasSensorLEDDetectorAlgorithm::Project(const CVector3& c_vector) {
-      CMatrix<4,1> cPosVector {c_vector.GetX(), c_vector.GetY(), c_vector.GetZ(), 1};
-      CMatrix<3,1> cPosCamCoords(m_cCameraToWorldMatrix * cPosVector);
-      /* normalize */
-      cPosCamCoords(0,0) /= cPosCamCoords(2,0);
-      cPosCamCoords(1,0) /= cPosCamCoords(2,0);
-      cPosCamCoords(2,0) /= cPosCamCoords(2,0);
-      /* get image coordinates */              
-      CMatrix<3,1> cPosImgCoords(m_cCameraMatrix * cPosCamCoords);
-      /* return as vector2 */
-      return CVector2(cPosImgCoords(0,0), cPosImgCoords(1,0));
    }
 
    /****************************************/

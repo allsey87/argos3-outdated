@@ -9,7 +9,6 @@
 
 namespace argos {
    class CCamerasDefaultSensor;
-   //   class CCamerasSensorSimulatedAlgorithm;
    class CCameraEquippedEntity;
 }
 
@@ -17,14 +16,12 @@ namespace argos {
 #include <argos3/core/simulator/space/space.h>
 #include <argos3/core/simulator/sensor.h>
 #include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor.h>
-
 #include <argos3/plugins/robots/prototype/simulator/sensors/cameras_sensor_algorithm.h>
 
 namespace argos {
 
    class CCamerasDefaultSensor : public CSimulatedSensor,
                                  public CCI_CamerasSensor {
-
    public:
 
       CCamerasDefaultSensor();
@@ -45,11 +42,8 @@ namespace argos {
 
       virtual void Disable();
 
-
-   public:
-
-      const std::vector<CCamerasSensorSimulatedAlgorithm::SViewport>& GetViewports() const {
-         return m_vecViewports;
+      const std::vector<CCamerasSensorSimulatedAlgorithm::SData>& GetCameraData() const {
+         return m_vecData;
       }
 
    protected:
@@ -57,7 +51,7 @@ namespace argos {
       bool m_bEnabled;
       CCameraEquippedEntity* m_pcCameraEquippedEntity;
       CControllableEntity* m_pcControllableEntity;
-      std::vector<CCamerasSensorSimulatedAlgorithm::SViewport> m_vecViewports;
+      std::vector<CCamerasSensorSimulatedAlgorithm::SData> m_vecData;
       std::map<std::string, CCamerasSensorSimulatedAlgorithm::TMap, std::less<std::string> > m_mapSimulatedAlgorithms;
    };
 }

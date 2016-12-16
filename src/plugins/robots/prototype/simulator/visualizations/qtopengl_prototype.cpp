@@ -234,23 +234,51 @@ namespace argos {
       if(c_entity.HasComponent("controller")) {
          CControllableEntity& cController = c_entity.GetComponent<CControllableEntity>("controller");
          if(cController.GetController().HasSensor("cameras")) {
-            CCamerasDefaultSensor* pcCameraSensor = cController.GetController().GetSensor<CCamerasDefaultSensor>("cameras");
-            if(pcCameraSensor != NULL) {
-               for(size_t i = 0; i < pcCameraSensor->GetViewports().size(); ++i) {
-                  glPushMatrix();
-                  glPolygonMode(GL_FRONT, GL_LINE);
-                  glPolygonMode(GL_BACK, GL_LINE);
-                  glTranslatef(pcCameraSensor->GetViewports()[i].Position.GetX(),
-                               pcCameraSensor->GetViewports()[i].Position.GetY(),
-                               pcCameraSensor->GetViewports()[i].Position.GetZ() -
-                               pcCameraSensor->GetViewports()[i].HalfExtents[0]);
-                  glScalef(pcCameraSensor->GetViewports()[i].HalfExtents[0] * 2.0f,
-                           pcCameraSensor->GetViewports()[i].HalfExtents[0] * 2.0f,
-                           pcCameraSensor->GetViewports()[i].HalfExtents[0] * 2.0f);
-                  glCallList(m_unSphereList);
-                  glPolygonMode(GL_FRONT, GL_FILL);
-                  glPolygonMode(GL_BACK, GL_FILL);
-                  glPopMatrix();
+            CCamerasDefaultSensor* pcCamerasSensor = cController.GetController().GetSensor<CCamerasDefaultSensor>("cameras");
+            if(pcCamerasSensor != NULL) {
+               for(const CCamerasSensorSimulatedAlgorithm::SData& s_data : pcCamerasSensor->GetCameraData()) {
+                  glBegin(GL_LINE_LOOP);
+                  //near plane
+                  glVertex3f(s_data.NearTopLeft.GetX(),s_data.NearTopLeft.GetY(),s_data.NearTopLeft.GetZ());
+                  glVertex3f(s_data.NearTopRight.GetX(),s_data.NearTopRight.GetY(),s_data.NearTopRight.GetZ());
+                  glVertex3f(s_data.NearBottomRight.GetX(),s_data.NearBottomRight.GetY(),s_data.NearBottomRight.GetZ());
+                  glVertex3f(s_data.NearBottomLeft.GetX(),s_data.NearBottomLeft.GetY(),s_data.NearBottomLeft.GetZ());
+                  glEnd();
+                  //far plane
+                  glBegin(GL_LINE_LOOP);
+                  glVertex3f(s_data.FarTopRight.GetX(),s_data.FarTopRight.GetY(),s_data.FarTopRight.GetZ());
+                  glVertex3f(s_data.FarTopLeft.GetX(),s_data.FarTopLeft.GetY(),s_data.FarTopLeft.GetZ());
+                  glVertex3f(s_data.FarBottomLeft.GetX(),s_data.FarBottomLeft.GetY(),s_data.FarBottomLeft.GetZ());
+                  glVertex3f(s_data.FarBottomRight.GetX(),s_data.FarBottomRight.GetY(),s_data.FarBottomRight.GetZ());
+                  glEnd();
+                  //bottom plane
+                  glBegin(GL_LINE_LOOP);
+                  glVertex3f(s_data.NearBottomLeft.GetX(),s_data.NearBottomLeft.GetY(),s_data.NearBottomLeft.GetZ());
+                  glVertex3f(s_data.NearBottomRight.GetX(),s_data.NearBottomRight.GetY(),s_data.NearBottomRight.GetZ());
+                  glVertex3f(s_data.FarBottomRight.GetX(),s_data.FarBottomRight.GetY(),s_data.FarBottomRight.GetZ());
+                  glVertex3f(s_data.FarBottomLeft.GetX(),s_data.FarBottomLeft.GetY(),s_data.FarBottomLeft.GetZ());
+                  glEnd();
+                  //top plane
+                  glBegin(GL_LINE_LOOP);
+                  glVertex3f(s_data.NearTopRight.GetX(),s_data.NearTopRight.GetY(),s_data.NearTopRight.GetZ());
+                  glVertex3f(s_data.NearTopLeft.GetX(),s_data.NearTopLeft.GetY(),s_data.NearTopLeft.GetZ());
+                  glVertex3f(s_data.FarTopLeft.GetX(),s_data.FarTopLeft.GetY(),s_data.FarTopLeft.GetZ());
+                  glVertex3f(s_data.FarTopRight.GetX(),s_data.FarTopRight.GetY(),s_data.FarTopRight.GetZ());
+                  glEnd();
+                  //left plane
+                  glBegin(GL_LINE_LOOP);
+                  glVertex3f(s_data.NearTopLeft.GetX(),s_data.NearTopLeft.GetY(),s_data.NearTopLeft.GetZ());
+                  glVertex3f(s_data.NearBottomLeft.GetX(),s_data.NearBottomLeft.GetY(),s_data.NearBottomLeft.GetZ());
+                  glVertex3f(s_data.FarBottomLeft.GetX(),s_data.FarBottomLeft.GetY(),s_data.FarBottomLeft.GetZ());
+                  glVertex3f(s_data.FarTopLeft.GetX(),s_data.FarTopLeft.GetY(),s_data.FarTopLeft.GetZ());
+                  glEnd();
+                  // right plane
+                  glBegin(GL_LINE_LOOP);
+                  glVertex3f(s_data.NearBottomRight.GetX(),s_data.NearBottomRight.GetY(),s_data.NearBottomRight.GetZ());
+                  glVertex3f(s_data.NearTopRight.GetX(),s_data.NearTopRight.GetY(),s_data.NearTopRight.GetZ());
+                  glVertex3f(s_data.FarTopRight.GetX(),s_data.FarTopRight.GetY(),s_data.FarTopRight.GetZ());
+                  glVertex3f(s_data.FarBottomRight.GetX(),s_data.FarBottomRight.GetY(),s_data.FarBottomRight.GetZ());
+                  glEnd();
                }
             }
          }

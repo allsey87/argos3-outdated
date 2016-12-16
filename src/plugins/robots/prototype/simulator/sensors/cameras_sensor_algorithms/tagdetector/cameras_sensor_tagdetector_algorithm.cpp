@@ -21,29 +21,11 @@ namespace argos {
    /****************************************/   
 
    CCamerasSensorTagDetectorAlgorithm::CCamerasSensorTagDetectorAlgorithm() :
-      m_pcCameraEquippedEntity(NULL),
       m_pcControllableEntity(NULL),
-      m_unCameraIndex(0),
       m_bShowRays(false),
       m_fDistanceNoiseStdDev(0.0f),
       m_pcRNG(NULL),
-      m_pcTagIndex(NULL),
-      m_unHorizontalResolution(0u),
-      m_unVerticalResolution(0u) {}
-
-   /****************************************/
-   /****************************************/   
-
-   void CCamerasSensorTagDetectorAlgorithm::SetCamera(CCameraEquippedEntity& c_entity, UInt32 un_index) {
-      m_pcCameraEquippedEntity = &c_entity;
-      m_unCameraIndex = un_index;
-      m_unHorizontalResolution   = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetHorizontalResolution();
-      m_unVerticalResolution     = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetVerticalResolution();
-      m_cCameraMatrix            = m_pcCameraEquippedEntity->GetCamera(m_unCameraIndex).GetCameraMatrix();
-      /* get the body camera to body transform */
-      m_cCameraToBodyTransform.SetFromComponents(m_pcCameraEquippedEntity->GetOffsetOrientation(m_unCameraIndex),
-                                                 m_pcCameraEquippedEntity->GetOffsetPosition(m_unCameraIndex));
-   }
+      m_pcTagIndex(NULL) {}
 
    /****************************************/
    /****************************************/
@@ -73,18 +55,13 @@ namespace argos {
    /****************************************/
 
    void CCamerasSensorTagDetectorAlgorithm::Update() {
-      CTransformationMatrix3 cBodyToWorldTransform(m_pcCameraEquippedEntity->GetPositionalEntity(m_unCameraIndex).GetOrientation(),
-                                                   m_pcCameraEquippedEntity->GetPositionalEntity(m_unCameraIndex).GetPosition());
-      /* build the camera to world matrix */
-      (cBodyToWorldTransform * m_cCameraToBodyTransform).GetInverse().GetSubMatrix(m_cCameraToWorldMatrix,0,0);
       /* All occlusion rays start from the camera position */
-      m_cOcclusionCheckRay.SetStart(m_sViewport.CameraLocation);
+      m_cOcclusionCheckRay.SetStart(m_psData->CameraLocation);
       /* Clear the old readings */ 
       m_tReadings.clear();
       m_vecCheckedRays.clear();
-
-      m_pcTagIndex->ForEntitiesInBoxRange(m_sViewport.Position,
-                                          m_sViewport.HalfExtents,
+      m_pcTagIndex->ForEntitiesInBoxRange(m_psData->BoundingBoxPosition,
+                                          m_psData->BoundingBoxHalfExtents,
                                           *this);
    }
 
@@ -93,43 +70,45 @@ namespace argos {
 
    bool CCamerasSensorTagDetectorAlgorithm::operator()(CTagEntity& c_tag) {
       const CVector3& cTagPosition = c_tag.GetPosition();
-      if((cTagPosition - m_sViewport.Position).Length() < m_sViewport.HalfExtents[0]) {
-         m_cOcclusionCheckRay.SetEnd(cTagPosition);
-         /* note: we only ray check against the center of the tag */
-         if(!GetClosestEmbodiedEntityIntersectedByRay(m_sIntersectionItem, m_cOcclusionCheckRay)) {
-            /* Store this led into our readings list */
-            std::vector<CVector2> vecCorners;
-            for(const CVector3& cTagCornerOffset : m_vecTagCornerOffsets) {
-               CVector3 cCornerPosition(cTagCornerOffset * c_tag.GetSideLength());
-               cCornerPosition.Rotate(c_tag.GetOrientation());
-               cCornerPosition += cTagPosition;
-               vecCorners.push_back(Project(cCornerPosition));
-            }
-            m_tReadings.push_back(SReading(c_tag.GetPayload(),
-                                           Project(cTagPosition),
-                                           vecCorners));
+      std::vector<CVector3> vecTagCorners;
+      vecTagCorners.reserve(m_vecTagCornerOffsets.size());
+      for(const CVector3& c_corner_offset : m_vecTagCornerOffsets) {
+         CVector3 cCorner(c_corner_offset * c_tag.GetSideLength());
+         cCorner.Rotate(c_tag.GetOrientation());
+         cCorner += cTagPosition;
+         vecTagCorners.push_back(cCorner);
+      }
+      /* frustum checking */
+      for(const CVector3& c_corner : vecTagCorners) {
+         if(IsPointInsideFrustum(c_corner) == false) {
+            /* corner is not inside the frustum */
+            return true;
+         }
+      }
+      /* ray checking */
+      for(const CVector3& c_corner : vecTagCorners) {
+         m_cOcclusionCheckRay.SetEnd(c_corner);
+         if(GetClosestEmbodiedEntityIntersectedByRay(m_sIntersectionItem, m_cOcclusionCheckRay)) {
+            /* corner is occluded */
             if(m_bShowRays) {
-               m_vecCheckedRays.push_back(std::pair<bool, CRay3>(false, CRay3(m_sViewport.CameraLocation, cTagPosition)));
+               m_vecCheckedRays.push_back(std::make_pair(true, m_cOcclusionCheckRay));
+            }
+            return true;
+         }
+         else {
+            if(m_bShowRays) {
+               m_vecCheckedRays.push_back(std::make_pair(false, m_cOcclusionCheckRay));
             }
          }
       }
+      /* project points and store readings */
+      std::vector<CVector2> vecCornerPixels;
+      vecCornerPixels.reserve(vecTagCorners.size());
+      for(const CVector3& c_corner : vecTagCorners) {
+         vecCornerPixels.emplace_back(ProjectOntoSensor(c_corner));
+      }
+      m_tReadings.emplace_back(c_tag.GetPayload(), ProjectOntoSensor(cTagPosition), vecCornerPixels);
       return true;
-   }
-
-   /****************************************/
-   /****************************************/
-
-   CVector2 CCamerasSensorTagDetectorAlgorithm::Project(const CVector3& c_vector) {
-      CMatrix<4,1> cPosVector {c_vector.GetX(), c_vector.GetY(), c_vector.GetZ(), 1};
-      CMatrix<3,1> cPosCamCoords(m_cCameraToWorldMatrix * cPosVector);
-      /* normalize */
-      cPosCamCoords(0,0) /= cPosCamCoords(2,0);
-      cPosCamCoords(1,0) /= cPosCamCoords(2,0);
-      cPosCamCoords(2,0) /= cPosCamCoords(2,0);
-      /* get image coordinates */              
-      CMatrix<3,1> cPosImgCoords(m_cCameraMatrix * cPosCamCoords);
-      /* return as vector2 */
-      return CVector2(cPosImgCoords(0,0), cPosImgCoords(1,0));
    }
 
    /****************************************/

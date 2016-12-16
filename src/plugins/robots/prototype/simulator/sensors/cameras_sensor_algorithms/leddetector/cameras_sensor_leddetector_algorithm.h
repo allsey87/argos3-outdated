@@ -50,37 +50,16 @@ namespace argos {
   
       virtual void Update();
 
-      virtual void SetCamera(CCameraEquippedEntity& c_entity, UInt32 un_index);
-
-      virtual void SetViewport(const SViewport& s_viewport) {
-         m_sViewport = s_viewport;
-      }
-
       virtual bool operator()(CLEDEntity& c_led);
 
-      CVector2 Project(const CVector3& c_vector);
-
    protected:
-
-      CCameraEquippedEntity*             m_pcCameraEquippedEntity;
       CControllableEntity*               m_pcControllableEntity;
-      UInt32                             m_unCameraIndex;
       bool                               m_bShowRays;
       CRay3                              m_cOcclusionCheckRay;
       Real                               m_fDistanceNoiseStdDev;
       CRandom::CRNG*                     m_pcRNG;
       CPositionalIndex<CLEDEntity>*      m_pcLEDIndex;
-
       SEmbodiedEntityIntersectionItem    m_sIntersectionItem;
- 
-      SViewport                          m_sViewport;
-
-      UInt32                             m_unHorizontalResolution;
-      UInt32                             m_unVerticalResolution;
-
-      CSquareMatrix<3>                   m_cCameraMatrix;
-      CTransformationMatrix3             m_cCameraToBodyTransform;
-      CMatrix<3,4>                       m_cCameraToWorldMatrix;
    };
 }         
 
