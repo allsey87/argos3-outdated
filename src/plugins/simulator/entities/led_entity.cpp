@@ -36,6 +36,9 @@ namespace argos {
          CPositionalEntity::Init(t_tree);
          GetNodeAttribute(t_tree, "color", m_cInitColor);
          m_cColor = m_cInitColor;
+         CDegrees cObservableAngle;
+         GetNodeAttribute(t_tree, "observable_angle", cObservableAngle);
+         m_cObservableAngle = ToRadians(cObservableAngle);
       }
       catch(CARGoSException& ex) {
          THROW_ARGOSEXCEPTION_NESTED("Error while initializing led entity", ex);

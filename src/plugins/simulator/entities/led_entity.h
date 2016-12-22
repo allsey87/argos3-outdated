@@ -88,6 +88,24 @@ namespace argos {
          m_cInitColor = c_color;
       }
 
+      /**
+       * Gets the observable angle of the LED.
+       * @return the observable angle of the LED.
+       * @see SetObservableAngle()
+       */
+      inline const CRadians& GetObservableAngle() const {
+         return m_cObservableAngle;
+      }
+
+      /**
+       * Sets the observable angle of the LED.
+       * @param c_angle the observable angle of the LED.
+       * @see GetObservableAngle()
+       */
+      inline void SetObservableAngle(const CRadians& c_angle) {
+         m_cObservableAngle = c_angle;
+      }
+
       virtual std::string GetTypeDescription() const {
          return "led";
       }
@@ -110,6 +128,7 @@ namespace argos {
 
       CColor m_cColor;
       CColor m_cInitColor;
+      CRadians m_cObservableAngle;
 
    };
 

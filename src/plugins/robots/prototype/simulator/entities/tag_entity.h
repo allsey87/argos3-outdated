@@ -37,7 +37,6 @@ namespace argos {
       CTagEntity(CComposableEntity* pc_parent,
                       const std::string& str_id,
                       const std::string& str_payload,
-                      bool b_localisable,
                       Real f_side_length);
                                             
       virtual ~CTagEntity() {}
@@ -69,11 +68,24 @@ namespace argos {
       inline Real GetSideLength() const {
          return m_fSideLength;
       }
-      
-      inline bool IsLocalizable() const {
-         return m_bLocalizable;
+
+      /**
+       * Gets the observable angle of the LED.
+       * @return the observable angle of the LED.
+       * @see SetObservableAngle()
+       */
+      inline const CRadians& GetObservableAngle() const {
+         return m_cObservableAngle;
       }
 
+      /**
+       * Sets the observable angle of the LED.
+       * @param c_angle the observable angle of the LED.
+       * @see GetObservableAngle()
+       */
+      inline void SetObservableAngle(const CRadians& c_angle) {
+         m_cObservableAngle = c_angle;
+      }
 
       virtual std::string GetTypeDescription() const {
          return "tag";
@@ -96,8 +108,9 @@ namespace argos {
    protected:
 
       std::string m_strPayload;
-      bool m_bLocalizable;
       Real m_fSideLength;
+      CRadians m_cObservableAngle;
+      
    };
 
    /****************************************/

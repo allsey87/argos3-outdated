@@ -22,11 +22,9 @@ namespace argos {
    CTagEntity::CTagEntity(CComposableEntity* pc_parent,
                                     const std::string& str_id,
                                     const std::string& str_payload,
-                                    bool b_localizable,
                                     Real f_side_length) :
       CPositionalEntity(pc_parent, str_id, CVector3(), CQuaternion()),
       m_strPayload(str_payload),
-      m_bLocalizable(b_localizable),
       m_fSideLength(f_side_length) {}
 
    /****************************************/
@@ -36,10 +34,13 @@ namespace argos {
       try {
          /* Parse XML */
          CPositionalEntity::Init(t_tree);
-         GetNodeAttribute(t_tree, "localizable", m_bLocalizable);
          GetNodeAttribute(t_tree, "side_length", m_fSideLength);
          std::string strPayload;
          GetNodeAttribute(t_tree, "payload", m_strPayload);
+         CDegrees cObservableAngle;
+         GetNodeAttribute(t_tree, "observable_angle", cObservableAngle);
+         m_cObservableAngle = ToRadians(cObservableAngle);
+
       }
       catch(CARGoSException& ex) {
          THROW_ARGOSEXCEPTION_NESTED("Error while initializing tag entity", ex);
