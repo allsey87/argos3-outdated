@@ -183,7 +183,6 @@ namespace argos {
             pfColor[1] = cColor.GetGreen() / 255.0f;
             pfColor[2] = cColor.GetBlue() / 255.0f;
             glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, pfColor);
-            /* Get the orientation of the LED */
             const CVector3& cPosition = cLEDEquippedEntity.GetLED(i).GetPosition();
             glTranslatef(cPosition.GetX(), cPosition.GetY(), cPosition.GetZ() - LED_RADIUS/2);
             /* Draw the LED */
@@ -230,73 +229,16 @@ namespace argos {
       }
       */
       
-      /* Camera Testing Begin */
-      if(c_entity.HasComponent("controller")) {
-         CControllableEntity& cController = c_entity.GetComponent<CControllableEntity>("controller");
-         if(cController.GetController().HasSensor("cameras")) {
-            CCamerasDefaultSensor* pcCamerasSensor = cController.GetController().GetSensor<CCamerasDefaultSensor>("cameras");
-            if(pcCamerasSensor != NULL) {
-               for(const CCamerasSensorSimulatedAlgorithm::SData& s_data : pcCamerasSensor->GetCameraData()) {
-                  glBegin(GL_LINE_LOOP);
-                  //near plane
-                  glVertex3f(s_data.NearTopLeft.GetX(),s_data.NearTopLeft.GetY(),s_data.NearTopLeft.GetZ());
-                  glVertex3f(s_data.NearTopRight.GetX(),s_data.NearTopRight.GetY(),s_data.NearTopRight.GetZ());
-                  glVertex3f(s_data.NearBottomRight.GetX(),s_data.NearBottomRight.GetY(),s_data.NearBottomRight.GetZ());
-                  glVertex3f(s_data.NearBottomLeft.GetX(),s_data.NearBottomLeft.GetY(),s_data.NearBottomLeft.GetZ());
-                  glEnd();
-                  //far plane
-                  glBegin(GL_LINE_LOOP);
-                  glVertex3f(s_data.FarTopRight.GetX(),s_data.FarTopRight.GetY(),s_data.FarTopRight.GetZ());
-                  glVertex3f(s_data.FarTopLeft.GetX(),s_data.FarTopLeft.GetY(),s_data.FarTopLeft.GetZ());
-                  glVertex3f(s_data.FarBottomLeft.GetX(),s_data.FarBottomLeft.GetY(),s_data.FarBottomLeft.GetZ());
-                  glVertex3f(s_data.FarBottomRight.GetX(),s_data.FarBottomRight.GetY(),s_data.FarBottomRight.GetZ());
-                  glEnd();
-                  //bottom plane
-                  glBegin(GL_LINE_LOOP);
-                  glVertex3f(s_data.NearBottomLeft.GetX(),s_data.NearBottomLeft.GetY(),s_data.NearBottomLeft.GetZ());
-                  glVertex3f(s_data.NearBottomRight.GetX(),s_data.NearBottomRight.GetY(),s_data.NearBottomRight.GetZ());
-                  glVertex3f(s_data.FarBottomRight.GetX(),s_data.FarBottomRight.GetY(),s_data.FarBottomRight.GetZ());
-                  glVertex3f(s_data.FarBottomLeft.GetX(),s_data.FarBottomLeft.GetY(),s_data.FarBottomLeft.GetZ());
-                  glEnd();
-                  //top plane
-                  glBegin(GL_LINE_LOOP);
-                  glVertex3f(s_data.NearTopRight.GetX(),s_data.NearTopRight.GetY(),s_data.NearTopRight.GetZ());
-                  glVertex3f(s_data.NearTopLeft.GetX(),s_data.NearTopLeft.GetY(),s_data.NearTopLeft.GetZ());
-                  glVertex3f(s_data.FarTopLeft.GetX(),s_data.FarTopLeft.GetY(),s_data.FarTopLeft.GetZ());
-                  glVertex3f(s_data.FarTopRight.GetX(),s_data.FarTopRight.GetY(),s_data.FarTopRight.GetZ());
-                  glEnd();
-                  //left plane
-                  glBegin(GL_LINE_LOOP);
-                  glVertex3f(s_data.NearTopLeft.GetX(),s_data.NearTopLeft.GetY(),s_data.NearTopLeft.GetZ());
-                  glVertex3f(s_data.NearBottomLeft.GetX(),s_data.NearBottomLeft.GetY(),s_data.NearBottomLeft.GetZ());
-                  glVertex3f(s_data.FarBottomLeft.GetX(),s_data.FarBottomLeft.GetY(),s_data.FarBottomLeft.GetZ());
-                  glVertex3f(s_data.FarTopLeft.GetX(),s_data.FarTopLeft.GetY(),s_data.FarTopLeft.GetZ());
-                  glEnd();
-                  // right plane
-                  glBegin(GL_LINE_LOOP);
-                  glVertex3f(s_data.NearBottomRight.GetX(),s_data.NearBottomRight.GetY(),s_data.NearBottomRight.GetZ());
-                  glVertex3f(s_data.NearTopRight.GetX(),s_data.NearTopRight.GetY(),s_data.NearTopRight.GetZ());
-                  glVertex3f(s_data.FarTopRight.GetX(),s_data.FarTopRight.GetY(),s_data.FarTopRight.GetZ());
-                  glVertex3f(s_data.FarBottomRight.GetX(),s_data.FarBottomRight.GetY(),s_data.FarBottomRight.GetZ());
-                  glEnd();
-               }
-            }
-         }
-      }
-      /* Camera Testing End */
-
-      if(c_entity.HasComponent("tag_container")) {
+      if(c_entity.HasComponent("tags")) {
          CTagEquippedEntity& cTagEquippedEntity =
-            c_entity.GetComponent<CTagEquippedEntity>("tag_container");
+            c_entity.GetComponent<CTagEquippedEntity>("tags");
          for(UInt32 i = 0; i < cTagEquippedEntity.GetAllTags().size(); ++i) {
             const CVector3& cTagPosition = cTagEquippedEntity.GetTag(i).GetPosition();
             const CQuaternion& cTagOrientation = cTagEquippedEntity.GetTag(i).GetOrientation(); 
             CRadians cZ, cY, cX;
             cTagOrientation.ToEulerAngles(cZ, cY, cX);
             Real fScaling = cTagEquippedEntity.GetTag(i).GetSideLength();
-
             glPushMatrix();
-            
             glTranslatef(cTagPosition.GetX(),
                          cTagPosition.GetY(),
                          cTagPosition.GetZ());
@@ -458,10 +400,8 @@ namespace argos {
          }
       }
       glEnd();
-      
       /* We don't need it anymore */
-      glDisable(GL_NORMALIZE);
-     
+      glDisable(GL_NORMALIZE);    
    }
 
 

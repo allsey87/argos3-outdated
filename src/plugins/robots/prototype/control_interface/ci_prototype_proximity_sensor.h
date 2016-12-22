@@ -35,6 +35,8 @@ namespace argos {
             Value(f_value),
             SensorOffset(c_sensor_offset),
             SensorDirection(c_sensor_direction) {}
+   
+         typedef std::vector<SReading> TVector;
       };
 
       typedef std::vector<SReading> TReadings;
@@ -66,7 +68,7 @@ namespace argos {
 
    protected:
 
-      TReadings m_tReadings;
+      SReading::TVector m_tReadings;
 
    };
    /*
