@@ -34,8 +34,9 @@ namespace argos {
          /* Transformation matrices */
          CTransformationMatrix3 CameraToBodyTransform;
          CTransformationMatrix3 CameraToWorldTransform;
-         CMatrix<3,4> WorldToCameraMatrix;
-         CSquareMatrix<3> PerspectiveMatrix;
+         CTransformationMatrix3 WorldToCameraTransform;
+         /* Projection matrix */
+         CSquareMatrix<3> ProjectionMatrix;
          /* Frustum bounding box */
          CVector3 BoundingBoxPosition;
          CVector3 BoundingBoxHalfExtents;
@@ -58,28 +59,35 @@ namespace argos {
          m_psData = &s_data;
       }
 
+      CRadians GetAngleWithCamera(const CPositionalEntity& c_entity) {
+         CVector3 cEntityToCamera(m_psData->CameraLocation - c_entity.GetPosition());
+         CVector3 cEntityDirection(CVector3::Z);
+         cEntityDirection.Rotate(c_entity.GetOrientation());
+         Real fDotProduct = cEntityDirection.DotProduct(cEntityToCamera);
+         return ACos(fDotProduct / (cEntityDirection.Length() * cEntityToCamera.Length()));
+      }
+
       CVector2 ProjectOntoSensor(const CVector3& c_vector) {
-         CMatrix<4,1> cPosVector {c_vector.GetX(), c_vector.GetY(), c_vector.GetZ(), 1};
-         CMatrix<3,1> cPosCamCoords(m_psData->WorldToCameraMatrix * cPosVector);
-         /* normalize */
-         cPosCamCoords(0,0) /= cPosCamCoords(2,0);
-         cPosCamCoords(1,0) /= cPosCamCoords(2,0);
-         cPosCamCoords(2,0) /= cPosCamCoords(2,0);
+         CVector3 cCameraToEntityTranslation(m_psData->WorldToCameraTransform * c_vector);
+         /* this could be avoided if CVector3 inherited from CMatrix<3,1> */
+         CMatrix<3,1> cCameraToEntityTranslationMatrix {
+            cCameraToEntityTranslation.GetX() / cCameraToEntityTranslation.GetZ(),
+            cCameraToEntityTranslation.GetY() / cCameraToEntityTranslation.GetZ(),
+            1.0
+         };
          /* get image coordinates */              
-         CMatrix<3,1> cPosImgCoords(m_psData->PerspectiveMatrix * cPosCamCoords);
+         CMatrix<3,1> cImageCoordinates(m_psData->ProjectionMatrix * cCameraToEntityTranslationMatrix);
          /* return as vector2 */
-         return CVector2(cPosImgCoords(0,0), cPosImgCoords(1,0));
+         return CVector2(cImageCoordinates(0,0), cImageCoordinates(1,0));
       }
 
       bool IsPointInsideFrustum(const CVector3& c_point) {
-         bool bResult = true;
          for(const CPlane& c_plane : m_psData->BoundingPlanes) {
-            // possible errors here!
             if(c_plane.GetNormal().DotProduct(c_point - c_plane.GetPosition()) < 0.0) {
-               bResult = false;
+               return false;
             }
          }
-         return bResult;
+         return true;
       }
 
       virtual void Update() = 0;

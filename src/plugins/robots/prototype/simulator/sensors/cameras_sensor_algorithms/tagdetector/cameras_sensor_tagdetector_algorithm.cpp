@@ -69,6 +69,11 @@ namespace argos {
    /****************************************/
 
    bool CCamerasSensorTagDetectorAlgorithm::operator()(CTagEntity& c_tag) {
+      /* observable angle check (only done against tag center) */
+      if(GetAngleWithCamera(c_tag) > c_tag.GetObservableAngle()) {
+         return true;
+      }
+      /* compute the corner locations */
       const CVector3& cTagPosition = c_tag.GetPosition();
       std::vector<CVector3> vecTagCorners;
       vecTagCorners.reserve(m_vecTagCornerOffsets.size());

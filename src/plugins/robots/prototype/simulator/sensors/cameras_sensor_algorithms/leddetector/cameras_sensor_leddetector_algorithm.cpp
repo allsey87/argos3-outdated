@@ -82,6 +82,10 @@ namespace argos {
       if(c_led.GetColor() == CColor::BLACK) {
          return true;
       }
+      /* observable angle check */
+      if(GetAngleWithCamera(c_led) > c_led.GetObservableAngle()) {
+         return true;
+      }
       /* frustum check */
       const CVector3& cLedPosition = c_led.GetPosition();
       if(IsPointInsideFrustum(cLedPosition) == false) {

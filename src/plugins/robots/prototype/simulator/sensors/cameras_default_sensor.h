@@ -49,6 +49,7 @@ namespace argos {
    protected:
 
       bool m_bEnabled;
+      bool m_bShowFrustums;
       CCameraEquippedEntity* m_pcCameraEquippedEntity;
       CControllableEntity* m_pcControllableEntity;
       std::vector<CCamerasSensorSimulatedAlgorithm::SData> m_vecData;

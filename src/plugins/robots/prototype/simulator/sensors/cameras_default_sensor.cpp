@@ -17,6 +17,7 @@ namespace argos {
 
    CCamerasDefaultSensor::CCamerasDefaultSensor() :
       m_bEnabled(false),
+      m_bShowFrustums(false),
       m_pcCameraEquippedEntity(NULL),
       m_pcControllableEntity(NULL) {}
 
@@ -46,9 +47,9 @@ namespace argos {
          sData.NearDepth = 0.050; // 5cm, focus range is 10cm
          sData.FarDepth = 0.500; // 50cm, testing
          /* calculate frustum near and far plane dimensions */
-         sData.PerspectiveMatrix = cCamera.GetCameraMatrix();
-         Real fWidthToDepthRatio = (0.5 * cCamera.GetHorizontalResolution()) / sData.PerspectiveMatrix(0,0);
-         Real fHeightToDepthRatio = (0.5 * cCamera.GetVerticalResolution()) / sData.PerspectiveMatrix(1,1);
+         sData.ProjectionMatrix = cCamera.GetCameraMatrix();
+         Real fWidthToDepthRatio = (0.5 * cCamera.GetHorizontalResolution()) / sData.ProjectionMatrix(0,0);
+         Real fHeightToDepthRatio = (0.5 * cCamera.GetVerticalResolution()) / sData.ProjectionMatrix(1,1);
          sData.NearPlaneHeight = fHeightToDepthRatio * sData.NearDepth;
          sData.NearPlaneWidth = fWidthToDepthRatio * sData.NearDepth;
          sData.FarPlaneHeight = fHeightToDepthRatio * sData.FarDepth;
@@ -77,7 +78,8 @@ namespace argos {
       try {
          /* Parent class init */
          CCI_CamerasSensor::Init(t_tree);
-
+         /* Show the frustums */
+         GetNodeAttributeOrDefault(t_tree, "show_frustums",m_bShowFrustums, m_bShowFrustums);
          TConfigurationNodeIterator itAlgorithm;
          for(itAlgorithm = itAlgorithm.begin(&GetNode(t_tree, "algorithms"));
              itAlgorithm != itAlgorithm.end();
@@ -131,19 +133,16 @@ namespace argos {
          CTransformationMatrix3 cBodyToWorldTransform(cCameraPositionalEntity.GetOrientation(),
                                                       cCameraPositionalEntity.GetPosition());
          sData.CameraToWorldTransform = cBodyToWorldTransform * sData.CameraToBodyTransform;
-         sData.CameraToWorldTransform.GetInverse().GetSubMatrix(sData.WorldToCameraMatrix,0,0);
-         // Errors are most likely here
+         sData.WorldToCameraTransform = sData.CameraToWorldTransform.GetInverse();
+         /* calculate camera direction vectors */
          sData.CameraLocation = sData.CameraToWorldTransform.GetTranslationVector();
          sData.LookAt = sData.CameraToWorldTransform * (CVector3::Z);
          sData.Up = sData.CameraToWorldTransform * (-CVector3::Y);
-         // should be ok
          CVector3 cZ(sData.CameraLocation - sData.LookAt);
-         cZ.Normalize();
-         
+         cZ.Normalize();        
          CVector3 cX(sData.Up);
          cX.CrossProduct(cZ);
          cX.Normalize();
-
          CVector3 cY(cZ);
          cY.CrossProduct(cX);
          CVector3 cNearCenter(sData.CameraLocation - cZ * sData.NearDepth);
@@ -158,6 +157,21 @@ namespace argos {
          sData.FarTopRight = cFarCenter + (cY * sData.FarPlaneHeight) + (cX * sData.FarPlaneWidth);
          sData.FarBottomLeft = cFarCenter - (cY * sData.FarPlaneHeight) - (cX * sData.FarPlaneWidth);
          sData.FarBottomRight = cFarCenter - (cY * sData.FarPlaneHeight) + (cX * sData.FarPlaneWidth);
+         /* show frustum */
+         if(m_bShowFrustums) {
+            m_pcControllableEntity->GetCheckedRays().emplace_back(true, CRay3(sData.NearTopLeft, sData.NearTopRight));
+            m_pcControllableEntity->GetCheckedRays().emplace_back(true, CRay3(sData.NearTopRight, sData.NearBottomRight));
+            m_pcControllableEntity->GetCheckedRays().emplace_back(true, CRay3(sData.NearBottomRight, sData.NearBottomLeft));
+            m_pcControllableEntity->GetCheckedRays().emplace_back(true, CRay3(sData.NearBottomLeft, sData.NearTopLeft));
+            m_pcControllableEntity->GetCheckedRays().emplace_back(true, CRay3(sData.FarTopLeft, sData.FarTopRight));
+            m_pcControllableEntity->GetCheckedRays().emplace_back(true, CRay3(sData.FarTopRight, sData.FarBottomRight));
+            m_pcControllableEntity->GetCheckedRays().emplace_back(true, CRay3(sData.FarBottomRight, sData.FarBottomLeft));
+            m_pcControllableEntity->GetCheckedRays().emplace_back(true, CRay3(sData.FarBottomLeft, sData.FarTopLeft));
+            m_pcControllableEntity->GetCheckedRays().emplace_back(true, CRay3(sData.NearTopLeft, sData.FarTopLeft));
+            m_pcControllableEntity->GetCheckedRays().emplace_back(true, CRay3(sData.NearTopRight, sData.FarTopRight));
+            m_pcControllableEntity->GetCheckedRays().emplace_back(true, CRay3(sData.NearBottomRight, sData.FarBottomRight));
+            m_pcControllableEntity->GetCheckedRays().emplace_back(true, CRay3(sData.NearBottomLeft, sData.FarBottomLeft));
+         }
          /* building bounding box */
          CVector3 cBoundingBoxMinCorner(cNearCenter), cBoundingBoxMaxCorner(cNearCenter);
          for(const CVector3& c_point : {sData.NearTopLeft, sData.NearTopRight, sData.NearBottomLeft, sData.NearBottomRight, 
