@@ -23,7 +23,7 @@ namespace argos {
    /****************************************/
 
    CTagEquippedEntity::CTagEquippedEntity(CComposableEntity* pc_parent,
-                                                    const std::string& str_id) :
+                                          const std::string& str_id) :
       CComposableEntity(pc_parent, str_id) {
    }
 
@@ -46,16 +46,14 @@ namespace argos {
             std::string strTagBody;
             GetNodeAttribute(*itTag, "body", strTagBody);
             CBodyEntity& cTagBody = GetParent().GetComponent<CBodyEntity>("bodies.body[" + strTagBody + "]");
-
+            /* store the offset position and orientation */
             CVector3 cPositionOffset;
             GetNodeAttribute(*itTag, "position", cPositionOffset);
             CQuaternion cOrientationOffset;
             GetNodeAttribute(*itTag, "orientation", cOrientationOffset);
-
             m_vecPositionalEntities.push_back(&cTagBody.GetPositionalEntity());
             m_vecPositionOffsets.push_back(cPositionOffset);
             m_vecOrientationOffsets.push_back(cOrientationOffset);
-
             m_tTags.push_back(pcTag);
             AddComponent(*pcTag);
          }
@@ -88,9 +86,8 @@ namespace argos {
          cTagPosition = m_vecPositionOffsets[i];
          cTagPosition.Rotate(m_vecPositionalEntities[i]->GetOrientation());
          cTagPosition += m_vecPositionalEntities[i]->GetPosition();
-
-         cTagOrientation = m_vecPositionalEntities[i]->GetOrientation() * m_vecOrientationOffsets[i];
-
+         cTagOrientation = m_vecPositionalEntities[i]->GetOrientation() *
+            m_vecOrientationOffsets[i];
          m_tTags[i]->SetPosition(cTagPosition);
          m_tTags[i]->SetOrientation(cTagOrientation);
       }

@@ -23,7 +23,7 @@ namespace argos {
    /****************************************/
 
    CPrototypeLEDEquippedEntity::CPrototypeLEDEquippedEntity(CComposableEntity* pc_parent,
-                                          const std::string& str_id) :
+                                                            const std::string& str_id) :
       CComposableEntity(pc_parent, str_id) {
    }
 
@@ -46,8 +46,14 @@ namespace argos {
             std::string strLEDBody;
             GetNodeAttribute(*itLED, "body", strLEDBody);
             CBodyEntity& cLEDBody = GetParent().GetComponent<CBodyEntity>("bodies.body[" + strLEDBody + "]");
-            m_vecLEDPositionalEntities.push_back(&cLEDBody.GetPositionalEntity());
-            m_vecLEDOffsets.push_back(pcLED->GetPosition());
+            /* store the offset position and orientation */
+            CVector3 cPositionOffset;
+            GetNodeAttribute(*itLED, "position", cPositionOffset);
+            CQuaternion cOrientationOffset;
+            GetNodeAttribute(*itLED, "orientation", cOrientationOffset);
+            m_vecPositionalEntities.push_back(&cLEDBody.GetPositionalEntity());
+            m_vecPositionOffsets.push_back(cPositionOffset);
+            m_vecOrientationOffsets.push_back(cOrientationOffset);
             m_tLEDs.push_back(pcLED);
             AddComponent(*pcLED);
          }
@@ -62,52 +68,34 @@ namespace argos {
    /****************************************/
 
    void CPrototypeLEDEquippedEntity::Reset() {
-      for(CLEDEntity::TList::iterator it = m_tLEDs.begin();
-          it != m_tLEDs.end();
-          ++it) {
-         (*it)->Reset();
+      for(CLEDEntity::TList::iterator itLED = m_tLEDs.begin();
+          itLED != m_tLEDs.end();
+          ++itLED) {
+         (*itLED)->Reset();
+      }
+   }
+
+   /****************************************/
+   /****************************************/ 
+
+   void CPrototypeLEDEquippedEntity::Update() {
+      /* Set LED position w.r.t reference */
+      CVector3 cLEDPosition;
+      CQuaternion cLEDOrientation;
+      for(UInt32 i = 0; i < m_tLEDs.size(); ++i) {
+         cLEDPosition = m_vecPositionOffsets[i];
+         cLEDPosition.Rotate(m_vecPositionalEntities[i]->GetOrientation());
+         cLEDPosition += m_vecPositionalEntities[i]->GetPosition();
+         cLEDOrientation = m_vecPositionalEntities[i]->GetOrientation() *
+            m_vecOrientationOffsets[i];
+         m_tLEDs[i]->SetPosition(cLEDPosition);
+         m_tLEDs[i]->SetOrientation(cLEDOrientation);
       }
    }
 
    /****************************************/
    /****************************************/
-
-   void CPrototypeLEDEquippedEntity::AddLED(const CVector3& c_position,
-                                            const CColor& c_color) {
-      CLEDEntity* pcLED =
-         new CLEDEntity(
-            this,
-            std::string("led_") + ToString(m_tLEDs.size()),
-            c_position,
-            c_color);
-      m_tLEDs.push_back(pcLED);
-      AddComponent(*pcLED);
-   }
-
-   /****************************************/
-   /****************************************/
-
-   void CPrototypeLEDEquippedEntity::AddLEDRing(const CVector3& c_center,
-                                                Real f_radius,
-                                                const CRadians& c_start_angle,
-                                                UInt32 un_num_leds,
-                                                const CColor& c_color) {
-      CRadians cLEDSpacing = CRadians::TWO_PI / un_num_leds;
-      CRadians cAngle;
-      CVector3 cPos;
-      for(UInt32 i = 0; i < un_num_leds; ++i) {
-         cAngle = c_start_angle + i * cLEDSpacing;
-         cAngle.SignedNormalize();
-         cPos.Set(f_radius, 0.0f, 0.0f);
-         cPos.RotateZ(cAngle);
-         cPos += c_center;
-         AddLED(cPos, c_color);
-      }
-   }
-
-   /****************************************/
-   /****************************************/
-
+   
    CLEDEntity& CPrototypeLEDEquippedEntity::GetLED(UInt32 un_index) {
       ARGOS_ASSERT(un_index < m_tLEDs.size(),
                    "CPrototypeLEDEquippedEntity::GetLED(), id=\"" <<
@@ -122,23 +110,50 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CPrototypeLEDEquippedEntity::SetLEDPosition(UInt32 un_index,
-                                           const CVector3& c_position) {
-      ARGOS_ASSERT(un_index < m_tLEDs.size(),
-                   "CPrototypeLEDEquippedEntity::SetLEDPosition(), id=\"" <<
-                   GetId() <<
+   const CQuaternion& CPrototypeLEDEquippedEntity::GetOffsetOrientation(UInt32 un_index) const {
+      ARGOS_ASSERT(un_index < m_vecOrientationOffsets.size(),
+                   "CPrototypeLEDEquippedEntity::GetOffsetOrientation(), id=\"" <<
+                   GetContext() + GetId() <<
                    "\": index out of bounds: un_index = " <<
                    un_index <<
-                   ", m_tLEDs.size() = " <<
-                   m_tLEDs.size());
-      m_tLEDs[un_index]->SetPosition(c_position);
+                   ", m_vecOrientationOffsets.size() = " <<
+                   m_vecOrientationOffsets.size());
+      return m_vecOrientationOffsets[un_index];
    }
 
    /****************************************/
    /****************************************/
+   
+   const CVector3& CPrototypeLEDEquippedEntity::GetOffsetPosition(UInt32 un_index) const {
+      ARGOS_ASSERT(un_index < m_vecPositionOffsets.size(),
+                   "CPrototypeLEDEquippedEntity::GetOffsetPosition(), id=\"" <<
+                   GetContext() + GetId() <<
+                   "\": index out of bounds: un_index = " <<
+                   un_index <<
+                   ", m_vecPositionOffsets.size() = " <<
+                   m_vecPositionOffsets.size());
+      return m_vecPositionOffsets[un_index];
+   }
+
+   /****************************************/
+   /****************************************/
+   
+   const CPositionalEntity& CPrototypeLEDEquippedEntity::GetPositionalEntity(UInt32 un_index) const {
+      ARGOS_ASSERT(un_index < m_vecPositionalEntities.size(),
+                   "CPrototypeLEDEquippedEntity::GetPositionalEntity(), id=\"" <<
+                   GetContext() + GetId() <<
+                   "\": index out of bounds: un_index = " <<
+                   un_index <<
+                   ", m_vecPositionalEntities.size() = " <<
+                   m_vecPositionalEntities.size());
+      return *m_vecPositionalEntities[un_index];
+   }
+  
+   /****************************************/
+   /****************************************/
 
    void CPrototypeLEDEquippedEntity::SetLEDColor(UInt32 un_index,
-                                        const CColor& c_color) {
+                                                 const CColor& c_color) {
       ARGOS_ASSERT(un_index < m_tLEDs.size(),
                    "CPrototypeLEDEquippedEntity::SetLEDColor(), id=\"" <<
                    GetId() <<
@@ -176,20 +191,6 @@ namespace argos {
             ") is lower than the passed color vector size (" <<
             vec_colors.size() <<
             ")");
-      }
-   }
-
-   /****************************************/
-   /****************************************/
-
-   void CPrototypeLEDEquippedEntity::UpdateComponents() {
-      /* Set LED position wrt reference */
-      CVector3 cLEDPosition;
-      for(UInt32 i = 0; i < m_tLEDs.size(); ++i) {
-         cLEDPosition = m_vecLEDOffsets[i];
-         cLEDPosition.Rotate(m_vecLEDPositionalEntities[i]->GetOrientation());
-         cLEDPosition += m_vecLEDPositionalEntities[i]->GetPosition();
-         SetLEDPosition(i, cLEDPosition);
       }
    }
 

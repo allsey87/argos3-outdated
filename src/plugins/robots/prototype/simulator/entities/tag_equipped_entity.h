@@ -57,7 +57,6 @@ namespace argos {
 
       virtual void Update();
 
-
       /**
        * Returns all the tags.
        * @return All the tags.
@@ -108,7 +107,7 @@ namespace argos {
       void RemoveFromMedium(CTagMedium& c_medium);
 
       virtual std::string GetTypeDescription() const {
-         return "tag_container";
+         return "tags";
       }
 
    protected:

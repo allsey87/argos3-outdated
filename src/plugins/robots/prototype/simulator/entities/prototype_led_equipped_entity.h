@@ -63,39 +63,7 @@ namespace argos {
 
       virtual void Reset();
 
-      virtual void Update() { UpdateComponents(); }
-
-      /**
-       * Adds an LED to this entity.
-       * @param c_position The position of the LED wrt the reference entity.
-       * @param c_color The color of the LED.
-       * @see GetReferenceEntity()
-       */
-      void AddLED(const CVector3& c_position,
-                  const CColor& c_color = CColor::BLACK);
-
-      /**
-       * Adds a ring of LEDs to this entity.
-       * @param c_center The position of LED ring center wrt the reference entity.
-       * @param f_radius The radius of the LED ring.
-       * @param c_start_angle The angle at which the first LED must be placed. Expressed wrt the local entity <em>x</em>-axis.
-       * @param un_num_leds The number of LEDs to place along the ring.
-       * @param c_color The color of the LEDs.
-       * @see GetReferenceEntity()
-       */
-      void AddLEDRing(const CVector3& c_center,
-                      Real f_radius,
-                      const CRadians& c_start_angle,
-                      UInt32 un_num_leds,
-                      const CColor& c_color = CColor::BLACK);
-
-      /**
-       * Returns an LED by numeric index.
-       * @param un_index The index of the wanted LED.
-       * @return An LED by numeric index.
-       * @see GetAllLEDs()
-       */
-      CLEDEntity& GetLED(UInt32 un_index);
+      virtual void Update();
 
       /**
        * Returns all the LEDs.
@@ -107,28 +75,30 @@ namespace argos {
       }
 
       /**
-       * Returns the offset position of the given LED.
-       * The actual position of an LED is calculated as the sum of the
-       * offset position and the position of the reference.
-       * @return The offset position of the given LED.
+       * Returns an LED by numeric index.
+       * @param un_index The index of the wanted LED.
+       * @return An LED by numeric index.
+       * @see GetAllLEDs()
        */
-      inline const CVector3& GetLEDOffsetPosition(size_t un_idx) const {
-         ARGOS_ASSERT(un_idx < m_vecLEDOffsets.size(),
-                      "CPrototypeLEDEquippedEntity::GetLEDOffsetPosition() : index " <<
-                      un_idx <<
-                      " out of bounds [0:" <<
-                      m_vecLEDOffsets.size()-1 <<
-                      "]" );
-         return m_vecLEDOffsets[un_idx];
-      }
+      CLEDEntity& GetLED(UInt32 un_index);
 
       /**
-       * Sets the position of an LED.
-       * @param un_index The index of the wanted LED.
-       * @param c_position The position of the LED wrt the reference entity.
+       * Returns the offset orientation of the given LED.
+       * @return The offset orientation of the given LED.
        */
-      void SetLEDPosition(UInt32 un_index,
-                          const CVector3& c_position);
+      const CQuaternion& GetOffsetOrientation(UInt32 un_idx) const;
+
+      /**
+       * Returns the offset position of the given LED.
+       * @return The offset position of the given LED.
+       */
+      const CVector3& GetOffsetPosition(UInt32 un_idx) const;
+
+      /**
+       * Returns the positional entity that the given LED is attached to.
+       * @return The positional entity that the given LED is attached to.
+       */
+      const CPositionalEntity& GetPositionalEntity(UInt32 un_idx) const;
 
       /**
        * Sets the color of an LED.
@@ -173,18 +143,13 @@ namespace argos {
 
    protected:
 
-      virtual void UpdateComponents();
-
-   protected:
-
       /** A list of the LEDs contained in this entity */
       CLEDEntity::TList m_tLEDs;
 
-      /** Links to the positional entities that LEDs and attached to **/
-      std::vector<CPositionalEntity*> m_vecLEDPositionalEntities;
+      std::vector<CPositionalEntity*> m_vecPositionalEntities;
+      std::vector<CVector3> m_vecPositionOffsets;
+      std::vector<CQuaternion> m_vecOrientationOffsets;
 
-      /** The offsets of the LEDs */
-      std::vector<CVector3> m_vecLEDOffsets;
    };
 
 }
