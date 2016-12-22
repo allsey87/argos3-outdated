@@ -11,6 +11,8 @@ namespace argos {
    // forward declarations
 }
 
+class CFiniteStateMachine;
+
 #include <argos3/core/control_interface/ci_controller.h>
 
 #include <argos3/plugins/robots/prototype/control_interface/ci_prototype_joints_actuator.h>
@@ -22,12 +24,6 @@ namespace argos {
 #include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor.h>
 #include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_leddetector_algorithm.h>
 #include <argos3/plugins/robots/prototype/control_interface/ci_cameras_sensor_algorithms/ci_cameras_sensor_tagdetector_algorithm.h>
-
-/* hacks */
-#include <argos3/core/simulator/space/positional_indices/positional_index.h>
-// #include <argos3/plugins/simulator/entities/led_entity.h>
-#include <argos3/plugins/simulator/media/led_medium.h>
-#include <argos3/core/simulator/simulator.h>
 
 #include <array>
 #include <list>
@@ -63,14 +59,22 @@ namespace argos {
             m_fTargetPosition = f_target_position;
          }
 
+         Real GetPosition() {
+            CVector3 cReading;
+            m_pcSensor->GetReading(cReading);
+            return cReading.GetZ();
+         }
+
+         Real GetTargetPosition() {
+            return m_fTargetPosition;
+         }
+
          void Reset() {
             m_pcActuator->SetTargetVelocity(0.0);
          }
 
          void ControlStep() {
-            CVector3 cReading;
-            m_pcSensor->GetReading(cReading);
-            Real fError = (m_fTargetPosition - cReading.GetZ());
+            Real fError = m_fTargetPosition - GetPosition();
             if(std::abs(fError) > 0.001) {
                m_pcActuator->SetTargetVelocity(fError * m_fKp);
             }
@@ -80,8 +84,8 @@ namespace argos {
          }
 
       private:
-         Real m_fTargetPosition = 0.130;
-         Real m_fKp = 1.0;
+         Real m_fTargetPosition = 0.135;
+         Real m_fKp = 2.0;
          CCI_PrototypeJointsSensor::CJointSensor* m_pcSensor;
          CCI_PrototypeJointsActuator::CJointActuator* m_pcActuator;
       };
@@ -95,6 +99,8 @@ namespace argos {
       CCI_PrototypeProximitySensor* m_pcProximitySensor;
       CCI_PrototypeRadiosSensor* m_pcRadiosSensor;
       CCI_CamerasSensor* m_pcCamerasSensor;
+      /* radio configuration for NFC */
+      CCI_PrototypeRadiosActuator::SConfiguration* m_psRadioConfiguration;
       /* camera sensor algorithms */
       CCI_CamerasSensorLEDDetectorAlgorithm* m_pcLEDDetectorAlgorithm;
       CCI_CamerasSensorTagDetectorAlgorithm* m_pcTagDetectorAlgorithm;
@@ -109,21 +115,21 @@ namespace argos {
       CCI_PrototypeJointsActuator::CJointActuator* m_pcRearRightWheelJoint;
       /* lift actuator controller system*/
       CLiftActuatorSystemController* m_pcLiftActuatorSystemController;
-
       /* Global data struct pointer */
       CBlockDemo::SSensorData* m_psSensorData;
       CBlockDemo::SActuatorData* m_psActuatorData;
-
       /* Create lists for blocks, targets, and structures */
       SBlock::TList m_tDetectedBlockList;
-      STarget::TList m_tTrackedTargetList;
-      SStructure::TList m_tStructureList;
       CBlockDetector* m_pcBlockDetector;
       CBlockTracker* m_pcBlockTracker;
       CStructureAnalyser* m_pcStructureAnalyser;
-
       /* time of the last reset of the controller */
-      std::chrono::time_point<std::chrono::steady_clock> m_tpLastReset;
+      std::chrono::time_point<std::chrono::steady_clock> m_tpExperimentStart;
+      /* state machine */
+      CFiniteStateMachine* m_pcStateMachine;
+      /* std::ste*/
+      std::string m_strLastOutput;
+      std::string m_strLastTrackingInfo;
    };
 }
 

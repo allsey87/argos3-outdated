@@ -44,8 +44,8 @@ public:
       m_bResetReq = true;
    }
 private:
-   bool m_bResetReq;
    const double m_fKp, m_fKi, m_fKd, m_fSat;
+   bool m_bResetReq;
    double m_fLastError, m_fErrorAccumulated;
    std::chrono::steady_clock::time_point m_tpLastTick;
 };

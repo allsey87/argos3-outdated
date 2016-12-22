@@ -14,6 +14,9 @@ add_library(bebot_controller MODULE
    src/hungarian_solver.cc
    src/hungarian_solver.h
    src/pid_controller.h
+   src/pyramid_experiment.h
+   src/state.cc
+   src/state.h
    src/structure_analyser.cc
    src/structure_analyser.h
    src/structure.h

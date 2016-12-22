@@ -130,16 +130,7 @@ namespace argos {
          }
          sBlock.Rotation.FromEulerAngles(cBlockEulerAngles[0], cBlockEulerAngles[1], cBlockEulerAngles[2]);
          sBlock.Translation.Set(sBlock.TranslationVector(0), sBlock.TranslationVector(1), sBlock.TranslationVector(2));
-         std::cout << s_reading.Payload << std::endl;
-         std::cout << "T = [" << sBlock.Translation << "]" << std::endl;
-         std::cout << "R = [" << sBlock.Rotation << "]" << std::endl;
-         std::cout << "LEDs = [";
-         for(ELedState e_state : sTag.DetectedLeds) {
-            std::cout << e_state << " ";
-         }
-         std::cout << "]" << std::endl;
       }
-      std::cout << "---" << std::endl;
       /* cluster the blocks */
       ClusterDetections(t_detections_list, t_block_list);
    }

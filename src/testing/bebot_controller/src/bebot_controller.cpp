@@ -9,7 +9,28 @@
 #include <argos3/core/utility/logging/argos_log.h>
 #include <iomanip>
 
+#include "pyramid_experiment.h"
+
+#define NUM_CHASSIS_DEVICES 12
+#define RF_HISTORY_LEN 5
+
+#define RF_FRONT_IDX 12
+#define RF_UNDERNEATH_IDX 13
+#define RF_LEFT_IDX 14
+#define RF_RIGHT_IDX 15
+#define EM_DISCHARGE_RATIO 0.75
+#define EM_CHARGE_INCR 10
+#define DDS_VELOCITY_SCALE 0.25
+
 namespace argos {
+
+   Real ScaleProximityValue(Real f_in) {
+      return (20000 - 5368.421*f_in - 12631.58*f_in*f_in);
+   }
+
+   Real ScaleChassisProximityValue(Real f_in) {
+      return (1253.394 - 5493.967*f_in + 7164.404*f_in*f_in);
+   }
 
    /****************************************/
    /****************************************/
@@ -28,7 +49,6 @@ namespace argos {
 
    void CBeBotController::Init(TConfigurationNode& t_tree) {
       /* sensors */
-      m_pcRadiosSensor = GetSensor<CCI_PrototypeRadiosSensor>("radios");
       m_pcJointsSensor = GetSensor<CCI_PrototypeJointsSensor>("joints");   
       m_pcProximitySensor = GetSensor<CCI_PrototypeProximitySensor>("prototype_proximity");
       m_pcCamerasSensor = GetSensor<CCI_CamerasSensor>("cameras");
@@ -39,11 +59,16 @@ namespace argos {
       m_pcBlockDetector = new CBlockDetector;
       m_pcBlockDetector->SetCameraMatrix(m_pcCamerasSensor->GetCameraMatrix("duovero_camera"));
       m_pcBlockDetector->SetDistortionParameters(m_pcCamerasSensor->GetDistortionParameters("duovero_camera"));
-
+      m_pcBlockTracker = new CBlockTracker(3u, 0.05f);
+      m_pcStructureAnalyser = new CStructureAnalyser;
+      /* radios */
+      m_pcRadiosSensor = GetSensor<CCI_PrototypeRadiosSensor>("radios");
+      m_pcRadiosActuator = GetActuator<CCI_PrototypeRadiosActuator>("radios");
+      m_psRadioConfiguration = &(m_pcRadiosActuator->GetConfigurations()[0]);
+      /* electromagnets */
+      m_pcElectromagnets = GetActuator<CCI_PrototypeElectromagnetsActuator>("electromagnets");
       /* actuators */
       m_pcJointsActuator = GetActuator<CCI_PrototypeJointsActuator>("joints");
-      m_pcRadiosActuator = GetActuator<CCI_PrototypeRadiosActuator>("radios");
-      m_pcElectromagnets = GetActuator<CCI_PrototypeElectromagnetsActuator>("electromagnets");
       /* wheels */   
       m_pcFrontLeftWheelJoint = &(m_pcJointsActuator->GetJointActuator("wheel-front-left:lower-chassis", CCI_PrototypeJointsActuator::ANGULAR_Y));
       m_pcFrontRightWheelJoint = &(m_pcJointsActuator->GetJointActuator("wheel-front-right:lower-chassis", CCI_PrototypeJointsActuator::ANGULAR_Y));
@@ -62,27 +87,25 @@ namespace argos {
    /****************************************/
 
    void CBeBotController::Reset() {
+      /* clear out detection and tracking lists */
+      m_tDetectedBlockList.clear();
+      /* reset the LAS */
       m_pcLiftActuatorSystemController->Reset();
       SetElectromagnetCurrent(0.0);
       SetTargetVelocity(0.0,0.0);
       /* delete data structs */
       delete m_psSensorData;
       delete m_psActuatorData;
-
       /* recreate data structs */
       m_psSensorData = new CBlockDemo::SSensorData;
       m_psActuatorData = new CBlockDemo::SActuatorData;
-
+      /* create the state machine */
+      m_pcStateMachine = new CFiniteStateMachine;
       /* Update the global data struct pointers */
-      //Data.Sensors = m_psSensorData;
-      //Data.Actuators = m_psActuatorData;
-      /* Create lists for blocks, targets, and structures */
-      // TODO attached block lists to sensor data
-
-
-      m_tDetectedBlockList.clear();
-
-      m_tpLastReset = std::chrono::steady_clock::now();
+      Data.Sensors = m_psSensorData;
+      Data.Actuators = m_psActuatorData;
+      /* set the experiment start time */
+      m_tpExperimentStart = std::chrono::steady_clock::now();
    }
 
    /****************************************/
@@ -93,47 +116,144 @@ namespace argos {
       delete m_psSensorData;
       delete m_psActuatorData;
       delete m_pcBlockDetector;
+      delete m_pcBlockTracker;
+      delete m_pcStructureAnalyser;
    }
 
    /****************************************/
    /****************************************/
 
    void CBeBotController::ControlStep() {
-      // step the las controller
-      m_pcLiftActuatorSystemController->ControlStep();
-    
-      /*
-      // send radio message  
-      CCI_PrototypeRadiosActuator::SConfiguration* psConfig = 
-         &m_pcRadiosActuator->GetConfigurations()[0];
-    
-      psConfig->TxData.clear();
-      psConfig->TxData.emplace_back();
-      psConfig->TxData.back() << '1';
-      */
-
-      /* clear out the old detections */
-      m_tDetectedBlockList.clear();
-
-      /* create a time point for the current detections */
+      /* create a time point for the current step */
       std::chrono::time_point<std::chrono::steady_clock> tpControlStep =
          std::chrono::steady_clock::now();
-      
+      /* update the state machine clock sensor */
+      m_psSensorData->Clock.ExperimentStart = m_tpExperimentStart;
+      m_psSensorData->Clock.Time = tpControlStep;
+      m_psSensorData->Clock.Ticks++;
       /* do block, target and structure detection */
       const CCI_CamerasSensorTagDetectorAlgorithm::SReading::TList& tTagReadings =
          m_pcTagDetectorAlgorithm->GetReadings();
       const CCI_CamerasSensorLEDDetectorAlgorithm::SReading::TList& tLedReadings =
          m_pcLEDDetectorAlgorithm->GetReadings();
-
+      /* clear out the old detections */
+      m_tDetectedBlockList.clear();
+      /* detect blocks */
       m_pcBlockDetector->Detect(tTagReadings, tLedReadings, m_tDetectedBlockList);
+      /* associate targets */
+      m_pcBlockTracker->AssociateAndTrackTargets(tpControlStep,
+                                                 m_tDetectedBlockList,
+                                                 m_psSensorData->ImageSensor.Detections.Targets);
+      /* detect structures */
+      m_pcStructureAnalyser->DetectStructures(m_psSensorData->ImageSensor.Detections.Targets,
+                                              m_psSensorData->ImageSensor.Detections.Structures);
+      /* get readings from the proximity sensors */
+      const CCI_PrototypeProximitySensor::SReading::TVector& t_readings = m_pcProximitySensor->GetReadings();
+      /* chassis range finders */
+      for(UInt32 un_idx = 0; un_idx < NUM_CHASSIS_DEVICES; un_idx++) {
+         m_psSensorData->RangeFinders[un_idx].push_front(ScaleChassisProximityValue(t_readings[un_idx].Value));
+         if(m_psSensorData->RangeFinders[un_idx].size() > RF_HISTORY_LEN) {
+            m_psSensorData->RangeFinders[un_idx].pop_back();
+         }
+      }
+      /* manipulator module range finders */
+      m_psSensorData->ManipulatorModule.RangeFinders.EndEffector = 0;
+      m_psSensorData->ManipulatorModule.RangeFinders.Left = ScaleProximityValue(t_readings[RF_LEFT_IDX].Value);
+      m_psSensorData->ManipulatorModule.RangeFinders.Right = ScaleProximityValue(t_readings[RF_RIGHT_IDX].Value);
+      m_psSensorData->ManipulatorModule.RangeFinders.Front = ScaleProximityValue(t_readings[RF_FRONT_IDX].Value);
+      m_psSensorData->ManipulatorModule.RangeFinders.Underneath = ScaleProximityValue(t_readings[RF_UNDERNEATH_IDX].Value);
+      /* Emulate the manipulator module */
+      Real fTargetPos = m_pcLiftActuatorSystemController->GetTargetPosition();
+      Real fPos = m_pcLiftActuatorSystemController->GetPosition();
+      m_psSensorData->ManipulatorModule.LiftActuator.LimitSwitches.Top = (fPos > 0.1325);
+      m_psSensorData->ManipulatorModule.LiftActuator.LimitSwitches.Bottom = (fPos < 0.0025);
+      m_psSensorData->ManipulatorModule.LiftActuator.State = (std::abs(fTargetPos - fPos) < 0.005) ?
+         CBlockDemo::ELiftActuatorSystemState::INACTIVE : CBlockDemo::ELiftActuatorSystemState::ACTIVE_POSITION_CTRL;
+      /* Simulate the electromagnet charging/discharging process */
+      std::list<uint8_t>& lstCharge = m_psSensorData->ManipulatorModule.LiftActuator.Electromagnets.Charge;
+      if(lstCharge.empty()) {
+         lstCharge.push_back(0);
+      }
+      if(m_psActuatorData->ManipulatorModule.EndEffector.FieldMode != CBlockDemo::EGripperFieldMode::DISABLED) {
+         lstCharge.push_back(std::ceil(lstCharge.back() * EM_DISCHARGE_RATIO));
+      }
+      else {
+         uint8_t unCharge = lstCharge.back();
+         if(unCharge < (std::numeric_limits<uint8_t>::max() - EM_CHARGE_INCR)) {
+            unCharge += EM_CHARGE_INCR;
+         }
+         lstCharge.push_back(unCharge);
+      }
+      if(lstCharge.size() > 3) {
+         lstCharge.pop_front();
+      }
 
-      /* TODO:
-         1. simulate the lift actuator control loop - done
-         2. read sensors
-         3. update data structures
-         4. step state machine
-         5. write back to actuators
-      */
+      /***************************************************/
+      /***************************************************/
+      
+      /* STEP STATE MACHINE */
+      m_pcStateMachine->Step();
+      /* Output the state if changed */
+      std::ostringstream cStateMachineOutput;
+      cStateMachineOutput << *m_pcStateMachine;
+      if(cStateMachineOutput.str() != m_strLastOutput) {
+         m_strLastOutput = cStateMachineOutput.str();
+         std::cout << m_strLastOutput << std::endl;
+      }
+      /* Output the tracking information */
+      std::ostringstream cTrackingInfo;
+      for(STarget& s_target : m_psSensorData->ImageSensor.Detections.Targets) {
+         if(s_target.Id == Data.TrackedTargetId) {
+            cTrackingInfo << ('(' + std::to_string(s_target.Id) + ')');
+         }
+         else {
+            cTrackingInfo << std::to_string(s_target.Id);
+         }
+         cTrackingInfo << ' ';
+      }
+      if(cTrackingInfo.str() != m_strLastTrackingInfo) {
+         m_strLastTrackingInfo = cTrackingInfo.str();
+         std::cerr << (m_strLastTrackingInfo.empty() ? std::string("()") : m_strLastTrackingInfo) << std::endl;
+      }
+      
+      /***************************************************/
+      /***************************************************/
+      
+      /* Update differential drive system */
+      if(m_psActuatorData->DifferentialDriveSystem.Left.UpdateReq || 
+         m_psActuatorData->DifferentialDriveSystem.Right.UpdateReq) {
+         Real fLeftVelocity = m_psActuatorData->DifferentialDriveSystem.Left.Velocity;
+         Real fRightVelocity = m_psActuatorData->DifferentialDriveSystem.Right.Velocity;
+         fLeftVelocity *= DDS_VELOCITY_SCALE;
+         fRightVelocity *= DDS_VELOCITY_SCALE;
+         SetTargetVelocity(fLeftVelocity, fRightVelocity);
+      }
+      /* Update the lift actuator system */
+      if(m_psActuatorData->ManipulatorModule.LiftActuator.Position.UpdateReq) {
+         Real fTargetPosition = m_psActuatorData->ManipulatorModule.LiftActuator.Position.Value;
+         fTargetPosition *= 0.001;
+         m_pcLiftActuatorSystemController->SetTargetPosition(fTargetPosition);
+      }
+      m_pcLiftActuatorSystemController->ControlStep();
+      /* Update radio output */
+      m_psRadioConfiguration->TxData.clear();
+      if(m_psActuatorData->ManipulatorModule.NFCInterface.UpdateReq) {
+         m_psRadioConfiguration->TxData.emplace_back();
+         m_psRadioConfiguration->TxData.back() << m_psActuatorData->ManipulatorModule.NFCInterface.OutboundMessage;
+      }
+      /* Update electromagnet output */
+      if(m_psActuatorData->ManipulatorModule.EndEffector.FieldMode == CBlockDemo::EGripperFieldMode::DISABLED) {
+         SetElectromagnetCurrent(0);
+      }
+      else {
+         Real fCharge = m_psSensorData->ManipulatorModule.LiftActuator.Electromagnets.Charge.back();
+         if(m_psActuatorData->ManipulatorModule.EndEffector.FieldMode == CBlockDemo::EGripperFieldMode::CONSTRUCTIVE) {
+            SetElectromagnetCurrent(fCharge);
+         }
+         else {
+            SetElectromagnetCurrent(-fCharge);
+         }
+      }
    }
 
    /****************************************/
