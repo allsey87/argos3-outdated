@@ -159,8 +159,8 @@ namespace argos {
             else if (str_color == "gray80")  *this = CColor::GRAY80;
             else if (str_color == "gray90")  *this = CColor::GRAY90;
             else {
-               UInt8 unValues[4];
-               ParseValues<UInt8>(str_color, 4, unValues, ',');
+               UInt32 unValues[4];
+               ParseValues<UInt32>(str_color, 4, unValues, ',');
                Set(unValues[0], unValues[1], unValues[2], unValues[3]);
             }
          }
