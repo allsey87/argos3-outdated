@@ -35,8 +35,6 @@ class CFiniteStateMachine;
 #include "block_tracker.h"
 #include "structure_analyser.h"
 
-//#include "pyramid_experiment.h"
-
 namespace argos {
    class CBeBotController : public CCI_Controller {
    public:
@@ -75,8 +73,12 @@ namespace argos {
 
          void ControlStep() {
             Real fError = m_fTargetPosition - GetPosition();
-            if(std::abs(fError) > 0.001) {
-               m_pcActuator->SetTargetVelocity(fError * m_fKp);
+            bool bNegError = (fError < 0.0);
+            if(std::abs(fError) > 0.01) {
+               m_pcActuator->SetTargetVelocity(bNegError?-0.15:0.15);
+            }
+            else if(std::abs(fError) > 0.001) {
+               m_pcActuator->SetTargetVelocity(bNegError?-0.075:0.075);
             }
             else {
                m_pcActuator->SetTargetVelocity(0.0);
@@ -84,8 +86,7 @@ namespace argos {
          }
 
       private:
-         Real m_fTargetPosition = 0.135;
-         Real m_fKp = 2.0;
+         Real m_fTargetPosition = 0.0;
          CCI_PrototypeJointsSensor::CJointSensor* m_pcSensor;
          CCI_PrototypeJointsActuator::CJointActuator* m_pcActuator;
       };
@@ -127,7 +128,7 @@ namespace argos {
       std::chrono::time_point<std::chrono::steady_clock> m_tpExperimentStart;
       /* state machine */
       CFiniteStateMachine* m_pcStateMachine;
-      /* std::ste*/
+      /* debugging output */
       std::string m_strLastOutput;
       std::string m_strLastTrackingInfo;
    };

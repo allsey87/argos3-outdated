@@ -18,14 +18,14 @@
 #define RF_UNDERNEATH_IDX 13
 #define RF_LEFT_IDX 14
 #define RF_RIGHT_IDX 15
-#define EM_DISCHARGE_RATIO 0.75
+#define EM_DISCHARGE_RATIO 0.975
 #define EM_CHARGE_INCR 10
-#define DDS_VELOCITY_SCALE 0.25
+#define DDS_VELOCITY_SCALE 0.35
 
 namespace argos {
 
    Real ScaleProximityValue(Real f_in) {
-      return (20000 - 5368.421*f_in - 12631.58*f_in*f_in);
+      return (5432.4 * std::pow(f_in, 87.70362));
    }
 
    Real ScaleChassisProximityValue(Real f_in) {
@@ -55,12 +55,6 @@ namespace argos {
       /* camera sensor algorithms */   
       m_pcLEDDetectorAlgorithm = m_pcCamerasSensor->GetAlgorithm<CCI_CamerasSensorLEDDetectorAlgorithm>("duovero_camera","led_detector");
       m_pcTagDetectorAlgorithm = m_pcCamerasSensor->GetAlgorithm<CCI_CamerasSensorTagDetectorAlgorithm>("duovero_camera","tag_detector");
-      /* init modules */
-      m_pcBlockDetector = new CBlockDetector;
-      m_pcBlockDetector->SetCameraMatrix(m_pcCamerasSensor->GetCameraMatrix("duovero_camera"));
-      m_pcBlockDetector->SetDistortionParameters(m_pcCamerasSensor->GetDistortionParameters("duovero_camera"));
-      m_pcBlockTracker = new CBlockTracker(3u, 0.05f);
-      m_pcStructureAnalyser = new CStructureAnalyser;
       /* radios */
       m_pcRadiosSensor = GetSensor<CCI_PrototypeRadiosSensor>("radios");
       m_pcRadiosActuator = GetActuator<CCI_PrototypeRadiosActuator>("radios");
@@ -74,11 +68,6 @@ namespace argos {
       m_pcFrontRightWheelJoint = &(m_pcJointsActuator->GetJointActuator("wheel-front-right:lower-chassis", CCI_PrototypeJointsActuator::ANGULAR_Y));
       m_pcRearLeftWheelJoint = &(m_pcJointsActuator->GetJointActuator("wheel-rear-left:lower-chassis", CCI_PrototypeJointsActuator::ANGULAR_Y));
       m_pcRearRightWheelJoint = &(m_pcJointsActuator->GetJointActuator("wheel-rear-right:lower-chassis", CCI_PrototypeJointsActuator::ANGULAR_Y));
-      /* lift actuator system */
-      m_pcLiftActuatorSystemController = new CLiftActuatorSystemController(
-         m_pcJointsSensor->GetJointSensor("lift-fixture:vertical-link"),
-         &(m_pcJointsActuator->GetJointActuator("lift-fixture:vertical-link", CCI_PrototypeJointsActuator::LINEAR_Z))
-      );
       /* issue reset */
       Reset();
    }
@@ -87,25 +76,49 @@ namespace argos {
    /****************************************/
 
    void CBeBotController::Reset() {
-      /* clear out detection and tracking lists */
-      m_tDetectedBlockList.clear();
-      /* reset the LAS */
-      m_pcLiftActuatorSystemController->Reset();
-      SetElectromagnetCurrent(0.0);
-      SetTargetVelocity(0.0,0.0);
+      /* reset the LAS controller */
+      delete m_pcLiftActuatorSystemController;
+      /* delete modules */
+      delete m_pcStructureAnalyser;
+      delete m_pcBlockTracker;
+      delete m_pcBlockDetector;
+      /* delete the state machine */
+      delete m_pcStateMachine;
       /* delete data structs */
       delete m_psSensorData;
       delete m_psActuatorData;
       /* recreate data structs */
       m_psSensorData = new CBlockDemo::SSensorData;
       m_psActuatorData = new CBlockDemo::SActuatorData;
-      /* create the state machine */
+      /* recreate the state machine */
       m_pcStateMachine = new CFiniteStateMachine;
       /* Update the global data struct pointers */
       Data.Sensors = m_psSensorData;
       Data.Actuators = m_psActuatorData;
-      /* set the experiment start time */
-      m_tpExperimentStart = std::chrono::steady_clock::now();
+      /* recreate modules */
+      m_pcBlockDetector = new CBlockDetector;
+      m_pcBlockDetector->SetCameraMatrix(m_pcCamerasSensor->GetCameraMatrix("duovero_camera"));
+      m_pcBlockDetector->SetDistortionParameters(m_pcCamerasSensor->GetDistortionParameters("duovero_camera"));
+      m_pcBlockTracker = new CBlockTracker(3u, 0.05f);
+      m_pcStructureAnalyser = new CStructureAnalyser;
+      
+      /* recreate the LAS controller */
+      m_pcLiftActuatorSystemController = new CLiftActuatorSystemController(
+         m_pcJointsSensor->GetJointSensor("lift-fixture:vertical-link"),
+         &(m_pcJointsActuator->GetJointActuator("lift-fixture:vertical-link", CCI_PrototypeJointsActuator::LINEAR_Z))
+      );
+      /* clear out detection lists */
+      m_tDetectedBlockList.clear();
+      /* is this required? */
+      SetElectromagnetCurrent(0.0);
+      SetTargetVelocity(0.0,0.0);
+      /* misc internal data to reset */
+      Data.TrackedTargetId = 0;
+      Data.TrackedStructureId = 0;
+      Data.TargetInRange = false;
+      Data.NextLedStateToAssign = ELedState::OFF;
+      /* set the experiment start time to epoch */
+      m_tpExperimentStart = std::chrono::time_point<std::chrono::steady_clock>();
    }
 
    /****************************************/
@@ -124,13 +137,10 @@ namespace argos {
    /****************************************/
 
    void CBeBotController::ControlStep() {
-      /* create a time point for the current step */
-      std::chrono::time_point<std::chrono::steady_clock> tpControlStep =
-         std::chrono::steady_clock::now();
       /* update the state machine clock sensor */
       m_psSensorData->Clock.ExperimentStart = m_tpExperimentStart;
-      m_psSensorData->Clock.Time = tpControlStep;
       m_psSensorData->Clock.Ticks++;
+      m_psSensorData->Clock.Time = m_tpExperimentStart + m_psSensorData->Clock.Ticks * std::chrono::milliseconds(200);
       /* do block, target and structure detection */
       const CCI_CamerasSensorTagDetectorAlgorithm::SReading::TList& tTagReadings =
          m_pcTagDetectorAlgorithm->GetReadings();
@@ -141,7 +151,7 @@ namespace argos {
       /* detect blocks */
       m_pcBlockDetector->Detect(tTagReadings, tLedReadings, m_tDetectedBlockList);
       /* associate targets */
-      m_pcBlockTracker->AssociateAndTrackTargets(tpControlStep,
+      m_pcBlockTracker->AssociateAndTrackTargets(m_psSensorData->Clock.Time,
                                                  m_tDetectedBlockList,
                                                  m_psSensorData->ImageSensor.Detections.Targets);
       /* detect structures */
@@ -165,10 +175,12 @@ namespace argos {
       /* Emulate the manipulator module */
       Real fTargetPos = m_pcLiftActuatorSystemController->GetTargetPosition();
       Real fPos = m_pcLiftActuatorSystemController->GetPosition();
-      m_psSensorData->ManipulatorModule.LiftActuator.LimitSwitches.Top = (fPos > 0.1325);
-      m_psSensorData->ManipulatorModule.LiftActuator.LimitSwitches.Bottom = (fPos < 0.0025);
+      m_psSensorData->ManipulatorModule.LiftActuator.LimitSwitches.Top = (fPos > 0.1370); // > 137mm (top is at 137.5mm)
+      m_psSensorData->ManipulatorModule.LiftActuator.LimitSwitches.Bottom = (fPos < 0.0005); // < 0.5mm (bottom is at 0.0mm)
       m_psSensorData->ManipulatorModule.LiftActuator.State = (std::abs(fTargetPos - fPos) < 0.005) ?
          CBlockDemo::ELiftActuatorSystemState::INACTIVE : CBlockDemo::ELiftActuatorSystemState::ACTIVE_POSITION_CTRL;
+      fPos *= 1000; // m => mm
+      m_psSensorData->ManipulatorModule.LiftActuator.EndEffector.Position = fPos; 
       /* Simulate the electromagnet charging/discharging process */
       std::list<uint8_t>& lstCharge = m_psSensorData->ManipulatorModule.LiftActuator.Electromagnets.Charge;
       if(lstCharge.empty()) {
@@ -218,7 +230,7 @@ namespace argos {
       
       /***************************************************/
       /***************************************************/
-      
+     
       /* Update differential drive system */
       if(m_psActuatorData->DifferentialDriveSystem.Left.UpdateReq || 
          m_psActuatorData->DifferentialDriveSystem.Right.UpdateReq) {
@@ -231,7 +243,7 @@ namespace argos {
       /* Update the lift actuator system */
       if(m_psActuatorData->ManipulatorModule.LiftActuator.Position.UpdateReq) {
          Real fTargetPosition = m_psActuatorData->ManipulatorModule.LiftActuator.Position.Value;
-         fTargetPosition *= 0.001;
+         fTargetPosition *= 0.001; // mm -> m
          m_pcLiftActuatorSystemController->SetTargetPosition(fTargetPosition);
       }
       m_pcLiftActuatorSystemController->ControlStep();
