@@ -257,7 +257,7 @@ public:
          CState("switch_field_on", [e_field_mode] {
             Data.Actuators->ManipulatorModule.EndEffector.FieldMode = e_field_mode;
             Data.Actuators->ManipulatorModule.EndEffector.UpdateReq = true;
-            Data.ElectromagnetSwitchOnTime = Data.Sensors.Clock.Time;
+            Data.ElectromagnetSwitchOnTime = Data.Sensors->Clock.Time;
          }),
          CState("wait_for_duration"),
          CState("switch_field_off", [] {
@@ -273,7 +273,7 @@ public:
       });
       AddTransition("switch_field_on","wait_for_duration");
       AddTransition("wait_for_duration", "switch_field_off", [t_duration] {
-         return (Data.ElectromagnetSwitchOnTime + t_duration) < Data.Sensors.Clock.Time;
+         return (Data.ElectromagnetSwitchOnTime + t_duration) < Data.Sensors->Clock.Time;
       });
       AddExitTransition("switch_field_off");
    }
@@ -543,14 +543,14 @@ public:
          // back off until target is re-acquired
          AddTransition("adjust_lift_actuator_height", "wait_for_target_or_timeout", [] {
             // reset timer for the reverse velocity search
-            Data.ReverseToFindTargetStartTime = Data.Sensors.Clock.Time;
+            Data.ReverseToFindTargetStartTime = Data.Sensors->Clock.Time;
             return true;
          });
          // try again
          AddTransition("wait_for_target_or_timeout", "align_with_tag_offset", IsNextTargetAcquired);
          // timer has expired
          AddExitTransition("wait_for_target_or_timeout", [] {
-            if(Data.ReverseToFindTargetStartTime + REVERSE_TIMEOUT_SHORT < Data.Sensors.Clock.Time) {
+            if(Data.ReverseToFindTargetStartTime + REVERSE_TIMEOUT_SHORT < Data.Sensors->Clock.Time) {
                ClearTargetInRange();
                return true;
             }
@@ -591,14 +591,14 @@ public:
          AddTransition("lower_lift_actuator", "set_approach_velocity");
          AddTransition("set_approach_velocity", "wait_for_underneath_rf_or_timeout", [] {
             // reset timer for "wait_for_underneath_rf_or_timeout"
-            Data.NearApproachStartTime = Data.Sensors.Clock.Time;
+            Data.NearApproachStartTime = Data.Sensors->Clock.Time;
             return true;
          });
          AddTransition("wait_for_underneath_rf_or_timeout", "wait_for_either_left_right_rf_or_timeout", [] {
             // block detected on the underneath rf
             if(Data.Sensors->ManipulatorModule.RangeFinders.Underneath > RF_UN_BLOCK_DETECT_THRES) {
                // reset timer for "wait_for_either_left_right_rf_or_timeout"
-               Data.NearApproachStartTime = Data.Sensors.Clock.Time;
+               Data.NearApproachStartTime = Data.Sensors->Clock.Time;
                return true;
             }
             return false;
@@ -615,7 +615,7 @@ public:
          });
          AddTransition("set_pivot_velocity", "wait_for_both_left_right_rf_or_timeout", [] {
             // reset timer for "wait_for_both_left_right_rf_or_timeout"
-            Data.NearApproachStartTime = Data.Sensors.Clock.Time;
+            Data.NearApproachStartTime = Data.Sensors->Clock.Time;
             return true;
          });
          AddTransition("wait_for_both_left_right_rf_or_timeout", "set_zero_velocity", [] {
@@ -624,21 +624,21 @@ public:
                     (Data.Sensors->ManipulatorModule.RangeFinders.Right > RF_LR_BLOCK_DETECT_THRES));
          });
          AddTransition("wait_for_underneath_rf_or_timeout", "set_zero_velocity", [] {
-            if(Data.NearApproachStartTime + NEAR_APPROACH_TIMEOUT < Data.Sensors.Clock.Time) {
+            if(Data.NearApproachStartTime + NEAR_APPROACH_TIMEOUT < Data.Sensors->Clock.Time) {
                ClearTargetInRange();
                return true;
             }
             return false;
          });
          AddTransition("wait_for_either_left_right_rf_or_timeout", "set_zero_velocity", [] {
-            if(Data.NearApproachStartTime + NEAR_APPROACH_TIMEOUT < Data.Sensors.Clock.Time) {
+            if(Data.NearApproachStartTime + NEAR_APPROACH_TIMEOUT < Data.Sensors->Clock.Time) {
                ClearTargetInRange();
                return true;
             }
             return false;
          });
          AddTransition("wait_for_both_left_right_rf_or_timeout", "set_zero_velocity", [] {
-            if(Data.NearApproachStartTime + NEAR_APPROACH_TIMEOUT < Data.Sensors.Clock.Time) {
+            if(Data.NearApproachStartTime + NEAR_APPROACH_TIMEOUT < Data.Sensors->Clock.Time) {
                ClearTargetInRange();
                return true;
             }
@@ -790,14 +790,14 @@ public:
          // back off until target is re-acquired
          AddTransition("adjust_lift_actuator_height", "wait_for_target_or_timeout", [] {
             // reset timer for the reverse velocity search
-            Data.ReverseToFindTargetStartTime = Data.Sensors.Clock.Time;
+            Data.ReverseToFindTargetStartTime = Data.Sensors->Clock.Time;
             return true;
          });
          // try again
          AddTransition("wait_for_target_or_timeout", "align_with_tag_offset", IsNextTargetAcquired);
          // timer has expired
          AddExitTransition("wait_for_target_or_timeout", [] {
-            if(Data.ReverseToFindTargetStartTime + REVERSE_TIMEOUT_SHORT < Data.Sensors.Clock.Time) {
+            if(Data.ReverseToFindTargetStartTime + REVERSE_TIMEOUT_SHORT < Data.Sensors->Clock.Time) {
                ClearTargetInRange();
                return true;
             }
@@ -1019,7 +1019,7 @@ public:
 
          AddTransition("set_approach_velocity", "wait_for_either_front_rf_or_timeout", [] {
             // reset timer for "wait_for_either_front_rf_or_timeout"
-            Data.NearApproachStartTime = Data.Sensors.Clock.Time;
+            Data.NearApproachStartTime = Data.Sensors->Clock.Time;
             return true;
          });
          AddTransition("wait_for_either_front_rf_or_timeout", "set_reverse_velocity_for_detachment", [] {
@@ -1033,7 +1033,7 @@ public:
          });
          AddTransition("set_pivot_velocity", "wait_for_both_front_rfs_or_timeout", [] {
             // reset timer for "wait_for_both_front_rfs_or_timeout"
-            Data.NearApproachStartTime = Data.Sensors.Clock.Time;
+            Data.NearApproachStartTime = Data.Sensors->Clock.Time;
             return true;
          });
          AddTransition("wait_for_both_front_rfs_or_timeout", "set_reverse_velocity_for_detachment", [] {
@@ -1045,13 +1045,13 @@ public:
 
          // Error transitions
          AddExitTransition("wait_for_either_front_rf_or_timeout", [] {
-            if(Data.NearApproachStartTime + NEAR_APPROACH_TIMEOUT < Data.Sensors.Clock.Time) {
+            if(Data.NearApproachStartTime + NEAR_APPROACH_TIMEOUT < Data.Sensors->Clock.Time) {
                return true;
             }
             return false;
          });
          AddExitTransition("wait_for_both_front_rfs_or_timeout", [] {
-            if(Data.NearApproachStartTime + NEAR_APPROACH_TIMEOUT < Data.Sensors.Clock.Time) {
+            if(Data.NearApproachStartTime + NEAR_APPROACH_TIMEOUT < Data.Sensors->Clock.Time) {
                return true;
             }
             return false;
