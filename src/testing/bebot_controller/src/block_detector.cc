@@ -33,20 +33,12 @@ namespace argos {
 
    /****************************************/
    /****************************************/
-   
-   /* testing: red, green, blue, yellow */
-   CColor CBlockDetector::Q1(255,0,0);
-   CColor CBlockDetector::Q2(0,255,0);
-   CColor CBlockDetector::Q3(0,0,255);
-   CColor CBlockDetector::Q4(255,255,0);
-
-   /*
+     
    CColor CBlockDetector::Q1(255, 120, 255);
    CColor CBlockDetector::Q2(255, 208,  27);
    CColor CBlockDetector::Q3( 74, 255,  27);
    CColor CBlockDetector::Q4( 74, 255, 255);
-   */
-
+   
    /****************************************/
    /****************************************/
 
