@@ -43,9 +43,9 @@ namespace argos {
          /* get referenced to the current camera data and descriptor */
          CCamerasSensorSimulatedAlgorithm::SData& sData = m_vecData[i];
          SDescriptor& sDescriptor = m_tDescriptors[i];
-         // statically defined - get these parameters from XML       
-         sData.NearDepth = 0.050; // 5cm, focus range is 10cm
-         sData.FarDepth = 0.500; // 50cm, testing
+         /* Get the depth range from camera */
+         sData.NearDepth = cCamera.GetRange().GetMin();
+         sData.FarDepth = cCamera.GetRange().GetMax();
          /* calculate frustum near and far plane dimensions */
          sData.ProjectionMatrix = cCamera.GetCameraMatrix();
          Real fWidthToDepthRatio = (0.5 * cCamera.GetHorizontalResolution()) / sData.ProjectionMatrix(0,0);
@@ -221,7 +221,6 @@ namespace argos {
                m_pcControllableEntity->GetCheckedRays().insert(m_pcControllableEntity->GetCheckedRays().end(),
                                                                itAlgorithm->second->GetCheckedRays().begin(),
                                                                itAlgorithm->second->GetCheckedRays().end());
-               
             }
          }
          else {

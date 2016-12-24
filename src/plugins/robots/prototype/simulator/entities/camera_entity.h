@@ -30,30 +30,18 @@ namespace argos {
       CCameraEntity(CComposableEntity* pc_parent);
 
       CCameraEntity(CComposableEntity* pc_parent,
-                            const CRadians& c_field_of_view,
-                            const CRadians& c_roll,
-                            Real f_range,
-                            Real f_horizontal_resolution,
-                            Real f_vertical_resolution);
+                    const CRange<Real>& c_range,
+                    const CSquareMatrix<3>& c_camera_matrix,
+                    const CMatrix<1,5>& c_distortion_parameters,
+                    Real f_horizontal_resolution,
+                    Real f_vertical_resolution);
 
       virtual ~CCameraEntity() {}
 
       virtual void Init(TConfigurationNode& t_tree);
 
-      //virtual void Reset() {}
-
-      //virtual void SetEnabled(bool b_enabled) {}
-
-      const CRadians& GetFieldOfView() const {
-         return m_cFieldOfView;
-      }
-
-      Real GetRange() const {
-         return m_fRange;
-      }
-
-      const CRadians& GetRoll() const {
-         return m_cRoll;
+      const CRange<Real> GetRange() const {
+         return m_cRange;
       }
 
       const CSquareMatrix<3> GetCameraMatrix() const {
@@ -76,17 +64,12 @@ namespace argos {
          return "camera";
       }
 
-   protected:
-
-      CRadians m_cFieldOfView;
-      CRadians m_cRoll;
-      Real m_fRange;
-   
+   protected:  
+      CRange<Real> m_cRange;
       CSquareMatrix<3> m_cCameraMatrix;
       CMatrix<1,5> m_cDistortionParameters;
       Real m_fHorizontalResolution;
       Real m_fVerticalResolution;
-
    };
 
    /****************************************/
