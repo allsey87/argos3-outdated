@@ -166,6 +166,7 @@ namespace argos {
             m_psSensorData->RangeFinders[un_idx].pop_back();
          }
       }
+
       /* manipulator module range finders */
       m_psSensorData->ManipulatorModule.RangeFinders.EndEffector = 0;
       m_psSensorData->ManipulatorModule.RangeFinders.Left = ScaleProximityValue(t_readings[RF_LEFT_IDX].Value);
@@ -239,12 +240,15 @@ namespace argos {
          fLeftVelocity *= DDS_VELOCITY_SCALE;
          fRightVelocity *= DDS_VELOCITY_SCALE;
          SetTargetVelocity(fLeftVelocity, fRightVelocity);
+         m_psActuatorData->DifferentialDriveSystem.Left.UpdateReq = false;
+         m_psActuatorData->DifferentialDriveSystem.Right.UpdateReq = false;
       }
       /* Update the lift actuator system */
       if(m_psActuatorData->ManipulatorModule.LiftActuator.Position.UpdateReq) {
          Real fTargetPosition = m_psActuatorData->ManipulatorModule.LiftActuator.Position.Value;
          fTargetPosition *= 0.001; // mm -> m
          m_pcLiftActuatorSystemController->SetTargetPosition(fTargetPosition);
+         m_psActuatorData->ManipulatorModule.LiftActuator.Position.UpdateReq = false;
       }
       m_pcLiftActuatorSystemController->ControlStep();
       /* Update radio output */
@@ -252,6 +256,7 @@ namespace argos {
       if(m_psActuatorData->ManipulatorModule.NFCInterface.UpdateReq) {
          m_psRadioConfiguration->TxData.emplace_back();
          m_psRadioConfiguration->TxData.back() << m_psActuatorData->ManipulatorModule.NFCInterface.OutboundMessage;
+         m_psActuatorData->ManipulatorModule.NFCInterface.UpdateReq = false;
       }
       /* Update electromagnet output */
       if(m_psActuatorData->ManipulatorModule.EndEffector.FieldMode == CBlockDemo::EGripperFieldMode::DISABLED) {
