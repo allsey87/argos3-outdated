@@ -1,3 +1,3 @@
 add_subdirectory(qt_camera_visualisation)
 add_subdirectory(bebot_controller)
-
+add_subdirectory(srocs_loop_functions)
