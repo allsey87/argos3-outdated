@@ -35,8 +35,28 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   CBeBotController::CBeBotController() {
-   }
+   CBeBotController::CBeBotController() :
+      m_pcJointsSensor(nullptr),
+      m_pcProximitySensor(nullptr),
+      m_pcRadiosSensor(nullptr),
+      m_pcCamerasSensor(nullptr),
+      m_psRadioConfiguration(nullptr),
+      m_pcLEDDetectorAlgorithm(nullptr),
+      m_pcTagDetectorAlgorithm(nullptr),
+      m_pcElectromagnets(nullptr),
+      m_pcJointsActuator(nullptr),
+      m_pcRadiosActuator(nullptr),
+      m_pcFrontLeftWheelJoint(nullptr),
+      m_pcFrontRightWheelJoint(nullptr),
+      m_pcRearLeftWheelJoint(nullptr),
+      m_pcRearRightWheelJoint(nullptr),
+      m_pcLiftActuatorSystemController(nullptr),
+      m_psSensorData(nullptr),
+      m_psActuatorData(nullptr),
+      m_pcBlockDetector(nullptr),
+      m_pcBlockTracker(nullptr),
+      m_pcStructureAnalyser(nullptr),
+      m_pcStateMachine(nullptr) {}
 
    /****************************************/
    /****************************************/

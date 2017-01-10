@@ -247,20 +247,20 @@ STarget::TConstListIterator FindPyramidTarget(const STarget::TList& t_list) {
 
 class CStatePulseElectromagnets : public CState {
 public:
-   CStatePulseElectromagnets(const std::string& str_id, const std::chrono::milliseconds& t_duration, CBlockDemo::EGripperFieldMode e_field_mode) :
-      CState(str_id, nullptr, nullptr, {
-         CState("init_precharge", [] {
+   CStatePulseElectromagnets(const std::string& str_id, CState* pc_parent, const std::chrono::milliseconds& t_duration, CBlockDemo::EGripperFieldMode e_field_mode) :
+      CState(str_id, pc_parent, nullptr, CState::TVector {
+         AddState<CState>("init_precharge", [] {
             Data.Actuators->ManipulatorModule.EndEffector.FieldMode = CBlockDemo::EGripperFieldMode::DISABLED;
             Data.Actuators->ManipulatorModule.EndEffector.UpdateReq = true;
          }),
-         CState("wait_for_precharge"),
-         CState("switch_field_on", [e_field_mode] {
+         AddState<CState>("wait_for_precharge"),
+         AddState<CState>("switch_field_on", [e_field_mode] {
             Data.Actuators->ManipulatorModule.EndEffector.FieldMode = e_field_mode;
             Data.Actuators->ManipulatorModule.EndEffector.UpdateReq = true;
             Data.ElectromagnetSwitchOnTime = Data.Sensors->Clock.Time;
          }),
-         CState("wait_for_duration"),
-         CState("switch_field_off", [] {
+         AddState<CState>("wait_for_duration"),
+         AddState<CState>("switch_field_off", [] {
             Data.Actuators->ManipulatorModule.EndEffector.FieldMode = CBlockDemo::EGripperFieldMode::DISABLED;
             Data.Actuators->ManipulatorModule.EndEffector.UpdateReq = true;
          }),
@@ -281,13 +281,13 @@ public:
 
 class CStateSetLiftActuatorPosition : public CState {
 public:
-   CStateSetLiftActuatorPosition(const std::string& str_id, uint8_t un_position) :
-      CState(str_id, nullptr, nullptr, {
-         CState("set_position", [un_position] {
+   CStateSetLiftActuatorPosition(const std::string& str_id, CState* pc_parent, uint8_t un_position) :
+      CState(str_id, pc_parent, nullptr, CState::TVector {
+         AddState<CState>("set_position", [un_position] {
             Data.Actuators->ManipulatorModule.LiftActuator.Position.Value = un_position;
             Data.Actuators->ManipulatorModule.LiftActuator.Position.UpdateReq = true;
          }),
-         CState("wait_for_lift_actuator"),
+         AddState<CState>("wait_for_lift_actuator"),
       }) {
       AddTransition("set_position","wait_for_lift_actuator");
       AddExitTransition("wait_for_lift_actuator", [] {
@@ -299,12 +299,12 @@ public:
 
 class CStateAttachBlock : public CState {
 public:
-   CStateAttachBlock(const std::string& str_id) :
-      CState(str_id, nullptr, nullptr, {
-         CStateSetLiftActuatorPosition("init_lift_actuator_position", LIFT_ACTUATOR_MIN_HEIGHT + LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET),
-         CStatePulseElectromagnets("generate_pre_alignment_pulse", std::chrono::milliseconds(500), CBlockDemo::EGripperFieldMode::CONSTRUCTIVE),
-         CStateSetLiftActuatorPosition("lower_lift_actuator", LIFT_ACTUATOR_MIN_HEIGHT),
-         CStatePulseElectromagnets("generate_attachment_pulse", std::chrono::milliseconds(1000), CBlockDemo::EGripperFieldMode::CONSTRUCTIVE),
+   CStateAttachBlock(const std::string& str_id, CState* pc_parent) :
+      CState(str_id, pc_parent, nullptr, {
+         AddState<CStateSetLiftActuatorPosition>("init_lift_actuator_position", LIFT_ACTUATOR_MIN_HEIGHT + LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET),
+         AddState<CStatePulseElectromagnets>("generate_pre_alignment_pulse", std::chrono::milliseconds(500), CBlockDemo::EGripperFieldMode::CONSTRUCTIVE),
+         AddState<CStateSetLiftActuatorPosition>("lower_lift_actuator", LIFT_ACTUATOR_MIN_HEIGHT),
+         AddState<CStatePulseElectromagnets>("generate_attachment_pulse", std::chrono::milliseconds(1000), CBlockDemo::EGripperFieldMode::CONSTRUCTIVE),
       }) {
          AddTransition("init_lift_actuator_position","generate_pre_alignment_pulse");
          AddTransition("generate_pre_alignment_pulse", "lower_lift_actuator");
@@ -315,8 +315,8 @@ public:
 
 class CStateSetLedColors : public CState {
 public:
-   CStateSetLedColors(const std::string& str_id, CBlockDemo::EColor e_new_color) :
-      CState(str_id, [e_new_color] {
+   CStateSetLedColors(const std::string& str_id, CState* pc_parent, CBlockDemo::EColor e_new_color) :
+      CState(str_id, pc_parent, [e_new_color] {
          for(CBlockDemo::EColor& e_color : Data.Actuators->LEDDeck.Color)
             e_color = e_new_color;
          for(bool& b_update : Data.Actuators->LEDDeck.UpdateReq)
@@ -326,8 +326,8 @@ public:
 
 class CStateSendNFCMessage : public CState {
 public:
-   CStateSendNFCMessage(const std::string& str_id, const std::string& str_data) :
-      CState(str_id, [str_data] {
+   CStateSendNFCMessage(const std::string& str_id, CState* pc_parent, const std::string& str_data) :
+      CState(str_id, pc_parent, [str_data] {
          Data.Actuators->ManipulatorModule.NFCInterface.OutboundMessage = str_data;
          Data.Actuators->ManipulatorModule.NFCInterface.UpdateReq = true;
    }) {}
@@ -335,8 +335,8 @@ public:
 
 class CStateSetVelocity : public CState {
 public:
-   CStateSetVelocity(const std::string& str_id, double f_left, double f_right) :
-      CState(str_id, [f_left, f_right] {
+   CStateSetVelocity(const std::string& str_id, CState* pc_parent, double f_left, double f_right) :
+      CState(str_id, pc_parent, [f_left, f_right] {
          /* apply the approach velocity */
          SetVelocity(f_left, f_right);
       }) {}
@@ -344,8 +344,8 @@ public:
 
 class CStateMoveToTargetXZ : public CState {
 public:
-   CStateMoveToTargetXZ(const std::string& str_id, double f_x_target, double f_z_target, bool b_track_via_lift_actuator) :
-      CState(str_id, [f_x_target, f_z_target, b_track_via_lift_actuator] {
+   CStateMoveToTargetXZ(const std::string& str_id, CState* pc_parent, double f_x_target, double f_z_target, bool b_track_via_lift_actuator) :
+      CState(str_id, pc_parent, [f_x_target, f_z_target, b_track_via_lift_actuator] {
          /* default velocities, overwritten if target is detected */
          double fLeft = 0.000, fRight = 0.000;
          /* select tracked target */
@@ -376,8 +376,8 @@ public:
 
 class CStateMoveToTargetX : public CState {
 public:
-   CStateMoveToTargetX(const std::string& str_id, double f_x_target, bool b_track_via_lift_actuator) :
-      CState(str_id, [f_x_target, b_track_via_lift_actuator] {
+   CStateMoveToTargetX(const std::string& str_id, CState* pc_parent, double f_x_target, bool b_track_via_lift_actuator) :
+      CState(str_id, pc_parent, [f_x_target, b_track_via_lift_actuator] {
          /* default velocities, overwritten if target is detected */
          double fLeft = 0.000, fRight = 0.000;
          /* select tracked target */
@@ -407,8 +407,8 @@ public:
 
 class CStateMoveToTargetZ : public CState {
 public:
-   CStateMoveToTargetZ(const std::string& str_id, double f_z_target, bool b_track_via_lift_actuator) :
-      CState(str_id, [f_z_target, b_track_via_lift_actuator] {
+   CStateMoveToTargetZ(const std::string& str_id, CState* pc_parent, double f_z_target, bool b_track_via_lift_actuator) :
+      CState(str_id, pc_parent, [f_z_target, b_track_via_lift_actuator] {
          /* default velocities, overwritten if target is detected */
          double fLeft = 0.000, fRight = 0.000;
          /* select tracked target */
@@ -438,9 +438,9 @@ public:
 
 class CStateAlignWithTagOffset : public CState {
 public:
-   CStateAlignWithTagOffset(const std::string& str_id, double f_tag_offset_target,
+   CStateAlignWithTagOffset(const std::string& str_id, CState* pc_parent, double f_tag_offset_target,
                             std::function<const STag::TCoordinate&(const STag&)> fn_get_coordinate) :
-      CState(str_id, [f_tag_offset_target, fn_get_coordinate] {
+      CState(str_id, pc_parent, [f_tag_offset_target, fn_get_coordinate] {
             /* default velocities, overwritten if target is detected */
             double fLeft = 0.000, fRight = 0.000;
             /* select tracked target */
@@ -457,9 +457,9 @@ public:
 
 class CStateApproachTarget : public CState {
 public:
-   CStateApproachTarget(const std::string& str_id, double f_lift_actuator_min_height, double f_tag_offset_target, 
+   CStateApproachTarget(const std::string& str_id, CState* pc_parent, double f_lift_actuator_min_height, double f_tag_offset_target, 
                         std::function<const STag::TCoordinate&(const STag&)> fn_get_coordinate) :
-      CState(str_id, [f_lift_actuator_min_height, f_tag_offset_target, fn_get_coordinate] {
+      CState(str_id, pc_parent, [f_lift_actuator_min_height, f_tag_offset_target, fn_get_coordinate] {
          // default velocities, overwritten if target is detected
          double fLeft = 0.000, fRight = 0.000;
          // select tracked target
@@ -496,21 +496,21 @@ public:
 
 class CStateApproachTargetFar : public CState {
 public:
-   CStateApproachTargetFar(const std::string& str_id, double f_tag_offset_target,
+   CStateApproachTargetFar(const std::string& str_id, CState* pc_parent, double f_tag_offset_target,
                            std::function<const STag::TCoordinate&(const STag&)> fn_get_coordinate) :
-      CState(str_id, nullptr, nullptr, {
+      CState(str_id, pc_parent, nullptr, CState::TVector {
          /*** states (std::vector<CState> initializer list) ***/
-         CStateAlignWithTagOffset("align_with_tag_offset", f_tag_offset_target, fn_get_coordinate),
-         CStateApproachTarget("approach_target", LIFT_ACTUATOR_MIN_HEIGHT + LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET, f_tag_offset_target, fn_get_coordinate),
+         AddState<CStateAlignWithTagOffset>("align_with_tag_offset", f_tag_offset_target, fn_get_coordinate),
+         AddState<CStateApproachTarget>("approach_target", LIFT_ACTUATOR_MIN_HEIGHT + LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET, f_tag_offset_target, fn_get_coordinate),
          // failure states
-         CState("adjust_lift_actuator_height", [] {
+         AddState<CState>("adjust_lift_actuator_height", [] {
             if(Data.Actuators->ManipulatorModule.LiftActuator.Position.Value < (LIFT_ACTUATOR_MAX_HEIGHT - LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET)) {
                Data.Actuators->ManipulatorModule.LiftActuator.Position.Value += LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET;
                Data.Actuators->ManipulatorModule.LiftActuator.Position.UpdateReq = true;
             }
          }),
-         CStateSetVelocity("set_reverse_velocity", -0.250 * BASE_VELOCITY, -0.250 * BASE_VELOCITY),
-         CState("wait_for_target_or_timeout"),
+         AddState<CStateSetVelocity>("set_reverse_velocity", -0.250 * BASE_VELOCITY, -0.250 * BASE_VELOCITY),
+         AddState<CState>("wait_for_target_or_timeout"),
       }) {
          /*** transitions (constructor body) ***/
          AddTransition("align_with_tag_offset", "approach_target", [f_tag_offset_target, fn_get_coordinate] {
@@ -561,20 +561,20 @@ public:
 
 class CStateApproachTargetNear : public CState {
 public:
-   CStateApproachTargetNear(const std::string& str_id) :
-      CState(str_id, nullptr, nullptr, {
+   CStateApproachTargetNear(const std::string& str_id, CState* pc_parent) :
+      CState(str_id, pc_parent, nullptr, CState::TVector {
          /*** states (std::vector<CState> initializer list) ***/
-         CStateSetLedColors("set_deck_color", CBlockDemo::EColor::RED),
-         CStateSetLiftActuatorPosition("lower_lift_actuator", LIFT_ACTUATOR_MIN_HEIGHT + LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET),
-         CState("set_approach_velocity", [] {
+         AddState<CStateSetLedColors>("set_deck_color", CBlockDemo::EColor::RED),
+         AddState<CStateSetLiftActuatorPosition>("lower_lift_actuator", LIFT_ACTUATOR_MIN_HEIGHT + LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET),
+         AddState<CState>("set_approach_velocity", [] {
             double fLastObservationX = Data.TrackedTargetLastObservation.Translation.GetX();
             double fLeft = BASE_VELOCITY * (1.000 + (fLastObservationX * BASE_XZ_GAIN));
             double fRight = BASE_VELOCITY * (1.000 - (fLastObservationX * BASE_XZ_GAIN));
             SetVelocity(fLeft, fRight);
          }),
-         CState("wait_for_underneath_rf_or_timeout"),
-         CState("wait_for_either_left_right_rf_or_timeout"),
-         CState("set_pivot_velocity", [] {
+         AddState<CState>("wait_for_underneath_rf_or_timeout"),
+         AddState<CState>("wait_for_either_left_right_rf_or_timeout"),
+         AddState<CState>("set_pivot_velocity", [] {
             bool bRfBlockDetectedLeft = (Data.Sensors->ManipulatorModule.RangeFinders.Left > RF_LR_BLOCK_DETECT_THRES);
             bool bRfBlockDetectedRight = (Data.Sensors->ManipulatorModule.RangeFinders.Right > RF_LR_BLOCK_DETECT_THRES);
             // pivot the robot towards the other sensor
@@ -583,8 +583,8 @@ public:
             // apply the velocity
             SetVelocity(fLeft, fRight);
          }),
-         CState("wait_for_both_left_right_rf_or_timeout"),
-         CStateSetVelocity("set_zero_velocity", 0.000, 0.000),
+         AddState<CState>("wait_for_both_left_right_rf_or_timeout"),
+         AddState<CStateSetVelocity>("set_zero_velocity", 0.000, 0.000),
       }) {
          /*** transitions (constructor body) ***/
          AddTransition("set_deck_color", "lower_lift_actuator");
@@ -650,22 +650,22 @@ public:
 
 class CStatePickUpBlock : public CState {
 public:
-   CStatePickUpBlock(const std::string& str_id) :
-      CState(str_id, nullptr, nullptr, {
+   CStatePickUpBlock(const std::string& str_id, CState* pc_parent) :
+      CState(str_id, pc_parent, nullptr, CState::TVector {
          /*** states (std::vector<CState> initializer list) ***/
-         CStateSetLedColors("set_deck_color_green", CBlockDemo::EColor::GREEN),
-         CStateMoveToTargetXZ("align_with_block", PREAPPROACH_BLOCK_X_TARGET, PREAPPROACH_BLOCK_Z_TARGET, false),
-         CStateApproachTargetFar("approach_block_from_left", TAG_OFFSET_TARGET, FindTagCornerFurthestToTheRight),
-         CStateApproachTargetFar("approach_block_from_right", -TAG_OFFSET_TARGET, FindTagCornerFurthestToTheLeft),
-         CStateApproachTargetFar("approach_block_straight", 0.000, GetTagCenter),
-         CStateSetLedColors("set_deck_color_red", CBlockDemo::EColor::RED),
-         CStateApproachTargetNear("approach_block_near"),
-         CStateSetVelocity("set_zero_velocity", 0.000, 0.000),
-         CStateAttachBlock("attach_block_to_end_effector"),
-         CStateSetLiftActuatorPosition("set_lift_actuator_test_height", LIFT_ACTUATOR_MIN_HEIGHT + LIFT_ACTUATOR_BLOCK_HEIGHT),
+         AddState<CStateSetLedColors>("set_deck_color_green", CBlockDemo::EColor::GREEN),
+         AddState<CStateMoveToTargetXZ>("align_with_block", PREAPPROACH_BLOCK_X_TARGET, PREAPPROACH_BLOCK_Z_TARGET, false),
+         AddState<CStateApproachTargetFar>("approach_block_from_left", TAG_OFFSET_TARGET, FindTagCornerFurthestToTheRight),
+         AddState<CStateApproachTargetFar>("approach_block_from_right", -TAG_OFFSET_TARGET, FindTagCornerFurthestToTheLeft),
+         AddState<CStateApproachTargetFar>("approach_block_straight", 0.000, GetTagCenter),
+         AddState<CStateSetLedColors>("set_deck_color_red", CBlockDemo::EColor::RED),
+         AddState<CStateApproachTargetNear>("approach_block_near"),
+         AddState<CStateSetVelocity>("set_zero_velocity", 0.000, 0.000),
+         AddState<CStateAttachBlock>("attach_block_to_end_effector"),
+         AddState<CStateSetLiftActuatorPosition>("set_lift_actuator_test_height", LIFT_ACTUATOR_MIN_HEIGHT + LIFT_ACTUATOR_BLOCK_HEIGHT),
          // failure states
-         CStateSetVelocity("set_reverse_velocity", -0.250 * BASE_VELOCITY, -0.250 * BASE_VELOCITY),
-         CStateSetLiftActuatorPosition("raise_lift_actuator", LIFT_ACTUATOR_MAX_HEIGHT),
+         AddState<CStateSetVelocity>("set_reverse_velocity", -0.250 * BASE_VELOCITY, -0.250 * BASE_VELOCITY),
+         AddState<CStateSetLiftActuatorPosition>("raise_lift_actuator", LIFT_ACTUATOR_MAX_HEIGHT),
       }) {
          /*** transitions (constructor body) ***/
          // select approach direction
@@ -739,22 +739,22 @@ public:
 
 class CStateApproachStructure : public CState {
 public:
-   CStateApproachStructure(const std::string& str_id, double f_tag_offset_target,
+   CStateApproachStructure(const std::string& str_id, CState* pc_parent, double f_tag_offset_target,
                            std::function<const STag::TCoordinate&(const STag&)> fn_get_coordinate) :
-      CState(str_id, nullptr, nullptr, {
+      CState(str_id, pc_parent, nullptr, CState::TVector {
          /*** states (std::vector<CState> initializer list) ***/
-         CStateAlignWithTagOffset("align_with_tag_offset", f_tag_offset_target, fn_get_coordinate),
-         CStateApproachTarget("approach_target", LIFT_ACTUATOR_MIN_HEIGHT + (0.5 * LIFT_ACTUATOR_BLOCK_HEIGHT), f_tag_offset_target, fn_get_coordinate),
+         AddState<CStateAlignWithTagOffset>("align_with_tag_offset", f_tag_offset_target, fn_get_coordinate),
+         AddState<CStateApproachTarget>("approach_target", LIFT_ACTUATOR_MIN_HEIGHT + (0.5 * LIFT_ACTUATOR_BLOCK_HEIGHT), f_tag_offset_target, fn_get_coordinate),
 
          // failure states
-         CState("adjust_lift_actuator_height", [] {
+         AddState<CState>("adjust_lift_actuator_height", [] {
             if(Data.Actuators->ManipulatorModule.LiftActuator.Position.Value < (LIFT_ACTUATOR_MAX_HEIGHT - LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET)) {
                Data.Actuators->ManipulatorModule.LiftActuator.Position.Value += LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET;
                Data.Actuators->ManipulatorModule.LiftActuator.Position.UpdateReq = true;
             }
          }),
-         CStateSetVelocity("set_reverse_velocity", -0.250 * BASE_VELOCITY, -0.250 * BASE_VELOCITY),
-         CState("wait_for_target_or_timeout"),
+         AddState<CStateSetVelocity>("set_reverse_velocity", -0.250 * BASE_VELOCITY, -0.250 * BASE_VELOCITY),
+         AddState<CState>("wait_for_target_or_timeout"),
       }) {
          /*** transitions (constructor body) ***/
          AddTransition("align_with_tag_offset", "approach_target", [f_tag_offset_target, fn_get_coordinate] {
@@ -808,22 +808,22 @@ public:
 
 class CStatePlaceBlock : public CState {
 public:
-   CStatePlaceBlock(const std::string& str_id) :
-      CState(str_id, nullptr, nullptr, {
+   CStatePlaceBlock(const std::string& str_id, CState* pc_parent) :
+      CState(str_id, pc_parent, nullptr, CState::TVector {
          /*** states (std::vector<CState> initializer list) ***/
-         CStateSetLedColors("set_deck_color_green", CBlockDemo::EColor::GREEN),
-         CStateMoveToTargetXZ("prealign_with_structure", PREAPPROACH_BLOCK_X_TARGET, PREAPPROACH_BLOCK_Z_TARGET, true),
-         CStateApproachStructure("approach_structure_from_left", TAG_OFFSET_TARGET, FindTagCornerFurthestToTheRight),
-         CStateApproachStructure("approach_structure_from_right", -TAG_OFFSET_TARGET, FindTagCornerFurthestToTheLeft),
-         CStateApproachStructure("approach_structure_straight", 0.000, GetTagCenter),
-         CStateSetVelocity("set_reverse_velocity", -0.250 * BASE_VELOCITY, -0.250 * BASE_VELOCITY),
-         CState("wait_for_target"),
-         CStateMoveToTargetX("align_with_structure", PREPLACEMENT_BLOCK_X_TARGET, false),
-         CStateSetVelocity("set_zero_velocity", 0.000, 0.000),
-         CStateSetLedColors("set_deck_color_red", CBlockDemo::EColor::RED),
-         CStateSetLiftActuatorPosition("set_lift_actuator_base_height", LIFT_ACTUATOR_MIN_HEIGHT + (0.5 * LIFT_ACTUATOR_BLOCK_HEIGHT)),
+         AddState<CStateSetLedColors>("set_deck_color_green", CBlockDemo::EColor::GREEN),
+         AddState<CStateMoveToTargetXZ>("prealign_with_structure", PREAPPROACH_BLOCK_X_TARGET, PREAPPROACH_BLOCK_Z_TARGET, true),
+         AddState<CStateApproachStructure>("approach_structure_from_left", TAG_OFFSET_TARGET, FindTagCornerFurthestToTheRight),
+         AddState<CStateApproachStructure>("approach_structure_from_right", -TAG_OFFSET_TARGET, FindTagCornerFurthestToTheLeft),
+         AddState<CStateApproachStructure>("approach_structure_straight", 0.000, GetTagCenter),
+         AddState<CStateSetVelocity>("set_reverse_velocity", -0.250 * BASE_VELOCITY, -0.250 * BASE_VELOCITY),
+         AddState<CState>("wait_for_target"),
+         AddState<CStateMoveToTargetX>("align_with_structure", PREPLACEMENT_BLOCK_X_TARGET, false),
+         AddState<CStateSetVelocity>("set_zero_velocity", 0.000, 0.000),
+         AddState<CStateSetLedColors>("set_deck_color_red", CBlockDemo::EColor::RED),
+         AddState<CStateSetLiftActuatorPosition>("set_lift_actuator_base_height", LIFT_ACTUATOR_MIN_HEIGHT + (0.5 * LIFT_ACTUATOR_BLOCK_HEIGHT)),
          // if no targets place block, otherwise, if targets check led colors
-         CState("increment_lift_actuator_height", [] {
+         AddState<CState>("increment_lift_actuator_height", [] {
             Data.Actuators->ManipulatorModule.LiftActuator.Position.Value += LIFT_ACTUATOR_BLOCK_HEIGHT;
             /* saturate a max height */
             if(Data.Actuators->ManipulatorModule.LiftActuator.Position.Value > LIFT_ACTUATOR_MAX_HEIGHT) {
@@ -832,14 +832,14 @@ public:
             Data.Actuators->ManipulatorModule.LiftActuator.Position.UpdateReq = true;
 
          }),
-         CState("wait_for_lift_actuator"),
-         CState("decrement_lift_actuator_height", [] {
+         AddState<CState>("wait_for_lift_actuator"),
+         AddState<CState>("decrement_lift_actuator_height", [] {
             Data.Actuators->ManipulatorModule.LiftActuator.Position.Value -= (0.25 * LIFT_ACTUATOR_BLOCK_HEIGHT);
             Data.Actuators->ManipulatorModule.LiftActuator.Position.UpdateReq = true;
          }),
-         CStateSetLiftActuatorPosition("lower_lift_actuator", LIFT_ACTUATOR_MIN_HEIGHT + (0.25 * LIFT_ACTUATOR_BLOCK_HEIGHT)),
+         AddState<CStateSetLiftActuatorPosition>("lower_lift_actuator", LIFT_ACTUATOR_MIN_HEIGHT + (0.25 * LIFT_ACTUATOR_BLOCK_HEIGHT)),
          // correct height
-         CState("set_block_led_state", [] {
+         AddState<CState>("set_block_led_state", [] {
             switch(Data.NextLedStateToAssign) {
             case ELedState::OFF:
                Data.Actuators->ManipulatorModule.NFCInterface.OutboundMessage = BLOCK_TYPE_OFF;
@@ -859,14 +859,14 @@ public:
             }
             Data.Actuators->ManipulatorModule.NFCInterface.UpdateReq = true;
          }),
-         CState("set_approach_velocity", [] {
+         AddState<CState>("set_approach_velocity", [] {
             double fLastObservationX = Data.TrackedTargetLastObservation.Translation.GetX();
             double fLeft = BASE_VELOCITY * (1.000 + (fLastObservationX * BASE_XZ_GAIN));
             double fRight = BASE_VELOCITY * (1.000 - (fLastObservationX * BASE_XZ_GAIN));
             SetVelocity(fLeft, fRight);
          }),
-         CState("wait_for_either_front_rf_or_timeout"),
-         CState("set_pivot_velocity", [] {
+         AddState<CState>("wait_for_either_front_rf_or_timeout"),
+         AddState<CState>("set_pivot_velocity", [] {
             bool bRfBlockDetectedLeft = (GetMedian(Data.Sensors->RangeFinders[5]) > RF_FLR_BLOCK_DETECT_THRES);
             bool bRfBlockDetectedRight = (GetMedian(Data.Sensors->RangeFinders[6]) > RF_FLR_BLOCK_DETECT_THRES);
             // pivot the robot towards the other sensor
@@ -875,9 +875,9 @@ public:
             // apply the velocity
             SetVelocity(fLeft, fRight);
          }),
-         CState("wait_for_both_front_rfs_or_timeout"),
-         CStateSetVelocity("set_reverse_velocity_for_detachment", -0.500 * BASE_VELOCITY, -0.500 * BASE_VELOCITY),
-         CStatePulseElectromagnets("deattach_block_from_end_effector", std::chrono::milliseconds(1000), CBlockDemo::EGripperFieldMode::DESTRUCTIVE),
+         AddState<CState>("wait_for_both_front_rfs_or_timeout"),
+         AddState<CStateSetVelocity>("set_reverse_velocity_for_detachment", -0.500 * BASE_VELOCITY, -0.500 * BASE_VELOCITY),
+         AddState<CStatePulseElectromagnets>("deattach_block_from_end_effector", std::chrono::milliseconds(1000), CBlockDemo::EGripperFieldMode::DESTRUCTIVE),
          // Failure / completion states
 
          
@@ -1089,46 +1089,44 @@ public:
 class CFiniteStateMachine : public CState {
 public:
    CFiniteStateMachine() :
-      CState("top_level_state", nullptr, nullptr, {
-         // TODO: Remove - testing
-         //CState("test"),
-         CState("search_for_unused_block", nullptr, nullptr, {
-            CStateSetLedColors("set_deck_color", CBlockDemo::EColor::BLUE),
-            CStateSetLiftActuatorPosition("raise_lift_actuator", LIFT_ACTUATOR_MAX_HEIGHT),
-            CStateSetVelocity("set_search_velocity", BASE_VELOCITY * 0.500, -BASE_VELOCITY * 0.500),
-            CState("wait_for_next_target"),
-            CStateMoveToTargetXZ("align_with_block", PREAPPROACH_BLOCK_X_TARGET, PREAPPROACH_BLOCK_Z_TARGET, false),
+      CState("top_level_state", nullptr, nullptr, CState::TVector {
+         AddState<CState>("search_for_unused_block", nullptr, CState::TVector {
+            AddState<CStateSetLedColors>("set_deck_color", CBlockDemo::EColor::BLUE),
+            AddState<CStateSetLiftActuatorPosition>("raise_lift_actuator", LIFT_ACTUATOR_MAX_HEIGHT),
+            AddState<CStateSetVelocity>("set_search_velocity", BASE_VELOCITY * 0.500, -BASE_VELOCITY * 0.500),
+            AddState<CState>("wait_for_next_target"),
+            AddState<CStateMoveToTargetXZ>("align_with_block", PREAPPROACH_BLOCK_X_TARGET, PREAPPROACH_BLOCK_Z_TARGET, false),
          }),
-         CStatePickUpBlock("pick_up_unused_block"),
+         AddState<CStatePickUpBlock>("pick_up_unused_block"),
          // Assign the transport color to the block
-         CStateSendNFCMessage("configure_block_for_transport", BLOCK_TYPE_Q4),
-         CState("search_for_structure", nullptr, nullptr, {
-            CStateSetLedColors("set_deck_color", CBlockDemo::EColor::BLUE),
-            CStateSetLiftActuatorPosition("raise_lift_actuator", LIFT_ACTUATOR_MAX_HEIGHT),
-            CStateSetVelocity("set_search_velocity", BASE_VELOCITY * 0.500, -BASE_VELOCITY * 0.500),
-            CState("wait_for_next_target"),
-            CStateMoveToTargetXZ("align_with_block", OBSERVE_BLOCK_X_TARGET, OBSERVE_BLOCK_Z_TARGET, false), // initial check if this is a seed block / structure
+         AddState<CStateSendNFCMessage>("configure_block_for_transport", BLOCK_TYPE_Q4),
+         AddState<CState>("search_for_structure", nullptr, CState::TVector {
+            AddState<CStateSetLedColors>("set_deck_color", CBlockDemo::EColor::BLUE),
+            AddState<CStateSetLiftActuatorPosition>("raise_lift_actuator", LIFT_ACTUATOR_MAX_HEIGHT),
+            AddState<CStateSetVelocity>("set_search_velocity", BASE_VELOCITY * 0.500, -BASE_VELOCITY * 0.500),
+            AddState<CState>("wait_for_next_target"),
+            AddState<CStateMoveToTargetXZ>("align_with_block", OBSERVE_BLOCK_X_TARGET, OBSERVE_BLOCK_Z_TARGET, false), // initial check if this is a seed block / structure
             // select closest ground level target to robot
          }),
-         CStatePlaceBlock("place_block_into_structure"),
-         CStateSetVelocity("set_reverse_velocity", -BASE_VELOCITY * 0.250, -BASE_VELOCITY * 0.250),
-         CStateSetLiftActuatorPosition("raise_lift_actuator", LIFT_ACTUATOR_MAX_HEIGHT),
-         CState("wait_for_next_target"),
-         CStateSetVelocity("set_search_velocity", BASE_VELOCITY * 0.500, -BASE_VELOCITY * 0.500),
+         AddState<CStatePlaceBlock>("place_block_into_structure"),
+         AddState<CStateSetVelocity>("set_reverse_velocity", -BASE_VELOCITY * 0.250, -BASE_VELOCITY * 0.250),
+         AddState<CStateSetLiftActuatorPosition>("raise_lift_actuator", LIFT_ACTUATOR_MAX_HEIGHT),
+         AddState<CState>("wait_for_next_target"),
+         AddState<CStateSetVelocity>("set_search_velocity", BASE_VELOCITY * 0.500, -BASE_VELOCITY * 0.500),
       }) {
 
       // TODO: Remove - testing
       //AddTransition("test", "configure_block_for_transport");
 
       /**************** search_for_unused_block transitions ****************/
-      GetSubState("search_for_unused_block").AddTransition("set_deck_color", "raise_lift_actuator");
-      GetSubState("search_for_unused_block").AddTransition("raise_lift_actuator", "set_search_velocity");
-      GetSubState("search_for_unused_block").AddTransition("set_search_velocity","wait_for_next_target");
-      GetSubState("search_for_unused_block").AddTransition("wait_for_next_target", "align_with_block", IsNextTargetAcquired);
+      GetState("search_for_unused_block").AddTransition("set_deck_color", "raise_lift_actuator");
+      GetState("search_for_unused_block").AddTransition("raise_lift_actuator", "set_search_velocity");
+      GetState("search_for_unused_block").AddTransition("set_search_velocity","wait_for_next_target");
+      GetState("search_for_unused_block").AddTransition("wait_for_next_target", "align_with_block", IsNextTargetAcquired);
       /* keep searching if the target was lost */
-      GetSubState("search_for_unused_block").AddTransition("align_with_block", "set_search_velocity", IsTargetLost);
+      GetState("search_for_unused_block").AddTransition("align_with_block", "set_search_velocity", IsTargetLost);
       /* unused block found - exit */
-      GetSubState("search_for_unused_block").AddExitTransition("align_with_block", [] {
+      GetState("search_for_unused_block").AddExitTransition("align_with_block", [] {
          auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
          if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
             const SBlock& s_block = itTarget->Observations.front();
@@ -1146,7 +1144,7 @@ public:
          return false;
       });
       // keep searching if block belongs to a structure */
-      GetSubState("search_for_unused_block").AddTransition("align_with_block", "set_search_velocity", [] {
+      GetState("search_for_unused_block").AddTransition("align_with_block", "set_search_velocity", [] {
          auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
          if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
             const SBlock& s_block = itTarget->Observations.front();
@@ -1172,11 +1170,11 @@ return (Data.Sensors->ManipulatorModule.RangeFinders.Underneath > RF_UN_BLOCK_DE
       AddTransition("configure_block_for_transport", "search_for_structure");
 
       /**************** search_for_structure transitions ****************/
-      GetSubState("search_for_structure").AddTransition("set_deck_color", "raise_lift_actuator");
-      GetSubState("search_for_structure").AddTransition("raise_lift_actuator", "set_search_velocity");
-      GetSubState("search_for_structure").AddTransition("set_search_velocity", "wait_for_next_target");
-      GetSubState("search_for_structure").AddTransition("wait_for_next_target", "align_with_block", IsNextTargetAcquired);
-      GetSubState("search_for_structure").AddExitTransition("align_with_block", [] {
+      GetState("search_for_structure").AddTransition("set_deck_color", "raise_lift_actuator");
+      GetState("search_for_structure").AddTransition("raise_lift_actuator", "set_search_velocity");
+      GetState("search_for_structure").AddTransition("set_search_velocity", "wait_for_next_target");
+      GetState("search_for_structure").AddTransition("wait_for_next_target", "align_with_block", IsNextTargetAcquired);
+      GetState("search_for_structure").AddExitTransition("align_with_block", [] {
          auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
          if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
             const SBlock& s_block = itTarget->Observations.front();
@@ -1200,7 +1198,7 @@ return (Data.Sensors->ManipulatorModule.RangeFinders.Underneath > RF_UN_BLOCK_DE
          return false;
       });
       // keep searching if block does not belong to a structure / is the seed block
-      GetSubState("search_for_structure").AddTransition("align_with_block", "set_search_velocity", [] {
+      GetState("search_for_structure").AddTransition("align_with_block", "set_search_velocity", [] {
          auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
          if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
             const SBlock& s_block = itTarget->Observations.front();
@@ -1214,7 +1212,7 @@ return (Data.Sensors->ManipulatorModule.RangeFinders.Underneath > RF_UN_BLOCK_DE
          return false;
       });
       // keep searching if target is lost
-      GetSubState("search_for_structure").AddTransition("align_with_block", "set_search_velocity", IsTargetLost);
+      GetState("search_for_structure").AddTransition("align_with_block", "set_search_velocity", IsTargetLost);
 
       /// Top level transitions ///
       AddTransition("search_for_structure", "place_block_into_structure");
