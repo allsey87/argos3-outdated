@@ -22,7 +22,13 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   CPrototypeProximityDefaultSensor::CPrototypeProximityDefaultSensor() {}
+   CPrototypeProximityDefaultSensor::CPrototypeProximityDefaultSensor() :
+      m_pcEmbodiedEntity(NULL),
+      m_pcPrototypeProximityEntity(NULL),
+      m_pcControllableEntity(NULL),
+      m_bShowRays(false),
+      m_pcRNG(NULL),
+      m_bAddNoise(false) {}
 
    /****************************************/
    /****************************************/
