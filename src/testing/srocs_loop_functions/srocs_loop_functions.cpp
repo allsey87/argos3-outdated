@@ -57,14 +57,11 @@ void CSRoCSLoopFunctions::Reset() {
    m_mapBlocks.emplace("seed", &cSeedBlock);
    /* create the robots */
    m_mapRobots.emplace("robot0", &CreateEntity<CPrototypeEntity>("robot", "robot0", CVector3(0.20,0,0), CQuaternion(CRadians::ZERO, CVector3::Z)));
-   /*
    m_mapRobots.emplace("robot2", &CreateEntity<CPrototypeEntity>("robot", "robot2", CVector3(0,0.20,0), CQuaternion(CRadians::PI_OVER_TWO, CVector3::Z)));
    m_mapRobots.emplace("robot1", &CreateEntity<CPrototypeEntity>("robot", "robot1", CVector3(-0.20,0,0), CQuaternion(CRadians::PI, CVector3::Z)));
    m_mapRobots.emplace("robot3", &CreateEntity<CPrototypeEntity>("robot", "robot3", CVector3(0,-0.20,0), CQuaternion(-CRadians::PI_OVER_TWO, CVector3::Z)));
-   */
    /* add robots to simulation */
    for(const std::pair<const std::string, CPrototypeEntity*>& c_pair : m_mapRobots) {
-      LOG << "[INFO] Adding robot \"" << c_pair.first << "\" to simulation" << std::endl;
       AddEntity(*(c_pair.second));
    }
 
@@ -91,23 +88,32 @@ void CSRoCSLoopFunctions::Destroy() {
 /****************************************/
 
 void CSRoCSLoopFunctions::PreStep() {
-   for(std::pair<const std::string, CPrototypeEntity*>& c_entry : m_mapBlocks) {
-      const CVector3& c_block_position = c_entry.second->GetEmbodiedEntity().GetPosition();
-      if(Distance(c_block_position, m_cCacheLocation) < 0.35) {
-         return;
+   for(const CVector3& c_cache_location : m_vecCacheLocations) {
+      bool bBlockFound = false;
+      for(std::pair<const std::string, CPrototypeEntity*>& c_entry : m_mapBlocks) {
+         const CVector3& c_block_position = c_entry.second->GetEmbodiedEntity().GetPosition();
+         if(Distance(c_block_position, c_cache_location) < 0.35) {
+            bBlockFound = true;
+            break;
+         }
       }
-   }
-   UInt32 unId = 0;
-   for(;;) {
-      std::ostringstream stmBlockId;
-      stmBlockId << "block" << std::setfill('0') << std::setw(3) << unId;
-      if(m_mapBlocks.count(stmBlockId.str()) == 0) {
-         CPrototypeEntity& cBlock = CreateEntity<CPrototypeEntity>("block", stmBlockId.str(), m_cCacheLocation, CQuaternion(CRadians::ZERO, CVector3::Z));
-         AddEntity(cBlock);
-         m_mapBlocks.emplace(stmBlockId.str(), &cBlock);
-         return;
+      if(bBlockFound) {
+         continue;
       }
-      unId++;
+      else {
+         UInt32 unId = 0;
+         for(;;) {
+            std::ostringstream stmBlockId;
+            stmBlockId << "block" << std::setfill('0') << std::setw(3) << unId;
+            if(m_mapBlocks.count(stmBlockId.str()) == 0) {
+               CPrototypeEntity& cBlock = CreateEntity<CPrototypeEntity>("block", stmBlockId.str(), c_cache_location, CQuaternion(CRadians::ZERO, CVector3::Z));
+               AddEntity(cBlock);
+               m_mapBlocks.emplace(stmBlockId.str(), &cBlock);
+               break;
+            }
+            unId++;
+         }
+      }
    }
 }
 

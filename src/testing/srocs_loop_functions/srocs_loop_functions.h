@@ -18,8 +18,12 @@ class CSRoCSLoopFunctions : public CLoopFunctions {
 public:
 
    CSRoCSLoopFunctions() :
-      m_cCacheLocation(0.50,0.0,0.125) {}
-
+      m_vecCacheLocations {
+         CVector3( 0.5, 0.0,0.125),
+         CVector3( 0.0, 0.5,0.125),
+         CVector3(-0.5, 0.0,0.125),
+         CVector3( 0.0,-0.5,0.125),
+      } {}
 
    void Init(TConfigurationNode& t_tree);
 
@@ -59,7 +63,7 @@ private:
    std::map<std::string, CPrototypeEntity*> m_mapBlocks;
    std::map<std::string, CPrototypeEntity*> m_mapRobots;
 
-   CVector3 m_cCacheLocation;
+   std::vector<CVector3> m_vecCacheLocations;
 
 };
 
