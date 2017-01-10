@@ -51,13 +51,21 @@ namespace argos {
       GLuint m_unTagList;
       GLuint m_unVertices;
       GLuint m_unTagTex;
-
+#ifndef NDEBUG
       const GLfloat m_fTagTexture[48] = {
          1.0f, 1.0f, 1.0f,    0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,    0.0f, 0.0f, 0.0f,
          0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,    0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,
          1.0f, 1.0f, 1.0f,    0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,    0.0f, 0.0f, 0.0f,
          0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,    0.0f, 0.0f, 0.0f,    0.5f, 0.5f, 0.5f
       };
+#else
+      const GLfloat m_fTagTexture[48] = {
+         1.0f, 1.0f, 1.0f,    0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,    0.0f, 0.0f, 0.0f,
+         0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,    0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,
+         1.0f, 1.0f, 1.0f,    0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,    0.0f, 0.0f, 0.0f,
+         0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,    0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f
+      };
+#endif
    };
 }
 
