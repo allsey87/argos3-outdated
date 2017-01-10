@@ -111,10 +111,7 @@ namespace argos {
       m_psSensorData = new CBlockDemo::SSensorData;
       m_psActuatorData = new CBlockDemo::SActuatorData;
       /* recreate the state machine */
-      m_pcStateMachine = new CFiniteStateMachine;
-      /* Update the global data struct pointers */
-      Data.Sensors = m_psSensorData;
-      Data.Actuators = m_psActuatorData;
+      m_pcStateMachine = new CFiniteStateMachine(m_psSensorData, m_psActuatorData);
       /* recreate modules */
       m_pcBlockDetector = new CBlockDetector;
       m_pcBlockDetector->SetCameraMatrix(m_pcCamerasSensor->GetCameraMatrix("duovero_camera"));
@@ -132,11 +129,6 @@ namespace argos {
       /* is this required? */
       SetElectromagnetCurrent(0.0);
       SetTargetVelocity(0.0,0.0);
-      /* misc internal data to reset */
-      Data.TrackedTargetId = 0;
-      Data.TrackedStructureId = 0;
-      Data.TargetInRange = false;
-      Data.NextLedStateToAssign = ELedState::OFF;
       /* set the experiment start time to epoch */
       m_tpExperimentStart = std::chrono::time_point<std::chrono::steady_clock>();
    }
@@ -236,7 +228,7 @@ namespace argos {
       /* Output the tracking information */
       std::ostringstream cTrackingInfo;
       for(STarget& s_target : m_psSensorData->ImageSensor.Detections.Targets) {
-         if(s_target.Id == Data.TrackedTargetId) {
+         if(s_target.Id == m_pcStateMachine->GetData<SGlobalData>().TrackedTargetId) {
             cTrackingInfo << ('(' + std::to_string(s_target.Id) + ')');
          }
          else {

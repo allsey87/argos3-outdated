@@ -33,9 +33,9 @@ public:
       
    bool Step();
 
-   template<class S, class... ARG_TS>
-   std::shared_ptr<S> AddState(const std::string& str_id, ARG_TS&&... args) {
-      return std::shared_ptr<S>(new S(str_id, this, std::forward<ARG_TS>(args)...));
+   template<class STATE, class... ARG_TS>
+   std::shared_ptr<STATE> AddState(const std::string& str_id, ARG_TS&&... args) {
+      return std::make_shared<STATE>(str_id, this, std::forward<ARG_TS>(args)...);
    }
 
    const std::string& GetId() {
@@ -55,23 +55,50 @@ public:
       } 
    }
 
-   template <class S>
-   S& GetBase() {
+   CState& GetBase() {
       if(HasParent()) {
-         GetParent().GetBase<S>();
+         return GetParent().GetBase();
       }
       else {
-         S* pcCasted = dynamic_cast<S*>(this);
-         if(pcCasted != nullptr) {
-            return *pcCasted;
-         }
-         else {
-            std::logic_error(m_strId + " can not be converted to requested type");
-         }
+         return *this;
       }
    }
-   
+
+   template <class STATE>
+   STATE& GetBase() {
+      STATE* pcCasted = dynamic_cast<STATE*>(&GetBase());
+      if(pcCasted != nullptr) {
+         return *pcCasted;
+      }
+      else {
+         throw std::logic_error(m_strId + " can not be converted to requested type");
+      }
+   }
+
+   template<class DATA, class... ARG_TS>
+   void SetData(ARG_TS&&... args) {
+      m_ptrData = std::make_shared<DATA>(std::forward<ARG_TS>(args)...);
+   }
+
+   template <class DATA>
+   DATA& GetData() {
+      if(m_ptrData == nullptr) {
+         throw std::logic_error(m_strId + " does not have data");
+      }
+      std::shared_ptr<DATA> ptrData = std::dynamic_pointer_cast<DATA>(m_ptrData);
+      if(ptrData == nullptr) {
+         throw std::logic_error("cannot convert data to the requested type");
+      }
+      return *ptrData;
+   }
+      
    friend std::ostream& operator<<(std::ostream& c_stream, const CState& c_state);
+
+public:
+   /* base class for local data */
+   struct SData {
+      virtual ~SData() {};
+   };
 
 private:
    /* definition of a transition */
@@ -88,6 +115,8 @@ private:
    CState* m_pcParent;
    /* entry and exit methods */
    std::function<void()> m_fnEntryMethod;
+   /* pointer to local data */
+   std::shared_ptr<SData> m_ptrData;
    /* substates */
    std::vector<std::shared_ptr<CState> > m_vecStates;
    /* iterator to the current substate */

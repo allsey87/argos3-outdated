@@ -57,97 +57,108 @@
 // when lift actuator is at zero
 #define CAMERA_VERTICAL_OFFSET_MM 105
 
-/************************************************************/
-/*               Shared data for all states                 */
-/************************************************************/
-
-struct {
-   /* pointers to sensors and actuators */
-   CBlockDemo::SSensorData* Sensors = nullptr;
-   CBlockDemo::SActuatorData* Actuators = nullptr;
+struct SGlobalData : CState::SData {
+   /************************************************************/
+   /*                       Constructor                        */
+   /************************************************************/
+   SGlobalData(CBlockDemo::SSensorData* ps_sensor_data,
+               CBlockDemo::SActuatorData* ps_actuator_data) :
+      Sensors(ps_sensor_data),
+      Actuators(ps_actuator_data),
+      TagApproachController(4.250,0.100,1.375,0.500),
+      TargetInRange(false),
+      TrackedStructureId(0u),
+      TrackedTargetId(0u),
+      NextLedStateToAssign(ELedState::OFF) {}
+   
+   /************************************************************/
+   /*               Sensor and actuator access                 */
+   /************************************************************/
+   CBlockDemo::SSensorData* Sensors;
+   CBlockDemo::SActuatorData* Actuators;
    /* controllers */
-   CPIDController TagApproachController = CPIDController(4.250,0.100,1.375,0.500);
-   /* generic local data */
-   unsigned int TrackedTargetId = 0;
+   CPIDController TagApproachController;
+
+   /************************************************************/
+   /*               Shared data for all states                 */
+   /************************************************************/
+   bool TargetInRange;
+   unsigned int TrackedStructureId;
+   unsigned int TrackedTargetId;
+
    struct {
       argos::CVector3 Translation;
       argos::CQuaternion Rotation;
    } TrackedTargetLastObservation;
-   unsigned int TrackedStructureId = 0;
+
+   ELedState NextLedStateToAssign;
+
    std::chrono::time_point<std::chrono::steady_clock> ElectromagnetSwitchOnTime;
    std::chrono::time_point<std::chrono::steady_clock> NearApproachStartTime;
    std::chrono::time_point<std::chrono::steady_clock> ReverseToFindTargetStartTime;
-   bool TargetInRange = false;
-   /* data specific to the pyramid experiment */
-   ELedState NextLedStateToAssign = ELedState::OFF;
-} Data;
 
-
-/************************************************************/
-/*            Common functions for all states               */
-/************************************************************/
-
-/**************** functions for transitions ****************/
-
-bool SetTargetInRange() {
-   Data.TargetInRange = true;
-   return true;
-}
-
-bool ClearTargetInRange() {
-   Data.TargetInRange = false;
-   return true;
-}
-
-bool IsTargetInRange() {
-   return Data.TargetInRange;
-}
-
-bool IsTargetLost() {
-   auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
-   if(itTarget == std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
+   /************************************************************/
+   /*            Common functions for all states               */
+   /************************************************************/
+   bool SetTargetInRange() {
+      TargetInRange = true;
       return true;
    }
-   return false;
-}
 
-bool IsNextTargetAcquired() {
-   std::vector<unsigned int> vecDetectedTargetIds;
-   for(const STarget& s_target : Data.Sensors->ImageSensor.Detections.Targets) {
-      if(s_target.Id > Data.TrackedTargetId) {
-         vecDetectedTargetIds.push_back(s_target.Id);
+   bool ClearTargetInRange() {
+      TargetInRange = false;
+      return true;
+   }
+
+   bool IsTargetInRange() {
+      return TargetInRange;
+   }
+
+   bool IsTargetLost() {
+      auto itTarget = FindTrackedTarget(TrackedTargetId, Sensors->ImageSensor.Detections.Targets);
+      if(itTarget == std::end(Sensors->ImageSensor.Detections.Targets)) {
+         return true;
       }
+      return false;
    }
-   if(!vecDetectedTargetIds.empty()) {
-      std::sort(std::begin(vecDetectedTargetIds), std::end(vecDetectedTargetIds));
-      Data.TrackedTargetId = vecDetectedTargetIds[0];
-      return true;
+
+   bool IsNextTargetAcquired() {
+      std::vector<unsigned int> vecDetectedTargetIds;
+      for(const STarget& s_target : Sensors->ImageSensor.Detections.Targets) {
+         if(s_target.Id > TrackedTargetId) {
+            vecDetectedTargetIds.push_back(s_target.Id);
+         }
+      }
+      if(!vecDetectedTargetIds.empty()) {
+         std::sort(std::begin(vecDetectedTargetIds), std::end(vecDetectedTargetIds));
+         TrackedTargetId = vecDetectedTargetIds[0];
+         return true;
+      }
+      return false;
    }
-   return false;
-}
 
-/**************** functions for control loops ****************/
-double TrackBlockViaLiftActuatorHeight(const SBlock& s_block,
-                                       uint8_t un_min_position = LIFT_ACTUATOR_MIN_HEIGHT,
-                                       uint8_t un_max_position = LIFT_ACTUATOR_MAX_HEIGHT) {
-   double fEndEffectorPos = Data.Sensors->ManipulatorModule.LiftActuator.EndEffector.Position;
-   double fLiftActuatorHeightError = (IMAGE_SENSOR_HALF_HEIGHT - s_block.Tags.front().Center.second) / IMAGE_SENSOR_HALF_HEIGHT;
-   fEndEffectorPos += (fLiftActuatorHeightError * LIFT_ACTUATOR_INC_HEIGHT);
-   uint8_t unEndEffectorPos =
-      (fEndEffectorPos > un_max_position) ? un_max_position :
-      (fEndEffectorPos < un_min_position) ? un_min_position : static_cast<uint8_t>(fEndEffectorPos);
-   Data.Actuators->ManipulatorModule.LiftActuator.Position.Value = unEndEffectorPos;
-   Data.Actuators->ManipulatorModule.LiftActuator.Position.UpdateReq = true;
-   return fLiftActuatorHeightError;
-}
+   double TrackBlockViaLiftActuatorHeight(const SBlock& s_block,
+                                          uint8_t un_min_position = LIFT_ACTUATOR_MIN_HEIGHT,
+                                          uint8_t un_max_position = LIFT_ACTUATOR_MAX_HEIGHT) {
+      double fEndEffectorPos = Sensors->ManipulatorModule.LiftActuator.EndEffector.Position;
+      double fLiftActuatorHeightError = (IMAGE_SENSOR_HALF_HEIGHT - s_block.Tags.front().Center.second) / IMAGE_SENSOR_HALF_HEIGHT;
+      fEndEffectorPos += (fLiftActuatorHeightError * LIFT_ACTUATOR_INC_HEIGHT);
+      uint8_t unEndEffectorPos =
+         (fEndEffectorPos > un_max_position) ? un_max_position :
+         (fEndEffectorPos < un_min_position) ? un_min_position : static_cast<uint8_t>(fEndEffectorPos);
+      Actuators->ManipulatorModule.LiftActuator.Position.Value = unEndEffectorPos;
+      Actuators->ManipulatorModule.LiftActuator.Position.UpdateReq = true;
+      return fLiftActuatorHeightError;
+   }
 
-/**************** functions for updating actuators ****************/
-void SetVelocity(double f_left, double f_right) {
-   Data.Actuators->DifferentialDriveSystem.Left.Velocity = std::round(f_left);
-   Data.Actuators->DifferentialDriveSystem.Right.Velocity = std::round(f_right);
-   Data.Actuators->DifferentialDriveSystem.Left.UpdateReq = true;
-   Data.Actuators->DifferentialDriveSystem.Right.UpdateReq = true;
-}
+   void SetVelocity(double f_left, double f_right) {
+      Actuators->DifferentialDriveSystem.Left.Velocity = std::round(f_left);
+      Actuators->DifferentialDriveSystem.Right.Velocity = std::round(f_right);
+      Actuators->DifferentialDriveSystem.Left.UpdateReq = true;
+      Actuators->DifferentialDriveSystem.Right.UpdateReq = true;
+   }
+};
+
 
 /**************** functions for statistics ****************/
 double GetMedian(const std::list<uint16_t>& lst_data) { 
@@ -249,31 +260,31 @@ class CStatePulseElectromagnets : public CState {
 public:
    CStatePulseElectromagnets(const std::string& str_id, CState* pc_parent, const std::chrono::milliseconds& t_duration, CBlockDemo::EGripperFieldMode e_field_mode) :
       CState(str_id, pc_parent, nullptr, CState::TVector {
-         AddState<CState>("init_precharge", [] {
-            Data.Actuators->ManipulatorModule.EndEffector.FieldMode = CBlockDemo::EGripperFieldMode::DISABLED;
-            Data.Actuators->ManipulatorModule.EndEffector.UpdateReq = true;
+         AddState<CState>("init_precharge", [this] {
+            GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.EndEffector.FieldMode = CBlockDemo::EGripperFieldMode::DISABLED;
+            GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.EndEffector.UpdateReq = true;
          }),
          AddState<CState>("wait_for_precharge"),
-         AddState<CState>("switch_field_on", [e_field_mode] {
-            Data.Actuators->ManipulatorModule.EndEffector.FieldMode = e_field_mode;
-            Data.Actuators->ManipulatorModule.EndEffector.UpdateReq = true;
-            Data.ElectromagnetSwitchOnTime = Data.Sensors->Clock.Time;
+         AddState<CState>("switch_field_on", [this, e_field_mode] {
+            GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.EndEffector.FieldMode = e_field_mode;
+            GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.EndEffector.UpdateReq = true;
+            GetBase().GetData<SGlobalData>().ElectromagnetSwitchOnTime = GetBase().GetData<SGlobalData>().Sensors->Clock.Time;
          }),
          AddState<CState>("wait_for_duration"),
-         AddState<CState>("switch_field_off", [] {
-            Data.Actuators->ManipulatorModule.EndEffector.FieldMode = CBlockDemo::EGripperFieldMode::DISABLED;
-            Data.Actuators->ManipulatorModule.EndEffector.UpdateReq = true;
+         AddState<CState>("switch_field_off", [this] {
+            GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.EndEffector.FieldMode = CBlockDemo::EGripperFieldMode::DISABLED;
+            GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.EndEffector.UpdateReq = true;
          }),
       }) {
       AddTransition("init_precharge","wait_for_precharge");
-      AddTransition("wait_for_precharge","switch_field_on", [] {
-         auto tMinMaxPair = std::minmax_element(std::begin(Data.Sensors->ManipulatorModule.LiftActuator.Electromagnets.Charge),
-                                                std::end(Data.Sensors->ManipulatorModule.LiftActuator.Electromagnets.Charge));
+      AddTransition("wait_for_precharge","switch_field_on", [this] {
+         auto tMinMaxPair = std::minmax_element(std::begin(GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.LiftActuator.Electromagnets.Charge),
+                                                std::end(GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.LiftActuator.Electromagnets.Charge));
          return *(tMinMaxPair.first) == *(tMinMaxPair.second);
       });
       AddTransition("switch_field_on","wait_for_duration");
-      AddTransition("wait_for_duration", "switch_field_off", [t_duration] {
-         return (Data.ElectromagnetSwitchOnTime + t_duration) < Data.Sensors->Clock.Time;
+      AddTransition("wait_for_duration", "switch_field_off", [this, t_duration] {
+         return (GetBase().GetData<SGlobalData>().ElectromagnetSwitchOnTime + t_duration) < GetBase().GetData<SGlobalData>().Sensors->Clock.Time;
       });
       AddExitTransition("switch_field_off");
    }
@@ -283,15 +294,15 @@ class CStateSetLiftActuatorPosition : public CState {
 public:
    CStateSetLiftActuatorPosition(const std::string& str_id, CState* pc_parent, uint8_t un_position) :
       CState(str_id, pc_parent, nullptr, CState::TVector {
-         AddState<CState>("set_position", [un_position] {
-            Data.Actuators->ManipulatorModule.LiftActuator.Position.Value = un_position;
-            Data.Actuators->ManipulatorModule.LiftActuator.Position.UpdateReq = true;
+         AddState<CState>("set_position", [this, un_position] {
+            GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.LiftActuator.Position.Value = un_position;
+            GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.LiftActuator.Position.UpdateReq = true;
          }),
          AddState<CState>("wait_for_lift_actuator"),
       }) {
       AddTransition("set_position","wait_for_lift_actuator");
-      AddExitTransition("wait_for_lift_actuator", [] {
-         return (Data.Sensors->ManipulatorModule.LiftActuator.State ==
+      AddExitTransition("wait_for_lift_actuator", [this] {
+         return (GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.LiftActuator.State ==
                  CBlockDemo::ELiftActuatorSystemState::INACTIVE);
       });
    }
@@ -316,10 +327,10 @@ public:
 class CStateSetLedColors : public CState {
 public:
    CStateSetLedColors(const std::string& str_id, CState* pc_parent, CBlockDemo::EColor e_new_color) :
-      CState(str_id, pc_parent, [e_new_color] {
-         for(CBlockDemo::EColor& e_color : Data.Actuators->LEDDeck.Color)
+      CState(str_id, pc_parent, [this, e_new_color] {
+         for(CBlockDemo::EColor& e_color : GetBase().GetData<SGlobalData>().Actuators->LEDDeck.Color)
             e_color = e_new_color;
-         for(bool& b_update : Data.Actuators->LEDDeck.UpdateReq)
+         for(bool& b_update : GetBase().GetData<SGlobalData>().Actuators->LEDDeck.UpdateReq)
             b_update = true;
    }) {}
 };
@@ -327,30 +338,30 @@ public:
 class CStateSendNFCMessage : public CState {
 public:
    CStateSendNFCMessage(const std::string& str_id, CState* pc_parent, const std::string& str_data) :
-      CState(str_id, pc_parent, [str_data] {
-         Data.Actuators->ManipulatorModule.NFCInterface.OutboundMessage = str_data;
-         Data.Actuators->ManipulatorModule.NFCInterface.UpdateReq = true;
+      CState(str_id, pc_parent, [this, str_data] {
+         GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.NFCInterface.OutboundMessage = str_data;
+         GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.NFCInterface.UpdateReq = true;
    }) {}
 };
 
 class CStateSetVelocity : public CState {
 public:
    CStateSetVelocity(const std::string& str_id, CState* pc_parent, double f_left, double f_right) :
-      CState(str_id, pc_parent, [f_left, f_right] {
+      CState(str_id, pc_parent, [this, f_left, f_right] {
          /* apply the approach velocity */
-         SetVelocity(f_left, f_right);
+         GetBase().GetData<SGlobalData>().SetVelocity(f_left, f_right);
       }) {}
 };
 
 class CStateMoveToTargetXZ : public CState {
 public:
    CStateMoveToTargetXZ(const std::string& str_id, CState* pc_parent, double f_x_target, double f_z_target, bool b_track_via_lift_actuator) :
-      CState(str_id, pc_parent, [f_x_target, f_z_target, b_track_via_lift_actuator] {
+      CState(str_id, pc_parent, [this, f_x_target, f_z_target, b_track_via_lift_actuator] {
          /* default velocities, overwritten if target is detected */
          double fLeft = 0.000, fRight = 0.000;
          /* select tracked target */
-         auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
-         if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
+         auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+         if(itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) {
             const SBlock& s_block = itTarget->Observations.front();
             /* calculate the approach velocity */
             double fBlockXOffset = s_block.Translation.GetX() - f_x_target;
@@ -359,7 +370,7 @@ public:
             fRight = BASE_VELOCITY * (-fBlockXOffset + fBlockZOffset) * BASE_XZ_GAIN;
             /* track target via the lift actuator if enabled */
             if(b_track_via_lift_actuator) {
-               TrackBlockViaLiftActuatorHeight(s_block, LIFT_ACTUATOR_MIN_HEIGHT + LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET);
+               GetBase().GetData<SGlobalData>().TrackBlockViaLiftActuatorHeight(s_block, LIFT_ACTUATOR_MIN_HEIGHT + LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET);
                /* adjust speed if the tag is falling out of the frame */
                double fTagOffsetTop =
                   std::abs(FindTagCornerFurthestToTheTop(s_block.Tags[0]).second - IMAGE_SENSOR_HALF_HEIGHT) / IMAGE_SENSOR_HALF_HEIGHT;
@@ -370,19 +381,19 @@ public:
             }
          }
          /* apply the approach velocity */
-         SetVelocity(fLeft, fRight);
+         GetBase().GetData<SGlobalData>().SetVelocity(fLeft, fRight);
       }) {}
 };
 
 class CStateMoveToTargetX : public CState {
 public:
    CStateMoveToTargetX(const std::string& str_id, CState* pc_parent, double f_x_target, bool b_track_via_lift_actuator) :
-      CState(str_id, pc_parent, [f_x_target, b_track_via_lift_actuator] {
+      CState(str_id, pc_parent, [this, f_x_target, b_track_via_lift_actuator] {
          /* default velocities, overwritten if target is detected */
          double fLeft = 0.000, fRight = 0.000;
          /* select tracked target */
-         auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
-         if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
+         auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+         if(itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) {
             const SBlock& s_block = itTarget->Observations.front();
             /* calculate the approach velocity */
             double fBlockXOffset = s_block.Translation.GetX() - f_x_target;
@@ -390,7 +401,7 @@ public:
             fRight = BASE_VELOCITY * (-fBlockXOffset) * BASE_XZ_GAIN;
             /* track target via the lift actuator if enabled */
             if(b_track_via_lift_actuator) {
-               TrackBlockViaLiftActuatorHeight(s_block, LIFT_ACTUATOR_MIN_HEIGHT + LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET);
+               GetBase().GetData<SGlobalData>().TrackBlockViaLiftActuatorHeight(s_block, LIFT_ACTUATOR_MIN_HEIGHT + LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET);
                /* adjust speed if the tag is falling out of the frame */
                double fTagOffsetTop =
                   std::abs(FindTagCornerFurthestToTheTop(s_block.Tags[0]).second - IMAGE_SENSOR_HALF_HEIGHT) / IMAGE_SENSOR_HALF_HEIGHT;
@@ -401,19 +412,19 @@ public:
             }
          }
          /* apply the approach velocity */
-         SetVelocity(fLeft, fRight);
+         GetBase().GetData<SGlobalData>().SetVelocity(fLeft, fRight);
       }) {}
 };
 
 class CStateMoveToTargetZ : public CState {
 public:
    CStateMoveToTargetZ(const std::string& str_id, CState* pc_parent, double f_z_target, bool b_track_via_lift_actuator) :
-      CState(str_id, pc_parent, [f_z_target, b_track_via_lift_actuator] {
+      CState(str_id, pc_parent, [this, f_z_target, b_track_via_lift_actuator] {
          /* default velocities, overwritten if target is detected */
          double fLeft = 0.000, fRight = 0.000;
          /* select tracked target */
-         auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
-         if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
+         auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+         if(itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) {
             const SBlock& s_block = itTarget->Observations.front();
             /* calculate the approach velocity */
             double fBlockZOffset = s_block.Translation.GetZ() - f_z_target;
@@ -421,7 +432,7 @@ public:
             fRight = BASE_VELOCITY * (fBlockZOffset) * BASE_XZ_GAIN;
             /* track target via the lift actuator if enabled */
             if(b_track_via_lift_actuator) {
-               TrackBlockViaLiftActuatorHeight(s_block, LIFT_ACTUATOR_MIN_HEIGHT + LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET);
+               GetBase().GetData<SGlobalData>().TrackBlockViaLiftActuatorHeight(s_block, LIFT_ACTUATOR_MIN_HEIGHT + LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET);
                /* adjust speed if the tag is falling out of the frame */
                double fTagOffsetTop =
                   std::abs(FindTagCornerFurthestToTheTop(s_block.Tags[0]).second - IMAGE_SENSOR_HALF_HEIGHT) / IMAGE_SENSOR_HALF_HEIGHT;
@@ -432,7 +443,7 @@ public:
             }
          }
          /* apply the approach velocity */
-         SetVelocity(fLeft, fRight);
+         GetBase().GetData<SGlobalData>().SetVelocity(fLeft, fRight);
       }) {}
 };
 
@@ -440,18 +451,18 @@ class CStateAlignWithTagOffset : public CState {
 public:
    CStateAlignWithTagOffset(const std::string& str_id, CState* pc_parent, double f_tag_offset_target,
                             std::function<const STag::TCoordinate&(const STag&)> fn_get_coordinate) :
-      CState(str_id, pc_parent, [f_tag_offset_target, fn_get_coordinate] {
+      CState(str_id, pc_parent, [this, f_tag_offset_target, fn_get_coordinate] {
             /* default velocities, overwritten if target is detected */
             double fLeft = 0.000, fRight = 0.000;
             /* select tracked target */
-            auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
-            if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
+            auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+            if(itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) {
                const SBlock& s_block = itTarget->Observations.front();
                double fTagOffset = (fn_get_coordinate(s_block.Tags[0]).first - IMAGE_SENSOR_HALF_WIDTH) / IMAGE_SENSOR_HALF_WIDTH;
                fLeft  = (fTagOffset - f_tag_offset_target) * BASE_VELOCITY;
                fRight = (f_tag_offset_target - fTagOffset) * BASE_VELOCITY;
             }
-            SetVelocity(fLeft, fRight);
+            GetBase().GetData<SGlobalData>().SetVelocity(fLeft, fRight);
       }) {}
 };
 
@@ -459,23 +470,23 @@ class CStateApproachTarget : public CState {
 public:
    CStateApproachTarget(const std::string& str_id, CState* pc_parent, double f_lift_actuator_min_height, double f_tag_offset_target, 
                         std::function<const STag::TCoordinate&(const STag&)> fn_get_coordinate) :
-      CState(str_id, pc_parent, [f_lift_actuator_min_height, f_tag_offset_target, fn_get_coordinate] {
+      CState(str_id, pc_parent, [this, f_lift_actuator_min_height, f_tag_offset_target, fn_get_coordinate] {
          // default velocities, overwritten if target is detected
          double fLeft = 0.000, fRight = 0.000;
          // select tracked target
-         auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
-         if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
+         auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+         if(itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) {
             const SBlock& s_block = itTarget->Observations.front();
             /* update the last observation data */
-            Data.TrackedTargetLastObservation.Rotation = s_block.Rotation;
-            Data.TrackedTargetLastObservation.Translation = s_block.Translation;
+            GetBase().GetData<SGlobalData>().TrackedTargetLastObservation.Rotation = s_block.Rotation;
+            GetBase().GetData<SGlobalData>().TrackedTargetLastObservation.Translation = s_block.Translation;
             /* track the target by lowering the lift actuator position */
-            TrackBlockViaLiftActuatorHeight(s_block,
+            GetBase().GetData<SGlobalData>().TrackBlockViaLiftActuatorHeight(s_block,
                                             f_lift_actuator_min_height,
-                                            Data.Actuators->ManipulatorModule.LiftActuator.Position.Value);
+                                            GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.LiftActuator.Position.Value);
             /* calculate the steering variable */
             double fTagOffset = (fn_get_coordinate(s_block.Tags[0]).first - IMAGE_SENSOR_HALF_WIDTH) / IMAGE_SENSOR_HALF_WIDTH;
-            double fOutput = Data.TagApproachController.Step(fTagOffset, f_tag_offset_target, Data.Sensors->Clock.Time);
+            double fOutput = GetBase().GetData<SGlobalData>().TagApproachController.Step(fTagOffset, f_tag_offset_target, GetBase().GetData<SGlobalData>().Sensors->Clock.Time);
             /* saturate the steering variable between 0 and 1 */
             fOutput = (fOutput > 0.750) ? 0.750 : ((fOutput < -0.750) ? -0.750 : fOutput);
             /* calculate the approach velocities */
@@ -490,7 +501,7 @@ public:
             fRight *= std::max(1.000 - std::max(fTagOffsetTop, fTagOffsetBottom), 0.250);
          }
          /* apply the approach velocity */
-         SetVelocity(fLeft, fRight);
+         GetBase().GetData<SGlobalData>().SetVelocity(fLeft, fRight);
       }) {}
 };
 
@@ -503,55 +514,61 @@ public:
          AddState<CStateAlignWithTagOffset>("align_with_tag_offset", f_tag_offset_target, fn_get_coordinate),
          AddState<CStateApproachTarget>("approach_target", LIFT_ACTUATOR_MIN_HEIGHT + LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET, f_tag_offset_target, fn_get_coordinate),
          // failure states
-         AddState<CState>("adjust_lift_actuator_height", [] {
-            if(Data.Actuators->ManipulatorModule.LiftActuator.Position.Value < (LIFT_ACTUATOR_MAX_HEIGHT - LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET)) {
-               Data.Actuators->ManipulatorModule.LiftActuator.Position.Value += LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET;
-               Data.Actuators->ManipulatorModule.LiftActuator.Position.UpdateReq = true;
+         AddState<CState>("adjust_lift_actuator_height", [this] {
+            if(GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.LiftActuator.Position.Value < (LIFT_ACTUATOR_MAX_HEIGHT - LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET)) {
+               GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.LiftActuator.Position.Value += LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET;
+               GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.LiftActuator.Position.UpdateReq = true;
             }
          }),
          AddState<CStateSetVelocity>("set_reverse_velocity", -0.250 * BASE_VELOCITY, -0.250 * BASE_VELOCITY),
          AddState<CState>("wait_for_target_or_timeout"),
       }) {
          /*** transitions (constructor body) ***/
-         AddTransition("align_with_tag_offset", "approach_target", [f_tag_offset_target, fn_get_coordinate] {
-            auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
-            if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
+         AddTransition("align_with_tag_offset", "approach_target", [this, f_tag_offset_target, fn_get_coordinate] {
+            auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+            if(itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) {
                const SBlock& s_block = itTarget->Observations.front();
                double fTagOffset = (fn_get_coordinate(s_block.Tags[0]).first - IMAGE_SENSOR_HALF_WIDTH) / IMAGE_SENSOR_HALF_WIDTH;
                if(std::abs(fTagOffset - f_tag_offset_target) < 0.1) {         
-                  Data.TagApproachController.Reset();
+                  GetBase().GetData<SGlobalData>().TagApproachController.Reset();
                   return true;
                }   
             }
             return false;
          });
-         AddExitTransition("approach_target", [] {
-            bool bTargetLost = IsTargetLost();
+         AddExitTransition("approach_target", [this] {
+            bool bTargetLost = GetBase().GetData<SGlobalData>().IsTargetLost();
             bool bLiftActuatorAtBottom = 
-               (Data.Actuators->ManipulatorModule.LiftActuator.Position.Value <= (LIFT_ACTUATOR_MIN_HEIGHT + LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET));
+               (GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.LiftActuator.Position.Value <= (LIFT_ACTUATOR_MIN_HEIGHT + LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET));
             bool bLastObservationInRange =
-               (std::abs(Data.TrackedTargetLastObservation.Translation.GetX()) <= APPROACH_BLOCK_X_FAIL_THRES);
+               (std::abs(GetBase().GetData<SGlobalData>().TrackedTargetLastObservation.Translation.GetX()) <= APPROACH_BLOCK_X_FAIL_THRES);
             if(bTargetLost && bLiftActuatorAtBottom && bLastObservationInRange) {
-               SetTargetInRange();
+               GetBase().GetData<SGlobalData>().SetTargetInRange();
                return true;
             }
             return false;
          });
-         AddTransition("align_with_tag_offset", "set_reverse_velocity", IsTargetLost);
-         AddTransition("approach_target", "set_reverse_velocity", IsTargetLost);
+         AddTransition("align_with_tag_offset", "set_reverse_velocity", [this] {
+            return GetBase().GetData<SGlobalData>().IsTargetLost();
+         });
+         AddTransition("approach_target", "set_reverse_velocity", [this] {
+            return GetBase().GetData<SGlobalData>().IsTargetLost();
+         });
          AddTransition("set_reverse_velocity", "adjust_lift_actuator_height");
          // back off until target is re-acquired
-         AddTransition("adjust_lift_actuator_height", "wait_for_target_or_timeout", [] {
+         AddTransition("adjust_lift_actuator_height", "wait_for_target_or_timeout", [this] {
             // reset timer for the reverse velocity search
-            Data.ReverseToFindTargetStartTime = Data.Sensors->Clock.Time;
+            GetBase().GetData<SGlobalData>().ReverseToFindTargetStartTime = GetBase().GetData<SGlobalData>().Sensors->Clock.Time;
             return true;
          });
          // try again
-         AddTransition("wait_for_target_or_timeout", "align_with_tag_offset", IsNextTargetAcquired);
+         AddTransition("wait_for_target_or_timeout", "align_with_tag_offset", [this] {
+            return GetBase().GetData<SGlobalData>().IsNextTargetAcquired();
+         });
          // timer has expired
-         AddExitTransition("wait_for_target_or_timeout", [] {
-            if(Data.ReverseToFindTargetStartTime + REVERSE_TIMEOUT_SHORT < Data.Sensors->Clock.Time) {
-               ClearTargetInRange();
+         AddExitTransition("wait_for_target_or_timeout", [this] {
+            if(GetBase().GetData<SGlobalData>().ReverseToFindTargetStartTime + REVERSE_TIMEOUT_SHORT < GetBase().GetData<SGlobalData>().Sensors->Clock.Time) {
+               GetBase().GetData<SGlobalData>().ClearTargetInRange();
                return true;
             }
             return false;
@@ -566,22 +583,22 @@ public:
          /*** states (std::vector<CState> initializer list) ***/
          AddState<CStateSetLedColors>("set_deck_color", CBlockDemo::EColor::RED),
          AddState<CStateSetLiftActuatorPosition>("lower_lift_actuator", LIFT_ACTUATOR_MIN_HEIGHT + LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET),
-         AddState<CState>("set_approach_velocity", [] {
-            double fLastObservationX = Data.TrackedTargetLastObservation.Translation.GetX();
+         AddState<CState>("set_approach_velocity", [this] {
+            double fLastObservationX = GetBase().GetData<SGlobalData>().TrackedTargetLastObservation.Translation.GetX();
             double fLeft = BASE_VELOCITY * (1.000 + (fLastObservationX * BASE_XZ_GAIN));
             double fRight = BASE_VELOCITY * (1.000 - (fLastObservationX * BASE_XZ_GAIN));
-            SetVelocity(fLeft, fRight);
+            GetBase().GetData<SGlobalData>().SetVelocity(fLeft, fRight);
          }),
          AddState<CState>("wait_for_underneath_rf_or_timeout"),
          AddState<CState>("wait_for_either_left_right_rf_or_timeout"),
-         AddState<CState>("set_pivot_velocity", [] {
-            bool bRfBlockDetectedLeft = (Data.Sensors->ManipulatorModule.RangeFinders.Left > RF_LR_BLOCK_DETECT_THRES);
-            bool bRfBlockDetectedRight = (Data.Sensors->ManipulatorModule.RangeFinders.Right > RF_LR_BLOCK_DETECT_THRES);
+         AddState<CState>("set_pivot_velocity", [this] {
+            bool bRfBlockDetectedLeft = (GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.RangeFinders.Left > RF_LR_BLOCK_DETECT_THRES);
+            bool bRfBlockDetectedRight = (GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.RangeFinders.Right > RF_LR_BLOCK_DETECT_THRES);
             // pivot the robot towards the other sensor
             double fLeft = (bRfBlockDetectedLeft ? 0.250 : 0.500) * BASE_VELOCITY;
             double fRight = (bRfBlockDetectedRight ? 0.250 : 0.500) * BASE_VELOCITY;
             // apply the velocity
-            SetVelocity(fLeft, fRight);
+            GetBase().GetData<SGlobalData>().SetVelocity(fLeft, fRight);
          }),
          AddState<CState>("wait_for_both_left_right_rf_or_timeout"),
          AddState<CStateSetVelocity>("set_zero_velocity", 0.000, 0.000),
@@ -589,57 +606,57 @@ public:
          /*** transitions (constructor body) ***/
          AddTransition("set_deck_color", "lower_lift_actuator");
          AddTransition("lower_lift_actuator", "set_approach_velocity");
-         AddTransition("set_approach_velocity", "wait_for_underneath_rf_or_timeout", [] {
+         AddTransition("set_approach_velocity", "wait_for_underneath_rf_or_timeout", [this] {
             // reset timer for "wait_for_underneath_rf_or_timeout"
-            Data.NearApproachStartTime = Data.Sensors->Clock.Time;
+            GetBase().GetData<SGlobalData>().NearApproachStartTime = GetBase().GetData<SGlobalData>().Sensors->Clock.Time;
             return true;
          });
-         AddTransition("wait_for_underneath_rf_or_timeout", "wait_for_either_left_right_rf_or_timeout", [] {
+         AddTransition("wait_for_underneath_rf_or_timeout", "wait_for_either_left_right_rf_or_timeout", [this] {
             // block detected on the underneath rf
-            if(Data.Sensors->ManipulatorModule.RangeFinders.Underneath > RF_UN_BLOCK_DETECT_THRES) {
+            if(GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.RangeFinders.Underneath > RF_UN_BLOCK_DETECT_THRES) {
                // reset timer for "wait_for_either_left_right_rf_or_timeout"
-               Data.NearApproachStartTime = Data.Sensors->Clock.Time;
+               GetBase().GetData<SGlobalData>().NearApproachStartTime = GetBase().GetData<SGlobalData>().Sensors->Clock.Time;
                return true;
             }
             return false;
          });
-         AddTransition("wait_for_either_left_right_rf_or_timeout", "set_zero_velocity", [] {
+         AddTransition("wait_for_either_left_right_rf_or_timeout", "set_zero_velocity", [this] {
             // block detected on both the left & right rf
-            return ((Data.Sensors->ManipulatorModule.RangeFinders.Left > RF_LR_BLOCK_DETECT_THRES) &&
-                    (Data.Sensors->ManipulatorModule.RangeFinders.Right > RF_LR_BLOCK_DETECT_THRES));
+            return ((GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.RangeFinders.Left > RF_LR_BLOCK_DETECT_THRES) &&
+                    (GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.RangeFinders.Right > RF_LR_BLOCK_DETECT_THRES));
          });
-         AddTransition("wait_for_either_left_right_rf_or_timeout", "set_pivot_velocity", [] {
+         AddTransition("wait_for_either_left_right_rf_or_timeout", "set_pivot_velocity", [this] {
             // block detected on both the left & right rf
-            return ((Data.Sensors->ManipulatorModule.RangeFinders.Left > RF_LR_BLOCK_DETECT_THRES) ||
-                    (Data.Sensors->ManipulatorModule.RangeFinders.Right > RF_LR_BLOCK_DETECT_THRES));
+            return ((GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.RangeFinders.Left > RF_LR_BLOCK_DETECT_THRES) ||
+                    (GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.RangeFinders.Right > RF_LR_BLOCK_DETECT_THRES));
          });
-         AddTransition("set_pivot_velocity", "wait_for_both_left_right_rf_or_timeout", [] {
+         AddTransition("set_pivot_velocity", "wait_for_both_left_right_rf_or_timeout", [this] {
             // reset timer for "wait_for_both_left_right_rf_or_timeout"
-            Data.NearApproachStartTime = Data.Sensors->Clock.Time;
+            GetBase().GetData<SGlobalData>().NearApproachStartTime = GetBase().GetData<SGlobalData>().Sensors->Clock.Time;
             return true;
          });
-         AddTransition("wait_for_both_left_right_rf_or_timeout", "set_zero_velocity", [] {
+         AddTransition("wait_for_both_left_right_rf_or_timeout", "set_zero_velocity", [this] {
             // block detected on both the left & right rf
-            return ((Data.Sensors->ManipulatorModule.RangeFinders.Left > RF_LR_BLOCK_DETECT_THRES) &&
-                    (Data.Sensors->ManipulatorModule.RangeFinders.Right > RF_LR_BLOCK_DETECT_THRES));
+            return ((GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.RangeFinders.Left > RF_LR_BLOCK_DETECT_THRES) &&
+                    (GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.RangeFinders.Right > RF_LR_BLOCK_DETECT_THRES));
          });
-         AddTransition("wait_for_underneath_rf_or_timeout", "set_zero_velocity", [] {
-            if(Data.NearApproachStartTime + NEAR_APPROACH_TIMEOUT < Data.Sensors->Clock.Time) {
-               ClearTargetInRange();
+         AddTransition("wait_for_underneath_rf_or_timeout", "set_zero_velocity", [this] {
+            if(GetBase().GetData<SGlobalData>().NearApproachStartTime + NEAR_APPROACH_TIMEOUT < GetBase().GetData<SGlobalData>().Sensors->Clock.Time) {
+               GetBase().GetData<SGlobalData>().ClearTargetInRange();
                return true;
             }
             return false;
          });
-         AddTransition("wait_for_either_left_right_rf_or_timeout", "set_zero_velocity", [] {
-            if(Data.NearApproachStartTime + NEAR_APPROACH_TIMEOUT < Data.Sensors->Clock.Time) {
-               ClearTargetInRange();
+         AddTransition("wait_for_either_left_right_rf_or_timeout", "set_zero_velocity", [this] {
+            if(GetBase().GetData<SGlobalData>().NearApproachStartTime + NEAR_APPROACH_TIMEOUT < GetBase().GetData<SGlobalData>().Sensors->Clock.Time) {
+               GetBase().GetData<SGlobalData>().ClearTargetInRange();
                return true;
             }
             return false;
          });
-         AddTransition("wait_for_both_left_right_rf_or_timeout", "set_zero_velocity", [] {
-            if(Data.NearApproachStartTime + NEAR_APPROACH_TIMEOUT < Data.Sensors->Clock.Time) {
-               ClearTargetInRange();
+         AddTransition("wait_for_both_left_right_rf_or_timeout", "set_zero_velocity", [this] {
+            if(GetBase().GetData<SGlobalData>().NearApproachStartTime + NEAR_APPROACH_TIMEOUT < GetBase().GetData<SGlobalData>().Sensors->Clock.Time) {
+               GetBase().GetData<SGlobalData>().ClearTargetInRange();
                return true;
             }
             return false;
@@ -670,9 +687,9 @@ public:
          /*** transitions (constructor body) ***/
          // select approach direction
          AddTransition("set_deck_color_green", "align_with_block");
-         AddTransition("align_with_block", "approach_block_from_left", [] {
-            auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
-            if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
+         AddTransition("align_with_block", "approach_block_from_left", [this] {
+            auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+            if(itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) {
                const SBlock& s_block = itTarget->Observations.front();
                if((std::abs(s_block.Translation.GetX() - PREAPPROACH_BLOCK_X_TARGET) < PREAPPROACH_BLOCK_XZ_THRES) &&
                   (std::abs(s_block.Translation.GetZ() - PREAPPROACH_BLOCK_Z_TARGET) < PREAPPROACH_BLOCK_XZ_THRES)) {
@@ -683,9 +700,9 @@ public:
             }
             return false;
          });
-         AddTransition("align_with_block", "approach_block_from_right", [] {
-            auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
-            if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
+         AddTransition("align_with_block", "approach_block_from_right", [this] {
+            auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+            if(itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) {
                const SBlock& s_block = itTarget->Observations.front();
                if((std::abs(s_block.Translation.GetX() - PREAPPROACH_BLOCK_X_TARGET) < PREAPPROACH_BLOCK_XZ_THRES) &&
                   (std::abs(s_block.Translation.GetZ() - PREAPPROACH_BLOCK_Z_TARGET) < PREAPPROACH_BLOCK_XZ_THRES)) {
@@ -696,9 +713,9 @@ public:
             }
             return false;
          });
-         AddTransition("align_with_block", "approach_block_straight", [] {
-            auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
-            if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
+         AddTransition("align_with_block", "approach_block_straight", [this] {
+            auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+            if(itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) {
                const SBlock& s_block = itTarget->Observations.front();
                if((std::abs(s_block.Translation.GetX() - PREAPPROACH_BLOCK_X_TARGET) < PREAPPROACH_BLOCK_XZ_THRES) &&
                   (std::abs(s_block.Translation.GetZ() - PREAPPROACH_BLOCK_Z_TARGET) < PREAPPROACH_BLOCK_XZ_THRES)) {
@@ -709,31 +726,44 @@ public:
             }
             return false;
          });
+
          // check if target is in range and perform the near block approach
-         AddTransition("approach_block_from_left", "set_deck_color_red", IsTargetInRange);
-         AddTransition("approach_block_from_right", "set_deck_color_red", IsTargetInRange);
-         AddTransition("approach_block_straight", "set_deck_color_red", IsTargetInRange);
+         AddTransition("approach_block_from_left", "set_deck_color_red", [this] {
+            return GetBase().GetData<SGlobalData>().IsTargetInRange();
+         });
+         AddTransition("approach_block_from_right", "set_deck_color_red", [this] {
+            return GetBase().GetData<SGlobalData>().IsTargetInRange();
+         });
+         AddTransition("approach_block_straight", "set_deck_color_red", [this] {
+            return GetBase().GetData<SGlobalData>().IsTargetInRange();
+         });
          AddTransition("set_deck_color_red", "approach_block_near");
-         AddTransition("approach_block_near", "set_zero_velocity", IsTargetInRange);
+         AddTransition("approach_block_near", "set_zero_velocity", [this] {
+            return GetBase().GetData<SGlobalData>().IsTargetInRange();
+         });
          AddTransition("set_zero_velocity", "attach_block_to_end_effector");
          // test if the block attached correctly to the end effector
          AddTransition("attach_block_to_end_effector", "set_lift_actuator_test_height");
-         AddExitTransition("set_lift_actuator_test_height", [] {
-            if(Data.Sensors->ManipulatorModule.RangeFinders.Underneath > RF_UN_BLOCK_DETECT_THRES) {
-               SetTargetInRange();
+         AddExitTransition("set_lift_actuator_test_height", [this] {
+            if(GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.RangeFinders.Underneath > RF_UN_BLOCK_DETECT_THRES) {
+               GetBase().GetData<SGlobalData>().SetTargetInRange();
                return true;
             }
             return false;
          });
          // failure transitions
-         AddTransition("align_with_block", "set_reverse_velocity", IsTargetLost);
+         AddTransition("align_with_block", "set_reverse_velocity", [this] {
+            return GetBase().GetData<SGlobalData>().IsTargetLost();
+         });
          AddTransition("approach_block_from_left", "set_reverse_velocity");
          AddTransition("approach_block_from_right", "set_reverse_velocity");
          AddTransition("approach_block_straight", "set_reverse_velocity");
          AddTransition("approach_block_near", "set_reverse_velocity");
          AddTransition("set_lift_actuator_test_height", "set_reverse_velocity");
          AddTransition("set_reverse_velocity", "raise_lift_actuator");
-         AddExitTransition("raise_lift_actuator", ClearTargetInRange);
+         AddExitTransition("raise_lift_actuator", [this] {
+            return GetBase().GetData<SGlobalData>().ClearTargetInRange();
+         });
       }
 };
 
@@ -747,58 +777,64 @@ public:
          AddState<CStateApproachTarget>("approach_target", LIFT_ACTUATOR_MIN_HEIGHT + (0.5 * LIFT_ACTUATOR_BLOCK_HEIGHT), f_tag_offset_target, fn_get_coordinate),
 
          // failure states
-         AddState<CState>("adjust_lift_actuator_height", [] {
-            if(Data.Actuators->ManipulatorModule.LiftActuator.Position.Value < (LIFT_ACTUATOR_MAX_HEIGHT - LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET)) {
-               Data.Actuators->ManipulatorModule.LiftActuator.Position.Value += LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET;
-               Data.Actuators->ManipulatorModule.LiftActuator.Position.UpdateReq = true;
+         AddState<CState>("adjust_lift_actuator_height", [this] {
+            if(GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.LiftActuator.Position.Value < (LIFT_ACTUATOR_MAX_HEIGHT - LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET)) {
+               GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.LiftActuator.Position.Value += LIFT_ACTUATOR_BLOCK_PREATTACH_OFFSET;
+               GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.LiftActuator.Position.UpdateReq = true;
             }
          }),
          AddState<CStateSetVelocity>("set_reverse_velocity", -0.250 * BASE_VELOCITY, -0.250 * BASE_VELOCITY),
          AddState<CState>("wait_for_target_or_timeout"),
       }) {
          /*** transitions (constructor body) ***/
-         AddTransition("align_with_tag_offset", "approach_target", [f_tag_offset_target, fn_get_coordinate] {
-            auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
-            if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
+         AddTransition("align_with_tag_offset", "approach_target", [this, f_tag_offset_target, fn_get_coordinate] {
+            auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+            if(itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) {
                const SBlock& s_block = itTarget->Observations.front();
                double fTagOffset = (fn_get_coordinate(s_block.Tags[0]).first - IMAGE_SENSOR_HALF_WIDTH) / IMAGE_SENSOR_HALF_WIDTH;
                if(std::abs(fTagOffset - f_tag_offset_target) < 0.1) {         
-                  Data.TagApproachController.Reset();
+                  GetBase().GetData<SGlobalData>().TagApproachController.Reset();
                   return true;
                }
             }
             return false;
          });
 
-         AddExitTransition("approach_target", [] {
-            auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
-            bool bTargetInRange = (itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) && 
+         AddExitTransition("approach_target", [this] {
+            auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+            bool bTargetInRange = (itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) && 
                                   (GetAdjBlockTranslation(itTarget->Observations.front()).GetX() < 0.085);
-            bool bTargetLost = IsTargetLost();
+            bool bTargetLost = GetBase().GetData<SGlobalData>().IsTargetLost();
             bool bLiftActuatorAtBottom =
-               (Data.Actuators->ManipulatorModule.LiftActuator.Position.Value <= (LIFT_ACTUATOR_MIN_HEIGHT + (0.5 * LIFT_ACTUATOR_BLOCK_HEIGHT)));
+               (GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.LiftActuator.Position.Value <= (LIFT_ACTUATOR_MIN_HEIGHT + (0.5 * LIFT_ACTUATOR_BLOCK_HEIGHT)));
             if(bTargetInRange || (bTargetLost && bLiftActuatorAtBottom)) {
-               SetTargetInRange();
+               GetBase().GetData<SGlobalData>().SetTargetInRange();
                return true;
             }
             return false;
          });
 
-         AddTransition("align_with_tag_offset", "set_reverse_velocity", IsTargetLost);
-         AddTransition("approach_target", "set_reverse_velocity", IsTargetLost);
+         AddTransition("align_with_tag_offset", "set_reverse_velocity", [this] {
+            return GetBase().GetData<SGlobalData>().IsTargetLost();
+         });
+         AddTransition("approach_target", "set_reverse_velocity", [this] {
+            return GetBase().GetData<SGlobalData>().IsTargetLost();
+         });
          AddTransition("set_reverse_velocity", "adjust_lift_actuator_height");
          // back off until target is re-acquired
-         AddTransition("adjust_lift_actuator_height", "wait_for_target_or_timeout", [] {
+         AddTransition("adjust_lift_actuator_height", "wait_for_target_or_timeout", [this] {
             // reset timer for the reverse velocity search
-            Data.ReverseToFindTargetStartTime = Data.Sensors->Clock.Time;
+            GetBase().GetData<SGlobalData>().ReverseToFindTargetStartTime = GetBase().GetData<SGlobalData>().Sensors->Clock.Time;
             return true;
          });
          // try again
-         AddTransition("wait_for_target_or_timeout", "align_with_tag_offset", IsNextTargetAcquired);
+         AddTransition("wait_for_target_or_timeout", "align_with_tag_offset", [this] {
+            return GetBase().GetData<SGlobalData>().IsNextTargetAcquired();
+         });
          // timer has expired
-         AddExitTransition("wait_for_target_or_timeout", [] {
-            if(Data.ReverseToFindTargetStartTime + REVERSE_TIMEOUT_SHORT < Data.Sensors->Clock.Time) {
-               ClearTargetInRange();
+         AddExitTransition("wait_for_target_or_timeout", [this] {
+            if(GetBase().GetData<SGlobalData>().ReverseToFindTargetStartTime + REVERSE_TIMEOUT_SHORT < GetBase().GetData<SGlobalData>().Sensors->Clock.Time) {
+               GetBase().GetData<SGlobalData>().ClearTargetInRange();
                return true;
             }
             return false;
@@ -823,57 +859,57 @@ public:
          AddState<CStateSetLedColors>("set_deck_color_red", CBlockDemo::EColor::RED),
          AddState<CStateSetLiftActuatorPosition>("set_lift_actuator_base_height", LIFT_ACTUATOR_MIN_HEIGHT + (0.5 * LIFT_ACTUATOR_BLOCK_HEIGHT)),
          // if no targets place block, otherwise, if targets check led colors
-         AddState<CState>("increment_lift_actuator_height", [] {
-            Data.Actuators->ManipulatorModule.LiftActuator.Position.Value += LIFT_ACTUATOR_BLOCK_HEIGHT;
+         AddState<CState>("increment_lift_actuator_height", [this] {
+            GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.LiftActuator.Position.Value += LIFT_ACTUATOR_BLOCK_HEIGHT;
             /* saturate a max height */
-            if(Data.Actuators->ManipulatorModule.LiftActuator.Position.Value > LIFT_ACTUATOR_MAX_HEIGHT) {
-               Data.Actuators->ManipulatorModule.LiftActuator.Position.Value = LIFT_ACTUATOR_MAX_HEIGHT;
+            if(GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.LiftActuator.Position.Value > LIFT_ACTUATOR_MAX_HEIGHT) {
+               GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.LiftActuator.Position.Value = LIFT_ACTUATOR_MAX_HEIGHT;
             }
-            Data.Actuators->ManipulatorModule.LiftActuator.Position.UpdateReq = true;
+            GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.LiftActuator.Position.UpdateReq = true;
 
          }),
          AddState<CState>("wait_for_lift_actuator"),
-         AddState<CState>("decrement_lift_actuator_height", [] {
-            Data.Actuators->ManipulatorModule.LiftActuator.Position.Value -= (0.25 * LIFT_ACTUATOR_BLOCK_HEIGHT);
-            Data.Actuators->ManipulatorModule.LiftActuator.Position.UpdateReq = true;
+         AddState<CState>("decrement_lift_actuator_height", [this] {
+            GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.LiftActuator.Position.Value -= (0.25 * LIFT_ACTUATOR_BLOCK_HEIGHT);
+            GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.LiftActuator.Position.UpdateReq = true;
          }),
          AddState<CStateSetLiftActuatorPosition>("lower_lift_actuator", LIFT_ACTUATOR_MIN_HEIGHT + (0.25 * LIFT_ACTUATOR_BLOCK_HEIGHT)),
          // correct height
-         AddState<CState>("set_block_led_state", [] {
-            switch(Data.NextLedStateToAssign) {
+         AddState<CState>("set_block_led_state", [this] {
+            switch(GetBase().GetData<SGlobalData>().NextLedStateToAssign) {
             case ELedState::OFF:
-               Data.Actuators->ManipulatorModule.NFCInterface.OutboundMessage = BLOCK_TYPE_OFF;
+               GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.NFCInterface.OutboundMessage = BLOCK_TYPE_OFF;
                break;
             case ELedState::Q1:
-               Data.Actuators->ManipulatorModule.NFCInterface.OutboundMessage = BLOCK_TYPE_Q1;
+               GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.NFCInterface.OutboundMessage = BLOCK_TYPE_Q1;
                break;
             case ELedState::Q2:
-               Data.Actuators->ManipulatorModule.NFCInterface.OutboundMessage = BLOCK_TYPE_Q2;
+               GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.NFCInterface.OutboundMessage = BLOCK_TYPE_Q2;
                break;
             case ELedState::Q3:
-               Data.Actuators->ManipulatorModule.NFCInterface.OutboundMessage = BLOCK_TYPE_Q3;
+               GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.NFCInterface.OutboundMessage = BLOCK_TYPE_Q3;
                break;
             case ELedState::Q4:
-               Data.Actuators->ManipulatorModule.NFCInterface.OutboundMessage = BLOCK_TYPE_Q4;
+               GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.NFCInterface.OutboundMessage = BLOCK_TYPE_Q4;
                break;
             }
-            Data.Actuators->ManipulatorModule.NFCInterface.UpdateReq = true;
+            GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.NFCInterface.UpdateReq = true;
          }),
-         AddState<CState>("set_approach_velocity", [] {
-            double fLastObservationX = Data.TrackedTargetLastObservation.Translation.GetX();
+         AddState<CState>("set_approach_velocity", [this] {
+            double fLastObservationX = GetBase().GetData<SGlobalData>().TrackedTargetLastObservation.Translation.GetX();
             double fLeft = BASE_VELOCITY * (1.000 + (fLastObservationX * BASE_XZ_GAIN));
             double fRight = BASE_VELOCITY * (1.000 - (fLastObservationX * BASE_XZ_GAIN));
-            SetVelocity(fLeft, fRight);
+            GetBase().GetData<SGlobalData>().SetVelocity(fLeft, fRight);
          }),
          AddState<CState>("wait_for_either_front_rf_or_timeout"),
-         AddState<CState>("set_pivot_velocity", [] {
-            bool bRfBlockDetectedLeft = (GetMedian(Data.Sensors->RangeFinders[5]) > RF_FLR_BLOCK_DETECT_THRES);
-            bool bRfBlockDetectedRight = (GetMedian(Data.Sensors->RangeFinders[6]) > RF_FLR_BLOCK_DETECT_THRES);
+         AddState<CState>("set_pivot_velocity", [this] {
+            bool bRfBlockDetectedLeft = (GetMedian(GetBase().GetData<SGlobalData>().Sensors->RangeFinders[5]) > RF_FLR_BLOCK_DETECT_THRES);
+            bool bRfBlockDetectedRight = (GetMedian(GetBase().GetData<SGlobalData>().Sensors->RangeFinders[6]) > RF_FLR_BLOCK_DETECT_THRES);
             // pivot the robot towards the other sensor
             double fLeft = (bRfBlockDetectedLeft ? 0.250 : 0.500) * BASE_VELOCITY;
             double fRight = (bRfBlockDetectedRight ? 0.250 : 0.500) * BASE_VELOCITY;
             // apply the velocity
-            SetVelocity(fLeft, fRight);
+            GetBase().GetData<SGlobalData>().SetVelocity(fLeft, fRight);
          }),
          AddState<CState>("wait_for_both_front_rfs_or_timeout"),
          AddState<CStateSetVelocity>("set_reverse_velocity_for_detachment", -0.500 * BASE_VELOCITY, -0.500 * BASE_VELOCITY),
@@ -885,9 +921,9 @@ public:
          /*** transitions (constructor body) ***/
          // select approach direction
          AddTransition("set_deck_color_green", "prealign_with_structure");
-         AddTransition("prealign_with_structure", "approach_structure_from_left", [] {
-            auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
-            if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
+         AddTransition("prealign_with_structure", "approach_structure_from_left", [this] {
+            auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+            if(itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) {
                const SBlock& s_block = itTarget->Observations.front();
                if((std::abs(s_block.Translation.GetX() - PREAPPROACH_BLOCK_X_TARGET) < PREAPPROACH_BLOCK_XZ_THRES) &&
                   (std::abs(s_block.Translation.GetZ() - PREAPPROACH_BLOCK_Z_TARGET) < PREAPPROACH_BLOCK_XZ_THRES)) {
@@ -898,9 +934,9 @@ public:
             }
             return false;
          });
-         AddTransition("prealign_with_structure", "approach_structure_from_right", [] {
-            auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
-            if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
+         AddTransition("prealign_with_structure", "approach_structure_from_right", [this] {
+            auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+            if(itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) {
                const SBlock& s_block = itTarget->Observations.front();
                if((std::abs(s_block.Translation.GetX() - PREAPPROACH_BLOCK_X_TARGET) < PREAPPROACH_BLOCK_XZ_THRES) &&
                   (std::abs(s_block.Translation.GetZ() - PREAPPROACH_BLOCK_Z_TARGET) < PREAPPROACH_BLOCK_XZ_THRES)) {
@@ -911,9 +947,9 @@ public:
             }
             return false;
          });
-         AddTransition("prealign_with_structure", "approach_structure_straight", [] {
-            auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
-            if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
+         AddTransition("prealign_with_structure", "approach_structure_straight", [this] {
+            auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+            if(itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) {
                const SBlock& s_block = itTarget->Observations.front();
                if((std::abs(s_block.Translation.GetX() - PREAPPROACH_BLOCK_X_TARGET) < PREAPPROACH_BLOCK_XZ_THRES) &&
                   (std::abs(s_block.Translation.GetZ() - PREAPPROACH_BLOCK_Z_TARGET) < PREAPPROACH_BLOCK_XZ_THRES)) {
@@ -925,20 +961,29 @@ public:
             return false;
          });
          /* tracking lost - exit */
-         AddExitTransition("prealign_with_structure", IsTargetLost);
-
-         AddExitTransition("approach_structure_from_left", IsTargetLost);
-         AddExitTransition("approach_structure_from_right", IsTargetLost);
-         AddExitTransition("approach_structure_straight", IsTargetLost);
+         AddExitTransition("prealign_with_structure", [this] {
+            return GetBase().GetData<SGlobalData>().IsTargetLost();
+         });
+         AddExitTransition("approach_structure_from_left", [this] {
+            return GetBase().GetData<SGlobalData>().IsTargetLost();
+         });
+         AddExitTransition("approach_structure_from_right", [this] {
+            return GetBase().GetData<SGlobalData>().IsTargetLost();
+         });
+         AddExitTransition("approach_structure_straight", [this] {
+            return GetBase().GetData<SGlobalData>().IsTargetLost();
+         });
          AddTransition("approach_structure_from_left", "align_with_structure");
          AddTransition("approach_structure_from_right", "align_with_structure");
          AddTransition("approach_structure_straight", "align_with_structure");
          AddTransition("set_reverse_velocity", "wait_for_target");
-         AddTransition("wait_for_target", "align_with_structure", IsNextTargetAcquired);
+         AddTransition("wait_for_target", "align_with_structure", [this] {
+            return GetBase().GetData<SGlobalData>().IsNextTargetAcquired();
+         });
    
-         AddTransition("align_with_structure", "set_zero_velocity", [] {
-            auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
-            if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
+         AddTransition("align_with_structure", "set_zero_velocity", [this] {
+            auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+            if(itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) {
                const SBlock& s_block = itTarget->Observations.front();
                if(std::abs(s_block.Translation.GetX() - PREPLACEMENT_BLOCK_X_TARGET) < PREPLACEMENT_BLOCK_X_THRES) {
                   argos::CRadians cEulerAngleZ, cEulerAngleY, cEulerAngleX;
@@ -949,9 +994,9 @@ public:
             return false;
          });
          // loop back if alignment is to far out (more than +/- 10 deg)
-         AddTransition("align_with_structure", "prealign_with_structure", [] {
-            auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
-            if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
+         AddTransition("align_with_structure", "prealign_with_structure", [this] {
+            auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+            if(itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) {
                const SBlock& s_block = itTarget->Observations.front();
                if(std::abs(s_block.Translation.GetX() - PREPLACEMENT_BLOCK_X_TARGET) < PREPLACEMENT_BLOCK_X_THRES) {
                   return true;
@@ -960,27 +1005,28 @@ public:
             return false;
          });
          // retry if target is lost
-         AddTransition("align_with_structure", "set_reverse_velocity", IsTargetLost);
-
+         AddTransition("align_with_structure", "set_reverse_velocity", [this] {
+            return GetBase().GetData<SGlobalData>().IsTargetLost();
+         });
          AddTransition("set_zero_velocity", "set_deck_color_red");
          AddTransition("set_deck_color_red", "set_lift_actuator_base_height");
          AddTransition("set_lift_actuator_base_height", "wait_for_lift_actuator");
          AddTransition("increment_lift_actuator_height", "wait_for_lift_actuator");
 
          // extend structure vertically
-         AddTransition("wait_for_lift_actuator", "increment_lift_actuator_height", [] {
-            if(Data.Sensors->ManipulatorModule.LiftActuator.State == CBlockDemo::ELiftActuatorSystemState::INACTIVE) {
-               for(const STarget& s_target : Data.Sensors->ImageSensor.Detections.Targets) {
+         AddTransition("wait_for_lift_actuator", "increment_lift_actuator_height", [this] {
+            if(GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.LiftActuator.State == CBlockDemo::ELiftActuatorSystemState::INACTIVE) {
+               for(const STarget& s_target : GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets) {
                   const SBlock& s_block = s_target.Observations.front();
                   if(GetAdjBlockTranslation(s_block).GetX() < 0.100) {
                      ELedState eBlockLedState = GetBlockLedState(s_block);
-                     unsigned int unBlockLevel = GetBlockLevel(s_block, Data.Sensors->ManipulatorModule.LiftActuator.EndEffector.Position);
+                     unsigned int unBlockLevel = GetBlockLevel(s_block, GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.LiftActuator.EndEffector.Position);
                      if((eBlockLedState == ELedState::Q3) && (unBlockLevel < 2u)) {
-                        Data.NextLedStateToAssign = ELedState::Q3;
+                        GetBase().GetData<SGlobalData>().NextLedStateToAssign = ELedState::Q3;
                         return true;
                      }
                      if((eBlockLedState == ELedState::Q2) && (unBlockLevel < 1u)) {
-                        Data.NextLedStateToAssign = ELedState::Q2;
+                        GetBase().GetData<SGlobalData>().NextLedStateToAssign = ELedState::Q2;
                         return true;
                      }
                   }
@@ -990,19 +1036,19 @@ public:
          });
 
          // extend structure horizontally
-         AddTransition("wait_for_lift_actuator", "lower_lift_actuator", [] {
-            if(Data.Sensors->ManipulatorModule.LiftActuator.State == CBlockDemo::ELiftActuatorSystemState::INACTIVE) {
-               for(const STarget& s_target : Data.Sensors->ImageSensor.Detections.Targets) {
+         AddTransition("wait_for_lift_actuator", "lower_lift_actuator", [this] {
+            if(GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.LiftActuator.State == CBlockDemo::ELiftActuatorSystemState::INACTIVE) {
+               for(const STarget& s_target : GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets) {
                   const SBlock& s_block = s_target.Observations.front();
                   if(GetAdjBlockTranslation(s_block).GetX() < 0.100) {
                      ELedState eBlockLedState = GetBlockLedState(s_block);
-                     unsigned int unBlockLevel = GetBlockLevel(s_block, Data.Sensors->ManipulatorModule.LiftActuator.EndEffector.Position);
+                     unsigned int unBlockLevel = GetBlockLevel(s_block, GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.LiftActuator.EndEffector.Position);
                      if((eBlockLedState == ELedState::Q3) && (unBlockLevel == 2u)) {
-                        Data.NextLedStateToAssign = ELedState::Q2;
+                        GetBase().GetData<SGlobalData>().NextLedStateToAssign = ELedState::Q2;
                         return true;
                      }
                      if((eBlockLedState == ELedState::Q2) && (unBlockLevel == 1u)) {
-                        Data.NextLedStateToAssign = ELedState::Q1;
+                        GetBase().GetData<SGlobalData>().NextLedStateToAssign = ELedState::Q1;
                         return true;
                      }
                   }
@@ -1011,9 +1057,9 @@ public:
             return false;
          });
 
-         AddTransition("wait_for_lift_actuator", "decrement_lift_actuator_height", [] {
-            if(Data.Sensors->ManipulatorModule.LiftActuator.State == CBlockDemo::ELiftActuatorSystemState::INACTIVE) {
-               for(const STarget& s_target : Data.Sensors->ImageSensor.Detections.Targets) {
+         AddTransition("wait_for_lift_actuator", "decrement_lift_actuator_height", [this] {
+            if(GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.LiftActuator.State == CBlockDemo::ELiftActuatorSystemState::INACTIVE) {
+               for(const STarget& s_target : GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets) {
                   const SBlock& s_block = s_target.Observations.front();
                   if(GetAdjBlockTranslation(s_block).GetX() < 0.100) {
                      return false;
@@ -1023,58 +1069,58 @@ public:
             }
             return false;
          });
-         AddTransition("decrement_lift_actuator_height", "set_block_led_state", [] {
-            return (Data.Sensors->ManipulatorModule.LiftActuator.State == CBlockDemo::ELiftActuatorSystemState::INACTIVE);
+         AddTransition("decrement_lift_actuator_height", "set_block_led_state", [this] {
+            return (GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.LiftActuator.State == CBlockDemo::ELiftActuatorSystemState::INACTIVE);
          });
-         AddTransition("lower_lift_actuator", "set_block_led_state", [] {
-            return (Data.Sensors->ManipulatorModule.LiftActuator.State == CBlockDemo::ELiftActuatorSystemState::INACTIVE);
+         AddTransition("lower_lift_actuator", "set_block_led_state", [this] {
+            return (GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.LiftActuator.State == CBlockDemo::ELiftActuatorSystemState::INACTIVE);
          });
          AddTransition("set_block_led_state", "set_approach_velocity");
-         AddTransition("set_approach_velocity", "wait_for_either_front_rf_or_timeout", [] {
+         AddTransition("set_approach_velocity", "wait_for_either_front_rf_or_timeout", [this] {
             // reset timer for "wait_for_either_front_rf_or_timeout"
-            Data.NearApproachStartTime = Data.Sensors->Clock.Time;
+            GetBase().GetData<SGlobalData>().NearApproachStartTime = GetBase().GetData<SGlobalData>().Sensors->Clock.Time;
             return true;
          });
-         AddTransition("wait_for_either_front_rf_or_timeout", "set_reverse_velocity_for_detachment", [] {
-            if(Data.Actuators->ManipulatorModule.LiftActuator.Position.Value > LIFT_ACTUATOR_BLOCK_HEIGHT) {
+         AddTransition("wait_for_either_front_rf_or_timeout", "set_reverse_velocity_for_detachment", [this] {
+            if(GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.LiftActuator.Position.Value > LIFT_ACTUATOR_BLOCK_HEIGHT) {
                /* stack */
-               return ((GetMedian(Data.Sensors->RangeFinders[5]) > RF_FLR_BLOCK_CONTACT_THRES) ||
-                       (GetMedian(Data.Sensors->RangeFinders[6]) > RF_FLR_BLOCK_CONTACT_THRES));
+               return ((GetMedian(GetBase().GetData<SGlobalData>().Sensors->RangeFinders[5]) > RF_FLR_BLOCK_CONTACT_THRES) ||
+                       (GetMedian(GetBase().GetData<SGlobalData>().Sensors->RangeFinders[6]) > RF_FLR_BLOCK_CONTACT_THRES));
             }
             else {
                /* extend */
-               return (Data.Sensors->ManipulatorModule.RangeFinders.Front > RF_LR_BLOCK_DETECT_THRES);
+               return (GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.RangeFinders.Front > RF_LR_BLOCK_DETECT_THRES);
             }
          });
-         AddTransition("wait_for_either_front_rf_or_timeout", "set_pivot_velocity", [] {
-            if(Data.Actuators->ManipulatorModule.LiftActuator.Position.Value > LIFT_ACTUATOR_BLOCK_HEIGHT) {
+         AddTransition("wait_for_either_front_rf_or_timeout", "set_pivot_velocity", [this] {
+            if(GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.LiftActuator.Position.Value > LIFT_ACTUATOR_BLOCK_HEIGHT) {
                /* stack */
-               return ((GetMedian(Data.Sensors->RangeFinders[5]) > RF_FLR_BLOCK_DETECT_THRES) ||
-                       (GetMedian(Data.Sensors->RangeFinders[6]) > RF_FLR_BLOCK_DETECT_THRES));
+               return ((GetMedian(GetBase().GetData<SGlobalData>().Sensors->RangeFinders[5]) > RF_FLR_BLOCK_DETECT_THRES) ||
+                       (GetMedian(GetBase().GetData<SGlobalData>().Sensors->RangeFinders[6]) > RF_FLR_BLOCK_DETECT_THRES));
             }
             return false;
          });
-         AddTransition("set_pivot_velocity", "wait_for_both_front_rfs_or_timeout", [] {
+         AddTransition("set_pivot_velocity", "wait_for_both_front_rfs_or_timeout", [this] {
             // reset timer for "wait_for_both_front_rfs_or_timeout"
-            Data.NearApproachStartTime = Data.Sensors->Clock.Time;
+            GetBase().GetData<SGlobalData>().NearApproachStartTime = GetBase().GetData<SGlobalData>().Sensors->Clock.Time;
             return true;
          });
-         AddTransition("wait_for_both_front_rfs_or_timeout", "set_reverse_velocity_for_detachment", [] {
-            return ((GetMedian(Data.Sensors->RangeFinders[5]) > RF_FLR_BLOCK_CONTACT_THRES) ||
-                    (GetMedian(Data.Sensors->RangeFinders[6]) > RF_FLR_BLOCK_CONTACT_THRES));
+         AddTransition("wait_for_both_front_rfs_or_timeout", "set_reverse_velocity_for_detachment", [this] {
+            return ((GetMedian(GetBase().GetData<SGlobalData>().Sensors->RangeFinders[5]) > RF_FLR_BLOCK_CONTACT_THRES) ||
+                    (GetMedian(GetBase().GetData<SGlobalData>().Sensors->RangeFinders[6]) > RF_FLR_BLOCK_CONTACT_THRES));
          });
          AddTransition("set_reverse_velocity_for_detachment", "deattach_block_from_end_effector");
          AddExitTransition("deattach_block_from_end_effector");
 
          // Error transitions
-         AddExitTransition("wait_for_either_front_rf_or_timeout", [] {
-            if(Data.NearApproachStartTime + NEAR_APPROACH_TIMEOUT < Data.Sensors->Clock.Time) {
+         AddExitTransition("wait_for_either_front_rf_or_timeout", [this] {
+            if(GetBase().GetData<SGlobalData>().NearApproachStartTime + NEAR_APPROACH_TIMEOUT < GetBase().GetData<SGlobalData>().Sensors->Clock.Time) {
                return true;
             }
             return false;
          });
-         AddExitTransition("wait_for_both_front_rfs_or_timeout", [] {
-            if(Data.NearApproachStartTime + NEAR_APPROACH_TIMEOUT < Data.Sensors->Clock.Time) {
+         AddExitTransition("wait_for_both_front_rfs_or_timeout", [this] {
+            if(GetBase().GetData<SGlobalData>().NearApproachStartTime + NEAR_APPROACH_TIMEOUT < GetBase().GetData<SGlobalData>().Sensors->Clock.Time) {
                return true;
             }
             return false;
@@ -1088,7 +1134,8 @@ public:
 /************************************************************/
 class CFiniteStateMachine : public CState {
 public:
-   CFiniteStateMachine() :
+
+   CFiniteStateMachine(CBlockDemo::SSensorData* ps_sensor_data, CBlockDemo::SActuatorData* ps_actuator_data) :
       CState("top_level_state", nullptr, nullptr, CState::TVector {
          AddState<CState>("search_for_unused_block", nullptr, CState::TVector {
             AddState<CStateSetLedColors>("set_deck_color", CBlockDemo::EColor::BLUE),
@@ -1115,25 +1162,29 @@ public:
          AddState<CStateSetVelocity>("set_search_velocity", BASE_VELOCITY * 0.500, -BASE_VELOCITY * 0.500),
       }) {
 
-      // TODO: Remove - testing
-      //AddTransition("test", "configure_block_for_transport");
+      /* initialize the local data */
+      SetData<SGlobalData>(ps_sensor_data, ps_actuator_data);
 
       /**************** search_for_unused_block transitions ****************/
       GetState("search_for_unused_block").AddTransition("set_deck_color", "raise_lift_actuator");
       GetState("search_for_unused_block").AddTransition("raise_lift_actuator", "set_search_velocity");
       GetState("search_for_unused_block").AddTransition("set_search_velocity","wait_for_next_target");
-      GetState("search_for_unused_block").AddTransition("wait_for_next_target", "align_with_block", IsNextTargetAcquired);
+      GetState("search_for_unused_block").AddTransition("wait_for_next_target", "align_with_block", [this] {
+         return GetBase().GetData<SGlobalData>().IsNextTargetAcquired();
+      });
       /* keep searching if the target was lost */
-      GetState("search_for_unused_block").AddTransition("align_with_block", "set_search_velocity", IsTargetLost);
+      GetState("search_for_unused_block").AddTransition("align_with_block", "set_search_velocity", [this] {
+         return GetBase().GetData<SGlobalData>().IsTargetLost();
+      });
       /* unused block found - exit */
-      GetState("search_for_unused_block").AddExitTransition("align_with_block", [] {
-         auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
-         if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
+      GetState("search_for_unused_block").AddExitTransition("align_with_block", [this] {
+         auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+         if(itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) {
             const SBlock& s_block = itTarget->Observations.front();
             if((std::abs(s_block.Translation.GetX() - PREAPPROACH_BLOCK_X_TARGET) < PREAPPROACH_BLOCK_XZ_THRES) &&
                (std::abs(s_block.Translation.GetZ() - PREAPPROACH_BLOCK_Z_TARGET) < PREAPPROACH_BLOCK_XZ_THRES)) {
                /* search all structures, does it belong to any */
-               for(const SStructure& s_structure : Data.Sensors->ImageSensor.Detections.Structures) {
+               for(const SStructure& s_structure : GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Structures) {
                   if(std::find(std::begin(s_structure.Members), std::end(s_structure.Members), itTarget) != std::end(s_structure.Members)) {
                      /* is the size of the structure 1? i.e. a unused block */
                      return (s_structure.Members.size() == 1);
@@ -1144,14 +1195,14 @@ public:
          return false;
       });
       // keep searching if block belongs to a structure */
-      GetState("search_for_unused_block").AddTransition("align_with_block", "set_search_velocity", [] {
-         auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
-         if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
+      GetState("search_for_unused_block").AddTransition("align_with_block", "set_search_velocity", [this] {
+         auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+         if(itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) {
             const SBlock& s_block = itTarget->Observations.front();
             if((std::abs(s_block.Translation.GetX() - PREAPPROACH_BLOCK_X_TARGET) < PREAPPROACH_BLOCK_XZ_THRES) &&
                (std::abs(s_block.Translation.GetZ() - PREAPPROACH_BLOCK_Z_TARGET) < PREAPPROACH_BLOCK_XZ_THRES)) {
                // search all structures, does it belong to any */
-               for(const SStructure& s_structure : Data.Sensors->ImageSensor.Detections.Structures) {
+               for(const SStructure& s_structure : GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Structures) {
                   if(std::find(std::begin(s_structure.Members), std::end(s_structure.Members), itTarget) != std::end(s_structure.Members)) {
                      // is the size of the structure not 1?
                      return (s_structure.Members.size() != 1);
@@ -1164,24 +1215,26 @@ public:
 
       /// Top level transitions ///
       AddTransition("search_for_unused_block", "pick_up_unused_block");
-      AddTransition("pick_up_unused_block", "configure_block_for_transport", [] {
-return (Data.Sensors->ManipulatorModule.RangeFinders.Underneath > RF_UN_BLOCK_DETECT_THRES);
-});
+      AddTransition("pick_up_unused_block", "configure_block_for_transport", [this] {
+         return (GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.RangeFinders.Underneath > RF_UN_BLOCK_DETECT_THRES);
+      });
       AddTransition("configure_block_for_transport", "search_for_structure");
 
       /**************** search_for_structure transitions ****************/
       GetState("search_for_structure").AddTransition("set_deck_color", "raise_lift_actuator");
       GetState("search_for_structure").AddTransition("raise_lift_actuator", "set_search_velocity");
       GetState("search_for_structure").AddTransition("set_search_velocity", "wait_for_next_target");
-      GetState("search_for_structure").AddTransition("wait_for_next_target", "align_with_block", IsNextTargetAcquired);
-      GetState("search_for_structure").AddExitTransition("align_with_block", [] {
-         auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
-         if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
+      GetState("search_for_structure").AddTransition("wait_for_next_target", "align_with_block", [this] {
+         return GetBase().GetData<SGlobalData>().IsNextTargetAcquired();
+      });
+      GetState("search_for_structure").AddExitTransition("align_with_block", [this] {
+         auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+         if(itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) {
             const SBlock& s_block = itTarget->Observations.front();
             if((std::abs(s_block.Translation.GetX() - OBSERVE_BLOCK_X_TARGET) < OBSERVE_BLOCK_XZ_THRES) &&
                (std::abs(s_block.Translation.GetZ() - OBSERVE_BLOCK_Z_TARGET) < OBSERVE_BLOCK_XZ_THRES)) {
                // search all structures, does it belong to any
-               for(const SStructure& s_structure : Data.Sensors->ImageSensor.Detections.Structures) {
+               for(const SStructure& s_structure : GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Structures) {
                   if(std::find(std::begin(s_structure.Members), std::end(s_structure.Members), itTarget) != std::end(s_structure.Members)) {
                      if(s_structure.Members.size() == 1) {
                         /* this target is a seed block */
@@ -1189,7 +1242,7 @@ return (Data.Sensors->ManipulatorModule.RangeFinders.Underneath > RF_UN_BLOCK_DE
                      }
                      else {
                         /* this target is the correct target in a partially completed pyramid */
-                        return (itTarget == FindPyramidTarget(Data.Sensors->ImageSensor.Detections.Targets));
+                        return (itTarget == FindPyramidTarget(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets));
                      }
                   }
                }
@@ -1198,21 +1251,23 @@ return (Data.Sensors->ManipulatorModule.RangeFinders.Underneath > RF_UN_BLOCK_DE
          return false;
       });
       // keep searching if block does not belong to a structure / is the seed block
-      GetState("search_for_structure").AddTransition("align_with_block", "set_search_velocity", [] {
-         auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
-         if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
+      GetState("search_for_structure").AddTransition("align_with_block", "set_search_velocity", [this] {
+         auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+         if(itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) {
             const SBlock& s_block = itTarget->Observations.front();
             if((std::abs(s_block.Translation.GetX() - OBSERVE_BLOCK_X_TARGET) < OBSERVE_BLOCK_XZ_THRES) &&
                (std::abs(s_block.Translation.GetZ() - OBSERVE_BLOCK_Z_TARGET) < OBSERVE_BLOCK_XZ_THRES)) {
                // if the above transition did not occur, then this is not our target
                // if we cannot switch targets, set_search_velocity
-               return !IsNextTargetAcquired();
+               return !GetBase().GetData<SGlobalData>().IsNextTargetAcquired();
             }
          }
          return false;
       });
       // keep searching if target is lost
-      GetState("search_for_structure").AddTransition("align_with_block", "set_search_velocity", IsTargetLost);
+      GetState("search_for_structure").AddTransition("align_with_block", "set_search_velocity", [this] {
+            return GetBase().GetData<SGlobalData>().IsTargetLost();
+      });
 
       /// Top level transitions ///
       AddTransition("search_for_structure", "place_block_into_structure");
@@ -1221,28 +1276,28 @@ return (Data.Sensors->ManipulatorModule.RangeFinders.Underneath > RF_UN_BLOCK_DE
       AddTransition("place_block_into_structure", "set_reverse_velocity");
       AddTransition("set_reverse_velocity", "wait_for_next_target");
       // Reverse the right amount by locating a block placed in the most recent column
-      AddTransition("wait_for_next_target", "set_search_velocity", [] {
-         if(IsNextTargetAcquired()) {
-            auto itTarget = FindTrackedTarget(Data.TrackedTargetId, Data.Sensors->ImageSensor.Detections.Targets);
-            if(itTarget != std::end(Data.Sensors->ImageSensor.Detections.Targets)) {
+      AddTransition("wait_for_next_target", "set_search_velocity", [this] {
+         if(GetBase().GetData<SGlobalData>().IsNextTargetAcquired()) {
+            auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+            if(itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) {
                const SBlock& s_block = itTarget->Observations.front();
-               return (GetBlockLedState(s_block) == Data.NextLedStateToAssign);
+               return (GetBlockLedState(s_block) == GetBase().GetData<SGlobalData>().NextLedStateToAssign);
             }
          }
          return false;
       });
       //AddTransition("raise_lift_actuator", "align_with_target");
-      AddTransition("set_search_velocity", "search_for_structure", [] {
-         if(Data.Sensors->ImageSensor.Detections.Targets.size() == 0) {
+      AddTransition("set_search_velocity", "search_for_structure", [this] {
+         if(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets.size() == 0) {
             // robot is laden - search for structure
-            return (Data.Sensors->ManipulatorModule.RangeFinders.Underneath > RF_UN_BLOCK_DETECT_THRES);
+            return (GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.RangeFinders.Underneath > RF_UN_BLOCK_DETECT_THRES);
          }
          return false;
       });
-      AddTransition("set_search_velocity", "search_for_unused_block", [] {
-         if(Data.Sensors->ImageSensor.Detections.Targets.size() == 0) {
+      AddTransition("set_search_velocity", "search_for_unused_block", [this] {
+         if(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets.size() == 0) {
             // robot is not laden, search for unused block
-            return !(Data.Sensors->ManipulatorModule.RangeFinders.Underneath > RF_UN_BLOCK_DETECT_THRES);
+            return !(GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.RangeFinders.Underneath > RF_UN_BLOCK_DETECT_THRES);
          }
          return false;
       });

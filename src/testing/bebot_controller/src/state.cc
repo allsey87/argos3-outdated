@@ -9,6 +9,7 @@ CState::CState(const std::string& str_id,
    m_strId(str_id),
    m_pcParent(pc_parent),
    m_fnEntryMethod(fn_entry_method),
+   m_ptrData(nullptr),
    m_vecStates(vec_states) {
    m_itCurrentState = std::end(m_vecStates);
 }
