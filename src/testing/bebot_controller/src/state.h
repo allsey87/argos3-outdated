@@ -4,27 +4,26 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include <memory>
 #include <algorithm>
 #include <ostream>
 
 class CState {
+public:
+   using TVector = std::vector<std::shared_ptr<CState> >;
 
 public:
    CState(const std::string& str_id,
+          CState* pc_parent,
           std::function<void()> fn_entry_method = nullptr,
-          std::function<void()> fn_exit_method = nullptr,
-          const std::vector<CState>& vec_sub_states = {});
-   
-   CState(const CState& s_state_other);
+          const std::vector<std::shared_ptr<CState> >& vec_sub_states = {});
 
-   CState& operator[](const std::string& str_id);
+   virtual ~CState() {}
 
-   CState& GetSubState(const std::string& str_id);
+   CState& GetState(const std::string& str_id);
         
    void SetEntryFunction(std::function<void()> fn_entry_method);
-   
-   void SetExitFunction(std::function<void()> fn_exit_method);
-   
+     
    void AddTransition(std::string str_from_state,
                       std::string str_to_state,
                       std::function<bool()> fn_guard = [] { return true; });
@@ -32,28 +31,67 @@ public:
    void AddExitTransition(std::string str_from_state,
                           std::function<bool()> fn_guard = [] { return true; });
       
-   bool Step();   
+   bool Step();
+
+   template<class S, class... ARG_TS>
+   std::shared_ptr<S> AddState(const std::string& str_id, ARG_TS&&... args) {
+      return std::shared_ptr<S>(new S(str_id, this, std::forward<ARG_TS>(args)...));
+   }
+
+   const std::string& GetId() {
+      return m_strId;
+   }
+
+   bool HasParent() {
+      return (m_pcParent != nullptr);
+   }
+
+   CState& GetParent() {
+      if(m_pcParent != nullptr) {
+         return *m_pcParent;
+      }
+      else {
+         throw std::logic_error(m_strId + " does not have a parent");
+      } 
+   }
+
+   template <class S>
+   S& GetBase() {
+      if(HasParent()) {
+         GetParent().GetBase<S>();
+      }
+      else {
+         S* pcCasted = dynamic_cast<S*>(this);
+         if(pcCasted != nullptr) {
+            return *pcCasted;
+         }
+         else {
+            std::logic_error(m_strId + " can not be converted to requested type");
+         }
+      }
+   }
    
    friend std::ostream& operator<<(std::ostream& c_stream, const CState& c_state);
 
 private:
    /* definition of a transition */
    struct STransition {
-      std::vector<CState>::iterator FromState;
-      std::vector<CState>::iterator ToState;
+      std::vector<std::shared_ptr<CState> >::iterator FromState;
+      std::vector<std::shared_ptr<CState> >::iterator ToState;
       std::function<bool()> Guard;
    };
 
 private:
    /* state name */
    std::string m_strId;
+   /* parent */
+   CState* m_pcParent;
    /* entry and exit methods */
    std::function<void()> m_fnEntryMethod;
-   std::function<void()> m_fnExitMethod;
    /* substates */
-   std::vector<CState> m_vecSubStates;
+   std::vector<std::shared_ptr<CState> > m_vecStates;
    /* iterator to the current substate */
-   std::vector<CState>::iterator m_itCurrentSubState;
+   std::vector<std::shared_ptr<CState> >::iterator m_itCurrentState;
    /* collection of transitions */
    std::vector<STransition> m_vecTransitions;
 };
