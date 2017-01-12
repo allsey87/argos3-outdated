@@ -223,7 +223,7 @@ namespace argos {
       cStateMachineOutput << *m_pcStateMachine;
       if(cStateMachineOutput.str() != m_strLastOutput) {
          m_strLastOutput = cStateMachineOutput.str();
-         std::cout << m_strLastOutput << std::endl;
+         std::cout << GetId() << ": " << m_strLastOutput << std::endl;
       }
       /* Output the tracking information */
       std::ostringstream cTrackingInfo;
@@ -238,7 +238,7 @@ namespace argos {
       }
       if(cTrackingInfo.str() != m_strLastTrackingInfo) {
          m_strLastTrackingInfo = cTrackingInfo.str();
-         std::cerr << (m_strLastTrackingInfo.empty() ? std::string("()") : m_strLastTrackingInfo) << std::endl;
+         std::cerr << GetId() << ": " << (m_strLastTrackingInfo.empty() ? std::string("()") : m_strLastTrackingInfo) << std::endl;
       }
       
       /***************************************************/

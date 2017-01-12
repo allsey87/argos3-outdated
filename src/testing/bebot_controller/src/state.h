@@ -108,7 +108,8 @@ private:
       std::function<bool()> Guard;
    };
 
-private:
+//TODO: revert to private
+public:
    /* state name */
    std::string m_strId;
    /* parent */

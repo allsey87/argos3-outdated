@@ -69,7 +69,8 @@ struct SGlobalData : CState::SData {
       TargetInRange(false),
       TrackedStructureId(0u),
       TrackedTargetId(0u),
-      NextLedStateToAssign(ELedState::OFF) {}
+      NextLedStateToAssign(ELedState::Q3),
+      RandomNumberGenerator(argos::CRandom::CreateRNG("argos")) {}
    
    /************************************************************/
    /*               Sensor and actuator access                 */
@@ -92,6 +93,8 @@ struct SGlobalData : CState::SData {
    } TrackedTargetLastObservation;
 
    ELedState NextLedStateToAssign;
+
+   argos::CRandom::CRNG* RandomNumberGenerator;
 
    std::chrono::time_point<std::chrono::steady_clock> ElectromagnetSwitchOnTime;
    std::chrono::time_point<std::chrono::steady_clock> NearApproachStartTime;
@@ -786,60 +789,120 @@ public:
          AddState<CStateSetVelocity>("set_reverse_velocity", -0.250 * BASE_VELOCITY, -0.250 * BASE_VELOCITY),
          AddState<CState>("wait_for_target_or_timeout"),
       }) {
-         /*** transitions (constructor body) ***/
-         AddTransition("align_with_tag_offset", "approach_target", [this, f_tag_offset_target, fn_get_coordinate] {
-            auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
-            if(itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) {
-               const SBlock& s_block = itTarget->Observations.front();
-               double fTagOffset = (fn_get_coordinate(s_block.Tags[0]).first - IMAGE_SENSOR_HALF_WIDTH) / IMAGE_SENSOR_HALF_WIDTH;
-               if(std::abs(fTagOffset - f_tag_offset_target) < 0.1) {         
-                  GetBase().GetData<SGlobalData>().TagApproachController.Reset();
-                  return true;
-               }
-            }
-            return false;
-         });
-
-         AddExitTransition("approach_target", [this] {
-            auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
-            bool bTargetInRange = (itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) && 
-                                  (GetAdjBlockTranslation(itTarget->Observations.front()).GetX() < 0.085);
-            bool bTargetLost = GetBase().GetData<SGlobalData>().IsTargetLost();
-            bool bLiftActuatorAtBottom =
-               (GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.LiftActuator.Position.Value <= (LIFT_ACTUATOR_MIN_HEIGHT + (0.5 * LIFT_ACTUATOR_BLOCK_HEIGHT)));
-            if(bTargetInRange || (bTargetLost && bLiftActuatorAtBottom)) {
-               GetBase().GetData<SGlobalData>().SetTargetInRange();
+      /*** transitions (constructor body) ***/
+      AddTransition("align_with_tag_offset", "approach_target", [this, f_tag_offset_target, fn_get_coordinate] {
+         auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+         if(itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) {
+            const SBlock& s_block = itTarget->Observations.front();
+            double fTagOffset = (fn_get_coordinate(s_block.Tags[0]).first - IMAGE_SENSOR_HALF_WIDTH) / IMAGE_SENSOR_HALF_WIDTH;
+            if(std::abs(fTagOffset - f_tag_offset_target) < 0.1) {         
+               GetBase().GetData<SGlobalData>().TagApproachController.Reset();
                return true;
             }
-            return false;
-         });
+         }
+         return false;
+      });
 
-         AddTransition("align_with_tag_offset", "set_reverse_velocity", [this] {
-            return GetBase().GetData<SGlobalData>().IsTargetLost();
-         });
-         AddTransition("approach_target", "set_reverse_velocity", [this] {
-            return GetBase().GetData<SGlobalData>().IsTargetLost();
-         });
-         AddTransition("set_reverse_velocity", "adjust_lift_actuator_height");
-         // back off until target is re-acquired
-         AddTransition("adjust_lift_actuator_height", "wait_for_target_or_timeout", [this] {
-            // reset timer for the reverse velocity search
-            GetBase().GetData<SGlobalData>().ReverseToFindTargetStartTime = GetBase().GetData<SGlobalData>().Sensors->Clock.Time;
+      AddExitTransition("approach_target", [this] {
+         auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+         bool bTargetInRange = (itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) && 
+                               (GetAdjBlockTranslation(itTarget->Observations.front()).GetX() < 0.085);
+         bool bTargetLost = GetBase().GetData<SGlobalData>().IsTargetLost();
+         bool bLiftActuatorAtBottom =
+            (GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.LiftActuator.Position.Value <= (LIFT_ACTUATOR_MIN_HEIGHT + (0.5 * LIFT_ACTUATOR_BLOCK_HEIGHT)));
+         if(bTargetInRange || (bTargetLost && bLiftActuatorAtBottom)) {
+            GetBase().GetData<SGlobalData>().SetTargetInRange();
             return true;
-         });
-         // try again
-         AddTransition("wait_for_target_or_timeout", "align_with_tag_offset", [this] {
-            return GetBase().GetData<SGlobalData>().IsNextTargetAcquired();
-         });
-         // timer has expired
-         AddExitTransition("wait_for_target_or_timeout", [this] {
-            if(GetBase().GetData<SGlobalData>().ReverseToFindTargetStartTime + REVERSE_TIMEOUT_SHORT < GetBase().GetData<SGlobalData>().Sensors->Clock.Time) {
-               GetBase().GetData<SGlobalData>().ClearTargetInRange();
+         }
+         return false;
+      });
+
+      AddTransition("align_with_tag_offset", "set_reverse_velocity", [this] {
+         return GetBase().GetData<SGlobalData>().IsTargetLost();
+      });
+      AddTransition("approach_target", "set_reverse_velocity", [this] {
+         return GetBase().GetData<SGlobalData>().IsTargetLost();
+      });
+      AddTransition("set_reverse_velocity", "adjust_lift_actuator_height");
+      // back off until target is re-acquired
+      AddTransition("adjust_lift_actuator_height", "wait_for_target_or_timeout", [this] {
+         // reset timer for the reverse velocity search
+         GetBase().GetData<SGlobalData>().ReverseToFindTargetStartTime = GetBase().GetData<SGlobalData>().Sensors->Clock.Time;
+         return true;
+      });
+      // try again
+      AddTransition("wait_for_target_or_timeout", "align_with_tag_offset", [this] {
+         return GetBase().GetData<SGlobalData>().IsNextTargetAcquired();
+      });
+      // timer has expired
+      AddExitTransition("wait_for_target_or_timeout", [this] {
+         if(GetBase().GetData<SGlobalData>().ReverseToFindTargetStartTime + REVERSE_TIMEOUT_SHORT < GetBase().GetData<SGlobalData>().Sensors->Clock.Time) {
+            GetBase().GetData<SGlobalData>().ClearTargetInRange();
+            return true;
+         }
+         return false;
+      });
+   }
+};
+
+class CStateAvoidCollision : public CState {
+public:
+   /* local data */
+   std::chrono::time_point<std::chrono::steady_clock> m_tpIntervalStartTime;
+   std::chrono::milliseconds m_tIntervalLength;
+   argos::CRange<argos::UInt32> m_cIntervalLengthRange = argos::CRange<argos::UInt32>(2500,10000);
+   /* state definition */ 
+   CStateAvoidCollision(const std::string& str_id, CState* pc_parent) :
+      CState(str_id, pc_parent, nullptr, CState::TVector {
+         AddState<CStateSendNFCMessage>("configure_block_for_standby", BLOCK_TYPE_OFF),
+         AddState<CStateMoveToTargetXZ>("track_other_block", OBSERVE_BLOCK_X_TARGET, OBSERVE_BLOCK_Z_TARGET, true),
+         AddState<CStateSetVelocity>("set_zero_velocity", 0.0, 0.0),
+         AddState<CState>("wait_for_random_interval"),
+         AddState<CStateSendNFCMessage>("configure_block_for_transport", BLOCK_TYPE_Q4),
+         AddState<CStateSetVelocity>("set_reverse_velocity", -0.500 * BASE_VELOCITY, -0.500 * BASE_VELOCITY),
+      }) {
+      /* transitions */
+      AddTransition("configure_block_for_standby", "track_other_block");
+      AddTransition("track_other_block", "set_zero_velocity", [this] {
+         // if current targets LEDs are no longer Q4
+         auto itTarget = FindTrackedTarget(GetBase().GetData<SGlobalData>().TrackedTargetId, GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+         if(itTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)) {
+            const SBlock& s_block = itTarget->Observations.front();
+            if(GetBlockLedState(s_block) != ELedState::Q4) {
                return true;
             }
-            return false;
-         });
-      }
+         }
+         else { //itTarget == std::end
+            return true;
+         }
+         return false;
+      });
+      AddTransition("set_zero_velocity", "wait_for_random_interval", [this] {
+         m_tpIntervalStartTime = GetBase().GetData<SGlobalData>().Sensors->Clock.Time;
+         argos::UInt32 unRandomInterval = GetBase().GetData<SGlobalData>().RandomNumberGenerator->Uniform(m_cIntervalLengthRange);
+         std::cout << "waiting " << unRandomInterval << "milliseconds" << std::endl;
+         m_tIntervalLength = std::chrono::milliseconds(unRandomInterval); // TODO: MAKE RANDOM
+         return true;
+      });
+      AddTransition("wait_for_random_interval", "track_other_block", [this] {
+         for(const STarget& s_target : GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets) {
+            const SBlock& s_block = s_target.Observations.front();
+            if(GetBlockLedState(s_block) == ELedState::Q4) {
+               // track the Q4 block
+               GetBase().GetData<SGlobalData>().TrackedTargetId = s_target.Id;
+               return true;
+            }
+         }
+         return false;
+      });
+      AddTransition("wait_for_random_interval", "configure_block_for_transport", [this] {
+         return (m_tpIntervalStartTime + m_tIntervalLength < GetBase().GetData<SGlobalData>().Sensors->Clock.Time);
+      });
+      AddTransition("configure_block_for_transport", "set_reverse_velocity");
+      AddExitTransition("set_reverse_velocity", [this] {
+         return GetBase().GetData<SGlobalData>().IsNextTargetAcquired();
+      });
+   }
 };
 
 class CStatePlaceBlock : public CState {
@@ -874,7 +937,24 @@ public:
             GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.LiftActuator.Position.UpdateReq = true;
          }),
          AddState<CStateSetLiftActuatorPosition>("lower_lift_actuator", LIFT_ACTUATOR_MIN_HEIGHT + (0.25 * LIFT_ACTUATOR_BLOCK_HEIGHT)),
-         // correct height
+         AddState<CState>("set_approach_velocity", [this] {
+            double fLastObservationX = GetBase().GetData<SGlobalData>().TrackedTargetLastObservation.Translation.GetX();
+            double fLeft = BASE_VELOCITY * (1.000 + (fLastObservationX * BASE_XZ_GAIN));
+            double fRight = BASE_VELOCITY * (1.000 - (fLastObservationX * BASE_XZ_GAIN));
+            GetBase().GetData<SGlobalData>().SetVelocity(fLeft, fRight);
+         }),
+         AddState<CState>("wait_for_either_front_rf_or_timeout"),
+         AddState<CState>("set_pivot_velocity", [this] {
+            bool bRfBlockDetectedLeft = (GetMedian(GetBase().GetData<SGlobalData>().Sensors->RangeFinders[5]) > RF_FLR_BLOCK_DETECT_THRES);
+            bool bRfBlockDetectedRight = (GetMedian(GetBase().GetData<SGlobalData>().Sensors->RangeFinders[6]) > RF_FLR_BLOCK_DETECT_THRES);
+            // pivot the robot towards the other sensor
+            double fLeft = (bRfBlockDetectedLeft ? 0.250 : 0.500) * BASE_VELOCITY;
+            double fRight = (bRfBlockDetectedRight ? 0.250 : 0.500) * BASE_VELOCITY;
+            // apply the velocity
+            GetBase().GetData<SGlobalData>().SetVelocity(fLeft, fRight);
+         }),
+         AddState<CState>("wait_for_both_front_rfs_or_timeout"),
+         AddState<CStateSetVelocity>("set_reverse_velocity_for_detachment", -0.500 * BASE_VELOCITY, -0.500 * BASE_VELOCITY),
          AddState<CState>("set_block_led_state", [this] {
             switch(GetBase().GetData<SGlobalData>().NextLedStateToAssign) {
             case ELedState::OFF:
@@ -895,24 +975,6 @@ public:
             }
             GetBase().GetData<SGlobalData>().Actuators->ManipulatorModule.NFCInterface.UpdateReq = true;
          }),
-         AddState<CState>("set_approach_velocity", [this] {
-            double fLastObservationX = GetBase().GetData<SGlobalData>().TrackedTargetLastObservation.Translation.GetX();
-            double fLeft = BASE_VELOCITY * (1.000 + (fLastObservationX * BASE_XZ_GAIN));
-            double fRight = BASE_VELOCITY * (1.000 - (fLastObservationX * BASE_XZ_GAIN));
-            GetBase().GetData<SGlobalData>().SetVelocity(fLeft, fRight);
-         }),
-         AddState<CState>("wait_for_either_front_rf_or_timeout"),
-         AddState<CState>("set_pivot_velocity", [this] {
-            bool bRfBlockDetectedLeft = (GetMedian(GetBase().GetData<SGlobalData>().Sensors->RangeFinders[5]) > RF_FLR_BLOCK_DETECT_THRES);
-            bool bRfBlockDetectedRight = (GetMedian(GetBase().GetData<SGlobalData>().Sensors->RangeFinders[6]) > RF_FLR_BLOCK_DETECT_THRES);
-            // pivot the robot towards the other sensor
-            double fLeft = (bRfBlockDetectedLeft ? 0.250 : 0.500) * BASE_VELOCITY;
-            double fRight = (bRfBlockDetectedRight ? 0.250 : 0.500) * BASE_VELOCITY;
-            // apply the velocity
-            GetBase().GetData<SGlobalData>().SetVelocity(fLeft, fRight);
-         }),
-         AddState<CState>("wait_for_both_front_rfs_or_timeout"),
-         AddState<CStateSetVelocity>("set_reverse_velocity_for_detachment", -0.500 * BASE_VELOCITY, -0.500 * BASE_VELOCITY),
          AddState<CStatePulseElectromagnets>("deattach_block_from_end_effector", std::chrono::milliseconds(1000), CBlockDemo::EGripperFieldMode::DESTRUCTIVE),
          // Failure / completion states
 
@@ -1069,13 +1131,12 @@ public:
             }
             return false;
          });
-         AddTransition("decrement_lift_actuator_height", "set_block_led_state", [this] {
+         AddTransition("decrement_lift_actuator_height", "set_approach_velocity", [this] {
             return (GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.LiftActuator.State == CBlockDemo::ELiftActuatorSystemState::INACTIVE);
          });
-         AddTransition("lower_lift_actuator", "set_block_led_state", [this] {
+         AddTransition("lower_lift_actuator", "set_approach_velocity", [this] {
             return (GetBase().GetData<SGlobalData>().Sensors->ManipulatorModule.LiftActuator.State == CBlockDemo::ELiftActuatorSystemState::INACTIVE);
          });
-         AddTransition("set_block_led_state", "set_approach_velocity");
          AddTransition("set_approach_velocity", "wait_for_either_front_rf_or_timeout", [this] {
             // reset timer for "wait_for_either_front_rf_or_timeout"
             GetBase().GetData<SGlobalData>().NearApproachStartTime = GetBase().GetData<SGlobalData>().Sensors->Clock.Time;
@@ -1109,7 +1170,8 @@ public:
             return ((GetMedian(GetBase().GetData<SGlobalData>().Sensors->RangeFinders[5]) > RF_FLR_BLOCK_CONTACT_THRES) ||
                     (GetMedian(GetBase().GetData<SGlobalData>().Sensors->RangeFinders[6]) > RF_FLR_BLOCK_CONTACT_THRES));
          });
-         AddTransition("set_reverse_velocity_for_detachment", "deattach_block_from_end_effector");
+         AddTransition("set_reverse_velocity_for_detachment", "set_block_led_state");
+         AddTransition("set_block_led_state", "deattach_block_from_end_effector");
          AddExitTransition("deattach_block_from_end_effector");
 
          // Error transitions
@@ -1134,6 +1196,34 @@ public:
 /************************************************************/
 class CFiniteStateMachine : public CState {
 public:
+   /* local data */
+   std::vector<std::shared_ptr<CState> >::iterator m_itAvoidOtherRobotState;
+   std::vector<std::shared_ptr<CState> >::iterator m_itPlaceBlockIntoStructureState;
+   /* really bad hack time :D */
+   bool Step() {
+      if(m_itCurrentState == m_itPlaceBlockIntoStructureState) {
+         for(const STarget& s_target : GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets) {
+            const SBlock& s_block = s_target.Observations.front();
+            if(GetBlockLedState(s_block) == ELedState::Q4) {
+               // track the first found Q4 block
+               GetData<SGlobalData>().TrackedTargetId = s_target.Id;
+               // manually transition to the avoid other robot state
+               m_itCurrentState = m_itAvoidOtherRobotState;
+               // reset avoid other robot state manually
+               (*m_itAvoidOtherRobotState)->m_itCurrentState = std::end((*m_itAvoidOtherRobotState)->m_vecStates);
+               (*m_itPlaceBlockIntoStructureState)->m_itCurrentState = std::end((*m_itPlaceBlockIntoStructureState)->m_vecStates);
+               break;
+            }
+         }
+      }
+      else if(m_itCurrentState == m_itAvoidOtherRobotState) {
+         if((*m_itAvoidOtherRobotState)->m_itCurrentState == std::end((*m_itAvoidOtherRobotState)->m_vecStates)) {
+            // avoid other robot is done - to make the hack even more ugly, let's jump straight to place block
+            m_itCurrentState = m_itPlaceBlockIntoStructureState;
+         }
+      }
+      return CState::Step();
+   }
 
    CFiniteStateMachine(CBlockDemo::SSensorData* ps_sensor_data, CBlockDemo::SActuatorData* ps_actuator_data) :
       CState("top_level_state", nullptr, nullptr, CState::TVector {
@@ -1160,6 +1250,9 @@ public:
          AddState<CStateSetLiftActuatorPosition>("raise_lift_actuator", LIFT_ACTUATOR_MAX_HEIGHT),
          AddState<CState>("wait_for_next_target"),
          AddState<CStateSetVelocity>("set_search_velocity", BASE_VELOCITY * 0.500, -BASE_VELOCITY * 0.500),
+         AddState<CStateSetVelocity>("set_search_velocity2", BASE_VELOCITY * 0.500, -BASE_VELOCITY * 0.500),
+         // TODO: this state is being used manually as a hack
+         AddState<CStateAvoidCollision>("avoid_other_robot"),
       }) {
 
       /* initialize the local data */
@@ -1268,7 +1361,6 @@ public:
       GetState("search_for_structure").AddTransition("align_with_block", "set_search_velocity", [this] {
             return GetBase().GetData<SGlobalData>().IsTargetLost();
       });
-
       /// Top level transitions ///
       AddTransition("search_for_structure", "place_block_into_structure");
       // Error handling
@@ -1301,6 +1393,21 @@ public:
          }
          return false;
       });
+      // TODO: remove this! it's a tra... hack
+      m_itCurrentState = std::begin(m_vecStates);
+      m_itAvoidOtherRobotState = std::find_if(std::begin(m_vecStates),
+                                              std::end(m_vecStates),
+                                              [] (const std::shared_ptr<CState>& pc_state) {
+         return (pc_state->m_strId == "avoid_other_robot");
+      });
+      m_itPlaceBlockIntoStructureState = std::find_if(std::begin(m_vecStates),
+                                              std::end(m_vecStates),
+                                              [] (const std::shared_ptr<CState>& pc_state) {
+         return (pc_state->m_strId == "place_block_into_structure");
+      });
+
+
+
    }
 };
 

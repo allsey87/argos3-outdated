@@ -57,9 +57,9 @@ void CSRoCSLoopFunctions::Reset() {
    m_mapBlocks.emplace("seed", &cSeedBlock);
    /* create the robots */
    m_mapRobots.emplace("robot0", &CreateEntity<CPrototypeEntity>("robot", "robot0", CVector3(0.20,0,0), CQuaternion(CRadians::ZERO, CVector3::Z)));
-   m_mapRobots.emplace("robot2", &CreateEntity<CPrototypeEntity>("robot", "robot2", CVector3(0,0.20,0), CQuaternion(CRadians::PI_OVER_TWO, CVector3::Z)));
+   //m_mapRobots.emplace("robot2", &CreateEntity<CPrototypeEntity>("robot", "robot2", CVector3(0,0.20,0), CQuaternion(CRadians::PI_OVER_TWO, CVector3::Z)));
    m_mapRobots.emplace("robot1", &CreateEntity<CPrototypeEntity>("robot", "robot1", CVector3(-0.20,0,0), CQuaternion(CRadians::PI, CVector3::Z)));
-   m_mapRobots.emplace("robot3", &CreateEntity<CPrototypeEntity>("robot", "robot3", CVector3(0,-0.20,0), CQuaternion(-CRadians::PI_OVER_TWO, CVector3::Z)));
+   //m_mapRobots.emplace("robot3", &CreateEntity<CPrototypeEntity>("robot", "robot3", CVector3(0,-0.20,0), CQuaternion(-CRadians::PI_OVER_TWO, CVector3::Z)));
    /* add robots to simulation */
    for(const std::pair<const std::string, CPrototypeEntity*>& c_pair : m_mapRobots) {
       AddEntity(*(c_pair.second));

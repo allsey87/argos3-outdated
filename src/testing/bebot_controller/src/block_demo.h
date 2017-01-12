@@ -10,6 +10,8 @@
 #include "target.h"
 #include "structure.h"
 
+#include <argos3/core/utility/math/rng.h>
+
 /* compatibility hack */
 class CBlockDemo {
 public:
