@@ -20,7 +20,7 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   static const Real LED_RADIUS     = 0.0025f;
+   static const Real LED_RADIUS     = 0.0075f;
    const GLfloat BODY_COLOR[]       = { 0.4f, 0.4f, 0.4f, 1.0f };
    const GLfloat SPECULAR[]         = { 0.0f, 0.0f, 0.0f, 1.0f };
    const GLfloat SHININESS[]        = { 0.0f                   };
@@ -183,11 +183,21 @@ namespace argos {
             pfColor[1] = cColor.GetGreen() / 255.0f;
             pfColor[2] = cColor.GetBlue() / 255.0f;
             glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, pfColor);
+            /* Get position and orientation */
             const CVector3& cPosition = cLEDEquippedEntity.GetLED(i).GetPosition();
-            glTranslatef(cPosition.GetX(), cPosition.GetY(), cPosition.GetZ() - LED_RADIUS/2);
-            /* Draw the LED */
-            glScalef(LED_RADIUS,LED_RADIUS,LED_RADIUS);
-            glCallList(m_unSphereList);
+            const CQuaternion& cOrientation = cLEDEquippedEntity.GetLED(i).GetOrientation();
+            CRadians cZAngle, cYAngle, cXAngle;
+            cOrientation.ToEulerAngles(cZAngle, cYAngle, cXAngle);
+            /* Translate */
+            glTranslatef(cPosition.GetX(), cPosition.GetY(), cPosition.GetZ());
+            /* Rotate */
+            glRotatef(ToDegrees(cXAngle).GetValue(), 1.0f, 0.0f, 0.0f);
+            glRotatef(ToDegrees(cYAngle).GetValue(), 0.0f, 1.0f, 0.0f);
+            glRotatef(ToDegrees(cZAngle).GetValue(), 0.0f, 0.0f, 1.0f);
+            /* Set scale for LEDs */
+            glScalef(0.0075,0.0075,0.0005);
+            /* Draw */
+            glCallList(m_unBoxList);
             glPopMatrix();
          }
       }
