@@ -20,9 +20,9 @@ public:
    CSRoCSLoopFunctions() :
       m_vecCacheLocations {
          CVector3( 0.5, 0.0,0.125),
-         //CVector3( 0.0, 0.5,0.125),
+         CVector3( 0.0, 0.5,0.125),
          CVector3(-0.5, 0.0,0.125),
-         //CVector3( 0.0,-0.5,0.125),
+         CVector3( 0.0,-0.5,0.125),
       } {}
 
    void Init(TConfigurationNode& t_tree);

@@ -22,6 +22,7 @@
 #define RF_LR_BLOCK_DETECT_THRES 3500
 #define RF_FLR_BLOCK_DETECT_THRES 2500
 #define RF_FLR_BLOCK_CONTACT_THRES 2675
+#define RF_FCNR_ROBOT_DETECT_THRES 1500
 
 #define OBSERVE_BLOCK_X_TARGET 0.000
 #define OBSERVE_BLOCK_Z_TARGET 0.275
@@ -880,8 +881,7 @@ public:
       AddTransition("set_zero_velocity", "wait_for_random_interval", [this] {
          m_tpIntervalStartTime = GetBase().GetData<SGlobalData>().Sensors->Clock.Time;
          argos::UInt32 unRandomInterval = GetBase().GetData<SGlobalData>().RandomNumberGenerator->Uniform(m_cIntervalLengthRange);
-         std::cout << "waiting " << unRandomInterval << "milliseconds" << std::endl;
-         m_tIntervalLength = std::chrono::milliseconds(unRandomInterval); // TODO: MAKE RANDOM
+         m_tIntervalLength = std::chrono::milliseconds(unRandomInterval);
          return true;
       });
       AddTransition("wait_for_random_interval", "track_other_block", [this] {
@@ -900,17 +900,23 @@ public:
       });
       AddTransition("configure_block_for_transport", "set_reverse_velocity");
       AddExitTransition("set_reverse_velocity", [this] {
-         return GetBase().GetData<SGlobalData>().IsNextTargetAcquired();
+         return (GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets.size() > 1u);
       });
    }
 };
 
 class CStatePlaceBlock : public CState {
 public:
+   /* local data */
+   std::chrono::time_point<std::chrono::steady_clock> m_tpIntervalStartTime;
+   std::chrono::milliseconds m_tIntervalLength;
+   argos::CRange<argos::UInt32> m_cIntervalLengthRange = argos::CRange<argos::UInt32>(0,15000);
+
    CStatePlaceBlock(const std::string& str_id, CState* pc_parent) :
       CState(str_id, pc_parent, nullptr, CState::TVector {
          /*** states (std::vector<CState> initializer list) ***/
-         AddState<CStateSetLedColors>("set_deck_color_green", CBlockDemo::EColor::GREEN),
+         //AddState<CStateSetLedColors>("set_deck_color_green", CBlockDemo::EColor::GREEN),
+         AddState<CStateSendNFCMessage>("set_deck_color_green", BLOCK_TYPE_Q4),
          AddState<CStateMoveToTargetXZ>("prealign_with_structure", PREAPPROACH_BLOCK_X_TARGET, PREAPPROACH_BLOCK_Z_TARGET, true),
          AddState<CStateApproachStructure>("approach_structure_from_left", TAG_OFFSET_TARGET, FindTagCornerFurthestToTheRight),
          AddState<CStateApproachStructure>("approach_structure_from_right", -TAG_OFFSET_TARGET, FindTagCornerFurthestToTheLeft),
@@ -919,6 +925,8 @@ public:
          AddState<CState>("wait_for_target"),
          AddState<CStateMoveToTargetX>("align_with_structure", PREPLACEMENT_BLOCK_X_TARGET, false),
          AddState<CStateSetVelocity>("set_zero_velocity", 0.000, 0.000),
+         AddState<CState>("wait_until_target_either_lr_clear"),
+         AddState<CState>("wait_until_target_both_lr_clear"),
          AddState<CStateSetLedColors>("set_deck_color_red", CBlockDemo::EColor::RED),
          AddState<CStateSetLiftActuatorPosition>("set_lift_actuator_base_height", LIFT_ACTUATOR_MIN_HEIGHT + (0.5 * LIFT_ACTUATOR_BLOCK_HEIGHT)),
          // if no targets place block, otherwise, if targets check led colors
@@ -1070,6 +1078,57 @@ public:
          AddTransition("align_with_structure", "set_reverse_velocity", [this] {
             return GetBase().GetData<SGlobalData>().IsTargetLost();
          });
+
+         AddTransition("set_zero_velocity", "wait_until_target_either_lr_clear", [this] {
+            /* other robots on the left and/or right detected */
+            bool bLeftBlocked = (GetMedian(GetBase().GetData<SGlobalData>().Sensors->RangeFinders[4]) > RF_FCNR_ROBOT_DETECT_THRES);
+            bool bRightBlocked = (GetMedian(GetBase().GetData<SGlobalData>().Sensors->RangeFinders[7]) > RF_FCNR_ROBOT_DETECT_THRES);
+
+            if(bLeftBlocked || bRightBlocked) {
+               m_tpIntervalStartTime = GetBase().GetData<SGlobalData>().Sensors->Clock.Time;
+               argos::UInt32 unRandomInterval = GetBase().GetData<SGlobalData>().RandomNumberGenerator->Uniform(m_cIntervalLengthRange);
+               std::cout << "Interval = " << unRandomInterval << std::endl;
+               m_tIntervalLength = std::chrono::milliseconds(unRandomInterval);
+               return true;
+            }
+            return false;
+         });
+
+         AddTransition("wait_until_target_either_lr_clear", "set_deck_color_red", [this] {
+            bool bLeftClear = (GetMedian(GetBase().GetData<SGlobalData>().Sensors->RangeFinders[4]) < RF_FCNR_ROBOT_DETECT_THRES);
+            bool bRightClear = (GetMedian(GetBase().GetData<SGlobalData>().Sensors->RangeFinders[7]) < RF_FCNR_ROBOT_DETECT_THRES);
+            return (bLeftClear && bRightClear);
+         });
+
+         AddTransition("wait_until_target_either_lr_clear", "wait_until_target_both_lr_clear", [this] {
+            bool bLeftClear = (GetMedian(GetBase().GetData<SGlobalData>().Sensors->RangeFinders[4]) < RF_FCNR_ROBOT_DETECT_THRES);
+            bool bRightClear = (GetMedian(GetBase().GetData<SGlobalData>().Sensors->RangeFinders[7]) < RF_FCNR_ROBOT_DETECT_THRES);
+            if(bLeftClear || bRightClear) {
+               m_tpIntervalStartTime = GetBase().GetData<SGlobalData>().Sensors->Clock.Time;
+               argos::UInt32 unRandomInterval = GetBase().GetData<SGlobalData>().RandomNumberGenerator->Uniform(m_cIntervalLengthRange);
+               std::cout << "Interval = " << unRandomInterval << std::endl;
+               m_tIntervalLength = std::chrono::milliseconds(unRandomInterval);
+               return true;
+            }
+            return false;
+         });
+
+         AddTransition("wait_until_target_either_lr_clear", "prealign_with_structure", [this] {
+            /* timer expired, back off and reapproach to give other robots a chance at placement */
+            return (m_tpIntervalStartTime + m_tIntervalLength < GetBase().GetData<SGlobalData>().Sensors->Clock.Time);
+         });
+
+         AddTransition("wait_until_target_both_lr_clear", "prealign_with_structure", [this] {
+            /* timer expired, back off and reapproach to give other robots a chance at placement */
+            return (m_tpIntervalStartTime + m_tIntervalLength < GetBase().GetData<SGlobalData>().Sensors->Clock.Time);
+         });
+
+         AddTransition("wait_until_target_both_lr_clear", "set_deck_color_red", [this] {
+            bool bLeftClear = (GetMedian(GetBase().GetData<SGlobalData>().Sensors->RangeFinders[4]) < RF_FCNR_ROBOT_DETECT_THRES);
+            bool bRightClear = (GetMedian(GetBase().GetData<SGlobalData>().Sensors->RangeFinders[7]) < RF_FCNR_ROBOT_DETECT_THRES);
+            return (bLeftClear && bRightClear);
+         });
+
          AddTransition("set_zero_velocity", "set_deck_color_red");
          AddTransition("set_deck_color_red", "set_lift_actuator_base_height");
          AddTransition("set_lift_actuator_base_height", "wait_for_lift_actuator");
@@ -1236,7 +1295,7 @@ public:
          }),
          AddState<CStatePickUpBlock>("pick_up_unused_block"),
          // Assign the transport color to the block
-         AddState<CStateSendNFCMessage>("configure_block_for_transport", BLOCK_TYPE_Q4),
+         AddState<CStateSendNFCMessage>("configure_block_for_transport", BLOCK_TYPE_OFF),
          AddState<CState>("search_for_structure", nullptr, CState::TVector {
             AddState<CStateSetLedColors>("set_deck_color", CBlockDemo::EColor::BLUE),
             AddState<CStateSetLiftActuatorPosition>("raise_lift_actuator", LIFT_ACTUATOR_MAX_HEIGHT),
@@ -1250,7 +1309,6 @@ public:
          AddState<CStateSetLiftActuatorPosition>("raise_lift_actuator", LIFT_ACTUATOR_MAX_HEIGHT),
          AddState<CState>("wait_for_next_target"),
          AddState<CStateSetVelocity>("set_search_velocity", BASE_VELOCITY * 0.500, -BASE_VELOCITY * 0.500),
-         AddState<CStateSetVelocity>("set_search_velocity2", BASE_VELOCITY * 0.500, -BASE_VELOCITY * 0.500),
          // TODO: this state is being used manually as a hack
          AddState<CStateAvoidCollision>("avoid_other_robot"),
       }) {
@@ -1327,6 +1385,7 @@ public:
             if((std::abs(s_block.Translation.GetX() - OBSERVE_BLOCK_X_TARGET) < OBSERVE_BLOCK_XZ_THRES) &&
                (std::abs(s_block.Translation.GetZ() - OBSERVE_BLOCK_Z_TARGET) < OBSERVE_BLOCK_XZ_THRES)) {
                // search all structures, does it belong to any
+               std::cerr << "Target " << GetBase().GetData<SGlobalData>().TrackedTargetId << " in range" << std::endl;
                for(const SStructure& s_structure : GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Structures) {
                   if(std::find(std::begin(s_structure.Members), std::end(s_structure.Members), itTarget) != std::end(s_structure.Members)) {
                      if(s_structure.Members.size() == 1) {
@@ -1335,6 +1394,7 @@ public:
                      }
                      else {
                         /* this target is the correct target in a partially completed pyramid */
+                        std::cerr << "Pyramid target is: " << FindPyramidTarget(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets)->Id << std::endl;
                         return (itTarget == FindPyramidTarget(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets));
                      }
                   }
@@ -1351,8 +1411,14 @@ public:
             if((std::abs(s_block.Translation.GetX() - OBSERVE_BLOCK_X_TARGET) < OBSERVE_BLOCK_XZ_THRES) &&
                (std::abs(s_block.Translation.GetZ() - OBSERVE_BLOCK_Z_TARGET) < OBSERVE_BLOCK_XZ_THRES)) {
                // if the above transition did not occur, then this is not our target
-               // if we cannot switch targets, set_search_velocity
-               return !GetBase().GetData<SGlobalData>().IsNextTargetAcquired();
+               auto itPyramidTarget = FindPyramidTarget(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets);
+               if(itPyramidTarget != std::end(GetBase().GetData<SGlobalData>().Sensors->ImageSensor.Detections.Targets) && itPyramidTarget != itTarget) {
+                  GetBase().GetData<SGlobalData>().TrackedTargetId = itPyramidTarget->Id;
+                  return false;
+               }
+               else {
+                  return !GetBase().GetData<SGlobalData>().IsNextTargetAcquired();
+               }
             }
          }
          return false;
