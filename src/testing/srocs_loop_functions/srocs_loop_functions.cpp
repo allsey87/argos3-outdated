@@ -10,6 +10,7 @@
 #include <argos3/core/simulator/entity/embodied_entity.h>
 
 #include <argos3/plugins/robots/prototype/simulator/entities/radio_equipped_entity.h>
+#include <argos3/plugins/robots/prototype/simulator/entities/body_equipped_entity.h>
 
 #include <iomanip>
 
@@ -53,6 +54,14 @@ void CSRoCSLoopFunctions::Reset() {
    cData.emplace_back();
    cData.back() << "3"; // Q3, center stack for pyramid
    cBlockRadios.GetRadio(0).SetRxData(cData);
+   /* Set the mass of the seed block to zero so that it can't move */
+   CBodyEquippedEntity& cBlockBodies = cSeedBlock.GetComponent<CBodyEquippedEntity>("bodies");
+   for(CBodyEntity* pc_body : cBlockBodies.GetAllBodies()) {
+      if(pc_body->GetId() == "block") {
+         pc_body->m_fMass = 0.0;
+      }
+   }
+   /* Add to simulation */
    AddEntity(cSeedBlock);
    m_mapBlocks.emplace("seed", &cSeedBlock);
 

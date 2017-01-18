@@ -23,7 +23,6 @@
 #define DDS_VELOCITY_SCALE 0.35
 
 namespace argos {
-
    Real ScaleProximityValue(Real f_in) {
       return (5432.4 * std::pow(f_in, 87.70362));
    }
@@ -126,6 +125,8 @@ namespace argos {
       );
       /* clear out detection lists */
       m_tDetectedBlockList.clear();
+      /* clear the logs */
+      m_mapLogs.clear();
       /* is this required? */
       SetElectromagnetCurrent(0.0);
       SetTargetVelocity(0.0,0.0);
@@ -185,6 +186,7 @@ namespace argos {
       m_psSensorData->ManipulatorModule.RangeFinders.Right = ScaleProximityValue(t_readings[RF_RIGHT_IDX].Value);
       m_psSensorData->ManipulatorModule.RangeFinders.Front = ScaleProximityValue(t_readings[RF_FRONT_IDX].Value);
       m_psSensorData->ManipulatorModule.RangeFinders.Underneath = ScaleProximityValue(t_readings[RF_UNDERNEATH_IDX].Value);
+
       /* Emulate the manipulator module */
       Real fTargetPos = m_pcLiftActuatorSystemController->GetTargetPosition();
       Real fPos = m_pcLiftActuatorSystemController->GetPosition();
@@ -223,7 +225,7 @@ namespace argos {
       cStateMachineOutput << *m_pcStateMachine;
       if(cStateMachineOutput.str() != m_strLastOutput) {
          m_strLastOutput = cStateMachineOutput.str();
-         std::cout << GetId() << ": " << m_strLastOutput << std::endl;
+         m_mapLogs["states"] << ": " << m_strLastOutput << std::endl;
       }
       /* Output the tracking information */
       std::ostringstream cTrackingInfo;
@@ -238,7 +240,7 @@ namespace argos {
       }
       if(cTrackingInfo.str() != m_strLastTrackingInfo) {
          m_strLastTrackingInfo = cTrackingInfo.str();
-         std::cerr << GetId() << ": " << (m_strLastTrackingInfo.empty() ? std::string("()") : m_strLastTrackingInfo) << std::endl;
+         m_mapLogs["targets"] << ": " << (m_strLastTrackingInfo.empty() ? std::string("()") : m_strLastTrackingInfo) << std::endl;
       }
       
       /***************************************************/

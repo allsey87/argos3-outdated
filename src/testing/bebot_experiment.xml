@@ -5,7 +5,7 @@
   <!-- * General configuration * -->
   <!-- ************************* -->
   <framework>
-    <experiment threads="1" length="0" ticks_per_second="5"/>
+    <experiment threads="1" length="0" ticks_per_second="5" random_seed="906383"/>
   </framework>
 
   <!-- *************** -->
@@ -27,14 +27,14 @@
         </cameras>
         <joints implementation="default" />
         <radios implementation="default" medium="nfc"/>
-        <prototype_proximity implementation="default" show_rays="false"/>
+        <prototype_proximity implementation="default" show_rays="true"/>
       </sensors>
       <params/>
     </bebot_controller>
     <lua_controller id="block_ctrl">
       <actuators>
         <pleds implementation="default" medium="leds"/>
-        <radios implementation="default" medium="nfc"/>         
+        <radios implementation="default" medium="nfc"/>
       </actuators>
       <sensors>
         <radios implementation="default" medium="nfc"/>
@@ -492,9 +492,11 @@
     <!-- ************************************************************************ -->
     <!-- * To activate the Lua editor, just use the 'lua_editor' flag attribute * -->
     <!-- ************************************************************************ -->
-    <qt-opengl lua_editor="false">
-      <user_functions label="camera_user_functions" library="build/testing/qt_camera_visualisation/libcamera_loop_functions.so"/>
-      <!--user_functions label="camera_user_functions" library="../testing/qt_camera_visualisation/libcamera_loop_functions.so"/-->
+    <qt-opengl lua_editor="false" redirect_argos_log="false" title="ARGoS - SRoCS Pyramid Demo">
+      <!--user_functions label="srocs_qtopengl_user_functions" library="../testing/srocs_qtopengl_user_functions/libsrocs_qtopengl_user_functions.so"-->
+      <user_functions label="srocs_qtopengl_user_functions" library="build/testing/srocs_qtopengl_user_functions/libsrocs_qtopengl_user_functions.so">
+         <entities pattern="robot"/>
+      </user_functions>
       <camera>
         <placement idx="0" position="0.9,-0.9,1.2" look_at="0.35,-0.35,0.50" lens_focal_length="50" />
         <!--placement idx="0" position="0.150255,0.000001,0.20603" look_at="0.300255,0.000001,0.08603" lens_focal_length="20" /-->
