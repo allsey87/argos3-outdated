@@ -27,6 +27,8 @@ namespace argos {
       ENABLE_VTABLE();
 
       typedef std::vector<CBodyEntity*> TList;
+      typedef std::vector<CBodyEntity*>::iterator TListIterator;
+      typedef std::vector<CBodyEntity*>::const_iterator TListConstIterator;
 
    public:
 
@@ -81,6 +83,8 @@ namespace argos {
       CPositionalEntity* m_pcOffsetPositionalEntity;
 
       CGeometry3* m_pcGeometry;
+
+public: // hack - make this private again
       Real m_fMass;
    };
 
