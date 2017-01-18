@@ -142,6 +142,7 @@ namespace argos {
       CQTOpenGLLogStream* m_pcLogErrStream;
 
       bool m_bWasLogColored;
+      bool m_bRedirectARGoSLog;
 
       CQTOpenGLUserFunctions* m_pcUserFunctions;
    };

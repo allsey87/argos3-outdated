@@ -9,6 +9,7 @@
 
 namespace argos {
    class CQTOpenGLUserFunctions;
+   class CQTOpenGLMainWindow;
    class CFloorEntity;
 }
 
@@ -84,6 +85,11 @@ namespace argos {
       virtual ~CQTOpenGLUserFunctions();
 
       /**
+       * Initialize class from XML
+       */
+      virtual void Init(TConfigurationNode& t_tree) {}
+
+      /**
        * Drawing hook executed after the floor is drawn.
        */
       virtual void Draw(CFloorEntity& c_entity) {}
@@ -118,6 +124,22 @@ namespace argos {
        */
       inline void SetOpenGLWidget(CQTOpenGLWidget& c_widget) {
          m_pcQTOpenGLWidget = &c_widget;
+      }
+
+      /**
+       * Returns the QTOpenGL window.
+       * @return The QTOpenGL window.
+       */
+      inline CQTOpenGLMainWindow& GetMainWindow() {
+         return *m_pcMainWindow;
+      }
+
+      /**
+       * Sets the QTOpenGL window for these user functions.
+       * @param c_widget The QTOpenGL window.
+       */
+      inline void SetMainWindow(CQTOpenGLMainWindow& c_window) {
+         m_pcMainWindow = &c_window;
       }
 
       /**
@@ -293,6 +315,10 @@ namespace argos {
        * A pointer to the CQTOpenGLWidget.
        */
       CQTOpenGLWidget* m_pcQTOpenGLWidget;
+      /**
+       * A pointer to the CQTOpenGLMainWindow.
+       */
+      CQTOpenGLMainWindow* m_pcMainWindow;
 
    };
 

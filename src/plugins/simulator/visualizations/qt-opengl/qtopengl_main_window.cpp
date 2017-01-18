@@ -126,6 +126,7 @@ namespace argos {
    /****************************************/
 
    CQTOpenGLMainWindow::CQTOpenGLMainWindow(TConfigurationNode& t_tree) :
+      m_bRedirectARGoSLog(true),
       m_pcUserFunctions(NULL) {
       /* Main window settings */
       std::string strTitle;
@@ -151,8 +152,11 @@ namespace argos {
       /* Create toolbars */
       CreateSimulationToolBar();
       CreateCameraToolBar();
-      /* Create the message dock window */
-      CreateLogMessageDock();
+      /* Create the message dock window */    
+      GetNodeAttributeOrDefault(t_tree, "redirect_argos_log", m_bRedirectARGoSLog, m_bRedirectARGoSLog);
+      if(m_bRedirectARGoSLog) {
+         CreateLogMessageDock();
+      }
       /* Restore settings, if any */
       ReadSettingsPostCreation();
       /* Creates the signal/slot connections */
@@ -164,11 +168,13 @@ namespace argos {
 
    CQTOpenGLMainWindow::~CQTOpenGLMainWindow() {
       delete m_pcUserFunctions;
-      delete m_pcLogStream;
-      delete m_pcLogErrStream;
-      if(m_bWasLogColored) {
-         LOG.EnableColoredOutput();
-         LOGERR.EnableColoredOutput();
+      if(m_bRedirectARGoSLog) {
+         delete m_pcLogStream;
+         delete m_pcLogErrStream;
+         if(m_bWasLogColored) {
+            LOG.EnableColoredOutput();
+            LOGERR.EnableColoredOutput();
+         }
       }
    }
 
@@ -460,6 +466,10 @@ namespace argos {
       pcQTOpenGLLayout->addWidget(m_pcOpenGLWidget);
       pcPlaceHolder->setLayout(pcQTOpenGLLayout);
       setCentralWidget(pcPlaceHolder);
+
+      TConfigurationNode tNode = GetNode(t_tree, "user_functions");
+      /* Init user functions from XML */
+      m_pcUserFunctions->Init(tNode);
    }
 
    /****************************************/
@@ -579,7 +589,10 @@ namespace argos {
                CDynamicLoading::LoadLibrary(strLibrary);
             }
             /* Create the user functions */
-            return CFactory<CQTOpenGLUserFunctions>::New(strLabel);
+            CQTOpenGLUserFunctions* pcUserFunctions = CFactory<CQTOpenGLUserFunctions>::New(strLabel);
+            /* Set this as the main window */
+            pcUserFunctions->SetMainWindow(*this);
+            return pcUserFunctions;
          }
          catch(CARGoSException& ex) {
             THROW_ARGOSEXCEPTION_NESTED("Failed opening QTOpenGL user function library", ex);
