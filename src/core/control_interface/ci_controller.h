@@ -207,6 +207,9 @@ namespace argos {
          m_mapSensors[str_sensor_type] = pc_sensor;
       }
 
+      /** Hack **/
+      std::map<std::string, std::ostringstream> m_mapLogs;
+
    protected:
 
       /** A map containing all the actuators associated to this controller */
@@ -217,7 +220,6 @@ namespace argos {
 
       /** The id of the robot associated to this controller  */
       std::string m_strId;
-
    };
 
 }
