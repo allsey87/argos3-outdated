@@ -116,7 +116,7 @@ namespace argos {
          m_pcTabWidget->removeTab(itRemove->second.TabIndex);
          delete itRemove->second.Widget;
          lstRobotUserInterfaces.pop_front();
-      }     
+      }
    }
 
    /********************************************************************************/

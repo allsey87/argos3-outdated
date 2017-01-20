@@ -48,13 +48,13 @@ namespace argos {
       {
          m_pcLogTargetsBuffer->setReadOnly(true);
          QString strContents;
-         QTextStream(&strContents) << "<b>" << "Targets Log" << "</b>";
+         QTextStream(&strContents) << "<b>" << "" << "</b>";
          m_pcLogTargetsBuffer->append(strContents); /* Write something in the buffer */
       }
       {
          m_pcLogStatesBuffer->setReadOnly(true);
          QString strContents;
-         QTextStream(&strContents) << "<b>" << "States Log" << "</b>";
+         QTextStream(&strContents) << "<b>" << "" << "</b>";
          m_pcLogStatesBuffer->append(strContents); /* Write something in the buffer */
       }
 
@@ -89,16 +89,14 @@ namespace argos {
 
    void CQtRobotUserInterfaceWidget::Update() {
       m_pcScene->clear();
-      m_pcViewport->setBackgroundBrush(QBrush(Qt::black, Qt::SolidPattern));
+      m_pcViewport->setBackgroundBrush(QBrush(Qt::white, Qt::SolidPattern));
 
       const Real fEllipseSize = 7.5f;
       if(m_pcLEDDetectorAlgorithm != nullptr) {
          const CCI_CamerasSensorLEDDetectorAlgorithm::SReading::TList& sReadings =
             m_pcLEDDetectorAlgorithm->GetReadings();      
          for(UInt32 i = 0; i < sReadings.size(); ++i) {
-            QPen cPen(QColor(sReadings[i].Color.GetRed(),
-                             sReadings[i].Color.GetGreen(),
-                             sReadings[i].Color.GetBlue()));
+            QPen cPen(Qt::black);
             m_pcScene->addEllipse(sReadings[i].Center.GetX() - (fEllipseSize * 0.5f),
                                   sReadings[i].Center.GetY() - (fEllipseSize * 0.5f),
                                   fEllipseSize,
@@ -110,7 +108,7 @@ namespace argos {
          const CCI_CamerasSensorTagDetectorAlgorithm::SReading::TList& sReadings =
             m_pcTagDetectorAlgorithm->GetReadings();      
          for(UInt32 i = 0; i < sReadings.size(); ++i) {
-            QPen cPen(QColor(255,255,255));        
+            QPen cPen(Qt::black);      
             m_pcScene->addEllipse(sReadings[i].Center.GetX() - (fEllipseSize * 0.5f),
                                   sReadings[i].Center.GetY() - (fEllipseSize * 0.5f),
                                   fEllipseSize,

@@ -11,6 +11,8 @@ enum class ELedState {
 /* TODO: rename to SFace */
 
 struct STag {
+
+   /* TODO change to CVector2 */
    using TCoordinate = std::pair<double, double>;
    using TCoordinateConstIterator = std::vector<TCoordinate>::const_iterator;
 
