@@ -731,17 +731,22 @@ namespace argos {
             }
             else if(pc_event->buttons() == Qt::RightButton) {
                QPoint cDelta(pc_event->pos() - m_cMouseGrabPos);
-               m_cCamera.Move(-cDelta.y(), cDelta.x(), 0);
-               m_cMouseGrabPos = pc_event->pos();
-               DrawScene();
-            }
-            else if(pc_event->buttons() == Qt::MidButton) {
-               QPoint cDelta(pc_event->pos() - m_cMouseGrabPos);
-               m_cCamera.Move(0, 0, cDelta.y());
+               m_cCamera.Move(0, cDelta.x(), cDelta.y());
                m_cMouseGrabPos = pc_event->pos();
                DrawScene();
             }
          }
+      }
+   }
+
+   /****************************************/
+   /****************************************/
+
+   void CQTOpenGLWidget::wheelEvent(QWheelEvent* pc_event) {
+      if(pc_event->orientation() == Qt::Vertical) {
+         SInt32 nDegrees = pc_event->delta() / 8;
+         m_cCamera.Move(nDegrees, 0, 0);
+         DrawScene();
       }
    }
 
@@ -804,36 +809,32 @@ namespace argos {
 
    void CQTOpenGLWidget::keyPressEvent(QKeyEvent* pc_event) {
       switch(pc_event->key()) {
-         case Qt::Key_W:
          case Qt::Key_Up:
             /* Forwards */
             m_mapPressedKeys[DIRECTION_UP] = true;
             reactToKeyEvent();
             break;
-         case Qt::Key_S:
          case Qt::Key_Down:
             /* Backwards */
             m_mapPressedKeys[DIRECTION_DOWN] = true;
             reactToKeyEvent();
             break;
-         case Qt::Key_A:
          case Qt::Key_Left:
             /* Left */
             m_mapPressedKeys[DIRECTION_LEFT] = true;
             reactToKeyEvent();
             break;
-         case Qt::Key_D:
          case Qt::Key_Right:
             /* Right */
             m_mapPressedKeys[DIRECTION_RIGHT] = true;
             reactToKeyEvent();
             break;
-         case Qt::Key_E:
+         case Qt::Key_Home:
             /* Up */
             m_mapPressedKeys[DIRECTION_FORWARDS] = true;
             reactToKeyEvent();
             break;
-         case Qt::Key_Q:
+         case Qt::Key_End:
             /* Up */
             m_mapPressedKeys[DIRECTION_BACKWARDS] = true;
             reactToKeyEvent();

@@ -279,7 +279,7 @@ namespace argos {
       /* Add the quit button */
       m_pcQuitAction = new QAction(tr("&Quit"), this);
       m_pcQuitAction->setStatusTip(tr("Quit the simulator"));
-      m_pcQuitAction->setShortcut(Qt::Key_Q);
+      m_pcQuitAction->setShortcut(Qt::Key_Escape);
    }
 
    /****************************************/

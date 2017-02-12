@@ -167,6 +167,7 @@ namespace argos {
 
       virtual void timerEvent(QTimerEvent* pc_event);
       virtual void mouseMoveEvent(QMouseEvent* pc_event);
+      virtual void wheelEvent(QWheelEvent* pc_event);
       virtual void mousePressEvent(QMouseEvent* pc_event);
       virtual void mouseReleaseEvent(QMouseEvent* pc_event);
       virtual void keyPressEvent(QKeyEvent* pc_event);
