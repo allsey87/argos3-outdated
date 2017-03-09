@@ -5,10 +5,8 @@
   <!-- * General configuration * -->
   <!-- ************************* -->
   <framework>
-    <experiment threads="2" length="0" ticks_per_second="100" />
+    <experiment threads="2" length="0" ticks_per_second="5" />
   </framework>
-
-  <!--loop_functions label="dyn3d_testbench_loop_functions" /-->
 
   <!-- *************** -->
   <!-- * Controllers * -->
@@ -21,74 +19,45 @@
         <joints implementation="default" />
       </actuators>
       <sensors>
-         <joints implementation="default" />
-         <cameras implementation="default">
-            <algorithms>
-               <led_detector medium="leds" camera="front_camera" show_rays="true"/>
-               <tag_detector medium="barcodes" camera="front_camera" show_rays="true"/>
-            </algorithms>
-         </cameras>
+        <joints implementation="default" />
+        <cameras implementation="default" show_frustums="true">
+          <algorithms>
+            <led_detector medium="leds" camera="front_camera" show_rays="true"/>
+            <tag_detector medium="apriltags" camera="front_camera" show_rays="false"/>
+          </algorithms>
+        </cameras>
       </sensors>
       <params script="src/testing/camera_calibration.lua"/>
     </lua_controller>
-    
-    <!--lua_controller id="test_pattern_lua">
-      <actuators>
-        <pleds implementation="default"/>
-      </actuators>
-      <sensors/>
-      <params script="src/testing/camera_calibration.lua"/>
-    </lua_controller-->
-  
   </controllers>
-  
-  
-  
   
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->
-  <arena size="10, 10, 5" positional_index="grid" positional_grid_size="25,25,10">
-    <!-- floor id="f" source="loop_functions" pixels_per_meter="100" / -->
-    
-    <box id="bn" size="0.1, 5, 0.2" movable="false" mass="1">
-      <body position="2.5,0,0"  orientation="0,0,0"/>
-    </box>
-    <box id="bs" size="0.1, 5, 0.2" movable="false" mass="1">
-      <body position="-2.5,0,0" orientation="0,0,0"/>
-    </box>
-    <box id="be" size="5, 0.1, 0.2" movable="false" mass="1">
-      <body position="0,-2.5,0" orientation="0,0,0"/>
-    </box>
-    <box id="bw" size="5, 0.1, 0.2" movable="false" mass="1">
-      <body position="0,2.5,0"  orientation="0,0,0"/>
-      <!--leds medium="leds">
-         <led position="0,-0.075,0.2" color="blue"/>
-      </leds-->
-    </box>
+  <arena size="1,1,1" positional_index="grid" positional_grid_size="25,25,10">
 
     <prototype id="robot">
-      <body position="0,0,0" orientation="0,0,0" />
+      <body position="0.25,0,0" orientation="0,0,0" />
       <controller config="robot_prototype_lua"/>
       <bodies reference_body="base">
-        <body id="base" geometry="cylinder" radius="0.15" height="0.05" mass="10">
+        <body id="base" geometry="cylinder" radius="0.15" height="0.05" mass="1">
           <coordinates/>
           <offset position="0,0,0" orientation="0,0,0"/>
         </body>
-        <body id="link_0" geometry="cylinder" radius="0.025" height="0.4" mass="0.5">
+        <body id="link_0" geometry="cylinder" radius="0.025" height="0.25" mass="0.5">
           <coordinates/>
           <offset position="0,0,0.05" orientation="0,0,0"/>
         </body>
       </bodies>
       <joints>
-        <joint id="joint_0" disable_collisions="false" sensor="enabled" actuator="enabled">
+        <joint id="joint_0" disable_collisions="true" sensor="enabled" actuator="enabled">
           <frames>
             <frame body="base" position="0,0, 0.05" orientation="0,90,0"/>
             <frame body="link_0" position="0,0,0" orientation="0,90,0"/>
           </frames>
           <axes>
             <axis direction="x" mode="angular" range="unconstrained">
-              <actuator enabled="true" force="5" target_velocity="0"/>
+              <actuator enabled="true" force="1" target_velocity="5"/>
             </axis>
           </axes>
         </joint>
@@ -98,13 +67,12 @@
         <cameras>
           <camera id="front_camera"
                   body="link_0"
-                  position="-0.0251,0,0.40"
+                  position="-0.05,0,0.275"
                   orientation="90,-90,0"
-                  roll="0"
-                  field_of_view="90"
-                  range="0.25"
+                  range="0.05:0.5"
                   focal_length="883.961,883.961"
-                  principle_point="320,180"
+                  principle_point="319.5,179.5"
+                  distortion_parameters="0,0,0"
                   resolution="640,360"
                   enabled="true"/>
         </cameras>
@@ -112,10 +80,10 @@
     </prototype>
 
     <prototype id="test-pattern">
-      <body position="-0.505,0,0" orientation="0,0,0" />
+      <body position="-0.3075,0,0.125" orientation="0,0,0" />
       <!--controller config="test_pattern_lua"/-->
       <bodies reference_body="base">
-        <body id="base" geometry="box" size="0.01,1,1" mass="10">
+        <body id="base" geometry="box" size="0.01,0.6,0.4" mass="0">
           <coordinates/>
           <offset position="0,0,0" orientation="0,0,0"/>
         </body>
@@ -123,52 +91,40 @@
       <joints/>
       <devices>
         <leds medium="leds">        
-          <led id="led_11" body="base" position="0.0051, -0.150, 0.300" color="yellow"/>
-          <led id="led_12" body="base" position="0.0051, -0.000, 0.300" color="black"/>
-          <led id="led_13" body="base" position="0.0051,  0.150, 0.300" color="yellow"/>
-          <led id="led_21" body="base" position="0.0051, -0.150, 0.450" color="black"/>
-          <led id="led_22" body="base" position="0.0051, -0.000, 0.450" color="black"/>
-          <led id="led_23" body="base" position="0.0051,  0.150, 0.450" color="black"/>
-          <led id="led_31" body="base" position="0.0051, -0.150, 0.600" color="yellow"/>
-          <led id="led_32" body="base" position="0.0051, -0.000, 0.600" color="black"/>
-          <led id="led_33" body="base" position="0.0051,  0.150, 0.600" color="yellow"/>
-          <!-- intentionally out of range leds -->
-          <!--led id="led_00" body="base" position="0.0051, -0.175269119, 0.274730881" color="red"/>
-          <led id="led_04" body="base" position="0.0051,  0.175269119, 0.274730881" color="red"/>
-          <led id="led_40" body="base" position="0.0051, -0.175269119, 0.625269119" color="red"/>
-          <led id="led_44" body="base" position="0.0051,  0.175269119, 0.625269119" color="red"/-->
+          <led id="led_11" observable_angle="90" body="base" orientation="0,90,0" position="0.01, -0.150, 0.05" color="yellow"/>
+          <led id="led_12" observable_angle="90" body="base" orientation="0,90,0" position="0.01, -0.000, 0.05" color="yellow"/>
+          <led id="led_13" observable_angle="90" body="base" orientation="0,90,0" position="0.01,  0.150, 0.05" color="yellow"/>
+          <led id="led_21" observable_angle="90" body="base" orientation="0,90,0" position="0.01, -0.150, 0.20" color="yellow"/>
+          <!--led id="led_22" observable_angle="90" body="base" orientation="0,90,0" position="0.01, -0.000, 0.175" color="yellow"/-->
+          <led id="led_23" observable_angle="90" body="base" orientation="0,90,0" position="0.01,  0.150, 0.20" color="yellow"/>
+          <led id="led_31" observable_angle="90" body="base" orientation="0,90,0" position="0.01, -0.150, 0.35" color="yellow"/>
+          <led id="led_32" observable_angle="90" body="base" orientation="0,90,0" position="0.01, -0.000, 0.35" color="yellow"/>
+          <led id="led_33" observable_angle="90" body="base" orientation="0,90,0" position="0.01,  0.150, 0.35" color="yellow"/>
         </leds>
-        <tags medium="barcodes">
-          <tag id="apriltag" body="base" localizable="true" position="0.0051, -0.000, 0.450" orientation="0,90,0"  payload="toaster" side_length="0.15"/>
+        <tags medium="apriltags">
+          <tag id="apriltag" body="base" observable_angle="90" position="0.01,-0.000,0.20" orientation="0,90,0" payload="0" side_length="0.15"/>
         </tags>
       </devices>
     </prototype>
-    
-    <!--box id="intheway" size="0.01,1,1" mass="10" movable="true">
-       <body position="-0.25,0,0" orientation="0,0,0" />
-    </box-->
-    
-    
   </arena>
   
   <!-- ********* -->
   <!-- * Media * -->
   <!-- ********* -->
   <media>
-    <range_and_bearing id="rab" index="grid" grid_size="3,3,3" />
     <led id="leds" index="grid" grid_size="20,20,20" />
-    <tag id="barcodes" index="grid" grid_size="20,20,20" />
+    <tag id="apriltags" index="grid" grid_size="20,20,20" />
+    <radio id="nfc" index="grid" grid_size="20,20,20" />
   </media>
   
   <!-- ******************* -->
   <!-- * Physics engines * -->
   <!-- ******************* -->
   <physics_engines>
-    <dynamics3d id="dyn3d" iterations="25">
+    <dynamics3d id="dyn3d" iterations="20">
       <floor/>
       <plugins>
-         <!--antigravity force="0,0,10"/-->
-         <!--magnetism/-->
+        <gravity g="9.8"/>
       </plugins>
     </dynamics3d>
   </physics_engines>
@@ -177,15 +133,9 @@
   <!-- * Visualization * -->
   <!-- ****************** -->
   <visualization>
-
-    <!-- ************************************************************************ -->
-    <!-- * To activate the Lua editor, just use the 'lua_editor' flag attribute * -->
-    <!-- ************************************************************************ -->
-    <qt-opengl lua_editor="false">
-      <user_functions label="camera_user_functions" library="build/testing/qt_camera_visualisation/libcamera_loop_functions.so"/>
+    <qt-opengl lua_editor="false" redirect_argos_log="false">
       <camera>
-        <!--placement idx="0" position="-2.3768,-1.7586,0.423095" look_at="-1.45605,-1.7563,0.0329456" lens_focal_length="20" /-->
-        <placement idx="0" position=" 0, 0, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" />
+        <placement idx="0" position="1.5,-0.60,1" look_at="0.75,-0.25,0.55" lens_focal_length="40" />
         <placement idx="1" position=" 0, 0, 0.75" look_at="0.2,0,0.75" lens_focal_length="10" />
         <placement idx="2" position=" 0, 0, 0.75" look_at="-0.2,0,0.75" lens_focal_length="10" />
         <placement idx="3" position=" 4, 4, 1.5" look_at="2,2,1" lens_focal_length="30" />
@@ -195,7 +145,5 @@
         <placement idx="7" position="0.449984,1.09151,1.44008" look_at="0.0240149,0.441588,0.810667" lens_focal_length="20" />
       </camera>
     </qt-opengl>
-
   </visualization>
-
 </argos-configuration>

@@ -6,7 +6,7 @@
   <!-- ************************* -->
   <framework>
     <!--experiment threads="2" length="0" ticks_per_second="100" /-->
-    <experiment threads="1" length="0" ticks_per_second="500" />
+    <experiment threads="1" length="0" ticks_per_second="100" />
   </framework>
 
   <!-- *************** -->
@@ -17,34 +17,34 @@
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->
-  <arena size="10, 10, 1" positional_index="grid" positional_grid_size="25,25,1">
+  <arena size="1, 1, 1" positional_index="grid" positional_grid_size="2,2,2">
  
     <prototype id="magnet_test_box_a">
-      <body position="0.01,0.0,0.0"  orientation="45,0,0"/>
+      <body position="0.05,0.1,0.0"  orientation="60,0,0"/>
        <bodies reference_body="base">
-         <body id="base" geometry="box" size="0.010,0.010,0.010" mass="0.025">
+         <body id="base" geometry="box" size="0.1,0.1,0.1" mass="0.01">
             <coordinates/>
             <offset/>
          </body>
        </bodies>
       <devices>
         <electromagnets>
-           <electromagnet body="base" passive_field="100,0,0"/>
+           <electromagnet body="base" passive_field="5000,0,0"/>
         </electromagnets>
       </devices>
    </prototype>
 
-   <prototype id="magnet_test_box_b1">
-      <body position="-0.01,0.0,0.0"  orientation="135,0,0"/>
+    <prototype id="magnet_test_box_b">
+      <body position="-0.05,-0.1,0.0"  orientation="60,0,0"/>
        <bodies reference_body="base">
-         <body id="base" geometry="box" size="0.010,0.010,0.010" mass="0.025">
+         <body id="base" geometry="box" size="0.1,0.1,0.1" mass="0.01">
             <coordinates/>
             <offset/>
          </body>
        </bodies>
       <devices>
         <electromagnets>
-           <electromagnet body="base" passive_field="100,0,0"/>
+           <electromagnet body="base" passive_field="5000,0,0"/>
         </electromagnets>
       </devices>
    </prototype>
@@ -61,7 +61,6 @@
   <!-- ******************* -->
   <physics_engines>
     <dynamics3d id="dyn3d" iterations="25">
-      <floor/>
       <plugins>
          <magnetism/>
       </plugins>
@@ -77,7 +76,7 @@
     <!-- ************************************************************************ -->
     <qt-opengl lua_editor="false">
       <camera>
-        <placement idx="0" position="-0.00719833,-0.14161,-0.0013879" look_at="-0.0217759,0.856658,-0.0583816"/>
+        <placement idx="0" position="1.5,-0.60,1" look_at="0.75,-0.25,0.55" lens_focal_length="40" />
         <placement idx="1" position=" 4,-4, 1.5" look_at="2,-2,1" lens_focal_length="30" />
         <placement idx="2" position=" 4, 0, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" />
         <placement idx="3" position=" 4, 4, 1.5" look_at="2,2,1" lens_focal_length="30" />

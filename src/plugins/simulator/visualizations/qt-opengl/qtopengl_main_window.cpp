@@ -467,9 +467,11 @@ namespace argos {
       pcPlaceHolder->setLayout(pcQTOpenGLLayout);
       setCentralWidget(pcPlaceHolder);
 
-      TConfigurationNode tNode = GetNode(t_tree, "user_functions");
-      /* Init user functions from XML */
-      m_pcUserFunctions->Init(tNode);
+      if(NodeExists(t_tree, "user_functions")) {
+         TConfigurationNode tNode = GetNode(t_tree, "user_functions");
+         /* Init user functions from XML */
+         m_pcUserFunctions->Init(tNode);
+      }
    }
 
    /****************************************/

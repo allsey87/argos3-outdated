@@ -369,13 +369,14 @@ namespace argos {
    void CQTOpenGLWidget::DrawRays(CControllableEntity& c_entity) {
       if(! c_entity.GetCheckedRays().empty()) {
          glDisable(GL_LIGHTING);
+         glLineWidth(4.0f);
          glBegin(GL_LINES);
          for(UInt32 i = 0; i < c_entity.GetCheckedRays().size(); ++i) {
             if(c_entity.GetCheckedRays()[i].first) {
                glColor3f(1.0, 0.0, 1.0);
             }
             else {
-               glColor3f(0.0, 1.0, 1.0);
+               glColor3f(0.0, 1.0, 0.2);
             }
             const CVector3& cStart = c_entity.GetCheckedRays()[i].second.GetStart();
             const CVector3& cEnd = c_entity.GetCheckedRays()[i].second.GetEnd();
@@ -392,6 +393,7 @@ namespace argos {
          }
          glEnd();
          glPointSize(1.0);
+         glLineWidth(1.0f);
          glEnable(GL_LIGHTING);
       }
    }
