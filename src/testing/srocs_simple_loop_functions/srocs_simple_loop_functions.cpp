@@ -69,33 +69,34 @@ void CSRoCSLoopFunctions::Reset() {
 
    /* uncomment for qualitative experiment */
    const CVector3 cStructureCenter(0.0,-0.3,0.0);
+   const CQuaternion cStructureRotation(-CRadians::PI_OVER_SIX, CVector3::Z);
    std::vector<CVector3> vecBlockPositions = {
       // small structure
-      cStructureCenter + CVector3(0.055,0.055,0.000),
-      cStructureCenter + CVector3(0.000,0.055,0.000),
-      cStructureCenter + CVector3(0.000,0.000,0.000),
-      cStructureCenter + CVector3(0.055,0.000,0.000),
+      cStructureCenter + CVector3(0.055,0.055,0.000).Rotate(cStructureRotation),
+      cStructureCenter + CVector3(0.000,0.055,0.000).Rotate(cStructureRotation),
+      cStructureCenter + CVector3(0.000,0.000,0.000).Rotate(cStructureRotation),
+      cStructureCenter + CVector3(0.055,0.000,0.000).Rotate(cStructureRotation),
       //cStructureCenter + CVector3(0.055,0.055,0.055),
-      cStructureCenter + CVector3(0.000,0.055,0.055),
-      cStructureCenter + CVector3(0.000,0.000,0.055),
-      cStructureCenter + CVector3(0.055,0.000,0.055),
+      cStructureCenter + CVector3(0.000,0.055,0.055).Rotate(cStructureRotation),
+      cStructureCenter + CVector3(0.000,0.000,0.055).Rotate(cStructureRotation),
+      cStructureCenter + CVector3(0.055,0.000,0.055).Rotate(cStructureRotation),
 
       // unused block
-      CVector3(0.25,0,0.0),
+      CVector3(0.35,0,0.0),
    };
 
    /* create blocks and insert them into the simulation */
    for(const CVector3& c_block_position : vecBlockPositions) {
       std::ostringstream strmBlockId;
       strmBlockId << c_block_position;
-      CPrototypeEntity& cBlock = CreateEntity<CPrototypeEntity>("block", "block(" + strmBlockId.str() + ")", c_block_position, CQuaternion());
+      CPrototypeEntity& cBlock = CreateEntity<CPrototypeEntity>("block", "block(" + strmBlockId.str() + ")", c_block_position, cStructureRotation);
       m_mapBlocks.emplace(cBlock.GetId(), &cBlock);
       AddEntity(cBlock);
    }
 
    /* Insert a fake radio message to initialize the target block */
    std::ostringstream strmTgtBlockId;
-   strmTgtBlockId << (cStructureCenter + CVector3(0.055,0.055,0.000));
+   strmTgtBlockId << vecBlockPositions[0];
 
    CRadioEquippedEntity& cBlockRadios = m_mapBlocks["block(" + strmTgtBlockId.str() + ")"]->GetComponent<CRadioEquippedEntity>("radios");
    std::vector<CByteArray> cData;
