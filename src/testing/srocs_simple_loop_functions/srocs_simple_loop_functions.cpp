@@ -48,13 +48,17 @@ void CSRoCSLoopFunctions::Reset() {
    }
 
    /* uncomment for quantitative experiment */
-   /*
    const CVector3 cSmallStructureCenter(0.3,-0.3,0.0);
-   const CVector3 cLargeStructureCenter(-0.1,-0.1,0.0);
+   const CVector3 cLargeStructureCenter(-0.1,-0.025,0.0);
    std::vector<CVector3> vecBlockPositions = {
       // small structure
       cSmallStructureCenter + CVector3(0.0,0.0,0.0),
       cSmallStructureCenter + CVector3(0.0,0.0,0.055),
+      // unused block
+      CVector3(0.25,-0.05,0.0),
+   };
+
+   std::vector<CVector3> vecLargeStructureBlockPositions = {
       // large structure
       cLargeStructureCenter + CVector3(0.0,0.0,0.0),
       cLargeStructureCenter + CVector3(0.0,0.0,0.055),
@@ -62,12 +66,11 @@ void CSRoCSLoopFunctions::Reset() {
       cLargeStructureCenter + CVector3(0.0,0.055,0.0),
       cLargeStructureCenter + CVector3(0.0,0.055,0.055),
       cLargeStructureCenter + CVector3(0.0,-0.055,0.0),
-      // unused block
-      CVector3(0.25,-0.1,0.0),
    };
-   */
+
 
    /* uncomment for qualitative experiment */
+   /*
    const CVector3 cStructureCenter(0.0,-0.3,0.0);
    const CQuaternion cStructureRotation(-CRadians::PI_OVER_SIX, CVector3::Z);
    std::vector<CVector3> vecBlockPositions = {
@@ -84,17 +87,29 @@ void CSRoCSLoopFunctions::Reset() {
       // unused block
       CVector3(0.35,0,0.0),
    };
+   */
 
    /* create blocks and insert them into the simulation */
    for(const CVector3& c_block_position : vecBlockPositions) {
       std::ostringstream strmBlockId;
       strmBlockId << c_block_position;
-      CPrototypeEntity& cBlock = CreateEntity<CPrototypeEntity>("block", "block(" + strmBlockId.str() + ")", c_block_position, cStructureRotation);
+      CPrototypeEntity& cBlock = CreateEntity<CPrototypeEntity>("block", "block(" + strmBlockId.str() + ")", c_block_position, CQuaternion());
       m_mapBlocks.emplace(cBlock.GetId(), &cBlock);
       AddEntity(cBlock);
    }
 
+   for(const CVector3& c_block_position : vecLargeStructureBlockPositions) {
+      std::ostringstream strmBlockId;
+      strmBlockId << c_block_position;
+      CPrototypeEntity& cBlock = CreateEntity<CPrototypeEntity>("block", "block(" + strmBlockId.str() + ")", c_block_position, CQuaternion());
+      cBlock.GetBodyEquippedEntity().GetBody(0).m_fMass = 0;
+      m_mapBlocks.emplace(cBlock.GetId(), &cBlock);
+      AddEntity(cBlock);
+   }
+
+
    /* Insert a fake radio message to initialize the target block */
+   /*
    std::ostringstream strmTgtBlockId;
    strmTgtBlockId << vecBlockPositions[0];
 
@@ -103,6 +118,7 @@ void CSRoCSLoopFunctions::Reset() {
    cData.emplace_back();
    cData.back() << "1"; // Q1, target block
    cBlockRadios.GetRadio(0).SetRxData(cData);
+   */
 
    /* create the robots */
    m_mapRobots.emplace("robot0", &CreateEntity<CPrototypeEntity>("robot", "robot0", CVector3(0,0.1,0), CQuaternion(CRadians::ZERO, CVector3::Z)));

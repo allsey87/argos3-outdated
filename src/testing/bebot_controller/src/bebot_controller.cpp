@@ -9,7 +9,7 @@
 #include <argos3/core/utility/logging/argos_log.h>
 #include <iomanip>
 
-#include "qualitative_stigmergy_experiment.h"
+#include "quantitative_stigmergy_experiment.h"
 
 #define NUM_CHASSIS_DEVICES 12
 #define RF_HISTORY_LEN 5
