@@ -2,4 +2,6 @@ add_subdirectory(qt_camera_visualisation)
 add_subdirectory(bebot_controller)
 add_subdirectory(srocs_loop_functions)
 add_subdirectory(srocs_simple_loop_functions)
+add_subdirectory(radio_testing_loop_functions)
 add_subdirectory(srocs_qtopengl_user_functions)
+

@@ -12,7 +12,6 @@
   <!-- * Controllers * -->
   <!-- *************** -->
   <controllers>
-    
     <lua_controller id="robot_prototype_lua">
       <actuators>
         <pleds implementation="default" medium="leds"/>
