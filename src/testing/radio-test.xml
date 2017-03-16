@@ -1,0 +1,96 @@
+<?xml version="1.0" ?>
+<argos-configuration>
+
+  <!-- ************************* -->
+  <!-- * General configuration * -->
+  <!-- ************************* -->
+  <framework>
+    <experiment threads="1" length="0" ticks_per_second="5" />
+  </framework>
+
+  <!-- *************** -->
+  <!-- * Controllers * -->
+  <!-- *************** -->
+  <controllers>
+    <lua_controller id="radiopad_ctrl">
+      <actuators>
+        <pleds implementation="default" medium="leds"/>
+        <radios implementation="default" medium="nfc"/>
+      </actuators>
+      <sensors>
+        <radios implementation="default" medium="nfc"/>
+      </sensors>
+      <params script="src/testing/radiopad-ctrl.lua"/>
+    </lua_controller>
+  </controllers>
+  
+  <!-- *********************** -->
+  <!-- * Arena configuration * -->
+  <!-- *********************** -->
+
+  <loop_functions label="radio_testing_loop_functions">
+    <entity id="radiopad">
+      <prototype>
+        <controller config="radiopad_ctrl"/>
+          <body position="0.05,0.1,0.0"  orientation="0,0,0"/>
+          <bodies reference_body="base">
+            <body id="base" geometry="box" size="0.1,0.1,0.020" mass="0.01">
+              <coordinates/>
+              <offset/>
+            </body>
+          </bodies>
+          <devices>
+            <leds medium="leds">
+              <led id="led" body="base" position="0,0,0.0205" orientation="0,0,0" observable_angle="75" color="black"/>
+            </leds>
+            <radios>
+              <radio id="radio+x" medium="nfc" duplex_mode="half" body="base" position="0.05,0,0.0205" orientation="0,0,0" range="0.075"/>
+              <radio id="radio-x" medium="nfc" duplex_mode="half" body="base" position="-0.05,0,0.0205" orientation="0,0,0" range="0.075"/>
+            </radios>
+          </devices>
+      </prototype>
+    </entity>
+  </loop_functions>
+  
+  <arena size="1, 1, 1" positional_index="grid" positional_grid_size="2,2,2"/>
+  
+  <!-- ********* -->
+  <!-- * Media * -->
+  <!-- ********* -->
+  <media>
+    <led id="leds" index="grid" grid_size="2,2,2" />
+    <radio id="nfc" index="grid" grid_size="2,2,2" />
+  </media>
+  
+  <!-- ******************* -->
+  <!-- * Physics engines * -->
+  <!-- ******************* -->
+  <physics_engines>
+    <dynamics3d id="dyn3d" iterations="25">
+    <plugins/>
+  </dynamics3d>
+</physics_engines>
+
+<!-- ****************** -->
+<!-- * Visualization * -->
+<!-- ****************** -->
+<visualization>
+  <!-- ************************************************************************ -->
+  <!-- * To activate the Lua editor, just use the 'lua_editor' flag attribute * -->
+  <!-- ************************************************************************ -->
+  <qt-opengl lua_editor="true">
+    <camera>
+      <placement idx="0" position="1.5,-0.60,1" look_at="0.75,-0.25,0.55" lens_focal_length="40" />
+      <placement idx="1" position=" 4,-4, 1.5" look_at="2,-2,1" lens_focal_length="30" />
+      <placement idx="2" position=" 4, 0, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" />
+      <placement idx="3" position=" 4, 4, 1.5" look_at="2,2,1" lens_focal_length="30" />
+      <placement idx="4" position=" 0, 4, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" />
+      <placement idx="5" position="-4, 4, 1.5" look_at="-2,2,1" lens_focal_length="30" />
+      <placement idx="6" position="-4, 0, 1.5" look_at="0.01,0.01,0.01" lens_focal_length="20" />
+      <placement idx="7" position="-4,-4, 1.5" look_at="-2,-2,1" lens_focal_length="30" />
+      <placement idx="8" position="0,0, 4" look_at="0,0,0.001" lens_focal_length="10" />
+    </camera>
+  </qt-opengl>
+</visualization>
+
+</argos-configuration>
